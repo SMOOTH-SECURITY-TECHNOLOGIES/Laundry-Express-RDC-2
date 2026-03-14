@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laundry Express RDC</title>
+    <meta name="description" content="An on-demand laundry app for cities in the DRC, connecting customers with local laundromats for quick and easy laundry service, pickup, and delivery." />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Color for browsers -->
+    <meta name="theme-color" content="#0077B6" />
+
+    <!-- iOS PWA Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Laundry Express" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- SEO Meta Tags (Dynamically updated by App.tsx) -->
+    <link rel="canonical" href="https://laundry.app/" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://laundry.app/" />
+    <meta property="og:title" content="Laundry Express RDC" />
+    <meta property="og:description" content="An on-demand laundry app for cities in the DRC, connecting customers with local laundromats for quick and easy laundry service, pickup, and delivery." />
+    <meta property="og:image" content="https://laundry.app/favicon.svg" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Laundry Express RDC" />
+    <meta name="twitter:description" content="An on-demand laundry app for cities in the DRC, connecting customers with local laundromats for quick and easy laundry service, pickup, and delivery." />
+    <meta name="twitter:image" content="https://laundry.app/favicon.svg" />
+
+    <!-- 
+      TRACKING & ANALYTICS:
+      All tracking scripts (GTM, Meta Pixel, etc.) are now injected dynamically 
+      by the App.tsx component based on the configuration set in the Admin Dashboard.
+    -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'brand-blue': '#0077B6',
+              'brand-dark': '#03045E',
+              'brand-lightblue': '#ADE8F4',
+              'brand-cyan': '#00B4D8',
+              'brand-gray': '#F7F9FC',
+              'brand-success': '#2A9D8F',
+               slate: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#334152',
+                800: '#1e293b',
+                900: '#0f172a'
+              },
+            },
+            boxShadow: {
+              'card': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07)',
+              'card-hover': '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08)',
+            },
+            borderRadius: {
+              'xl': '1rem',
+              '2xl': '1.5rem',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-in-out',
+              'slide-up': 'slideUp 0.5s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: 0, transform: 'translateY(-10px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
+              slideUp: {
+                '0%': { opacity: 0, transform: 'translateY(20px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              }
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      /* Custom radio button styles */
+      input[type="radio"] {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 1rem; /* 16px */
+        height: 1rem; /* 16px */
+        border: 2px solid #cbd5e1; /* slate-300 */
+        border-radius: 50%;
+        position: relative;
+        cursor: pointer;
+        vertical-align: -2px; /* To align with text */
+      }
+      .dark input[type="radio"] {
+        border-color: #475569; /* dark:slate-600 */
+        background-color: #1e293b; /* dark:slate-800 */
+      }
+
+      input[type="radio"]:checked {
+        border-color: #0077B6; /* brand-blue */
+        background-color: #0077B6; /* brand-blue */
+      }
+
+      input[type="radio"]:checked::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+      }
+      
+      input[type="radio"]:focus-visible {
+        outline: 2px solid #ADE8F4; /* brand-lightblue */
+        outline-offset: 2px;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react-dom/server": "https://aistudiocdn.com/react-dom@^19.1.1/server",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.24.0"
+  }
+}
+</script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Laundry Express RDC",
+      "description": "An on-demand laundry app for cities in the DRC, connecting customers with local laundromats for quick and easy laundry service, pickup, and delivery.",
+      "url": "https://laundry.app/",
+      "logo": "https://laundry.app/favicon.svg"
+    }
+    </script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-brand-gray dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200">
+    <div id="root"></div>
+    <script>
+      // Initialize GTM dataLayer
+      window.dataLayer = window.dataLayer || [];
+
+      // --- Custom Domain & Subdomain Routing ---
+      const hostname = window.location.hostname;
+      const hostnameParts = hostname.split('.');
+      const prodDomain = 'laundry.app'; // The actual production domain
+
+      // 1. Check for Partner Subdomain (e.g., `prestige-pressing.laundry.app`)
+      if (hostname.endsWith(prodDomain) && hostnameParts.length > 2 && hostnameParts[0] !== 'www') {
+        window.customDomainPartnerSlug = hostnameParts[0];
+      } else {
+        // 2. Fallback to Full Custom Domain check
+        const customDomainMap = {
+          'pressing.prestige.com': 'PARTNER-1'
+          // 'another-partner.com': 'PARTNER-X'
+        };
+        const partnerId = customDomainMap[hostname];
+        if (partnerId) {
+          window.customDomainPartnerId = partnerId;
+        }
+      }
+    </script>
+    <!-- 
+      IMPORTANT NOTE FOR DEPLOYMENT:
+      This application now uses browser history for routing (clean URLs like /profile).
+      For this to work in production, your web server must be configured to handle Single Page Applications (SPAs).
+      This means any request to a path that isn't a static file (like /profile, /order, etc.)
+      should be redirected to serve this index.html file. The client-side router will then handle displaying the correct page.
+      
+      Example for Nginx:
+      location / {
+        try_files $uri $uri/ /index.html;
+      }
+
+      Hosting services like Vercel, Netlify, and Firebase Hosting usually handle this automatically or with a simple configuration rule.
+    -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

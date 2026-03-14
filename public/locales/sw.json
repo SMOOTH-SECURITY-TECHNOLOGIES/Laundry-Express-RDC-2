@@ -1,0 +1,2071 @@
+{
+  "language": "sw",
+  "app": {
+    "loading": "Inapakia programu..."
+  },
+  "common": {
+    "userNotFound": "Mtumiaji hajapatikana.",
+    "backToHome": "Rudi nyumbani",
+    "cancel": "Ghairi",
+    "confirm": "Thibitisha",
+    "save": "Hifadhi"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "sw": "Kiswahili"
+  },
+  "buttons": {
+    "close": "Funga",
+    "loading": "Inapakia...",
+    "saving": "Inahifadhi...",
+    "refresh": "Onyesha upya",
+    "cancel": "Ghairi",
+    "dismiss": "Puuza",
+    "apply": "Tumia",
+    "clear": "Futa"
+  },
+  "validation": {
+    "required": "Sehemu hii inahitajika.",
+    "invalidEmail": "Tafadhali weka anwani ya barua pepe sahihi.",
+    "invalidPhone": "Tafadhali weka nambari ya simu sahihi (mf: 0812345678).",
+    "minLength": "Lazima iwe na angalau herufi {{count}}."
+  },
+  "header": {
+    "home": "Nyumbani",
+    "tracking": "Fuatilia agizo langu",
+    "profile": "Wasifu wangu",
+    "history": "Maagizo yangu",
+    "admin": "Msimamizi",
+    "dashboard": "Dashibodi",
+    "login": "Ingia",
+    "register": "Jiandikishe",
+    "logout": "Toka",
+    "greeting": "Habari, {{name}}",
+    "openMenu": "Fungua menyu"
+  },
+  "footer": {
+    "tagline": "Nguo zako, zikiletwe. Njia rahisi zaidi ya kufua na kusafisha nguo DRC.",
+    "navigation": "Urambazaji",
+    "home": "Nyumbani",
+    "order": "Tengeneza agizo",
+    "myProfile": "Wasifu wangu",
+    "faq": "Maswali Yanayoulizwa Mara Kwa Mara",
+    "partners": "Washirika",
+    "becomePartner": "Kuwa mshirika",
+    "logisticsPartnership": "Ushirika wa usafirishaji",
+    "contactUs": "Wasiliana nasi",
+    "phone": "+243 81 234 5678",
+    "copyright": "© {{year}} Laundry Express DRC. Haki zote zimehifadhiwa."
+  },
+  "notifications": {
+    "title": "Arifa",
+    "noNotifications": "Huna arifa mpya.",
+    "filters": {
+      "all": "Zote",
+      "unread": "Zisizosomwa"
+    },
+    "time": {
+      "years": "mwaka {{count}} uliopita",
+      "years_plural": "miaka {{count}} iliyopita",
+      "months": "mwezi {{count}} uliopita",
+      "months_plural": "miezi {{count}} iliyopita",
+      "days": "siku {{count}} iliyopita",
+      "days_plural": "siku {{count}} zilizopita",
+      "hours": "saa {{count}} iliyopita",
+      "hours_plural": "saa {{count}} zilizopita",
+      "minutes": "dakika {{count}} iliyopita",
+      "minutes_plural": "dakika {{count}} zilizopita",
+      "justNow": "Hivi punde"
+    },
+    "userProfileUpdated": "Wasifu umehakikishwa kwa mafanikio.",
+    "userProfileUpdateError": "Hitilafu wakati wa kusasisha wasifu wako.",
+    "preferencesUpdated": "Mapendeleo yamehakikishwa kwa mafanikio.",
+    "preferencesUpdateError": "Hitilafu wakati wa kusasisha mapendeleo.",
+    "siteContentUpdated": "Maudhui ya tovuti yamesasishwa.",
+    "partnerApproved": "Ushirika wa \"{{companyName}}\" umeidhinishwa.",
+    "partnerRejected": "Ombi la ushirika la \"{{companyName}}\" limekataliwa.",
+    "partnerDeleted": "Mshirika amefutwa kwa mafanikio.",
+    "userLinkedToPartner": "Mtumiaji {{name}} ameunganishwa kwa mafanikio na mshirika.",
+    "serviceSaved": "Huduma imehifadhiwa kwa mafanikio.",
+    "serviceDeleted": "Huduma imefutwa kwa mafanikio.",
+    "serviceUnlinked": "Huduma imetenganishwa na mshirika.",
+    "ticketCreated": "Tiketi ya usaidizi imeundwa kwa mafanikio.",
+    "ticketStatusUpdated": "Hali ya tiketi #{{id}} imesasishwa.",
+    "promoAdded": "Msimbo wa promoshini umeongezwa kwa mafanikio.",
+    "promoUpdated": "Msimbo wa promoshini umesasishwa kwa mafanikio.",
+    "promoDeleted": "Msimbo wa promoshini umefutwa kwa mafanikio.",
+    "driverAdded": "Dereva {{name}} ameongezwa kwa mafanikio.",
+    "emailExists": "Barua pepe hii tayari ipo.",
+    "pickupMissionAssigned": "Kazi ya kuchukua imetengwa kwa mafanikio.",
+    "deliveryMissionAssigned": "Kazi ya kutoa imetengwa kwa mafanikio.",
+    "pointsEarnedToast": "Umepata pointi {{points}}! Usawa mpya: {{total}}.",
+    "reviewThanks": "Asante kwa maoni yako!",
+    "newOrder": "Agizo jipya #{{id}} kutoka {{name}}.",
+    "aClient": "mteja",
+    "actions": {
+      "accept": "Kubali",
+      "reject": "Kataa"
+    },
+    "newOrderAdmin": "Agizo jipya #{{id}} kwa {{partner}}.",
+    "emailSendFailure": "Imeshindwa kutuma barua pepe kwa {{email}}. Anwani inaweza kuwa batili.",
+    "orderConfirmedWithTime": "Agizo #{{id}} limehakikishwa! Inakadiriwa kukamilika: {{time}}.",
+    "orderRejected": "Agizo #{{id}} limekataliwa. Sababu: {{reason}}.",
+    "orderRejectedNoReason": "Hakuna sababu iliyotolewa.",
+    "orderStatusUpdate": "Agizo #{{id}} sasa ni: {{status}}.",
+    "orderStatusUpdateSystemChat": "Hali ya agizo imesasishwa kiotomatiki hadi: {{status}}.",
+    "newPickupMission": "Kazi mpya ya kuchukua inapatikana kwa agizo #{{orderId}} kwenye {{partnerName}}.",
+    "newDeliveryMission": "Kazi mpya ya kutoa inapatikana kwa agizo #{{orderId}} kutoka {{partnerName}}.",
+    "newPickupMissionDriver": "Kazi mpya ya kuchukua imetengwa: Agizo #{{orderId}} kutoka {{partnerName}}.",
+    "newDeliveryMissionDriver": "Kazi mpya ya kutoa imetengwa: Agizo #{{orderId}} kwa {{clientName}}.",
+    "driverAssignedForPickup": "Dereva ana njia ya kuchukua agizo lako #{{id}}!",
+    "orderOnTheWayForDelivery": "Habari njema! Agizo lako #{{id}} lina njia ya kutoa.",
+    "orderReaccepted": "Mshirika mpya amekubali agizo #{{id}} lililotengwa upya. Kazi ya kuchukua itapatikana hivi karibuni kwa usafirishaji.",
+    "missionCancelledReassigned": "Kazi yako kwa agizo #{{id}} imebatilishwa kwa sababu agizo lilitengwa upya.",
+    "permissionsUpdated": "Ruhusa zimehakikishwa kwa mafanikio.",
+    "permissionsUpdateError": "Hitilafu wakati wa kusasisha ruhusa.",
+    "adminCreated": "Msimamizi mpya '{{name}}' ameundwa kwa mafanikio.",
+    "adminCreationError": "Imeshindwa kuunda msimamizi: {{error}}.",
+    "applicationSettingsUpdated": "Mipangilio ya programu imesasishwa.",
+    "settingsSaveError": "Imeshindwa kuhifadhi mipangilio.",
+    "codeCopied": "Msimbo umenakiliwa kwenye ubao wa kunakili!",
+    "copyError": "Imeshindwa kunakili msimbo.",
+    "pointsEarned": "Hongera! Umepata pointi {{points}} za uaminifu.",
+    "partnerUpdated": "Mshirika amesasishwa kwa mafanikio.",
+    "partnerFeaturesUpdated": "Vipengele vya mshirika vimesasishwa kwa mafanikio.",
+    "refundRequestSubmitted": "Ombi la kurejeshewa fedha limeshasilishwa kwa mafanikio.",
+    "refundRequestError": "Imeshindwa kuwasilisha ombi la kurejeshewa fedha.",
+    "refundApproved": "Ombi la kurejeshewa fedha limeidhinishwa.",
+    "refundRejected": "Ombi la kurejeshewa fedha limekataliwa.",
+    "refundError": "Imeshindwa kushughulikia ombi la kurejeshewa fedha.",
+    "scanSuccess": "Vitu {{count}} vimesakaniwa kwa mafanikio",
+    "scanNoMatches": "Hakuna vitu vinavyolingana vilivyopatikana katika usakani"
+  },
+  "automationPage": {
+    "title": "Mipangilio ya Otomatiki",
+    "description": "Weka mchakato wa biashara yako otomatiki kuokoa wakati na kuboresha mawasiliano ya wateja",
+    "tabs": {
+      "basic": "Msingi",
+      "messaging": "Ujumbe",
+      "rules": "Kanuni",
+      "analytics": "Takwimu"
+    },
+    "autoAccept": {
+      "title": "Kukubali Agizo kiotomatiki",
+      "enableLabel": "Washa kukubali kiotomatiki",
+      "enableDescription": "Kubali agizo jipya zinazoingia kiotomatiki",
+      "maxPriceLabel": "Thamani ya juu ya agizo ya kukubali kiotomatiki ($)",
+      "maxPriceDescription": "Agizo lenye thamani kubwa kuliko hii litahitaji uthibitisho wa mikono. Weka 0 kukubali yote.",
+      "serviceFilters": "Vichujio vya Aina ya Huduma",
+      "serviceFiltersDescription": "Kubali kiotomatiki agizo tu kwa huduma zilizochaguliwa"
+    },
+    "businessHours": {
+      "title": "Saa za Biashara",
+      "enableLabel": "Washa saa za biashara",
+      "enableDescription": "Endesha otomatiki wakati wa saa za biashara zako tu",
+      "timezone": "Eneo la saa",
+      "open": "Fungua",
+      "close": "Funga"
+    },
+    "autoMessages": {
+      "title": "Ujumbe Otomatiki",
+      "enableLabel": "Washa ujumbe otomatiki",
+      "enableDescription": "Tuma ujumbe uliowekwa tayari kwa wateja wakati hali ya agizo inabadilika",
+      "variables": "Tumia vigezo kama {customerName}, {orderNumber}, {estimatedTime} katika ujumbe wako"
+    },
+    "templateTokens": {
+      "title": "Vigezo vya Ujumbe",
+      "description": "Bonyeza kuweka vigezo ambavyo vitabadilishwa na data halisi",
+      "customerName": "Jina kamili la mteja",
+      "orderNumber": "Nambari ya kumbukumbu ya agizo",
+      "estimatedTime": "Muda unaokadiriwa wa utunzaji",
+      "serviceType": "Aina ya huduma iliyoagizwa",
+      "pickupTime": "Muda wa upatikanaji wa kuchukua",
+      "deliveryTime": "Muda uliopangwa wa utoaji",
+      "totalAmount": "Jumla ya agizo",
+      "driverName": "Jina la dereva wa utoaji",
+      "driverPhone": "Nambari ya mawasiliano ya dereva",
+      "businessAddress": "Anwani yako ya biashara"
+    },
+    "messageCategories": {
+      "orderStatus": "Sasisho za Hali",
+      "payment": "Arifa za Malipo",
+      "delivery": "Utoaji & Kuchukua",
+      "customerService": "Huduma ya Wateja",
+      "appointments": "Ukumbusho wa Miadi",
+      "qualityUpdates": "Sasisho za Ubora",
+      "promotional": "Ujumbe wa Utangazaji"
+    },
+    "messageTitles": {
+      "CONFIRMED": "Agizo Limehakikishwa",
+      "PROCESSING": "Utunzaji Umeanza",
+      "READY_FOR_PICKUP": "Tayari Kuchukuliwa",
+      "READY_FOR_DELIVERY": "Inatolewa Nje",
+      "COMPLETED": "Agizo Limekamilika",
+      "DELAYED": "Agizo Limechelewa",
+      "PAYMENT_CONFIRMED": "Malipo Yamehakikishwa",
+      "PAYMENT_FAILED": "Malipo Yameshindwa",
+      "INVOICE_READY": "Anwani Imetayarisha",
+      "DRIVER_ASSIGNED": "Dereva Ametengwa",
+      "OUT_FOR_DELIVERY": "Inatolewa Nje",
+      "DELIVERY_ATTEMPT_FAILED": "Jaribio la Utoaji Limeshindwa",
+      "PICKUP_REMINDER": "Ukumbusho wa Kuchukua",
+      "WELCOME_NEW_CUSTOMER": "Karibu Mteja Mpya",
+      "FEEDBACK_REQUEST": "Ombi la Maoni",
+      "LOYALTY_UPDATE": "Sasisho ya Pointi za Uaminifu",
+      "SUBSCRIPTION_RENEWAL": "Kusasisha Usajili",
+      "APPOINTMENT_CONFIRMATION": "Uthibitishaji wa Miadi",
+      "APPOINTMENT_REMINDER_24H": "Ukumbusho wa Saa 24",
+      "APPOINTMENT_REMINDER_2H": "Ukumbusho wa Saa 2",
+      "QUALITY_CHECK_PASSED": "Ukaguzi wa Ubora Umepita",
+      "SPECIAL_CARE_UPDATE": "Sasisho ya Utunzaji Maalum",
+      "SPECIAL_OFFER": "Ofa Maalum",
+      "BIRTHDAY_GREETING": "Salamu ya Kuzaliwa"
+    },
+    "messagePlaceholders": {
+      "CONFIRMED": "Habari {customerName}, agizo lako #{orderNumber} limehakikishwa! Tutaanza kulitunza hivi karibuni.",
+      "PROCESSING": "Habari {customerName}, tunatunza agizo lako la {serviceType} #{orderNumber}. Inakadiriwa kukamilika: {estimatedTime}.",
+      "READY_FOR_PICKUP": "Habari {customerName}, agizo lako #{orderNumber} limetayarisha kuchukuliwa! Unaweza kulichukua hadi {pickupTime}.",
+      "READY_FOR_DELIVERY": "Habari {customerName}, agizo lako #{orderNumber} linatolewa nje! Utoaji umepangwa: {deliveryTime}.",
+      "COMPLETED": "Asante kwa kuchagua sisi, {customerName}! Agizo #{orderNumber} limekamilika. Tunatumaini kukuona tena hivi karibuni! 💫",
+      "DELAYED": "Habari {customerName}, tunasikitika kwa kuchelewa na agizo #{orderNumber}. Muda mpya unaokadiriwa: {newEstimatedTime}. Asante kwa subira yako!",
+      "PAYMENT_CONFIRMED": "Habari {customerName}, malipo ya agizo #{orderNumber} yamehakikishwa. Jumla: {totalAmount}",
+      "PAYMENT_FAILED": "Habari {customerName}, tumekutana na tatizo na malipo yako kwa agizo #{orderNumber}. Tafadhali sasisha njia yako ya malipo.",
+      "INVOICE_READY": "Habari {customerName}, anwani yako kwa agizo #{orderNumber} imetayarisha. Kiasi: {totalAmount}. Tazama: {invoiceLink}",
+      "DRIVER_ASSIGNED": "Habari {customerName}, {driverName} ametengwa kutoa agizo lako #{orderNumber}. Mawasiliano: {driverPhone}",
+      "OUT_FOR_DELIVERY": "Habari {customerName}, agizo lako #{orderNumber} linatolewa nje! Fuatilia hapa: {trackingLink}",
+      "DELIVERY_ATTEMPT_FAILED": "Habari {customerName}, tumekukosa kwa utoaji wa agizo #{orderNumber}. Tafadhali wasiliana nasi upange tena.",
+      "PICKUP_REMINDER": "Habari {customerName}, ukumbusho wa kirafiki: agizo #{orderNumber} limetayarisha kuchukuliwa kwenye {businessAddress}",
+      "WELCOME_NEW_CUSTOMER": "Karibu {customerName}! 🎉 Asante kwa kuchagua huduma yetu ya kufua. Tumia msimbo WELCOME10 kwa punguzo la 10% kwenye agizo lako linalofuata!",
+      "FEEDBACK_REQUEST": "Habari {customerName}, uzoefu wako na agizo #{orderNumber} ulikuwaje? Tupimie: {feedbackLink}",
+      "LOYALTY_UPDATE": "Habari {customerName}, umepata pointi {points} za uaminifu! Jumla: {totalPoints}. Badilisha: {rewardsLink}",
+      "SUBSCRIPTION_RENEWAL": "Habari {customerName}, usajili wako wa kufua unasasishwa kwa siku 3. Jumla: {renewalAmount}",
+      "APPOINTMENT_CONFIRMATION": "Habari {customerName}, miadi yako kwa {serviceType} imethibitishwa kwa {appointmentDate} saa {appointmentTime}",
+      "APPOINTMENT_REMINDER_24H": "Ukumbusho: Miadi yako ya kufua ni kesho saa {appointmentTime}. Tutaonana hivi karibuni!",
+      "APPOINTMENT_REMINDER_2H": "Ukumbusho wa kirafiki: Miadi yako iko kwa masaa 2 saa {appointmentTime}",
+      "QUALITY_CHECK_PASSED": "Habari njema {customerName}! Agizo lako #{orderNumber} lilipita ukaguzi wetu wa ubora kwa mafanikio 🎉",
+      "SPECIAL_CARE_UPDATE": "Habari {customerName}, tunatoa utunzaji maalum kwa vitu vyenye urahisi katika agizo #{orderNumber}. Kila kitu kinaenda vizuri sana!",
+      "SPECIAL_OFFER": "Habari {customerName}! Ofa maalum kwa ajili yako: {promoDescription}. Msimbo: {promoCode}",
+      "BIRTHDAY_GREETING": "Heri ya kuzaliwa {customerName}! 🎂 Furahia punguzo la 20% kwenye agizo lako linalofuata na msimbo BDAY20"
+    },
+    "advancedMessaging": {
+      "title": "Chaguzi za Ujumbe wa Hali ya Juu",
+      "enableEmojis": "Washa emoji",
+      "enableEmojisDescription": "Ruhusu emoji katika ujumbe otomatiki",
+      "enableDeliveryReports": "Ripoti za utoaji",
+      "enableDeliveryReportsDescription": "Pokea ripoti wakati ujumbe unatolewa",
+      "enableAppointmentReminders": "Ukumbusho wa miadi",
+      "enableAppointmentRemindersDescription": "Tuma ukumbusho wa miadi otomatiki",
+      "enablePromotionalMessages": "Ujumbe wa utangazaji",
+      "enablePromotionalMessagesDescription": "Tuma ofa maalum na matangazo"
+    },
+    "escalationRules": {
+      "title": "Kanuni za Kuongeza Msimamo",
+      "notifyOnFailure": "Arifu wakati wa kushindwa",
+      "notifyOnFailureDescription": "Kuwa na arifa wakati otomatiki inashindwa",
+      "escalationEmail": "Barua pepe ya arifa",
+      "escalationEmailPlaceholder": "meneja@mfano.com",
+      "notificationMethods": "Mbinu za Arifa",
+      "email": "Barua pepe",
+      "sms": "SMS",
+      "push": "Push",
+      "fallbackAction": "Hatua ya Reserve",
+      "fallbackActionDescription": "Chagua hatua ya kuchukua wakati otomatiki inashindwa",
+      "maxRetries": "Jaribio la Juu zaidi",
+      "maxRetriesDescription": "Idadi ya majaribio ya kujaribu tena kabla ya kuongeza msimamo",
+      "fallbackActions": {
+        "holdForReview": "Subiri Kwa Mapitio",
+        "notifyManager": "Arifu Meneja",
+        "autoDecline": "Kataa Kiotomatiki",
+        "assignToStaff": "Tenga kwa Wafanyikazi"
+      }
+    },
+    "autoDecline": {
+      "title": "Kanuni za Kukataa Kiotomatiki",
+      "enableLabel": "Washa kukataa kiotomatiki",
+      "enableDescription": "Kataa agizo zinazokutana na vigezo fulani kiotomatiki",
+      "maxPriceLabel": "Thamani ya juu ya agizo ya kukataa kiotomatiki ($)",
+      "maxPriceDescription": "Agizo lenye thamani kubwa kuliko hii litakataliwa kiotomatiki",
+      "maxDistanceLabel": "Umbali wa juu wa utoaji (maili)",
+      "maxDistanceDescription": "Agizo zaidi ya umbali huu litakataliwa kiotomatiki",
+      "complexServices": "Vichujio vya Huduma ngumu",
+      "complexServicesDescription": "Kataa agizo zenye huduma hizi ngumu kiotomatiki"
+    },
+    "priorityHandling": {
+      "title": "Utunzaji wa Kipaumbele",
+      "enableLabel": "Washa utunzaji wa kipaumbele",
+      "enableDescription": "Tunza agizo la thamani kubwa au VIP kwa kipaumbele maalum",
+      "enableVip": "Kipaumbele cha Wateja VIP",
+      "enableVipDescription": "Toa kipaumbele kwa agizo kutoka kwa wateja VIP",
+      "minOrderValue": "Thamani ya chini ya agizo kwa kipaumbele ($)",
+      "minOrderValueDescription": "Agizo lenye thamani kubwa kuliko hii linapokea utunzaji wa kipaumbele"
+    },
+    "analytics": {
+      "title": "Takwimu za Otomatiki",
+      "ordersProcessed": "Agizo zilizotunzwa",
+      "messagesSent": "Ujumbe uliotumwa",
+      "timeSavedWeekly": "Muda uliookolewa (kila wiki)",
+      "errors": "Makosa",
+      "efficiencyGains": "Faida za Ufanisi",
+      "weeklyTimeSaved": "Muda uliookolewa kila wiki",
+      "monthlyTimeSaved": "Muda uliookolewa kila mwezi",
+      "successRate": "Kiwango cha mafanikio",
+      "totalUsage": "Matumizi ya Jumla"
+    },
+    "showPreview": "Hakiki",
+    "hidePreview": "Ficha hakiki",
+    "testMessage": "Jaribu",
+    "testMessageSent": "Ujumbe wa majaribio umetumwa: {preview}",
+    "noMessageToTest": "Hakuna ujumbe wa kujaribu",
+    "characterCount": "{current}/{max} herufi",
+    "emojisEnabled": "Emoji zimewashwa 😊",
+    "saveSuccess": "Mipangilio ya otomatiki imehifadhiwa kwa mafanikio",
+    "saveError": "Hitilafu wakati wa kuhifadhi mipangilio ya otomatiki",
+    "selectedCount": "{count} imechaguliwa",
+    "selectAction": "Chagua hatua",
+    "activate": "Amilisha",
+    "deactivate": "Zima",
+    "delete": "Futa",
+    "confirmBulkDelete": "Una uhakika unataka kufuta misimbo {count} ya promoshini?",
+    "export": "Hamisha nje",
+    "all": "Zote",
+    "active": "Inatumika",
+    "inactive": "Haifanyi kazi",
+    "expired": "Imemalizika muda",
+    "totalCodes": "Msimbo wa Jumla",
+    "activeCodes": "Msimbo Inatumika",
+    "expiredCodes": "Msimbo Imemalizika Muda"
+  },
+  "days": {
+    "monday": "Jumatatu",
+    "tuesday": "Jumanne",
+    "wednesday": "Jumatano",
+    "thursday": "Alhamisi",
+    "friday": "Ijumaa",
+    "saturday": "Jumamosi",
+    "sunday": "Jumapili"
+  },
+  "partnerManagement": {
+    "title": "Usimamizi wa Washirika",
+    "healthScoreTitle": "Alama ya Afya",
+    "analyzeHealth": "Chambua afya",
+    "applicationSettings": {
+      "title": "Mipangilio ya Maombi",
+      "description": "Washa au zima maombi mapya ya ushirika kwa aina.",
+      "savingButton": "Inahifadhi...",
+      "saveButton": "Hifadhi"
+    },
+    "pendingRequests": "Maombi yanayosubiri ({{count}})",
+    "noPendingRequestsTitle": "Hakuna maombi yanayosubiri",
+    "approve": "Idhinisha",
+    "reject": "Kataa",
+    "activePartners": "Washirika wanafanya kazi ({{count}})",
+    "noActivePartners": "Hakuna washirika wanafanya kazi kwa sasa.",
+    "edit": "Hariri",
+    "delete": "Futa",
+    "confirmDelete": "Una uhakika unataka kufuta mshirika huyu? Hatua hii haiwezi kubatilishwa.",
+    "featured": "Iliyopendekezwa",
+    "setFeatured": "Weka kama iliyopendekezwa",
+    "tabs": {
+      "laundry": "Kusafisha kwa Kikausi & Kufua",
+      "logistics": "Usafirishaji"
+    },
+    "activeLogisticsPartners": "Washirika wa usafirishaji wanafanya kazi ({{count}})",
+    "addLogisticsPartnerPlaceholder": "Jina la mshirika mpya wa usafirishaji",
+    "addLogisticsPartnerButton": "Ongeza",
+    "confirmDeleteLogistics": "Una uhakika unataka kufuta mshirika huyu wa usafirishaji?",
+    "downloadFeed": "Pakua usambazaji wa bidhaa",
+    "bulkFeatureManagement": {
+      "title": "Usimamizi wa Kipengele kwa Wingi",
+      "description": "Washa au zima kipengele maalum kwa washirika wote mara moja.",
+      "manageButton": "Dhibiti"
+    }
+  },
+  "activityLog": {
+    "date": "Tarehe",
+    "user": "Mtumiaji",
+    "action": "Hatua",
+    "partner": "Mshirika",
+    "details": "Maelezo",
+    "allUsers": "Watumiaji wote",
+    "allActions": "Vitendo vyote"
+  },
+  "driverDashboard": {
+    "title": "Dashibodi ya Madereva",
+    "myStatus": "Hali yangu",
+    "available": "Inapatikana",
+    "unavailable": "Haipatikani",
+    "onMission": "Kwenye kazi",
+    "statusChangedToAvailable": "Hali imebadilishwa kuwa INAPATIKANA.",
+    "statusChangedToUnavailable": "Hali imebadilishwa kuwa HAIPATIKANI.",
+    "statusLocked": "Hali imefungwa (Kwenye kazi)",
+    "goUnavailable": "Kuwa haipatikani",
+    "goAvailable": "Kuwa inapatikana",
+    "missionsCompleted": "Kazi zilizokamilika",
+    "totalEarnings": "Mapato ya jumla (inakadiriwa)",
+    "currentMission": "Kazi ya sasa",
+    "pickupFrom": "Chukua kutoka",
+    "deliverTo": "Wasilisha kwa",
+    "pickupTo": "Wasilisha kwa",
+    "deliverFrom": "Chukua kutoka",
+    "confirmPickup": "Thibitisha kuchukua",
+    "confirmDelivery": "Thibitisha utoaji",
+    "openChat": "Funga gumzo",
+    "noMissions": "Hakuna kazi inayofanya kazi",
+    "noMissionsDesc": "Kwa sasa uko huru. Utataarifiwa wakati kazi mpya itakapopatikana.",
+    "driversOnly": "Dashibodi hii ni kwa madereva tu.",
+    "missionHistory": "Historia ya kazi",
+    "missionChartTitle": "Kazi za kila siku (siku 30 zilizopita)",
+    "noMissionHistory": "Hakuna historia ya kazi kwa sasa.",
+    "pickupConfirmed": "Kuchukua kumehakikishwa!",
+    "deliveryConfirmed": "Utoaji umehakikishwa!",
+    "missionUpdateError": "Hitilafu wakati wa kusasisha hali ya kazi."
+  },
+  "paymentModal": {
+    "title": "Malipo",
+    "totalToPay": "Jumla ya kulipa",
+    "payWith": "Lipa kwa",
+    "payNow": "Lipa sasa"
+  },
+  "multiServiceOrder": {
+    "title": "Chagua vitu vyako",
+    "subtitle": "Ongeza vitu kwa agizo lako kutoka {{name}}.",
+    "stainHelperText": "Una doa gumu? Acha msaidizi wetu wa AI kupendekeza huduma sahihi.",
+    "selectItems": "Chagua vitu",
+    "scanItemsButton": "Sakana na kamera",
+    "scanSuccess": "Vitu {{count}} vimesakaniwa kwa mafanikio",
+    "scanNoMatches": "Hakuna vitu vinavyolingana vilivyopatikana katika usakani",
+    "itemsSelected": "Vitu {{count}} vilivyochaguliwa",
+    "changePartner": "Badilisha mshirika",
+    "selectedServices": "Huduma zilizochaguliwa"
+  },
+  "emailService": {
+    "errors": {
+      "hardBounce": "Kurudi nyuma kwa nguvu kumegunduliwa",
+      "invalidRequest": "Ombi batili kwa huduma ya barua pepe"
+    }
+  },
+  "emails": {
+    "welcome": {
+      "title": "Karibu Laundry Express DRC!",
+      "subject": "Karibu kwenye meli, {{userName}}!",
+      "header": "Karibu Laundry Express DRC, {{name}}!",
+      "body1": "Tunafurahi kukualika katika jamii yetu. Kufua nguo zako hakujawahi kuwa rahisi zaidi.",
+      "body2": "Hiki ndicho unaweza kufanya sasa:",
+      "listItem1": "Tengeneza agizo lako la kwanza na uchague kati ya washirika bora wa ndani.",
+      "listItem2": "Fuatilia agizo lako kutoka kuchukua hadi kutoa kwa wakati halisi.",
+      "listItem3": "Pata pointi za uaminifu na kila agizo lililokamilika.",
+      "body3": "Uko tayari kuanza?",
+      "cta": "Tengeneza agizo langu la kwanza",
+      "footer": "Kwa hisani,",
+      "team": "Timu ya Laundry Express DRC"
+    },
+    "orderStatusUpdate": {
+      "title": "Sasisho kwa agizo lako #{{id}}",
+      "greeting": "Habari {{name}},",
+      "orderId": "Nambari ya agizo",
+      "newStatus": "Hali mpya",
+      "estimatedCompletion": "Inakadiriwa kukamilika",
+      "summaryTitle": "Muhtasari wa agizo",
+      "itemHeader": "Kitu",
+      "quantityHeader": "Kiasi",
+      "priceHeader": "Bei",
+      "subtotal": "Jumla ndogo",
+      "promoDiscount": "Punguzo la promoshini ({{code}})",
+      "referralDiscount": "Punguzo la kuteuwa",
+      "loyaltyDiscount": "Punguzo la uaminifu",
+      "totalPaid": "Jumla ya kulipwa",
+      "body": "Unaweza kufuatilia maendeleo ya agizo lako wakati wowote kutoka kwa wasifu wako.",
+      "cta": "Fuatilia agizo langu",
+      "footer": "Asante kwa kutumia Laundry Express DRC!",
+      "headlines": {
+        "CONFIRMED": "Agizo lako #{{id}} limehakikishwa!",
+        "PROCESSING": "Agizo lako #{{id}} linatunzwa!",
+        "READY_FOR_DELIVERY": "Habari njema! Agizo lako #{{id}} limetayarisha kwa utoaji!",
+        "DELIVERY": "Agizo lako #{{id}} lina njia!",
+        "COMPLETED": "Agizo lako #{{id}} limetolewa!",
+        "REJECTED": "Sasisho kuhusu agizo lako #{{id}}"
+      }
+    },
+    "newPartnerWelcome": {
+      "title": "Ombi lako la ushirika limeidhinishwa!",
+      "subject": "Karibu kwenye mtandao wa Laundry Express, {{companyName}}!",
+      "header": "Hongera, {{name}}!",
+      "body1": "Tunapenda kukujulisha kuwa ombi lako la {{companyName}} limeidhinishwa. Karibu kwenye mtandao wa Laundry Express DRC!",
+      "body2": "Akaunti imeundwa kwa ajili yako. Tafadhali ingia kwa kutumia barua pepe yako ({{email}}) na nenosiri la muda linalotumwa kwenye barua pepe tofauti.",
+      "cta": "Fikia dashibodi yako ya mshirika",
+      "body3": "Tunapendekeza ubadilishe nenosiri lako na uweke wasifu wako wakati wa kuingia kwa mara ya kwanza. Tunatarajia ushirika wenye mafanikio!",
+      "footer": "Kwa hisani,",
+      "team": "Timu ya Laundry Express DRC"
+    }
+  },
+  "orderStatus": {
+    "AWAITING_CONFIRMATION": "Inasubiri uthibitisho",
+    "CONFIRMED": "Imehakikishwa",
+    "READY_FOR_PICKUP": "Imetayarisha kuchukuliwa",
+    "REJECTED": "Imekataliwa",
+    "PICKUP": "Kuchukua kunaendelea",
+    "PROCESSING": "Inatunzwa",
+    "READY_FOR_DELIVERY": "Imetayarisha kwa utoaji",
+    "DELIVERY": "Utoaji unaendelea",
+    "COMPLETED": "Imekamilika"
+  },
+  "partnerTypeEnum": {
+    "PRESSING": "Kusafisha kwa Kikausi",
+    "LAVANDIER": "Kufua",
+    "LOGISTICS": "Usafirishaji"
+  },
+  "adBanner": {
+    "altText": "Matangazo: {{title}}"
+  },
+  "loggedInHomePage": {
+    "welcome": "Karibu tena, {{name}}!",
+    "whatToDo": "Ungependa kufanya nini leo?",
+    "newOrder": "Agizo jipya",
+    "trackOrder": "Fuatilia agizo langu"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Nguo zako, zikiletwe.",
+      "subtitle": "Soko la kwanza la kufua na kusafisha kwa kikausi Kinshasa. Agiza mtandaoni, sisi tunachukua, kusafisha, na kutoa kwenye mlango wako.",
+      "cta": "Tengeneza agizo",
+      "launchOffer": "Ofa ya kuzindua -20%!",
+      "offerExpired": "Ofa imeisha!",
+      "tagline": "Kwa Fahari ya Kikongo 🇨🇩 | Lipa kwa",
+      "paymentMethods": {
+        "airtel": "Airtel Money",
+        "mpesa": "M-Pesa",
+        "orange": "Orange Money"
+      }
+    },
+    "howItWorks": {
+      "step1": {
+        "title": "Chagua huduma yako",
+        "description": "Chagua kati ya washirika wetu wa kuaminika wa ndani."
+      },
+      "step2": {
+        "title": "Sisi tunachukua",
+        "description": "Panga wakati wa kuchukua unaokufaa."
+      },
+      "step3": {
+        "title": "Kusafisha kwa wataalam",
+        "description": "Nguo zako zinachukuliwa kwa uangalifu zaidi."
+      },
+      "step4": {
+        "title": "Sisi tunatoa",
+        "description": "Safi na safi, moja kwa moja kwenye mlango wako."
+      }
+    },
+    "faq": {
+      "q1": {
+        "question": "Inafanywaje kazi?",
+        "answer": "Chagua tu huduma, chagua mshirika, na upange kuchukua kwako. Sisi tunashughulikia mengine!"
+      },
+      "q2": {
+        "question": "Bei ni kiasi gani?",
+        "answer": "Bei hutofautiana kwa mshirika na huduma. Unaweza kuona bei zote kabla ya kuthibitisha agizo lako."
+      },
+      "q3": {
+        "question": "Inachukua muda gani?",
+        "answer": "Utoaji wa kawaida kwa kawaida ni ndani ya masaa 48. Chaguzi za haraka zinapatikana."
+      }
+    },
+    "adBanner": {
+      "sponsored": "Imetangazwa"
+    },
+    "trustedPartners": {
+      "title": "Washirika wetu wa kuaminika",
+      "subtitle": "Tunashirikiana na wafuaji bora na wasafishaji wa kikausi wa ndani wa jiji ili kuhakikisha huduma bora."
+    }
+  },
+  "orderPage": {
+    "completeAllSteps": "Tafadhali kamilisha hatua zote kabla ya kuendelea na malipo.",
+    "orderCreationError": "Hitilafu wakati wa kuunda agizo. Tafadhali jaribu tena."
+  },
+  "trackingPage": {
+    "noActiveOrder": "Hakuna agizo inayofanya kazi",
+    "noActiveOrderSubtitle": "Huna agizo zinazoendelea. Uko tayari kuanza moja?",
+    "orderNow": "Agiza sasa",
+    "orderRejected": "Agizo limekataliwa",
+    "orderId": "Nambari ya agizo: {{id}}",
+    "orderRejectedReason": "Sababu ya kukataa:",
+    "reason": "Sababu: {{reason}}",
+    "defaultRejectionReason": "Mshirika hakuweza kuthamini ombi lako kwa sasa.",
+    "noCharge": "Hukulipiwa kwa agizo hili.",
+    "newOrder": "Tengeneza agizo jipya",
+    "trackYourOrder": "Fuatilia agizo lako",
+    "openChat": "Funga gumzo",
+    "awaitingDriver": "Inasubiri kugawiwa dereva...",
+    "readyForDelivery": "Agizo lako limetayarisha kwa utoaji!",
+    "readyForDeliverySubtitle": "Kwa sasa tunatafuta dereva wa kuletea vitu vyako nyuma.",
+    "driverInfo": "Dereva wako ana njia!",
+    "driverName": "Jina la dereva",
+    "vehicleInfo": "Gari",
+    "service": "Huduma",
+    "partner": "Mshirika",
+    "scheduledPickup": "Kuchukua umepangwa",
+    "estimatedCompletion": "Inakadiriwa kukamilika",
+    "customerInfo": "Maelezo ya mteja",
+    "articles": "Vitu",
+    "itemsCount": "Vitu {{count}}",
+    "totalPaid": "Jumla ya kulipwa",
+    "promoDiscount": "Promoshini '{{code}}': -{{amount}}$",
+    "referralDiscount": "Punguzo la kuteuwa: -{{amount}}$",
+    "loyaltyDiscount": "Pointi za uaminifu: -{{amount}}$",
+    "orderCompleted": "Agizo limekamilika!",
+    "pointsEarned": "Umepata pointi {{points}} za uaminifu!",
+    "howWasExperience": "Uzoefu wako ulikuwaje?",
+    "later": "Baadaye",
+    "leaveReview": "Acha maoni",
+    "thanksForReview": "Asante kwa maoni yako!",
+    "backToHome": "Rudi nyumbani"
+  },
+  "profilePage": {
+    "personalSpace": "Nafasi yako ya kibinafsi",
+    "loginToView": "Ingia au unda akaunti kuona wasifu wako, historia ya maagizo, na pointi za uaminifu.",
+    "login": "Ingia",
+    "createAccount": "Undi akaunti",
+    "myProfile": "Wasifu wangu",
+    "orderNow": "Agiza sasa",
+    "loyaltyProgram": "Mpango wa uaminifu",
+    "loyaltySubtitle": "Pata pointi na kila agizo na uzibadilishe kwa punguzo!",
+    "yourPointsBalance": "USWA WAKO WA POINTI",
+    "referralProgram": "Mpango wa kuteuwa",
+    "referralSubtitleDynamic": "Shiriki msimbo wako na marafiki. Wanapata punguzo la {{discountAmount}}$, na wewe unapata pointi {{bonusPoints}}!",
+    "yourReferralCode": "MSIMBO WAKO WA KUTEUWA",
+    "copyCode": "Nakili msimbo",
+    "myInfo": "Maelezo yangu",
+    "editInfo": "Hariri",
+    "contactSupport": "Wasiliana na usaidizi",
+    "name": "Jina kamili",
+    "defaultAddress": "Anwani ya kawaida",
+    "email": "Anwani ya barua pepe",
+    "phone": "Nambari ya simu",
+    "notificationPreferences": "Mapendeleo ya arifa",
+    "saveChanges": "Hifadhi mabadiliko",
+    "orderHistory": "Historia ya maagizo",
+    "noOrders": "Bado hakuna maagizo",
+    "noOrdersSubtitle": "Maagizo yako ya zamani na ya sasa yataonekana hapa. Uko tayari kutengeneza agizo lako la kwanza?",
+    "partnerLabel": "Mshirika: {{name}}",
+    "leaveReview": "Acha maoni",
+    "requestRefund": "Omba kurejeshewa fedha",
+    "prefs": {
+      "newOrder": {
+        "label": "Maagizo mapya",
+        "desc": "Pokea arifa kwa kila agizo jipya lililopokelewa."
+      },
+      "orderStatusChange": {
+        "label": "Mabadiliko ya hali",
+        "desc": "Kuwa na habari kuhusu maendeleo ya agizo lako."
+      },
+      "newChatMessage": {
+        "label": "Ujumbe mpya",
+        "desc": "Kuwa na arifa ya ujumbe mpya kuhusu maagizo yako."
+      },
+      "promotions": {
+        "label": "Matangazo & ofa",
+        "desc": "Pokea ofa maalum na habari kutoka Laundry Express."
+      },
+      "general": {
+        "label": "Matangazo ya jumla",
+        "desc": "Pokea sasisho muhimu za mfumo na akaunti."
+      }
+    },
+    "cancel": "Ghairi",
+    "push": {
+      "title": "Arifa za kusukumwa",
+      "status": "Hali ya sasa:",
+      "notSupported": "Haitegemezi kwenye kivinjari hiki.",
+      "blocked": "Imekatizwa. Tafadhali ruhusu katika mipangilio ya kivinjari.",
+      "enabled": "Imeamilishwa.",
+      "disabled": "Imezimwa.",
+      "enableButton": "Washa arifa",
+      "blockedHint": "Unahitaji kuruhusu arifa katika mipangilio ya tovuti ya kivinjari chako kuwezesha kipengele hiki."
+    }
+  },
+  "serviceSelector": {
+    "error": "Hitilafu",
+    "noPartnerSelected": "Hakuna mshirika aliyechaguliwa. Tafadhali rudi nyuma na uchague mshirika.",
+    "back": "Nyuma",
+    "whatToClean": "Ungependa kusafisha nini?",
+    "servicesFor": "Huduma kwa {{name}}",
+    "laundry": "Kufua",
+    "perKg": "(kwa kg)",
+    "dryCleaning": "Kusafisha kwa kikausi",
+    "perItem": "(kwa kitu)",
+    "pricePerKg": "{{price}}$/kg",
+    "ratesPerItem": "Bei kwa kitu"
+  },
+  "pressingSelector": {
+    "chooseLavandier": "Chagua kituo chako cha kufua",
+    "choosePressing": "Chagua kituo chako cha kusafisha kwa kikausi",
+    "selectPartner": "Chagua mmoja wa washirika wetu wa kuaminika",
+    "searchByName": "Tafuta kwa jina...",
+    "listView": "Mtazamo wa orodha",
+    "mapView": "Mtazamo wa ramani",
+    "sortBy": "Panga kwa",
+    "defaultSort": "Chaguomsingi",
+    "ratingHighToLow": "Ukadiriaji (juu hadi chini)",
+    "ratingLowToHigh": "Ukadiriaji (chini hadi juu)",
+    "filterByService": "Chuja kwa huduma",
+    "allServices": "Huduma zote",
+    "priceRange": "Bei ya juu/kg",
+    "reviews": "Maoni {{count}}",
+    "viewProfile": "Angalia wasifu & Agiza",
+    "previous": "Iliyotangulia",
+    "next": "Ijayo",
+    "pageOf": "Ukurasa {{current}} wa {{total}}",
+    "noPartnerFoundFor": "Hakuna mshirika aliyepatikana kwa \"{{term}}\".",
+    "noPartnerAvailable": "Hakuna mshirika anayepatikana kwa huduma hii.",
+    "tryAnotherName": "Jaribu jina lingine au futa utafutaji.",
+    "goBackAndSelect": "Rudi nyuma na uchague aina nyingine ya huduma.",
+    "filtersAndSort": "Vichujio & Upangaji"
+  },
+  "schedulePicker": {
+    "partnerHoursUnavailable": "Saa za kufungulia za mshirika hazipatikani.",
+    "partnerUnavailable": "Mshirika hayupo kutoka {{start}} hadi {{end}}.",
+    "partnerClosed": "Mshirika amefungwa leo.",
+    "tooLateToday": "Ni marehemu sana kwa kuchukua leo. Tafadhali chagua siku nyingine.",
+    "schedulePickup": "Panga kuchukua kwako",
+    "pickupDate": "Tarehe ya kuchukua",
+    "pickupTime": "Muda wa kuchukua"
+  },
+  "orderSummary": {
+    "title": "Muhtasari wa agizo",
+    "estimatedWeight": "Uzito unaokadiriwa",
+    "estimatedSubtotal": "Jumla ndogo inayokadiriwa",
+    "welcomeDiscount": "Punguzo la kukaribisha",
+    "promoDiscount": "Promoshini '{{code}}'",
+    "loyaltyDiscount": "Pointi za uaminifu",
+    "estimatedTotal": "Jumla inayokadiriwa",
+    "youHavePoints": "Una pointi {{points}} za uaminifu.",
+    "usePointsForDiscount": "Tumia pointi {{points}} kwa punguzo la {{amount}}$?",
+    "notEnoughPoints": "Pointi hazitoshi kwa punguzo kwenye agizo hili.",
+    "loyaltyDiscountApplied": "Punguzo la uaminifu limetumika!",
+    "remove": "Ondoa",
+    "promoCode": "Una msimbo wa promoshini?",
+    "promoPlaceholder": "mf: WELCOME20",
+    "apply": "Tumia",
+    "codeApplied": "Msimbo '{{code}}' umetumika!",
+    "paymentInfo": "Malipo yatashughulikiwa kwa usalama. Utahitaji kuthibitisha kwenye simu yako ya mkononi.",
+    "confirmAndPay": "Thibitisha & Lipa",
+    "noItems": "Mkokoteni wako ni wazi.",
+    "promoValidation": {
+      "invalid": "Msimbo huu wa promoshini si sahihi.",
+      "newUsersOnly": "Msimbo huu ni kwa watumiaji wapya tu.",
+      "notForPartner": "Msimbo huu si sahihi kwa mshirika huyu.",
+      "minValue": "Kiwango cha chini cha {{value}}$ kinahitajika kutumia msimbo huu.",
+      "success": "Msimbo wa promoshini umetumika kwa mafanikio!"
+    }
+  },
+  "articleSelector": {
+    "stainAnalysisRecommendation": "AI inapendekeza {{serviceType}} kwa doa lako. Tumebadilisha kwa aina hii ya huduma kwa ajili yako.",
+    "stainAnalysisComplete": "Uchambuzi wa doa umekamilika.",
+    "noServiceSelected": "Hakuna huduma iliyochaguliwa.",
+    "back": "Nyuma",
+    "estimateWeight": "Kadiria uzito wa nguo zako za kufua",
+    "selectArticles": "Chagua vitu vyako",
+    "scanWithCamera": "Sakana na kamera",
+    "analyzeStain": "Chambua doa",
+    "estimatedWeightKg": "Uzito unaokadiriwa (kwa kg)",
+    "weightPlaceholder": "mf: 5.5",
+    "pricePerKg": "Bei: {{price}}$/kg",
+    "pricePerUnit": "{{price}}$ / kitengo",
+    "estimatedTotal": "Jumla inayokadiriwa",
+    "next": "Ijayo"
+  },
+  "clientDetailsForm": {
+    "yourInfo": "Maelezo yako",
+    "fullName": "Jina kamili",
+    "fullNamePlaceholder": "mf: John Doe",
+    "phoneNumber": "Nambari ya simu",
+    "phonePlaceholder": "0812345678",
+    "pickupAddress": "Anwani ya kuchukua",
+    "selectOnMap": "Chagua eneo kwenye ramani"
+  },
+  "serviceTypeSelector": {
+    "title": "Unahitaji huduma gani?",
+    "laundryAlt": "Rundo la nguo zilizokunwa",
+    "laundry": "Kufua",
+    "laundryDesc": "Osha, kausha, na kunja kwa nguo zako za kila siku. Bei kwa kilo.",
+    "dryCleaningAlt": "Nguo kwenye vibato",
+    "dryCleaning": "Kusafisha kwa kikausi",
+    "dryCleaningDesc": "Utunzaji maalum kwa vitu vyenye urahisi kama suti, mavazi, na makoti. Bei kwa kitu."
+  },
+  "becomePartnerPage": {
+    "dryCleaning": "Kusafisha kwa kikausi",
+    "dryCleaningDesc": "Kwa biashara zinazotoa huduma ya kusafisha kwa kikausi na kupiga pasi kwa kipande.",
+    "lavandier": "Kufua",
+    "lavandierDesc": "Kwa biashara zinazotoa huduma ya kuosha-kausha-kunja kwa uzito.",
+    "logisticsPartner": "Mshirika wa usafirishaji",
+    "logisticsPartnerDesc": "Kwa kampuni za usafirishaji zenye kundi la madereva.",
+    "thanks": "Asante!",
+    "requestSent": "Ombi lako la ushirika limetumwa. Timu yetu italichambua na kurudi kwako hivi karibuni.",
+    "backToHome": "Rudi nyumbani",
+    "becomePartner": "Kuwa mshirika",
+    "joinUs": "Jiunge na mtandao wetu wa wataalam na ukuzie biashara yako. Chagua aina yako ya ushirika kuanza.",
+    "applicationsClosed": "Maombi ya ushirika kwa sasa yamefungwa. Tafadhali jaribu tena baadaye.",
+    "partnerRegistration": "Usajili wa mshirika",
+    "fillForm": "Tafadhali jaza fomu hapa chini kuomba.",
+    "serviceType": "Aina ya huduma",
+    "pressingPerItem": "Kusafisha kwa kikausi (kwa kipande)",
+    "lavandierPerKg": "Kufua (kwa kg)",
+    "change": "Badilisha",
+    "companyName": "Jina la kampuni",
+    "contactName": "Jina la mhusika",
+    "phone": "Simu",
+    "email": "Barua pepe",
+    "address": "Anwani ya biashara",
+    "message": "Ujumbe (hiari)",
+    "submitRequest": "Wasilisha ombi",
+    "submitError": "Hitilafu imetokea. Tafadhali jaribu tena."
+  },
+  "registrationPrompt": {
+    "createAccountToContinue": "Undi akaunti kuendelea",
+    "guestLimit": "Umefikia kikomo cha agizo kwa watumiaji wageni. Unda akaunti ya bure kufurahia maagizo yasiyo na kikomo na faida zaidi!",
+    "benefit1": "Fuatilia kwa urahisi historia ya maagizo yako.",
+    "benefit2": "Pata pointi za uaminifu kwa punguzo.",
+    "benefit3": "Hifadhi maelezo yako kwa malipo ya haraka.",
+    "createMyAccount": "Undi akaunti yangu",
+    "cancel": "Hapana asante"
+  },
+  "loginPage": {
+    "login": "Ingia",
+    "email": "Anwani ya barua pepe",
+    "emailPlaceholder": "wewe@mfano.com",
+    "password": "Nenosiri",
+    "passwordPlaceholder": "********",
+    "or": "Au endelea na",
+    "googleSignIn": "Ingia na Google",
+    "facebookSignIn": "Ingia na Facebook",
+    "noAccount": "Huna akaunti?",
+    "register": "Jiandikishe hapa",
+    "invalidCredentials": "Barua pepe au nenosiri si sahihi."
+  },
+  "registerPage": {
+    "createAccount": "Undi akaunti",
+    "fullName": "Jina kamili",
+    "email": "Anwani ya barua pepe",
+    "phone": "Nambari ya simu",
+    "phonePlaceholder": "0812345678",
+    "defaultAddress": "Anwani ya kawaida ya kuchukua",
+    "password": "Nenosiri",
+    "referralCode": "Msimbo wa kuteuwa (hiari)",
+    "register": "Jiandikishe",
+    "googleSignUp": "Jiandikishe na Google",
+    "facebookSignUp": "Jiandikishe na Facebook",
+    "hasAccount": "Tayari una akaunti?",
+    "login": "Ingia hapa",
+    "error": "Usajili umeshindwa. Tafadhali jaribu tena."
+  },
+  "adminPage": {
+    "accessDenied": "Ufikiaji umekataliwa",
+    "noPermission": "Huna ruhusa ya kuona ukurasa huu.",
+    "backToHome": "Rudi kwenye ukurasa wa nyumbani",
+    "adminMenu": "Menyu ya msimamizi",
+    "dashboard": "Dashibodi",
+    "analytics": "Takwimu",
+    "partners": "Washirika",
+    "services": "Huduma",
+    "subscriptions": "Usajili",
+    "users": "Watumiaji",
+    "orders": "Maagizo",
+    "refunds": "Kurejeshewa fedha",
+    "drivers": "Madereva",
+    "promotions": "Matangazo",
+    "advertisements": "Matangazo",
+    "loyalty": "Mpango wa uaminifu",
+    "referral": "Mpango wa kuteuwa",
+    "contentManagement": "Usimamizi wa maudhui",
+    "support": "Usaidizi",
+    "tracking": "Kufuatilia & Ujumuishaji",
+    "adminManagement": "Usimamizi wa wasimamizi"
+  },
+  "adminDashboard": {
+    "title": "Dashibodi ya msimamizi",
+    "adminDashboard": "Dashibodi ya msimamizi",
+    "revenue30days": "$0.00",
+    "orders30days": "0",
+    "newPartners30days": "4",
+    "totalRevenue": "Mapato ya jumla",
+    "orders": "Maagizo",
+    "users": "Watumiaji",
+    "partners": "Washirika",
+    "viewAnalytics": "Angalia takwimu za kina",
+    "partnerApplications": "Maombi ya washirika yanayosubiri ({{count}})",
+    "reject": "Kataa",
+    "approve": "Idhinisha",
+    "noNewApplications": "Hakuna maombi mapya.",
+    "bulkNotifications": {
+      "title": "Arifa kwa wingi",
+      "target": "Watazamaji lengwa",
+      "allUsers": "Wateja wote",
+      "partnersOnly": "Washirika tu",
+      "messageLabel": "Ujumbe",
+      "placeholder": "Weka ujumbe wako wa utangazaji hapa...",
+      "personalizationHint": "Tumia {{name}} kubinafsisha ujumbe na jina la kwanza la mtumiaji.",
+      "preview": "Hakiki iliyobinafsishwa",
+      "sendButton": "Tuma",
+      "feedbackSuccess": "Arifa imetumwa kwa mafanikio!",
+      "feedbackError": "Hitilafu wakati wa kutuma arifa. Tafadhali jaribu tena.",
+      "successMessage": "Arifa ya wingi imetumwa kwa watumiaji {{count}}.",
+      "errorMessage": "Imeshindwa kutuma arifa ya wingi."
+    },
+    "aiPoweredSecurityAlerts": "Arifa za usalama zinazoendeshwa na AI",
+    "runSecurityScan": "Endesha uchunguzi wa usalama",
+    "securityScanDescription": "Bonyeza \"Endesha uchunguzi wa usalama\" kuangalia shughuli za kutiliwa shaka.",
+    "newOrdersTitle": "Maagizo mapya",
+    "noNewOrders": "Hakuna maagizo mapya",
+    "recentCompletedTitle": "Maagizo yaliyokamilika hivi karibuni",
+    "noCompletedOrders": "Hakuna maagizo yaliyokamilika hivi karibuni"
+  },
+  "adminAnalytics": {
+    "title": "Takwimu za jukwaa",
+    "timeRange": {
+      "week": "Wiki",
+      "month": "Mwezi",
+      "year": "Mwaka"
+    },
+    "revenueOverPeriod": "Mapato (kipindi)",
+    "ordersOverPeriod": "Maagizo (kipindi)",
+    "newUsers": "Watumiaji wapya (kipindi)",
+    "avgOrderValue": "Thamani ya wastani ya agizo",
+    "revenue": "Mapato",
+    "orders": "Maagizo",
+    "partnerPerformance": "Utendaji wa washirika",
+    "servicePerformance": "Utendaji wa huduma",
+    "revenueByService": "Mapato kwa huduma",
+    "geographicalAnalysis": "Uchambuzi wa kijiografia",
+    "noGeoData": "Hakuna data ya kijiografia inayopatikana.",
+    "activityAnalysis": "Uchambuzi wa shughuli za watumiaji",
+    "peakHours": "Saa za kilele za agizo",
+    "noActivityData": "Data ya shughuli haitoshi.",
+    "unknownService": "Huduma isiyojulikana"
+  },
+  "dynamicFeed": {
+    "description": "Huduma za {{type}} za ubora wa juu kutoka {{name}}, ziko {{address}}."
+  },
+  "userManagement": {
+    "title": "Usimamizi wa watumiaji",
+    "registeredUsers": "Watumiaji waliyosajiliwa ({{count}})",
+    "table": {
+      "name": "Jina",
+      "contact": "Mawasiliano",
+      "loyalty": "Pointi za uaminifu",
+      "referral": "Msimbo wa kuteuwa",
+      "joined": "Alijiunga",
+      "actions": "Vitendo"
+    },
+    "adminBadge": "MSIMAMIZI",
+    "partnerBadge": "MSHIRIKA",
+    "linkToPartner": "Unganisha na mshirika",
+    "noUsers": "Hakuna watumiaji waliopatikana."
+  },
+  "orderManagement": {
+    "title": "Usimamizi wa maagizo",
+    "allOrders": "Maagizo yote ({{count}})",
+    "filterByStatus": "Chuja kwa hali:",
+    "all": "Yote",
+    "orderId": "Nambari ya agizo",
+    "customer": "Mteja",
+    "partner": "Mshirika",
+    "total": "Jumla",
+    "status": "Hali",
+    "date": "Tarehe",
+    "chat": "Gumzo",
+    "noOrdersForFilter": "Hakuna agizo lililopatikana kwa kichujio hiki.",
+    "guest": "Mgeni",
+    "unknownUser": "Mtumiaji asiyejulikana",
+    "openChat": "Funga gumzo"
+  },
+  "adminOrderManagement": {
+    "customer": "Mteja",
+    "partner": "Mshirika",
+    "total": "Jumla",
+    "date": "Tarehe"
+  },
+  "promoManagement": {
+    "title": "Usimamizi wa matangazo",
+    "createCode": "Undi msimbo",
+    "editCode": "Hariri msimbo wa promoshini",
+    "newCode": "Msimbo mpya wa promoshini",
+    "formError": "Tafadhali jaza msimbo na thamani ya punguzo kubwa kuliko 0.",
+    "code": "Msimbo",
+    "discountType": "Aina ya punguzo",
+    "percentage": "Asilimia",
+    "fixedAmount": "Kiasi maalum",
+    "discountValue": "Thamani ya punguzo",
+    "minOrderValue": "Thamani ya chini ya agizo ($)",
+    "newUsersOnly": "Watumiaji wapya tu",
+    "active": "Inatumika",
+    "inactive": "Haifanyi kazi",
+    "cancel": "Ghairi",
+    "saveChanges": "Hifadhi mabadiliko",
+    "create": "Unda",
+    "existingCodes": "Msimbo uliopo ({{count}})",
+    "discount": "Punguzo",
+    "conditions": "Masharti",
+    "createdBy": "Imeundwa na",
+    "status": "Hali",
+    "actions": "Vitendo",
+    "minAmount": "Kiwango cha chini {{amount}}$",
+    "noConditions": "Hakuna",
+    "platform": "Jukwaa",
+    "confirmDelete": "Una uhakika unataka kufuta msimbo huu wa promoshini?",
+    "noPromoCodes": "Bado hakuna misimbo ya promoshini iliyoundwa.",
+    "totalCodes": "Msimbo wa Jumla",
+    "activeCodes": "Msimbo Inatumika",
+    "expiredCodes": "Msimbo Imemalizika Muda",
+    "totalUsage": "Matumizi ya Jumla",
+    "all": "Zote",
+    "expired": "Imemalizika muda",
+    "export": "Hamisha nje",
+    "validity": "Uhalali"
+  },
+  "contentManagement": {
+    "saveChanges": "Hifadhi mabadiliko",
+    "heroSection": "Sehemu ya mhusika",
+    "mainTitle": "Kichwa kikuu (ufunguo wa tafsiri)",
+    "subtitle": "Kichwa kidogo (ufunguo wa tafsiri)",
+    "howItWorksSection": "Sehemu ya jinsi inavyofanya kazi",
+    "stepTitle": "Kichwa cha hatua {{index}}",
+    "description": "Maelezo",
+    "faqSection": "Sehemu ya Maswali Yanayoulizwa Mara Kwa Mara",
+    "addQuestion": "Ongeza swali",
+    "question": "Swali",
+    "answer": "Jibu",
+    "noFaq": "Hakuna vitu vya Maswali Yanayoulizwa Mara Kwa Mara kwa sasa. Bonyeza 'Ongeza swali' kuunda.",
+    "newQuestion": "Swali jipya",
+    "newAnswer": "Jibu jipya"
+  },
+  "adminSupport": {
+    "title": "Kituo cha usaidizi",
+    "allTickets": "Tiketi zote ({{count}})",
+    "filterByStatus": "Chuja kwa hali:",
+    "all": "Zote",
+    "subjectAiSummary": "Somo / Muhtasari wa AI",
+    "category": "Kategoria",
+    "user": "Mtumiaji",
+    "status": "Hali",
+    "lastUpdate": "Sasisho ya mwisho",
+    "action": "Hatua",
+    "viewReply": "Tazama/Jibu",
+    "noTicketsForFilter": "Hakuna tiketi zilizopatikana kwa kichujio hiki."
+  },
+  "driverManagement": {
+    "title": "Usimamizi wa madereva",
+    "allDrivers": "Madereva yote ({{count}})",
+    "logisticsPartner": "Mshirika wa usafirishaji",
+    "vehicle": "Gari",
+    "status": "Hali",
+    "currentMission": "Kazi ya sasa",
+    "noMission": "Hakuna",
+    "name": "Jina",
+    "noDrivers": "Hakuna madereva waliyosajiliwa kwa sasa."
+  },
+  "serviceManagement": {
+    "title": "Usimamizi wa huduma",
+    "addService": "Ongeza huduma",
+    "platformServices": "Huduma za jukwaa ({{count}})",
+    "confirmDelete": "Una uhakika unataka kufuta huduma hii kwa upana wa jukwaa?",
+    "noServices": "Bado hakuna huduma za upana wa jukwaa zilizoundwa."
+  },
+  "loyaltyManagement": {
+    "title": "Usimamizi wa mpango wa uaminifu",
+    "enableLabel": "Washa mpango wa uaminifu",
+    "enableDescription": "Ruhusu watumiaji kupata na kubadilisha pointi za uaminifu.",
+    "earningRateLabel": "Kiwango cha kupata",
+    "earningRateDescription": "Pointi zinazopatikana kwa kila dola inayotumika.",
+    "redemptionRateLabel": "Kiwango cha kubadilisha",
+    "redemptionRateDescription": "Pointi zinazohitajika kubadilishwa na punguzo la $1.",
+    "saveButton": "Hifadhi mipangilio",
+    "settingsSaved": "Mipangilio ya uaminifu imehifadhiwa kwa mafanikio."
+  },
+  "referralManagement": {
+    "title": "Usimamizi wa mpango wa kuteuwa",
+    "enableLabel": "Washa mpango wa kuteuwa",
+    "enableDescription": "Ruhusu watumiaji kuwataja marafiki kwa tuzo.",
+    "referrerBonusLabel": "Zawadi ya mtaja (pointi)",
+    "referrerBonusDescription": "Pointi anazopokea mtaja wakati msimbo wake unatumika.",
+    "refereeDiscountLabel": "Punguzo la mteuliwa ($)",
+    "refereeDiscountDescription": "Punguzo anazopokea mtumiaji mpya kwenye agizo lake la kwanza.",
+    "saveButton": "Hifadhi mipangilio",
+    "settingsSaved": "Mipangilio ya kuteuwa yamehifadhiwa kwa mafanikio."
+  },
+  "adManagement": {
+    "title": "Usimamizi wa matangazo",
+    "createAd": "Unda tangazo",
+    "editAd": "Hariri tangazo",
+    "newAd": "Tangazo jipya",
+    "validationError": "Tafadhali jaza kichwa, URL ya picha, na URL ya kiungo.",
+    "adTitle": "Kichwa cha tangazo",
+    "description": "Maelezo",
+    "imageUrl": "URL ya picha",
+    "linkUrl": "URL ya kiungo",
+    "active": "Inatumika",
+    "cancel": "Ghairi",
+    "save": "Hifadhi",
+    "create": "Unda",
+    "existingAds": "Matangazo yaliyopo ({{count}})",
+    "status": "Hali",
+    "actions": "Vitendo",
+    "noAds": "Bado hakuna matangazo yaliyoundwa.",
+    "confirmDelete": "Una uhakika unataka kufuta tangazo hili?"
+  },
+  "adminAdminManagement": {
+    "title": "Usimamizi wa wasimamizi",
+    "existingAdmins": "Wasimamizi walioopo",
+    "newAdminButton": "Msimamizi mpya",
+    "name": "Jina",
+    "email": "Barua pepe",
+    "actions": "Vitendo",
+    "editPermissions": "Hariri ruhusa",
+    "noAdmins": "Hakuna wasimamizi wengine waliofoundwa.",
+    "editingFor": "Inahariri ruhusa kwa {{name}}",
+    "saveButton": "Hifadhi ruhusa",
+    "newAdminFormTitle": "Unda msimamizi mpya",
+    "adminName": "Jina kamili",
+    "tempPassword": "Nenosiri la muda",
+    "createButton": "Unda msimamizi",
+    "permissions": {
+      "dashboard": {
+        "description": "Angalia takwimu kuu za dashibodi."
+      },
+      "analytics": {
+        "description": "Pata takwimu za kina za jukwaa."
+      },
+      "partners": {
+        "description": "Dhibiti washirika na maombi."
+      },
+      "services": {
+        "description": "Dhibiti huduma za upana wa jukwaa."
+      },
+      "users": {
+        "description": "Tazama na dhibiti watumiaji wote."
+      },
+      "orders": {
+        "description": "Tazama maagizo yote ya jukwaa."
+      },
+      "drivers": {
+        "description": "Tazama madereva yote na hali yao."
+      },
+      "promotions": {
+        "description": "Dhibiti matangazo ya upana wa jukwaa."
+      },
+      "advertisements": {
+        "description": "Dhibiti matangazo ya ukurasa wa nyumbani."
+      },
+      "loyalty": {
+        "description": "Sanidi mipangilio ya mpango wa uaminifu."
+      },
+      "referral": {
+        "description": "Sanidi mipangilio ya mpango wa kuteuwa."
+      },
+      "content": {
+        "description": "Dhibiti maudhui ya tovuti (ukurasa wa nyumbani, Maswali Yanayoulizwa Mara Kwa Mara)."
+      },
+      "support": {
+        "description": "Tazama na jibu tiketi zote za usaidizi."
+      },
+      "adminManagement": {
+        "description": "Unda, hariri, na dhibiti wasimamizi wengine."
+      }
+    }
+  },
+  "trackingManagement": {
+    "title": "Kufuatilia & Ujumuishaji",
+    "description": "Dhibiti hati za kufuatilia na takwimu za wahusika wengine. Mabadiliko yanaweza kuhitaji onyesho upya la ukurasa kuanza kutumika.",
+    "settingsSaved": "Mipangilio ya kufuatilia imehifadhiwa kwa mafanikio.",
+    "gtm": {
+      "title": "Google Tag Manager",
+      "description": "GTM ni njia inayopendekezwa kudhibiti hati zako zote za kufuatilia, ikiwa ni pamoja na Meta Pixel, Google Ads, nk. Weka kitambulisho chako cha chombo kuwezesha.",
+      "label": "Kitambulisho cha Chombo cha GTM",
+      "placeholder": "GTM-XXXXXXX"
+    },
+    "meta": {
+      "title": "Meta Pixel (Facebook)",
+      "description": "Kama hautumii GTM, unaweza kuingiza kitambulisho chako cha Pixel moja kwa moja hapa. Inapendekezwa kudhibiti hii kupitia GTM.",
+      "label": "Kitambulisho cha Meta Pixel",
+      "placeholder": "123456789012345"
+    },
+    "saveButton": "Hifadhi mipangilio"
+  },
+  "partnerDashboardPage": {
+    "accessDenied": "Ufikiaji umekataliwa",
+    "partnersOnly": "Dashibodi hii ni kwa washirika tu.",
+    "backToHome": "Rudi nyumbani",
+    "partnerMenu": "Menyu ya mshirika",
+    "dashboard": "Dashibodi",
+    "analytics": "Takwimu",
+    "orderManagement": "Usimamizi wa maagizo",
+    "financials": "Fedha",
+    "myProfile": "Wasifu wangu",
+    "promotions": "Matangazo",
+    "teamManagement": "Usimamizi wa timu",
+    "security": "Usalama",
+    "apiIntegrations": "API & Ujumuishaji",
+    "automation": "Otomatiki",
+    "support": "Kituo cha usaidizi",
+    "inventory": "Hisa",
+    "delivery": "Utoaji",
+    "subscription": "Usajili",
+    "invoicing": "Kutoa ankara"
+  },
+  "partnerDashboard": {
+    "title": "Karibu kwenye dashibodi yako, {{name}}",
+    "newOrders": "Maagizo mapya",
+    "newOrderFrom": "Agizo jipya kutoka",
+    "confirm": "Thibitisha",
+    "reject": "Kataa",
+    "activeOrders": "Maagizo yanayofanya kazi",
+    "revenueThisMonth": "Mapato (mwezi huu)",
+    "avgOrderValue": "Thamani ya wastani ya agizo",
+    "viewDetails": "Angalia maelezo",
+    "pendingNewOrders": "Maagizo mapya yanayosubiri ({{count}})",
+    "noNewOrders": "Hakuna maagizo mapya ya kukubali.",
+    "recentReviewsTitle": "Maoni ya hivi karibuni",
+    "noReviews": "Bado hakuna maoni.",
+    "rejectionReasonPrompt": "Tafadhali toa sababu ya kukataa agizo hili (hiari).",
+    "defaultRejectionReason": "Mshirika hayupo kwa sasa.",
+    "orderAcceptedNotification": "Agizo limekubaliwa! Sasa limetayarisha kuchukuliwa na dereva.",
+    "orderUpdateError": "Hitilafu wakati wa kusasisha agizo.",
+    "reviewAssistant": {
+      "success": "Jibu la AI limeundwa!",
+      "copy": "Imenakiliwa!",
+      "generatedResponse": "Jibu lililoundwa:",
+      "clear": "Futa",
+      "generating": "Inaunda...",
+      "respondWithAI": "Jibu na AI",
+      "replyPosted": "Jibu la hakiki limewasilishwa kwa mafanikio!"
+    },
+    "demandForecast": {
+      "title": "Utabiri wa mahitaji",
+      "loading": "Inachambua...",
+      "generateButton": "Unda utabiri wa siku 7",
+      "demandLevel": {
+        "low": "Chini",
+        "average": "Wastani",
+        "high": "Juu"
+      }
+    },
+    "times": "Mara {{count}}"
+  },
+  "orderDetailsModal": {
+    "title": "Maelezo ya agizo",
+    "orderId": "Agizo #{{id}}",
+    "customerInfo": "Maelezo ya mteja",
+    "name": "Jina",
+    "phone": "Simu",
+    "address": "Anwani",
+    "pickupSchedule": "Ratiba ya kuchukua",
+    "orderDetails": "Maelezo ya agizo",
+    "itemHeader": "Kitu",
+    "quantityHeader": "Idadi",
+    "priceHeader": "Bei",
+    "estimatedWeight": "Uzito unaokadiriwa",
+    "estimatedTotal": "Jumla",
+    "openChat": "Funga Gumzo"
+  },
+  "estimateTimeModal": {
+    "title": "Kadiria muda wa kukamilika",
+    "description": "Tafadhali toa tarehe na muda unaokadiriwa wa kukamilika kwa agizo hili.",
+    "timeLabel": "Muda wa kukamilika",
+    "confirm": "Thibitisha",
+    "confirming": "Inathibitisha...",
+    "quickOptions": "Chaguzi za haraka",
+    "customTime": "Tarehe maalum"
+  },
+  "partnerOrderManagement": {
+    "title": "Usimamizi wa maagizo",
+    "myOrders": "Maagizo yangu ({{count}})",
+    "filterByStatus": "Chuja kwa hali:",
+    "all": "Yote",
+    "orderId": "Nambari ya agizo",
+    "customer": "Mteja",
+    "service": "Huduma",
+    "total": "Jumla",
+    "status": "Hali",
+    "date": "Tarehe",
+    "action": "Hatua",
+    "noOrdersForFilter": "Hakuna agizo lililopatikana kwa kichujio hiki.",
+    "statusUpdateError": "Hitilafu wakati wa kusasisha hali.",
+    "moveTo": "Sogeza hadi {{status}}",
+    "assignedDriver": "Dereva",
+    "openChat": "Funga gumzo"
+  },
+  "partnerProfileManagement": {
+    "title": "Wasifu wangu",
+    "myInfo": "Maelezo yangu",
+    "editInfo": "Hariri",
+    "name": "Jina",
+    "address": "Anwani",
+    "videoUrl": "URL ya video",
+    "myServices": "Huduma zangu",
+    "addService": "Ongeza huduma",
+    "noServices": "Bado hujaongeza huduma yoyote.",
+    "confirmDeleteService": "Una uhakika unataka kufuta huduma hii kutoka kwa ofa zako?",
+    "serviceType": "Aina ya huduma",
+    "shareableUrl": {
+      "title": "Ukurasa wako wa umma",
+      "description": "Shiriki kiungo hiki na wateja wako kuwaelekeza kwenye wasifu wako kwenye Laundry Express.",
+      "copyButton": "Nakili kiungo",
+      "copySuccess": "Kiungo kimenakiliwa kwa mafanikio!",
+      "copyError": "Imeshindwa kunakili kiungo."
+    },
+    "subdomain": {
+      "title": "Kikoa kidogo chako maalum",
+      "description": "Tumia kiungo hiki cha kitaalamu kwenye nyenzo zako za uuzaji. Ni onyesho la moja kwa moja kwako.",
+      "description_preview": "Huu ni hakiki. Vikoa vidogo maalum vinatumika kwenye tovuti yetu ya uzalishaji.",
+      "copyButton": "Nakili kikoa kidogo",
+      "copySuccess": "Kikoa kidogo kimenakiliwa kwa mafanikio!",
+      "copyError": "Imeshindwa kunakili kikoa kidogo."
+    },
+    "customDomain": {
+      "title": "Kikoa maalum",
+      "description": "Unganisha kikoa chako mwenyewe (mf: www.mondrycleaner.com) kwenye onyesho lako la Laundry Express.",
+      "inputLabel": "Kikoa chako kimesanidiwa:",
+      "notConfigured": "Haijasanidiwa",
+      "instructionsTitle": "Jinsi ya kusanidi",
+      "step1": "Nunua kikoa kutoka kwa mtoa huduma kama GoDaddy au Namecheap.",
+      "step2": "Kwenye mipangilio ya DNS ya mtoa huduma wako, unda rekodi ya CNAME.",
+      "step3": "Weka Mwenyeji/Jina kuwa 'www' (au kikoa kidogo unachotaka).",
+      "step4": "Elekeza Thamani/Lengo kwa 'cname.laundry.app'.",
+      "step5": "Hifadhi na subiri usambazaji wa DNS (hadi masaa 24)."
+    },
+    "openingHours": {
+      "title": "Saa za kufungulia",
+      "closed": "Imefungwa",
+      "saveButton": "Hifadhi saa",
+      "saveSuccess": "Saa za kufungulia zimesasishwa kwa mafanikio.",
+      "saveError": "Imeshindwa kusasisha saa za kufungulia."
+    }
+  },
+  "partnerPromoManagement": {
+    "title": "Matangazo yangu",
+    "errorNoPartner": "Kitambulisho cha mshirika hakijapatikana. Haiwezi kuunda msimbo wa promoshini.",
+    "editMyCode": "Hariri msimbo wangu wa promoshini",
+    "newCode": "Unda msimbo mpya wa promoshini",
+    "codePlaceholder": "mf: SAVE10",
+    "myCreatedCodes": "Msimbo niliouunda ({{count}})",
+    "usage": "Matumizi",
+    "noPromoCodes": "Bado hujaunda misimbo yoyote ya promoshini.",
+    "assistant": {
+      "title": "Msaidizi wa Uuzaji ✨",
+      "description": "Unahitaji wazo la tangazo? Elezea lengo lako na uache msaidizi wetu wa AI akusaidie!",
+      "promptPlaceholder": "mf: 'Tangazo la wikendi kwa wateja wapya', 'Punguzo kwenye mavazi', 'Uuzaji wa haraka wa usiku wa leo'...",
+      "tryThese": "Jaribu hizi:",
+      "example1": "Punguzo kwenye mavazi",
+      "example2": "Agizo la kwanza kutoka duka langu",
+      "example3": "Uuzaji wa haraka wa wikendi",
+      "loading": "Inaunda...",
+      "generateButton": "Unda tangazo",
+      "marketingTextLabel": "Maandishi ya uuzaji",
+      "bannerConceptLabel": "Dhana ya bango",
+      "bannerStyles": {
+        "elegant": "Kifahari",
+        "vibrant": "Mwenye nguvu",
+        "minimal": "Kidogo",
+        "luxury": "Anasa"
+      },
+      "downloadButton": "Pakua bango",
+      "usePromoButton": "Tumia tangazo hili",
+      "imageGenerationFailed": "Uundaji wa picha umeshindwa. Unaweza kuhariri dhana na kujaribu tena.",
+      "regenerateImageButton": "Unda Upya Picha",
+      "doneButton": "Imekwisha",
+      "newIdeaButton": "Wazo Jipya"
+    }
+  },
+  "partnerFinancials": {
+    "title": "Fedha",
+    "totalRevenue": "Mapato ya jumla",
+    "revenueLast30Days": "Mapato (siku 30 zilizopita)",
+    "completedOrders": "Maagizo yaliyokamilika",
+    "avgOrderValue": "Thamani ya wastani ya agizo",
+    "revenueChartTitle": "Mapato ya kila siku (siku 30 zilizopita)",
+    "transactionHistoryTitle": "Historia ya manunuzi",
+    "noTransactions": "Bado hakuna manunuzi yaliyokamilika.",
+    "payoutStatus": {
+      "paidOut": "Imelipwa",
+      "pending": "Inasubiri"
+    },
+    "table": {
+      "orderId": "Nambari ya agizo",
+      "completionDate": "Tarehe ya kukamilika",
+      "service": "Huduma",
+      "amount": "Kiasi",
+      "payoutStatus": "Hali ya malipo"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "Takwimu",
+    "exportData": "Hamisha data nje",
+    "revenueOverview": "Mapitio ya mapato",
+    "timeRange": {
+      "week": "Wiki",
+      "month": "Mwezi",
+      "year": "Mwaka"
+    },
+    "totalRevenue": "Mapato ya jumla (kipindi)",
+    "avgOrderValue": "Thamani ya wastani ya agizo",
+    "ordersThisMonth": "Maagizo mwezi huu",
+    "revenueChartTitle": "Mapato kwa siku",
+    "noRevenueData": "Hakuna data ya mapato kwa kipindi hiki.",
+    "promotionPerformance": "Utendaji wa matangazo",
+    "topPromosByUsage": "Matangazo bora kwa matumizi",
+    "topPromosByRevenue": "Matangazo bora kwa mapato",
+    "noPromoData": "Hakuna data ya tangazo inayopatikana.",
+    "servicePerformance": "Utendaji wa huduma",
+    "mostPopularServices": "Huduma maarufu zaidi",
+    "noServiceData": "Hakuna data ya huduma inayopatikana.",
+    "customerInsights": "Ufahamu wa wateja",
+    "newVsReturning": "Wapya dhidi ya WanaoRudi",
+    "new": "Wapya",
+    "returning": "Wanaorudi",
+    "topClients": "Wateja bora",
+    "ordersCount": "Maagizo {{count}}",
+    "noCustomerData": "Hakuna data ya mteja inayopatikana.",
+    "unknownClient": "Mteja asiyejulikana"
+  },
+  "teamManagement": {
+    "title": "Usimamizi wa timu",
+    "teamMembers": "Wanachama wa timu",
+    "inviteMember": "Alika mwanachama",
+    "inviteSuccess": "Mwaliko umetumwa kwa mafanikio!",
+    "inviteErrorExists": "Mtumiaji huyu tayari ni sehemu ya timu au hayupo.",
+    "inviteError": "Imeshindwa kutuma mwaliko.",
+    "updateSuccess": "Jukumu limesasishwa kwa mafanikio.",
+    "updateError": "Imeshindwa kusasisha jukumu.",
+    "removeSuccess": "Mwanachama wa timu ameondolewa.",
+    "removeError": "Imeshindwa kuondoa mwanachama.",
+    "confirmRemove": "Una uhakika unataka kuondoa {{name}} kutoka kwa timu yako?",
+    "nameLabel": "Jina kamili",
+    "emailLabel": "Anwani ya barua pepe",
+    "roleLabel": "Jukumu",
+    "roles": {
+      "OWNER": "Mmiliki",
+      "MANAGER": "Meneja",
+      "STAFF": "Wafanyikazi"
+    },
+    "managerDescription": "Anaweza kudhibiti maagizo, wasifu, na matangazo.",
+    "staffDescription": "Anaweza tu kuona na kudhibiti maagizo.",
+    "inviteButton": "Tuma mwaliko",
+    "nameHeader": "Jina",
+    "emailHeader": "Barua pepe",
+    "roleHeader": "Jukumu",
+    "actionsHeader": "Vitendo"
+  },
+  "security": {
+    "title": "Usalama & Shughuli",
+    "twoFactorAuth": {
+      "title": "Uthibitishaji wa Mambo Mawili (2FA)",
+      "description": "Ongeza safu ya ziada ya usalama kwa akaunti yako.",
+      "setup": {
+        "title": "Sanidi 2FA",
+        "step1": "Sakani msimbo huu wa QR na programu yako ya uthibitishaji (mf: Google Authenticator).",
+        "qrAlt": "Msimbo wa QR wa 2FA",
+        "step2": "Weka msimbo wa tarakimu 6 kutoka kwa programu yako kuthibitisha.",
+        "verificationCode": "Msimbo wa uthibitishaji",
+        "invalidCode": "Msimbo si sahihi. Tafadhali jaribu tena.",
+        "verifyAndEnable": "Thibitisha & Washa"
+      },
+      "status": "Hali",
+      "enabled": "Imeamilishwa",
+      "disabled": "Imezimwa",
+      "confirmDisable": "Una uhakika unataka kuzima uthibitishaji wa mambo mawili?",
+      "disableButton": "Zima",
+      "enableButton": "Washa 2FA"
+    },
+    "activityLog": {
+      "title": "Kumbukumbu ya shughuli",
+      "description": "Shughuli za hivi karibuni zinazohusiana na usalama na muhimu kwenye akaunti yako.",
+      "filterByUser": "Chuja kwa mtumiaji",
+      "noLogs": "Hakuna kumbukumbu za shughuli zilizopatikana.",
+      "actions": {
+        "USER_LOGIN": "ameingia.",
+        "USER_LOGIN_FAILURE": "alikuwa na jaribio la kuingia lililoshindwa.",
+        "USER_2FA_ENABLED": "amewezesha uthibitishaji wa mambo mawili.",
+        "USER_2FA_DISABLED": "amezima uthibitishaji wa mambo mawili.",
+        "PARTNER_PROFILE_UPDATE": "amesasisha wasifu wa mshirika.",
+        "PARTNER_SERVICE_ADD": "ameongeza huduma mpya.",
+        "PARTNER_SERVICE_UPDATE": "amesasisha huduma.",
+        "PARTNER_SERVICE_DELETE": "amefuta huduma.",
+        "PROMO_CODE_CREATE": "ameunda msimbo mpya wa promoshini.",
+        "PROMO_CODE_UPDATE": "amesasisha msimbo wa promoshini.",
+        "TEAM_MEMBER_INVITE": "amealika mwanachama mpya wa timu.",
+        "TEAM_MEMBER_ROLE_CHANGE": "amebadilisha jukumu la mwanachama wa timu.",
+        "TEAM_MEMBER_REMOVE": "ameondoa mwanachama wa timu."
+      }
+    }
+  },
+  "apiIntegrationsPage": {
+    "title": "API & Ujumuishaji",
+    "description": "Dhibiti funguo zako za API na viboko vya wavuti kuunganisha Laundry Express kwa zana zako zingine.",
+    "apiKey": {
+      "title": "Funguo ya API",
+      "description": "Tumia funguo hii kuthibitisha maombi kwa API ya Laundry Express. Iweke siri!",
+      "yourKey": "Funguo yako ya API ya moja kwa moja",
+      "copied": "Imenakiliwa!",
+      "copy": "Nakili",
+      "confirmGenerate": "Una uhakika unataka kuzalisha funguo mpya ya API? Funguo ya zamani itabatilishwa mara moja.",
+      "generateNew": "Zalisha funguo mpya",
+      "generateSuccess": "Funguo mpya ya API imezalishwa kwa mafanikio."
+    },
+    "webhooks": {
+      "title": "Viboko vya wavuti",
+      "description": "Kuwa na arifa ya matukio yanayotokea kwenye akaunti yako ya Laundry Express kwa kutoa kikomo cha mwisho cha kivuko cha wavuti.",
+      "endpointUrl": "URL ya kikomo cha mwisho",
+      "placeholder": "https://programu-yako.com/webhook",
+      "subscribedEvents": "Matukio yaliyojisajili",
+      "events": {
+        "NEW_ORDER": {
+          "label": "Agizo jipya",
+          "description": "Inachochewa wakati agizo jipya linatengenezwa kwa biashara yako."
+        },
+        "STATUS_UPDATE": {
+          "label": "Sasisho ya hali ya agizo",
+          "description": "Inachochewa kwa kila mabadiliko ya hali ya agizo."
+        }
+      },
+      "test": "Tuma majaribio",
+      "save": "Hifadhi viboko vya wavuti",
+      "saveSuccess": "Mipangilio ya kivuko cha wavuti imehifadhiwa.",
+      "testSuccess": "Jaribio la kivuko cha wavuti limetumwa kwa mafanikio!"
+    },
+    "integrations": {
+      "title": "Ujumuishaji wa wahusika wengine",
+      "description": "Unganisha kwa urahisi na huduma zingine.",
+      "zapier": "Unganisha na Zapier",
+      "make": "Unganisha na Make.com"
+    }
+  },
+  "logisticsDashboard": {
+    "title": "Dashibodi ya Usafirishaji",
+    "completedDeliveries": "Utoaji uliokamilika",
+    "totalEarnings": "Mapato ya jumla (inakadiriwa)",
+    "activeMissions": "Kazi zinazofanya kazi",
+    "availableDrivers": "Madereva yanayopatikana",
+    "totalDrivers": "Madereva ya jumla",
+    "deliveryChartTitle": "Utoaji wa kila siku (siku 30 zilizopita)",
+    "addDriverTitle": "Ongeza dereva mpya",
+    "driverName": "Jina la dereva",
+    "driverEmail": "Barua pepe ya dereva",
+    "driverPhone": "Simu ya dereva",
+    "vehicleInfo": "Gari (mf: Pikipiki ya TVS 123-ABC)",
+    "submitAddDriver": "Ongeza dereva",
+    "driverListTitle": "Madereva yangu",
+    "noDrivers": "Bado hakuna madereva waliyoongezwa.",
+    "availableMissions": "Kazi zinazopatikana",
+    "pickupMissions": "Kazi za kuchukua",
+    "deliveryMissions": "Kazi za utoaji",
+    "collectMissionFor": "Chukua kwa",
+    "deliveryMissionFor": "Wasilisha kwa",
+    "selectCollector": "Chagua mkusanyaji",
+    "selectDeliverer": "Chagua mtoshelezaji",
+    "confirmAssignment": "Tenga",
+    "noPickupMissions": "Hakuna kazi za kuchukua zinazopatikana.",
+    "noDeliveryMissions": "Hakuna kazi za utoaji zinazopatikana.",
+    "logisticsOnly": "Dashibodi hii ni kwa wasimamizi wa usafirishaji tu.",
+    "optimizeRoutes": {
+      "button": "Boresha njia",
+      "disabledTooltip": "Hakuna kazi au madereva yanayopatikana ya kuboresha.",
+      "modalTitle": "Uboreshaji wa Njia wa AI ✨",
+      "modalDescription": "AI yetu imehesabu njia bora zaidi kwa madereva yako yanayopatikana.",
+      "loading": "Inaboresha njia...",
+      "stops": "stops",
+      "estimatedTime": "Muda unaokadiriwa",
+      "pickup": "Kuchukua",
+      "delivery": "Utoaji",
+      "noRoutes": "Kazi zote zimetengwa au hakuna kazi zinazopatikana.",
+      "confirmButton": "Thibitisha & Tenga yote",
+      "assignSuccess": "Njia zimehakikishwa na kazi zimetengwa!",
+      "assignError": "Hitilafu wakati wa kugawa njia."
+    }
+  },
+  "logisticsPartnership": {
+    "title": "Ushirika wa Usafirishaji",
+    "role": {
+      "title": "Jukumu letu na jukumu lako",
+      "point1": "Sisi tunatoa mahitaji ya kuchukua na utoaji kupitia jukwaa letu.",
+      "point2": "Wewe unatoa kundi la madereva (pikipiki, magari) kutekeleza kazi hizi kwa ufanisi."
+    },
+    "pricing": {
+      "title": "Bei & Tume",
+      "subtitle": "Unapokea kiwango maalum kwa utoaji, kulingana na maeneo katika Kinshasa. Ada hizi zinalipwa kwako, na wewe ndiye unaowajibika kulipa madereva yako.",
+      "byZone": "Kiwango cha msingi kwa eneo",
+      "zone1": "Eneo 1 (Gombe, Kintambo)",
+      "zone2": "Eneo 2 (Ngaliema, Bandalungwa)",
+      "zone3": "Eneo 3 (Lingwala, Kalamu)",
+      "zone4": "Eneo 4 (Masina, Limete)",
+      "outOfZone": "Nje ya eneo",
+      "options": "Chaguzi za ziada (zinalipwa kwako)",
+      "optionExpress": "Utoaji wa haraka (< 2h)",
+      "optionNight": "Utoaji wa usiku (baada ya saa 8 usiku)",
+      "optionHeavy": "Vitu vizito/kubwa (>15kg)"
+    }
+  },
+  "reviewModal": {
+    "rateOutOf5": "Kadiria {{star}} kati ya nyota 5",
+    "leaveReview": "Acha maoni",
+    "shareExperience": "Shiriki uzoefu wako na {{name}}.",
+    "pleaseSelectRating": "Tafadhali chagua ukadiriaji.",
+    "yourComment": "Maoni yako (hiari)",
+    "commentPlaceholder": "Tuambie ulichopenda au nini kinaweza kuboreshwa...",
+    "submitReview": "Wasilisha hakiki"
+  },
+  "linkUserModal": {
+    "title": "Unganisha mtumiaji na mshirika",
+    "description": "Unganisha {{name}} na akaunti ya mshirika isiyoongozwa.",
+    "availablePartners": "Washirika wanaopatikana",
+    "selectPartner": "Chagua mshirika",
+    "noUnlinkedPartners": {
+      "title": "Hakuna washirika wasio na muunganisho",
+      "description": "Washirika wote kwa sasa wana akaunti ya mmiliki iliyounganishwa."
+    },
+    "cancel": "Ghairi",
+    "confirm": "Thibitisha unganisho"
+  },
+  "logisticsPartnerEditModal": {
+    "title": "Hariri mshirika wa usafirishaji",
+    "nameLabel": "Jina la mshirika"
+  },
+  "mapLocationPickerModal": {
+    "title": "Chagua eneo",
+    "instructions": "Bonyeza kwenye ramani kuweka alama kwenye eneo unalotaka.",
+    "confirm": "Thibitisha eneo"
+  },
+  "partnerMapView": {
+    "select": "Chagua"
+  },
+  "partnerCard": {
+    "altText": "Picha ya {{name}}, {{type}}"
+  },
+  "serviceCard": {
+    "altText": "Picha kwa huduma: {{title}}"
+  },
+  "laundryScannerModal": {
+    "noCamera": "Hakuna kamera iliyopatikana kwenye kifaa hiki.",
+    "cameraDenied": "Ufikiaji wa kamera umekataliwa. Tafadhali ruhusu ruhusa za kamera.",
+    "networkError": "Hitilafu ya mtandao. Tafadhali angalia muunganisho wako.",
+    "title": "Kichanganua cha kufua",
+    "instructions": "Elekeza kamera yako kwenye rundo lako la nguo za kufua.",
+    "analyzing": "Inachambua...",
+    "error": "Uchambuzi umeshindwa. Tafadhali jaribu tena.",
+    "tryAgain": "Jaribu tena",
+    "capture": "Kamata picha",
+    "cancel": "Ghairi"
+  },
+  "stainAnalysisModal": {
+    "title": "Uchambuzi wa doa",
+    "analyzing": "Inachambua doa...",
+    "resultTitle": "Matokeo ya uchambuzi",
+    "probableStain": "Aina ya doa inayowezekana",
+    "confidence": "Uaminifu",
+    "recommendation": "Pendekezo",
+    "close": "Funga",
+    "addToDryCleaning": "Ongeza kwenye kusafisha kwa kikausi",
+    "addToLaundry": "Ongeza kwenye kufua",
+    "cancel": "Ghairi",
+    "tryAgain": "Jaribu tena"
+  },
+  "chatbot": {
+    "welcomeMessage": "Habari! Mimi ni msaidizi wa Laundry Express. Ninaweza kukusaidiaje leo?",
+    "inputPlaceholder": "Uliza swali lako hapa...",
+    "suggestion1": "Je, saa zako za kufungulia ni zipi?",
+    "suggestion2": "Je, inagharimu kiasi gani?",
+    "suggestion3": "Fuatilia hali ya agizo langu"
+  },
+  "supportCenterPage": {
+    "unauthorized": "Ufikiaji umewekewa vikwazo",
+    "loginToAccess": "Tafadhali ingia kufikia kituo cha usaidizi.",
+    "login": "Ingia",
+    "title": "Kituo cha usaidizi",
+    "botError": "Samahani, hitilafu imetokea. Tafadhali jaribu tena.",
+    "createTicket": "Unahitaji usaidizi? Unda tiketi ya usaidizi"
+  },
+  "createTicketModal": {
+    "error": "Tafadhali jaza somo na ujumbe.",
+    "errorUser": "Mtumiaji hajapatikana. Haiwezi kuunda tiketi.",
+    "title": "Unda tiketi mpya ya usaidizi",
+    "subject": "Somo",
+    "subjectPlaceholder": "mf: Tatizo na agizo langu la mwisho",
+    "relatedOrder": "Agizo linalohusiana (hiari)",
+    "noOrder": "Hakuna",
+    "message": "Ujumbe",
+    "messagePlaceholder": "Tafadhali elezea tatizo lako kwa undani...",
+    "sendButton": "Tuma tiketi"
+  },
+  "viewTicketModal": {
+    "adminAuthor": "Msimamizi",
+    "by": "Na: {{name}}",
+    "order": "Agizo: #{{id}}",
+    "aiSummaryTitle": "Muhtasari wa AI",
+    "you": "Wewe",
+    "typeResponse": "Andika jibu lako hapa...",
+    "changeStatus": "Badilisha hali:",
+    "send": "Tuma"
+  },
+  "ticketStatus": {
+    "OPEN": "Wazi",
+    "IN_PROGRESS": "Inaendelea",
+    "CLOSED": "Imefungwa"
+  },
+  "ticketCategory": {
+    "BILLING": "Malipo",
+    "DAMAGED_ITEM": "Kitu kimeharibiwa",
+    "DELIVERY_ISSUE": "Tatizo la utoaji",
+    "SERVICE_QUALITY": "Ubora wa huduma",
+    "ACCOUNT_HELP": "Msaada wa akaunti",
+    "OTHER": "Nyingine"
+  },
+  "chatModal": {
+    "systemMessage": "{{message}}",
+    "chat": "Gumzo",
+    "title": "Gumzo kwa agizo #{{id}}",
+    "typeMessage": "Andika ujumbe wako...",
+    "messageInputLabel": "Ingizo la ujumbe",
+    "sendMessageLabel": "Tuma ujumbe",
+    "sendHint": "Waandishi wa habari Ingiza kutuma, Shift+Ingiza kwa mstari mpya.",
+    "sendError": "Imeshindwa kutuma ujumbe",
+    "noMessages": "Bado hakuna ujumbe. Anza mazungumzo!"
+  },
+  "notificationPanel": {
+    "markAllAsRead": "Weka alama zote kama zimesomwa",
+    "viewAll": "Tazama zote"
+  },
+  "onboarding": {
+    "title": "Weke duka lako!",
+    "subtitle": "Kamilisha hatua hizi kuanza kupokea maagizo.",
+    "progress": "{{completed}} ya {{total}} imekamilika",
+    "allDone": "Uko tayari!",
+    "steps": {
+      "setHours": {
+        "title": "Weka saa zako za kufungulia",
+        "description": "Waambie wateja ratiba yako."
+      },
+      "addService": {
+        "title": "Ongeza angalau huduma moja",
+        "description": "Fafanua unachotoa (mf: kusafisha kwa kikausi, kuosha-kausha-kunja)."
+      },
+      "addVideo": {
+        "title": "Ongeza video ya utangulizi",
+        "description": "Onyesha biashara yako kuvutia wateja zaidi."
+      },
+      "createPromo": {
+        "title": "Unda tangazo lako la kwanza",
+        "description": "Vutia wateja wapya kwa ofa maalum."
+      }
+    }
+  },
+  "tooltips": {
+    "dashboard": "Tazama dashibodi yako kuu na takwimu.",
+    "analytics": "Tazama takwimu za kina kuhusu utendaji wako.",
+    "orders": "Dhibiti maagizo yote yanayoingia na yanayofanya kazi.",
+    "financials": "Fuatilia mapato na malipo.",
+    "profile": "Hariri wasifu wako wa umma na huduma.",
+    "promotions": "Unda na dhibiti misimbo ya utangazaji.",
+    "team": "Alika na dhibiti wanachama wa timu.",
+    "security": "Dhibiti 2FA na tazama kumbukumbu za shughuli.",
+    "apiIntegrations": "Unganisha na zana za nje kupitia API.",
+    "automation": "Sanidi otomatiki kuokoa wakati.",
+    "support": "Wasiliana na timu yetu ya usaidizi.",
+    "inventory": "Dhibiti hisa yako ya usambazaji na uweke tahadhari za hisa ya chini.",
+    "delivery": "Sanidi muundo wako wa utoaji na maeneo.",
+    "subscription": "Dhibiti mpango wako wa usajili na malipo.",
+    "invoicing": "Zalisha na dhibiti ankara za awali na ankara kwa maagizo yako."
+  },
+  "partnerFeatures": {
+    "promotions": "Matangazo",
+    "financials": "Fedha",
+    "analytics": "Takwimu",
+    "customDomain": "Kikoa maalum",
+    "customSubdomain": "Kikoa kidogo maalum",
+    "teamManagement": "Usimamizi wa timu",
+    "apiAccess": "Ufikiaji wa API",
+    "advancedAutomation": "Otomatiki ya hali ya juu",
+    "aiReviewAssistant": "Msaidizi wa AI wa hakiki",
+    "invoiceGenerator": "Kizazi cha ankara"
+  },
+  "bulkFeatureEditModal": {
+    "title": "Usimamizi wa Kipengele kwa Wingi",
+    "selectAll": "Chagua zote",
+    "deselectAll": "Tenganisha zote",
+    "saveButton": "Hifadhi mabadiliko"
+  },
+  "landingPage": {
+    "header": {
+      "brandName": "Laundry Express"
+    },
+    "mobileCta": {
+      "order": "Agiza kuchukua",
+      "chat": "Gumzo kwenye WhatsApp"
+    },
+    "exitModal": {
+      "title": "Subiri, usiondoke!",
+      "subtitle": "Pata punguzo la 20% kwenye agizo lako la kwanza. Acha tusimamie kufua.",
+      "ctaOrder": "Agiza sasa na upate punguzo la 20%",
+      "ctaLater": "Labda baadaye"
+    },
+    "socialProof": {
+      "message": "{{name}} katika {{location}} ameunda agizo!",
+      "timeAgo": "dakika {{count}} zilizopita"
+    },
+    "hero": {
+      "title": "Kufua & Kusafisha kwa Kikausi, Zikiletwe Kwenye Mlango Wako Kinshasa.",
+      "subtitle": "Umechoka na siku ya kufua? Panga kuchukua kwa sekunde. Tunashirikiana na wasafishaji bora kukuletea nguo safi na safi bila usumbufu.",
+      "ctaOrder": "Agiza kuchukua",
+      "ctaPartner": "Kuwa mshirika",
+      "launchOffer": "Ofa ya kuzindua! -20% kwenye agizo lako la kwanza. Muda unaobaki:",
+      "offerExpired": "Ofa imeisha!",
+      "tagline": "Kwa Fahari ya Kikongo 🇨🇩 | Malipo salama na:",
+      "paymentMethods": {
+        "airtel": "Airtel Money",
+        "mpesa": "M-Pesa",
+        "orange": "Orange Money"
+      },
+      "trustBadges": {
+        "rating": "Ukadiriaji wa wateja 4.8/5",
+        "payment": "Malipo salama ya mkononi",
+        "delivery": "Utoaji wa haraka na unaoaminika"
+      }
+    },
+    "whyUs": {
+      "title": "Kwa nini kuchagua Laundry Express?",
+      "subtitle": "Sisi sio tu huduma ya kufua; sisi ni bora ya mtindo wa maisha.",
+      "card1": {
+        "title": "Okoa wakati & juhudi",
+        "description": "Pata wikendi zako nyuma. Panga kuchukua kwa chini ya dakika 2 na uache sisi tushughulikie mengine. Wakati zaidi kwa unachopenda."
+      },
+      "card2": {
+        "title": "Ubora umehakikishiwa",
+        "description": "Tunachunguza kila mshirika kuhakikisha wanakidhi viwango vyetu vya juu vya kusafisha, utunzaji, na huduma ya wateja. Nguo zako ziko mkononi mwa watu wazima."
+      },
+      "card3": {
+        "title": "Rahisi & Wazi",
+        "description": "Hakuna ada za kujificha. Fuatilia agizo lako kutoka kwa simu yako, wasiliana na msafishaji wako, na ulipe kwa usalama kupitia pesa za mkononi."
+      }
+    },
+    "faq": {
+      "title": "Maswali Yanayoulizwa Mara Kwa Mara",
+      "subtitle": "Una maswali? Tuna majibu.",
+      "q1": {
+        "question": "Bei inafanywaje kazi?",
+        "answer": "Bei imewekwa na washirika wetu. Kufua kwa kawaida huwa na bei kwa kilo (kg), wakati kusafisha kwa kikausi huwa na bei kwa kipande. Utaona jumla inayokadiriwa kabla ya kuthibitisha agizo lako."
+      },
+      "q2": {
+        "question": "Muda wa utunzaji ni upi?",
+        "answer": "Muda wetu wa kawaida wa utunzaji ni masaa 48 kwa maagizo mengi. Washirika wengi pia hutoa huduma ya haraka ya masaa 24 kwa ada ya ziada."
+      },
+      "q3": {
+        "question": "Nawezaje kulipa?",
+        "answer": "Tunakubali malipo salama kupitia watoa wakuu wote wa pesa za mkononi DRC: M-Pesa, Airtel Money, na Orange Money."
+      },
+      "q4": {
+        "question": "Naweza kuchagua mshirika wangu wa kufua?",
+        "answer": "Bila shaka! Unaweza kuvinjari mtandao wetu wa kituo cha kufua na wasafishaji wa kikausi waliohakikiwa, wa ubora wa juu, na kuchagua yale yanayokufaa zaidi."
+      }
+    }
+  },
+  "faqPage": {
+    "title": "Maswali Yanayoulizwa Mara Kwa Mara",
+    "subtitle": "Pata majibu ya maswali ya kawaida kuhusu huduma yetu.",
+    "noFaqTitle": "Hakuna maswali kwa sasa",
+    "noFaqSubtitle": "Sehemu ya Maswali Yanayoulizwa Mara Kwa Mara inasasishwa. Tafadhali rudi baadaye."
+  },
+  "partnerDetailPage": {
+    "imageAlt": "Picha ya {{name}}",
+    "backButton": "Nyuma",
+    "reviews": "Maoni",
+    "shareButton": "Shiriki",
+    "discoverVideo": "Video ya kugundua",
+    "servicesTitle": "Huduma",
+    "reviewsTitle": "Maoni ya wateja",
+    "noReviewsTitle": "Bado hakuna maoni",
+    "noReviewsSubtitle": "Waweke wa kwanza kukadiria {{name}}",
+    "practicalInfo": "Maelezo ya vitendo",
+    "openingHours": "Saa za kufungulia",
+    "today": "(Leo)",
+    "closed": "Imefungwa",
+    "location": "Eneo",
+    "mapAlt": "Ramani ya eneo la {{name}}",
+    "viewPrices": "Angalia bei",
+    "selectService": "Chagua huduma hii",
+    "orderWith": "Agiza na {{name}}",
+    "selectAndContinue": "Chagua mshirika huyu & Endelea",
+    "shareTitle": "Gundua {{name}} kwenye Laundry Express!",
+    "shareText": "Nimepata {{name}} kwenye Laundry Express. Angalia huduma zao!",
+    "linkCopied": "Kiungo cha wasifu cha mshirika kimenakiliwa!",
+    "copyError": "Imeshindwa kunakili kiungo.",
+    "temporaryUnavailability": "Kutopatikana kwa muda",
+    "fromTo": "kutoka {{start}} hadi {{end}}",
+    "previousImage": "Picha iliyotangulia",
+    "nextImage": "Picha inayofuata",
+    "goToImage": "Nenda kwenye picha {{index}}",
+    "shareAriaLabel": "Shiriki mshirika huyu",
+    "videoPlaceholderAlt": "Video ya utangulizi kwa {{name}}",
+    "videoComingSoon": {
+      "title": "Video ya utangulizi inakuja hivi karibuni",
+      "subtitle": "Rudi hivi karibuni kwa ziara ya virtual ya kiwanda hiki."
+    },
+    "priceList": "Orodha ya bei"
+  },
+  "inventoryManagement": {
+    "title": "Usimamizi wa Hisa",
+    "description": "Fuatilia vifaa vyako kuhakikisha uko tayari kila wakati kwa maagizo mapya.",
+    "saveChanges": "Hifadhi mabadiliko",
+    "addItem": "Ongeza kitu",
+    "itemName": "Jina la kitu",
+    "currentStock": "Hisa ya sasa",
+    "lowStockThreshold": "Kizingiti cha hisa ya chini",
+    "units": {
+      "pcs": "Vipande",
+      "units": "Vizio",
+      "liters": "Lita",
+      "kg": "Kilogramu"
+    },
+    "stockLabel": "Hisa: {{current}}/{{threshold}} {{unit}}",
+    "confirmDelete": "Una uhakika unataka kufuta kitu hiki?",
+    "saveSuccess": "Hisa imesasishwa kwa mafanikio.",
+    "saveError": "Imeshindwa kusasisha hisa.",
+    "lowStockAlertTitle": "Tahadhari ya hisa ya chini! ({{count}})",
+    "manageInventory": "Dhibiti hisa"
+  },
+  "deliverySettings": {
+    "title": "Mipangilio ya Utoaji",
+    "description": "Chagua jinsi unavyotaka kushughulikia utoaji wa maagizo.",
+    "deliveryModel": "Muundo wa utoaji",
+    "platform": {
+      "title": "Usafirishaji wa jukwaa",
+      "description": "Tumia mtandao wa madereva wa Laundry Express kwa kuchukua na utoaji wako wote. Rahisi na yenye ufanisi."
+    },
+    "self": {
+      "title": "Kujitoa",
+      "description": "Dhibiti utoaji wako mwenyewe ukitumia madereva wako wa ndani au huduma ya wahusika wengine unayodhibiti."
+    },
+    "zones": {
+      "title": "Maeneo ya Utoaji & Ada",
+      "description": "Fafanua halmashauri unazohudumia na uweke ada kwa kila moja. Sarafu ni sarafu ya akaunti yako ya mshirika ({{currency}}).",
+      "feeLabel": "Ada ya utoaji"
+    },
+    "saveSuccess": "Mipangilio ya utoaji imehifadhiwa kwa mafanikio.",
+    "saveError": "Imeshindwa kuhifadhi mipangilio ya utoaji."
+  },
+  "refundRequestModal": {
+    "title": "Omba kurejeshewa fedha",
+    "forOrder": "Kwa agizo #{{id}}",
+    "commentsRequired": "Tafadhali toa maoni kuelezea tatizo.",
+    "reasonLabel": "Sababu ya ombi",
+    "commentsLabel": "Tafadhali elezea tatizo",
+    "commentsPlaceholder": "mf: 'Shati langu lilerudishwa na doa jipya shingoni...'",
+    "note": "Timu yetu itachunguza ombi lako na kurudi kwako ndani ya masaa 48.",
+    "submitButton": "Wasilisha ombi"
+  },
+  "refundManagement": {
+    "requests": "Maombi ya kurejeshewa fedha ({{count}})",
+    "forOrder": "Kwa agizo",
+    "requestedBy": "Imeombwa na: {{name}}",
+    "reject": "Kataa",
+    "approve": "Idhinisha",
+    "resolutionNotes": "Maoni ya uamuzi:",
+    "resolvedOn": "Imetatuliwa {{date}}",
+    "noRequests": "Hakuna maombi ya kurejeshewa fedha yaliyopatikana kwa kichujio hiki."
+  },
+  "resolveRefundModal": {
+    "approveTitle": "Idhinisha ombi la kurejeshewa fedha",
+    "rejectTitle": "Kataa ombi la kurejeshewa fedha",
+    "notesLabel": "Maoni ya uamuzi (hiari, inaonekana kwa mteja)",
+    "notesPlaceholder": "mf: Kurejeshewa fedha kimetunzwa kupitia pesa za mkononi...",
+    "approveButton": "Idhinisha kurejeshewa fedha",
+    "rejectButton": "Kataa kurejeshewa fedha"
+  },
+  "refundStatus": {
+    "PENDING": "Inasubiri",
+    "APPROVED": "Imeidhinishwa",
+    "REJECTED": "Imekataliwa"
+  },
+  "refundReasons": {
+    "ITEM_DAMAGED": "Kitu kimeharibiwa",
+    "ITEM_MISSING": "Kitu kinakosekana",
+    "POOR_QUALITY": "Ubora duni wa huduma",
+    "LATE_DELIVERY": "Utoaji wa marehemu",
+    "OTHER": "Nyingine"
+  },
+  "subscription": {
+    "title": "Usajili & Malipo",
+    "subtitle": "Chagua mpango unaokufaa zaidi kwa mahitaji ya biashara yako.",
+    "monthly": "Kila mwezi",
+    "yearly": "Kila mwaka",
+    "save20": "Okoa 20%",
+    "mostPopular": "Maarufu zaidi",
+    "currentPlan": "Mpango wa sasa",
+    "upgrade": "Boresha",
+    "downgrade": "Punguza",
+    "subscribeSuccess": "Umejisajili kwa mafanikio kwa mpango {{planName}}!",
+    "subscribeError": "Imeshindwa kusasisha usajili.",
+    "billingHistory": {
+      "title": "Historia ya malipo",
+      "date": "Tarehe",
+      "plan": "Mpango",
+      "amount": "Kiasi",
+      "status": "Hali",
+      "paid": "Imelipwa",
+      "failed": "Imeshindwa",
+      "noInvoices": "Hakuna ankara zilizopatikana."
+    },
+    "confirm": {
+      "title": "Thibitisha usajili kwa {{planName}}",
+      "description": "Utalipwa {{amount}}$ / {{cycle}}.",
+      "confirmButton": "Thibitisha & Jisajili"
+    }
+  },
+  "subscriptionManagement": {
+    "title": "Mipango ya Usajili",
+    "newPlan": "Mpango mpya",
+    "editPlan": "Hariri mpango"
+  },
+  "invoicingPage": {
+    "title": "Kutoa ankara",
+    "description": "Zalisha ankara za awali na ankara za mwisho kwa maagizo yako yaliyokamilika.",
+    "completedOrders": "Maagizo yaliyokamilika",
+    "noCompletedOrders": "Huna maagizo yaliyokamilika ya kutoa ankara kwa sasa.",
+    "orderId": "Kitambulisho cha Agizo",
+    "customer": "Mteja",
+    "date": "Tarehe",
+    "total": "Jumla",
+    "status": "Hali",
+    "actions": "Vitendo",
+    "generateProforma": "Zalisha Anwani ya Awali",
+    "viewProforma": "Tazama Anwani ya Awali",
+    "generateInvoice": "Zalisha Anwani",
+    "viewInvoice": "Tazama Anwani",
+    "proformaGenerated": "Anwani ya awali imezalishwa",
+    "invoiceGenerated": "Anwani imezalishwa"
+  },
+  "invoiceModal": {
+    "proformaTitle": "ANWANI YA AWALI",
+    "invoiceTitle": "ANWANI",
+    "from": "Kutoka:",
+    "billTo": "Lipa kwa:",
+    "orderId": "Kitambulisho cha Agizo:",
+    "orderDate": "Tarehe ya agizo:",
+    "proformaDate": "Tarehe ya anwani ya awali:",
+    "invoiceDate": "Tarehe ya anwani:",
+    "item": "Kitu",
+    "quantity": "Kiasi",
+    "unitPrice": "Bei ya kitengo",
+    "total": "Jumla",
+    "subtotal": "Jumla ndogo",
+    "discount": "Punguzo",
+    "grandTotal": "Jumla kuu",
+    "thankYou": "Asante kwa biashara yako!",
+    "print": "Print",
+    "close": "Funga"
+  },
+  "debug": {
+    "cameraStarting": "Inaanza kamera...",
+    "cameraActive": "Kamera inatumika",
+    "imageCaptured": "Picha imekamatwa",
+    "aiAnalyzing": "AI inachambua...",
+    "matchingArticles": "Inatafuta vitu vinavyolingana...",
+    "matchesFound": "{{count} mechi zimepatikana"
+  }
+}

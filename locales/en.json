@@ -1,0 +1,2104 @@
+{
+  "language": "en",
+  "app": {
+    "loading": "Loading application..."
+  },
+  "common": {
+    "userNotFound": "User not found.",
+    "backToHome": "Back to home",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "sw": "Kiswahili"
+  },
+  "buttons": {
+    "close": "Close",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "refresh": "Refresh",
+    "cancel": "Cancel",
+    "dismiss": "Dismiss",
+    "apply": "Apply",
+    "clear": "Clear"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "invalidPhone": "Please enter a valid phone number (ex: 0812345678).",
+    "minLength": "Must contain at least {{count}} characters.",
+    "missingName": "Please enter your full name.",
+    "missingPhone": "Please enter your phone number.",
+    "missingPickupTime": "Please select a pickup date and time.",
+    "noItems": "Please add at least one item to your order.",
+    "incompleteAddress": "Please provide a complete pickup address (commune, avenue, and house number)."
+  },
+  "header": {
+    "home": "Home",
+    "tracking": "Track my order",
+    "profile": "My profile",
+    "history": "My orders",
+    "admin": "Admin",
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "greeting": "Hello, {{name}}",
+    "openMenu": "Open menu"
+  },
+  "footer": {
+    "tagline": "Your laundry, delivered. The easiest way to do your laundry and dry cleaning in DRC.",
+    "navigation": "Navigation",
+    "home": "Home",
+    "order": "Place order",
+    "myProfile": "My profile",
+    "faq": "FAQ",
+    "partners": "Partners",
+    "becomePartner": "Become a partner",
+    "logisticsPartnership": "Logistics partnership",
+    "contactUs": "Contact us",
+    "phone": "+243 81 234 5678",
+    "copyright": "© {{year}} Laundry Express DRC. All rights reserved."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "You have no new notifications.",
+    "filters": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "time": {
+      "years": "{{count}} year ago",
+      "years_plural": "{{count}} years ago",
+      "months": "{{count}} month ago",
+      "months_plural": "{{count}} months ago",
+      "days": "{{count}} day ago",
+      "days_plural": "{{count}} days ago",
+      "hours": "{{count}} hour ago",
+      "hours_plural": "{{count}} hours ago",
+      "minutes": "{{count}} minute ago",
+      "minutes_plural": "{{count}} minutes ago",
+      "justNow": "Just now"
+    },
+    "userProfileUpdated": "Profile updated successfully.",
+    "userProfileUpdateError": "Error updating your profile.",
+    "preferencesUpdated": "Preferences updated successfully.",
+    "preferencesUpdateError": "Error updating preferences.",
+    "siteContentUpdated": "Site content updated.",
+    "partnerApproved": "Partnership for \"{{companyName}}\" has been approved.",
+    "partnerRejected": "Partnership application for \"{{companyName}}\" rejected.",
+    "partnerDeleted": "Partner deleted successfully.",
+    "userLinkedToPartner": "User {{name}} has been successfully linked to the partner.",
+    "serviceSaved": "Service saved successfully.",
+    "serviceDeleted": "Service deleted successfully.",
+    "serviceUnlinked": "Service unlinked from partner.",
+    "ticketCreated": "Support ticket created successfully.",
+    "ticketStatusUpdated": "Ticket #{{id}} status updated.",
+    "promoAdded": "Promo code added successfully.",
+    "promoUpdated": "Promo code updated successfully.",
+    "promoDeleted": "Promo code deleted successfully.",
+    "driverAdded": "Driver {{name}} added successfully.",
+    "emailExists": "This email already exists.",
+    "pickupMissionAssigned": "Pickup mission assigned successfully.",
+    "deliveryMissionAssigned": "Delivery mission assigned successfully.",
+    "pointsEarnedToast": "You earned {{points}} points! New balance: {{total}}.",
+    "reviewThanks": "Thanks for your review!",
+    "newOrder": "New order #{{id}} from {{name}}.",
+    "aClient": "a client",
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject"
+    },
+    "newOrderAdmin": "New order #{{id}} for {{partner}}.",
+    "emailSendFailure": "Failed to send email to {{email}}. The address may be invalid.",
+    "orderConfirmedWithTime": "Order #{{id}} confirmed. Estimated completion: {{time}}.",
+    "orderRejected": "Order #{{id}} has been rejected. Reason: {{reason}}.",
+    "orderRejectedNoReason": "No reason provided.",
+    "orderStatusUpdate": "Order #{{id}} is now: {{status}}.",
+    "orderStatusUpdateSystemChat": "Order status automatically updated to: {{status}}.",
+    "newPickupMission": "New pickup mission available for order #{{orderId}} at {{partnerName}}.",
+    "newDeliveryMission": "New delivery mission available for order #{{orderId}} from {{partnerName}}.",
+    "newPickupMissionDriver": "New pickup mission assigned: Order #{{orderId}} from {{partnerName}}.",
+    "newDeliveryMissionDriver": "New delivery mission assigned: Order #{{orderId}} for {{clientName}}.",
+    "driverAssignedForPickup": "A driver is on the way to pick up your order #{{id}}!",
+    "orderOnTheWayForDelivery": "Good news! Your order #{{id}} is on the way for delivery.",
+    "orderReaccepted": "The new partner has accepted the reassigned order #{{id}}. A pickup mission will be available soon for logistics.",
+    "missionCancelledReassigned": "Your mission for order #{{id}} has been cancelled because the order was reassigned.",
+    "permissionsUpdated": "Permissions updated successfully.",
+    "permissionsUpdateError": "Error updating permissions.",
+    "adminCreated": "New admin '{{name}}' created successfully.",
+    "adminCreationError": "Failed to create admin: {{error}}.",
+    "applicationSettingsUpdated": "Application settings updated.",
+    "settingsSaveError": "Failed to save settings.",
+    "codeCopied": "Code copied to clipboard!",
+    "copyError": "Failed to copy code.",
+    "pointsEarned": "Congratulations! You earned {{points}} loyalty points.",
+    "partnerUpdated": "Partner updated successfully.",
+    "partnerFeaturesUpdated": "Partner features updated successfully.",
+    "refundRequestSubmitted": "Refund request submitted successfully.",
+    "refundRequestError": "Failed to submit refund request.",
+    "refundApproved": "Refund request approved.",
+    "refundRejected": "Refund request rejected.",
+    "refundError": "Failed to process refund request.",
+    "scanSuccess": "{{count}} items scanned successfully",
+    "scanNoMatches": "No matching items found in scan"
+  },
+  "automationPage": {
+    "title": "Automation Settings",
+    "description": "Automate your business processes to save time and improve customer communication",
+    "tabs": {
+      "basic": "Basic",
+      "messaging": "Messaging",
+      "rules": "Rules",
+      "analytics": "Analytics"
+    },
+    "autoAccept": {
+      "title": "Automatic Order Acceptance",
+      "enableLabel": "Enable auto-accept",
+      "enableDescription": "Automatically accept incoming new orders",
+      "maxPriceLabel": "Maximum order value to auto-accept ($)",
+      "maxPriceDescription": "Orders above this value will require manual confirmation. Set to 0 to accept all.",
+      "serviceFilters": "Service Type Filters",
+      "serviceFiltersDescription": "Only auto-accept orders for selected services"
+    },
+    "businessHours": {
+      "title": "Business Hours",
+      "enableLabel": "Enable business hours",
+      "enableDescription": "Run automation only during your business hours",
+      "timezone": "Timezone",
+      "open": "Open",
+      "close": "Close"
+    },
+    "autoMessages": {
+      "title": "Automated Messages",
+      "enableLabel": "Enable auto messages",
+      "enableDescription": "Send predefined messages to customers on order status change",
+      "variables": "Use variables like {customerName}, {orderNumber}, {estimatedTime} in your messages"
+    },
+    "templateTokens": {
+      "title": "Message Variables",
+      "description": "Click to insert variables that will be replaced with actual data",
+      "customerName": "Customer full name",
+      "orderNumber": "Order reference number",
+      "estimatedTime": "Estimated processing time",
+      "serviceType": "Ordered service type",
+      "pickupTime": "Pickup availability time",
+      "deliveryTime": "Scheduled delivery time",
+      "totalAmount": "Order total amount",
+      "driverName": "Delivery driver name",
+      "driverPhone": "Driver contact number",
+      "businessAddress": "Your business address"
+    },
+    "messageCategories": {
+      "orderStatus": "Status Updates",
+      "payment": "Payment Notifications",
+      "delivery": "Delivery & Pickup",
+      "customerService": "Customer Service",
+      "appointments": "Appointment Reminders",
+      "qualityUpdates": "Quality Updates",
+      "promotional": "Promotional Messages"
+    },
+    "messageTitles": {
+      "CONFIRMED": "Order Confirmed",
+      "PROCESSING": "Processing Started",
+      "READY_FOR_PICKUP": "Ready for Pickup",
+      "READY_FOR_DELIVERY": "Out for Delivery",
+      "COMPLETED": "Order Completed",
+      "DELAYED": "Order Delayed",
+      "PAYMENT_CONFIRMED": "Payment Confirmed",
+      "PAYMENT_FAILED": "Payment Failed",
+      "INVOICE_READY": "Invoice Ready",
+      "DRIVER_ASSIGNED": "Driver Assigned",
+      "OUT_FOR_DELIVERY": "Out for Delivery",
+      "DELIVERY_ATTEMPT_FAILED": "Delivery Attempt Failed",
+      "PICKUP_REMINDER": "Pickup Reminder",
+      "WELCOME_NEW_CUSTOMER": "Welcome New Customer",
+      "FEEDBACK_REQUEST": "Feedback Request",
+      "LOYALTY_UPDATE": "Loyalty Points Update",
+      "SUBSCRIPTION_RENEWAL": "Subscription Renewal",
+      "APPOINTMENT_CONFIRMATION": "Appointment Confirmation",
+      "APPOINTMENT_REMINDER_24H": "24 Hour Reminder",
+      "APPOINTMENT_REMINDER_2H": "2 Hour Reminder",
+      "QUALITY_CHECK_PASSED": "Quality Check Passed",
+      "SPECIAL_CARE_UPDATE": "Special Care Update",
+      "SPECIAL_OFFER": "Special Offer",
+      "BIRTHDAY_GREETING": "Birthday Greeting"
+    },
+    "messagePlaceholders": {
+      "CONFIRMED": "Hello {customerName}, your order #{orderNumber} has been confirmed! We'll start processing it soon.",
+      "PROCESSING": "Hello {customerName}, we're now processing your {serviceType} order #{orderNumber}. Estimated completion: {estimatedTime}.",
+      "READY_FOR_PICKUP": "Hello {customerName}, your order #{orderNumber} is ready for pickup! You can collect it until {pickupTime}.",
+      "READY_FOR_DELIVERY": "Hello {customerName}, your order #{orderNumber} is out for delivery! Scheduled delivery: {deliveryTime}.",
+      "COMPLETED": "Thank you for choosing us, {customerName}! Order #{orderNumber} has been completed. We hope to see you again soon! 💫",
+      "DELAYED": "Hello {customerName}, we apologize for the delay with order #{orderNumber}. New estimated time: {newEstimatedTime}. Thank you for your patience!",
+      "PAYMENT_CONFIRMED": "Hello {customerName}, payment for order #{orderNumber} has been confirmed. Total: {totalAmount}",
+      "PAYMENT_FAILED": "Hello {customerName}, we encountered a problem with your payment for order #{orderNumber}. Please update your payment method.",
+      "INVOICE_READY": "Hello {customerName}, your invoice for order #{orderNumber} is ready. Amount: {totalAmount}. View: {invoiceLink}",
+      "DRIVER_ASSIGNED": "Hello {customerName}, {driverName} is assigned to deliver your order #{orderNumber}. Contact: {driverPhone}",
+      "OUT_FOR_DELIVERY": "Hello {customerName}, your order #{orderNumber} is out for delivery! Track here: {trackingLink}",
+      "DELIVERY_ATTEMPT_FAILED": "Hello {customerName}, we missed you for the delivery of order #{orderNumber}. Please contact us to reschedule.",
+      "PICKUP_REMINDER": "Hello {customerName}, friendly reminder: order #{orderNumber} is ready for pickup at {businessAddress}",
+      "WELCOME_NEW_CUSTOMER": "Welcome {customerName}! 🎉 Thank you for choosing our laundry service. Use code WELCOME10 for 10% off your next order!",
+      "FEEDBACK_REQUEST": "Hello {customerName}, how was your experience with order #{orderNumber}? Rate us: {feedbackLink}",
+      "LOYALTY_UPDATE": "Hello {customerName}, you've earned {points} loyalty points! Total: {totalPoints}. Redeem: {rewardsLink}",
+      "SUBSCRIPTION_RENEWAL": "Hello {customerName}, your laundry subscription renews in 3 days. Total: {renewalAmount}",
+      "APPOINTMENT_CONFIRMATION": "Hello {customerName}, your appointment for {serviceType} is confirmed for {appointmentDate} at {appointmentTime}",
+      "APPOINTMENT_REMINDER_24H": "Reminder: Your laundry appointment is tomorrow at {appointmentTime}. See you soon!",
+      "APPOINTMENT_REMINDER_2H": "Friendly reminder: Your appointment is in 2 hours at {appointmentTime}",
+      "QUALITY_CHECK_PASSED": "Great news {customerName}! Your order #{orderNumber} passed our quality check with flying colors 🎉",
+      "SPECIAL_CARE_UPDATE": "Hello {customerName}, we're providing special care to delicate items in order #{orderNumber}. Everything is going very well!",
+      "SPECIAL_OFFER": "Hello {customerName}! Special offer just for you: {promoDescription}. Code: {promoCode}",
+      "BIRTHDAY_GREETING": "Happy Birthday {customerName}! 🎂 Enjoy 20% off your next order with code BDAY20"
+    },
+    "advancedMessaging": {
+      "title": "Advanced Messaging Options",
+      "enableEmojis": "Enable emojis",
+      "enableEmojisDescription": "Allow emojis in automated messages",
+      "enableDeliveryReports": "Delivery reports",
+      "enableDeliveryReportsDescription": "Receive reports when messages are delivered",
+      "enableAppointmentReminders": "Appointment reminders",
+      "enableAppointmentRemindersDescription": "Send automatic appointment reminders",
+      "enablePromotionalMessages": "Promotional messages",
+      "enablePromotionalMessagesDescription": "Send special offers and promotions"
+    },
+    "escalationRules": {
+      "title": "Escalation Rules",
+      "notifyOnFailure": "Notify on Failure",
+      "notifyOnFailureDescription": "Be notified when automation fails",
+      "escalationEmail": "Notification Email",
+      "escalationEmailPlaceholder": "manager@example.com",
+      "notificationMethods": "Notification Methods",
+      "email": "Email",
+      "sms": "SMS",
+      "push": "Push",
+      "fallbackAction": "Fallback Action",
+      "fallbackActionDescription": "Select action to take when automation fails",
+      "maxRetries": "Maximum Retries",
+      "maxRetriesDescription": "Number of retry attempts before escalation",
+      "fallbackActions": {
+        "holdForReview": "Hold for Review",
+        "notifyManager": "Notify Manager",
+        "autoDecline": "Auto Decline",
+        "assignToStaff": "Assign to Staff"
+      }
+    },
+    "autoDecline": {
+      "title": "Automatic Decline Rules",
+      "enableLabel": "Enable auto-decline",
+      "enableDescription": "Automatically decline orders that meet certain criteria",
+      "maxPriceLabel": "Maximum order value to auto-decline ($)",
+      "maxPriceDescription": "Orders above this value will be automatically declined",
+      "maxDistanceLabel": "Maximum delivery distance (miles)",
+      "maxDistanceDescription": "Orders beyond this distance will be automatically declined",
+      "complexServices": "Complex Service Filters",
+      "complexServicesDescription": "Automatically decline orders containing these complex services"
+    },
+    "priorityHandling": {
+      "title": "Priority Order Handling",
+      "enableLabel": "Enable priority handling",
+      "enableDescription": "Handle high-value or VIP orders with special priority",
+      "enableVip": "VIP Customer Priority",
+      "enableVipDescription": "Give priority to orders from VIP customers",
+      "minOrderValue": "Minimum order value for priority ($)",
+      "minOrderValueDescription": "Orders above this value receive priority handling"
+    },
+    "analytics": {
+      "title": "Automation Analytics",
+      "ordersProcessed": "Orders processed",
+      "messagesSent": "Messages sent",
+      "timeSavedWeekly": "Time saved (weekly)",
+      "errors": "Errors",
+      "efficiencyGains": "Efficiency gains",
+      "weeklyTimeSaved": "Weekly time saved",
+      "monthlyTimeSaved": "Monthly time saved",
+      "successRate": "Success rate",
+      "totalUsage": "Total Usage"
+    },
+    "showPreview": "Preview",
+    "hidePreview": "Hide preview",
+    "testMessage": "Test",
+    "testMessageSent": "Test message sent: {preview}",
+    "noMessageToTest": "No message to test",
+    "characterCount": "{current}/{max} characters",
+    "emojisEnabled": "Emojis enabled 😊",
+    "saveSuccess": "Automation settings saved successfully",
+    "saveError": "Error saving automation settings",
+    "selectedCount": "{count} selected",
+    "selectAction": "Select action",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "delete": "Delete",
+    "confirmBulkDelete": "Are you sure you want to delete {count} promo codes?",
+    "export": "Export",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "expired": "Expired",
+    "totalCodes": "Total Codes",
+    "activeCodes": "Active Codes",
+    "expiredCodes": "Expired Codes"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "partnerManagement": {
+    "title": "Partner Management",
+    "healthScoreTitle": "Health Score",
+    "analyzeHealth": "Analyze health",
+    "applicationSettings": {
+      "title": "Application Settings",
+      "description": "Enable or disable new partnership applications by type.",
+      "savingButton": "Saving...",
+      "saveButton": "Save"
+    },
+    "pendingRequests": "Pending requests ({{count}})",
+    "noPendingRequestsTitle": "No pending requests",
+    "approve": "Approve",
+    "reject": "Reject",
+    "activePartners": "Active partners ({{count}})",
+    "noActivePartners": "No active partners at the moment.",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this partner? This action is irreversible.",
+    "featured": "Featured",
+    "setFeatured": "Set as featured",
+    "tabs": {
+      "laundry": "Dry Cleaning & Laundry",
+      "logistics": "Logistics"
+    },
+    "activeLogisticsPartners": "Active logistics partners ({{count}})",
+    "addLogisticsPartnerPlaceholder": "New logistics partner name",
+    "addLogisticsPartnerButton": "Add",
+    "confirmDeleteLogistics": "Are you sure you want to delete this logistics partner?",
+    "downloadFeed": "Download product feed",
+    "bulkFeatureManagement": {
+      "title": "Bulk Feature Management",
+      "description": "Quickly enable or disable a specific feature for all partners at once.",
+      "manageButton": "Manage"
+    }
+  },
+  "activityLog": {
+    "date": "Date",
+    "user": "User",
+    "action": "Action",
+    "partner": "Partner",
+    "details": "Details",
+    "allUsers": "All users",
+    "allActions": "All actions"
+  },
+  "driverDashboard": {
+    "title": "Driver Dashboard",
+    "myStatus": "My status",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "onMission": "On mission",
+    "statusChangedToAvailable": "Status changed to AVAILABLE.",
+    "statusChangedToUnavailable": "Status changed to UNAVAILABLE.",
+    "statusLocked": "Status locked (On mission)",
+    "goUnavailable": "Go unavailable",
+    "goAvailable": "Go available",
+    "missionsCompleted": "Missions completed",
+    "totalEarnings": "Total earnings (est.)",
+    "currentMission": "Current mission",
+    "pickupFrom": "Pickup from",
+    "deliverTo": "Deliver to",
+    "pickupTo": "Deliver to",
+    "deliverFrom": "Pickup from",
+    "confirmPickup": "Confirm pickup",
+    "confirmDelivery": "Confirm delivery",
+    "openChat": "Open chat",
+    "noMissions": "No active missions",
+    "noMissionsDesc": "You are currently free. You will be notified when a new mission is available.",
+    "driversOnly": "This dashboard is for drivers only.",
+    "missionHistory": "Mission history",
+    "missionChartTitle": "Daily missions (last 30 days)",
+    "noMissionHistory": "No mission history at the moment.",
+    "pickupConfirmed": "Pickup confirmed!",
+    "deliveryConfirmed": "Delivery confirmed!",
+    "missionUpdateError": "Error updating mission status."
+  },
+  "paymentModal": {
+    "title": "Payment",
+    "totalToPay": "Total to pay",
+    "payWith": "Pay with",
+    "payNow": "Pay now"
+  },
+  "multiServiceOrder": {
+    "title": "Select your items",
+    "subtitle": "Add items to your order from {{name}}.",
+    "stainHelperText": "Got a stubborn stain? Let our AI assistant recommend the right service.",
+    "selectItems": "Select items",
+    "scanItemsButton": "Scan with camera",
+    "scanSuccess": "{{count}} items scanned successfully",
+    "scanNoMatches": "No matching items found in scan",
+    "itemsSelected": "{{count}} items selected",
+    "changePartner": "Change partner",
+    "selectedServices": "Selected services"
+  },
+  "emailService": {
+    "errors": {
+      "hardBounce": "Hard bounce detected",
+      "invalidRequest": "Invalid request to email service"
+    }
+  },
+  "emails": {
+    "welcome": {
+      "title": "Welcome to Laundry Express DRC!",
+      "subject": "Welcome aboard, {{userName}}!",
+      "header": "Welcome to Laundry Express DRC, {{name}}!",
+      "body1": "We're thrilled to welcome you to our community. Doing your laundry has never been easier.",
+      "body2": "Here's what you can do now:",
+      "listItem1": "Place your first order and choose from the best local partners.",
+      "listItem2": "Track your order from pickup to delivery in real-time.",
+      "listItem3": "Earn loyalty points with every completed order.",
+      "body3": "Ready to get started?",
+      "cta": "Place my first order",
+      "footer": "Best regards,",
+      "team": "The Laundry Express DRC Team"
+    },
+    "orderStatusUpdate": {
+      "title": "Update for your order #{{id}}",
+      "greeting": "Hello {{name}},",
+      "orderId": "Order number",
+      "newStatus": "New status",
+      "estimatedCompletion": "Estimated completion",
+      "summaryTitle": "Order summary",
+      "itemHeader": "Item",
+      "quantityHeader": "Quantity",
+      "priceHeader": "Price",
+      "subtotal": "Subtotal",
+      "promoDiscount": "Promo discount ({{code}})",
+      "referralDiscount": "Referral discount",
+      "loyaltyDiscount": "Loyalty discount",
+      "totalPaid": "Total paid",
+      "body": "You can track your order progress anytime from your profile.",
+      "cta": "Track my order",
+      "footer": "Thank you for using Laundry Express DRC!",
+      "headlines": {
+        "CONFIRMED": "Your order #{{id}} is confirmed!",
+        "PROCESSING": "Your order #{{id}} is being processed!",
+        "READY_FOR_DELIVERY": "Good news! Your order #{{id}} is ready for delivery!",
+        "DELIVERY": "Your order #{{id}} is on the way!",
+        "COMPLETED": "Your order #{{id}} has been delivered!",
+        "REJECTED": "Update regarding your order #{{id}}"
+      }
+    },
+    "newPartnerWelcome": {
+      "title": "Your partnership application is approved!",
+      "subject": "Welcome to the Laundry Express network, {{companyName}}!",
+      "header": "Congratulations, {{name}}!",
+      "body1": "We're pleased to inform you that your application for {{companyName}} has been approved. Welcome to the Laundry Express DRC network!",
+      "body2": "An account has been created for you. Please log in using your email ({{email}}) and the temporary password sent in a separate email.",
+      "cta": "Access your partner dashboard",
+      "body3": "We recommend changing your password and setting up your profile on your first login. We look forward to a successful partnership!",
+      "footer": "Best regards,",
+      "team": "The Laundry Express DRC Team"
+    },
+    "newLogisticsPartnerWelcome": {
+      "title": "Your logistics partnership is approved!",
+      "subject": "Welcome to the Laundry Express network, {{companyName}}!",
+      "header": "Congratulations, {{name}}!",
+      "body1": "We are pleased to inform you that your application for {{companyName}} has been approved. Welcome to the Laundry Express DRC logistics network!",
+      "body2": "An account has been created for you. Please log in using your email ({{email}}) and the temporary password sent in a separate email.",
+      "cta": "Access your Logistics Dashboard",
+      "body3": "We recommend changing your password on your first login. We look forward to a successful partnership!",
+      "footer": "Best regards,",
+      "team": "The Laundry Express DRC Team"
+    }
+  },
+  "orderStatus": {
+    "AWAITING_CONFIRMATION": "Awaiting confirmation",
+    "CONFIRMED": "Confirmed",
+    "READY_FOR_PICKUP": "Ready for pickup",
+    "REJECTED": "Rejected",
+    "PICKUP": "Pickup in progress",
+    "PROCESSING": "Processing",
+    "READY_FOR_DELIVERY": "Ready for delivery",
+    "DELIVERY": "Delivery in progress",
+    "COMPLETED": "Completed"
+  },
+  "partnerTypeEnum": {
+    "PRESSING": "Dry Cleaning",
+    "LAVANDIER": "Laundry",
+    "LOGISTICS": "Logistics",
+    "CORDONNERIE": "Shoe Repair"
+  },
+  "adBanner": {
+    "altText": "Advertisement: {{title}}"
+  },
+  "loggedInHomePage": {
+    "welcome": "Welcome back, {{name}}!",
+    "whatToDo": "What would you like to do today?",
+    "newOrder": "New order",
+    "trackOrder": "Track my order"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Your laundry, delivered.",
+      "subtitle": "The #1 laundry and dry cleaning marketplace in Kinshasa. Order online, we pick up, clean, and deliver to your door.",
+      "cta": "Place order",
+      "launchOffer": "Launch offer -20%!",
+      "offerExpired": "Offer expired!",
+      "tagline": "Proudly Congolese 🇨🇩 | Pay with",
+      "paymentMethods": {
+        "airtel": "Airtel Money",
+        "mpesa": "M-Pesa",
+        "orange": "Orange Money"
+      }
+    },
+    "howItWorks": {
+      "step1": {
+        "title": "Choose your service",
+        "description": "Select from our trusted local partners."
+      },
+      "step2": {
+        "title": "We pick up",
+        "description": "Schedule a pickup slot that works for you."
+      },
+      "step3": {
+        "title": "Expert cleaning",
+        "description": "Your clothes are treated with the utmost care."
+      },
+      "step4": {
+        "title": "We deliver",
+        "description": "Fresh and clean, right to your door."
+      }
+    },
+    "faq": {
+      "q1": {
+        "question": "How does it work?",
+        "answer": "Simply choose a service, select a partner, and schedule your pickup. We handle the rest!"
+      },
+      "q2": {
+        "question": "What are the prices?",
+        "answer": "Prices vary by partner and service. You can see all prices before placing your order."
+      },
+      "q3": {
+        "question": "How long does it take?",
+        "answer": "Standard delivery is usually within 48 hours. Express options are available."
+      }
+    },
+    "adBanner": {
+      "sponsored": "Sponsored"
+    },
+    "trustedPartners": {
+      "title": "Our trusted partners",
+      "subtitle": "We collaborate with the best laundries and dry cleaners in the city to guarantee quality service."
+    }
+  },
+  "orderPage": {
+    "completeAllSteps": "Please complete all steps before proceeding to payment.",
+    "orderCreationError": "Error creating order. Please try again."
+  },
+  "trackingPage": {
+    "noActiveOrder": "No active order",
+    "noActiveOrderSubtitle": "You have no orders in progress. Ready to start one?",
+    "orderNow": "Order now",
+    "orderRejected": "Order rejected",
+    "orderId": "Order number: {{id}}",
+    "orderRejectedReason": "Rejection reason:",
+    "reason": "Reason: {{reason}}",
+    "defaultRejectionReason": "The partner was unable to honor your request at this time.",
+    "noCharge": "You were not charged for this order.",
+    "newOrder": "Place a new order",
+    "trackYourOrder": "Track your order",
+    "openChat": "Open chat",
+    "awaitingDriver": "Waiting for driver assignment...",
+    "readyForDelivery": "Your order is ready for delivery!",
+    "readyForDeliverySubtitle": "We're currently looking for a driver to bring your items back to you.",
+    "driverInfo": "Your driver is on the way!",
+    "driverName": "Driver name",
+    "vehicleInfo": "Vehicle",
+    "service": "Service",
+    "partner": "Partner",
+    "scheduledPickup": "Scheduled pickup",
+    "estimatedCompletion": "Estimated completion",
+    "customerInfo": "Customer information",
+    "articles": "Items",
+    "itemsCount": "{{count}} items",
+    "totalPaid": "Total paid",
+    "promoDiscount": "Promo '{{code}}': -{{amount}}$",
+    "referralDiscount": "Referral discount: -{{amount}}$",
+    "loyaltyDiscount": "Loyalty points: -{{amount}}$",
+    "orderCompleted": "Order completed!",
+    "pointsEarned": "You earned {{points}} loyalty points!",
+    "howWasExperience": "How was your experience?",
+    "later": "Later",
+    "leaveReview": "Leave review",
+    "thanksForReview": "Thanks for your feedback!",
+    "backToHome": "Back to home"
+  },
+  "profilePage": {
+    "personalSpace": "Your personal space",
+    "loginToView": "Log in or create an account to view your profile, order history, and loyalty points.",
+    "login": "Login",
+    "createAccount": "Create account",
+    "myProfile": "My profile",
+    "orderNow": "Order now",
+    "loyaltyProgram": "Loyalty program",
+    "loyaltySubtitle": "Earn points with every order and exchange them for discounts!",
+    "yourPointsBalance": "YOUR POINTS BALANCE",
+    "referralProgram": "Referral program",
+    "referralSubtitleDynamic": "Share your code with friends. They get a {{discountAmount}}$ discount, and you earn {{bonusPoints}} points!",
+    "yourReferralCode": "YOUR REFERRAL CODE",
+    "copyCode": "Copy code",
+    "myInfo": "My information",
+    "editInfo": "Edit",
+    "contactSupport": "Contact support",
+    "name": "Full name",
+    "defaultAddress": "Default address",
+    "email": "Email address",
+    "phone": "Phone number",
+    "notificationPreferences": "Notification preferences",
+    "saveChanges": "Save changes",
+    "orderHistory": "Order history",
+    "noOrders": "No orders yet",
+    "noOrdersSubtitle": "Your past and current orders will appear here. Ready to place your first order?",
+    "partnerLabel": "Partner: {{name}}",
+    "leaveReview": "Leave review",
+    "requestRefund": "Request refund",
+    "prefs": {
+      "newOrder": {
+        "label": "New orders",
+        "desc": "Receive a notification for each new order received."
+      },
+      "orderStatusChange": {
+        "label": "Status changes",
+        "desc": "Be informed about your order progress."
+      },
+      "newChatMessage": {
+        "label": "New messages",
+        "desc": "Be notified of new messages regarding your orders."
+      },
+      "promotions": {
+        "label": "Promotions & offers",
+        "desc": "Receive special offers and news from Laundry Express."
+      },
+      "general": {
+        "label": "General announcements",
+        "desc": "Receive important system and account updates."
+      }
+    },
+    "cancel": "Cancel",
+    "push": {
+      "title": "Push notifications",
+      "status": "Current status:",
+      "notSupported": "Not supported on this browser.",
+      "blocked": "Blocked. Please allow in browser settings.",
+      "enabled": "Enabled.",
+      "disabled": "Disabled.",
+      "enableButton": "Enable notifications",
+      "blockedHint": "You need to allow notifications in your browser's site settings to enable this feature."
+    }
+  },
+  "serviceSelector": {
+    "error": "Error",
+    "noPartnerSelected": "No partner selected. Please go back and choose a partner.",
+    "back": "Back",
+    "whatToClean": "What would you like to clean?",
+    "servicesFor": "Services for {{name}}",
+    "laundry": "Laundry",
+    "perKg": "(per kg)",
+    "dryCleaning": "Dry cleaning",
+    "perItem": "(per item)",
+    "pricePerKg": "{{price}}$/kg",
+    "ratesPerItem": "Rates per item"
+  },
+  "pressingSelector": {
+    "chooseLavandier": "Choose your laundry",
+    "choosePressing": "Choose your dry cleaner",
+    "selectPartner": "Select one of our trusted partners",
+    "searchByName": "Search by name...",
+    "listView": "List view",
+    "mapView": "Map view",
+    "sortBy": "Sort by",
+    "defaultSort": "Default",
+    "ratingHighToLow": "Rating (high to low)",
+    "ratingLowToHigh": "Rating (low to high)",
+    "filterByService": "Filter by service",
+    "allServices": "All services",
+    "priceRange": "Max price/kg",
+    "reviews": "{{count}} reviews",
+    "viewProfile": "View profile & Order",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{current}} of {{total}}",
+    "noPartnerFoundFor": "No partner found for \"{{term}}\".",
+    "noPartnerAvailable": "No partner available for this service.",
+    "tryAnotherName": "Try another name or clear the search.",
+    "goBackAndSelect": "Go back and select another service type.",
+    "filtersAndSort": "Filters & Sort"
+  },
+  "schedulePicker": {
+    "partnerHoursUnavailable": "Partner opening hours are not available.",
+    "partnerUnavailable": "Partner is unavailable from {{start}} to {{end}}.",
+    "partnerClosed": "Partner is closed this day.",
+    "tooLateToday": "It's too late for a pickup today. Please select another day.",
+    "schedulePickup": "Schedule your pickup",
+    "pickupDate": "Pickup date",
+    "pickupTime": "Pickup time"
+  },
+  "orderSummary": {
+    "title": "Order summary",
+    "estimatedWeight": "Estimated weight",
+    "estimatedSubtotal": "Estimated subtotal",
+    "welcomeDiscount": "Welcome discount",
+    "promoDiscount": "Promo '{{code}}'",
+    "loyaltyDiscount": "Loyalty points",
+    "estimatedTotal": "Estimated total",
+    "youHavePoints": "You have {{points}} loyalty points.",
+    "usePointsForDiscount": "Use {{points}} points for a {{amount}}$ discount?",
+    "notEnoughPoints": "Not enough points for a discount on this order.",
+    "loyaltyDiscountApplied": "Loyalty discount applied!",
+    "remove": "Remove",
+    "promoCode": "Have a promo code?",
+    "promoPlaceholder": "ex: WELCOME20",
+    "apply": "Apply",
+    "codeApplied": "Code '{{code}}' applied!",
+    "paymentInfo": "Payment will be processed securely. You will be prompted to confirm on your mobile phone.",
+    "confirmAndPay": "Confirm & Pay",
+    "noItems": "Your cart is empty.",
+    "promoValidation": {
+      "invalid": "This promo code is not valid.",
+      "newUsersOnly": "This code is for new users only.",
+      "notForPartner": "This code is not valid for this partner.",
+      "minValue": "A minimum of {{value}}$ is required to use this code.",
+      "success": "Promo code applied successfully!"
+    }
+  },
+  "articleSelector": {
+    "stainAnalysisRecommendation": "AI recommends {{serviceType}} for your stain. We've switched to this service type for you.",
+    "stainAnalysisComplete": "Stain analysis complete.",
+    "noServiceSelected": "No service selected.",
+    "back": "Back",
+    "estimateWeight": "Estimate your laundry weight",
+    "selectArticles": "Select your items",
+    "scanWithCamera": "Scan with camera",
+    "analyzeStain": "Analyze a stain",
+    "estimatedWeightKg": "Estimated weight (in kg)",
+    "weightPlaceholder": "ex: 5.5",
+    "pricePerKg": "Price: {{price}}$/kg",
+    "pricePerUnit": "{{price}}$ / unit",
+    "estimatedTotal": "Estimated total",
+    "next": "Next"
+  },
+  "clientDetailsForm": {
+    "yourInfo": "Your information",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "ex: John Doe",
+    "phoneNumber": "Phone number",
+    "phonePlaceholder": "0812345678",
+    "pickupAddress": "Pickup address",
+    "selectOnMap": "Select location on map"
+  },
+  "serviceTypeSelector": {
+    "title": "What service do you need?",
+    "laundryAlt": "Pile of folded laundry",
+    "laundry": "Laundry",
+    "laundryDesc": "Wash, dry, and fold for your everyday clothes. Price per kilogram.",
+    "dryCleaningAlt": "Clothes on hangers",
+    "dryCleaning": "Dry cleaning",
+    "dryCleaningDesc": "Specialized care for delicate items like suits, dresses, and coats. Price per item.",
+    "cordonnerie": "Shoe Repair",
+    "cordonnerieDesc": "Repair and maintenance of your shoes and leather items. Price per item."
+  },
+  "becomePartnerPage": {
+    "dryCleaning": "Dry cleaning",
+    "dryCleaningDesc": "For businesses offering dry cleaning and ironing per piece.",
+    "lavandier": "Laundry",
+    "lavandierDesc": "For businesses offering wash-dry-fold services by weight.",
+    "logisticsPartner": "Logistics partner",
+    "logisticsPartnerDesc": "For delivery companies with a fleet of drivers.",
+    "thanks": "Thank you!",
+    "requestSent": "Your partnership request has been sent. Our team will review it and get back to you shortly.",
+    "backToHome": "Back to home",
+    "becomePartner": "Become a partner",
+    "joinUs": "Join our network of professionals and grow your business. Choose your partnership type to get started.",
+    "applicationsClosed": "Partnership applications are currently closed. Please try again later.",
+    "partnerRegistration": "Partner registration",
+    "fillForm": "Please fill out the form below to apply.",
+    "serviceType": "Service type",
+    "pressingPerItem": "Dry cleaning (per piece)",
+    "lavandierPerKg": "Laundry (per kg)",
+    "change": "Change",
+    "companyName": "Company name",
+    "contactName": "Contact name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Business address",
+    "message": "Message (optional)",
+    "submitRequest": "Submit request",
+    "submitError": "An error occurred. Please try again."
+  },
+  "registrationPrompt": {
+    "createAccountToContinue": "Create an account to continue",
+    "guestLimit": "You've reached the order limit for guest users. Create a free account to enjoy unlimited orders and more benefits!",
+    "benefit1": "Easily track your order history.",
+    "benefit2": "Earn loyalty points for discounts.",
+    "benefit3": "Save your information for faster checkout.",
+    "createMyAccount": "Create my account",
+    "cancel": "No thanks"
+  },
+  "loginPage": {
+    "login": "Login",
+    "email": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "********",
+    "or": "Or continue with",
+    "googleSignIn": "Sign in with Google",
+    "facebookSignIn": "Sign in with Facebook",
+    "noAccount": "Don't have an account?",
+    "register": "Register here",
+    "invalidCredentials": "Incorrect email or password."
+  },
+  "registerPage": {
+    "createAccount": "Create account",
+    "fullName": "Full name",
+    "email": "Email address",
+    "phone": "Phone number",
+    "phonePlaceholder": "0812345678",
+    "defaultAddress": "Default pickup address",
+    "password": "Password",
+    "referralCode": "Referral code (optional)",
+    "register": "Register",
+    "googleSignUp": "Sign up with Google",
+    "facebookSignUp": "Sign up with Facebook",
+    "hasAccount": "Already have an account?",
+    "login": "Login here",
+    "error": "Registration failed. Please try again."
+  },
+  "adminPage": {
+    "accessDenied": "Access denied",
+    "noPermission": "You don't have permission to view this page.",
+    "backToHome": "Back to home page",
+    "adminMenu": "Admin menu",
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "partners": "Partners",
+    "services": "Services",
+    "subscriptions": "Subscriptions",
+    "users": "Users",
+    "orders": "Orders",
+    "refunds": "Refunds",
+    "drivers": "Drivers",
+    "promotions": "Promotions",
+    "advertisements": "Advertisements",
+    "loyalty": "Loyalty program",
+    "referral": "Referral program",
+    "contentManagement": "Content management",
+    "support": "Support",
+    "tracking": "Tracking & Integrations",
+    "adminManagement": "Admin management"
+  },
+  "adminDashboard": {
+    "title": "Admin dashboard",
+    "adminDashboard": "Admin dashboard",
+    "revenue30days": "0.00 $",
+    "orders30days": "0",
+    "newPartners30days": "4",
+    "totalRevenue": "Total revenue",
+    "orders": "Orders",
+    "users": "Users",
+    "partners": "Partners",
+    "viewAnalytics": "View detailed analytics",
+    "partnerApplications": "Pending partner applications ({{count}})",
+    "reject": "Reject",
+    "approve": "Approve",
+    "noNewApplications": "No new applications.",
+    "bulkNotifications": {
+      "title": "Bulk notifications",
+      "target": "Target audience",
+      "allUsers": "All customers",
+      "partnersOnly": "Partners only",
+      "messageLabel": "Message",
+      "placeholder": "Enter your promotional message here...",
+      "personalizationHint": "Use {{name}} to personalize the message with the user's first name.",
+      "preview": "Personalized preview",
+      "sendButton": "Send",
+      "feedbackSuccess": "Notification sent successfully!",
+      "feedbackError": "Error sending notification. Please try again.",
+      "successMessage": "Bulk notification sent to {{count}} users.",
+      "errorMessage": "Failed to send bulk notification."
+    },
+    "aiPoweredSecurityAlerts": "AI-powered security alerts",
+    "runSecurityScan": "Run security scan",
+    "securityScanDescription": "Click \"Run security scan\" to check for suspicious activities.",
+    "newOrdersTitle": "New orders",
+    "noNewOrders": "No new orders",
+    "recentCompletedTitle": "Recently completed orders",
+    "noCompletedOrders": "No recently completed orders"
+  },
+  "adminAnalytics": {
+    "title": "Platform analytics",
+    "timeRange": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "revenueOverPeriod": "Revenue (period)",
+    "ordersOverPeriod": "Orders (period)",
+    "newUsers": "New users (period)",
+    "avgOrderValue": "Average order value",
+    "revenue": "Revenue",
+    "orders": "Orders",
+    "partnerPerformance": "Partner performance",
+    "servicePerformance": "Service performance",
+    "revenueByService": "Revenue by service",
+    "geographicalAnalysis": "Geographical analysis",
+    "noGeoData": "No geographical data available.",
+    "activityAnalysis": "User activity analysis",
+    "peakHours": "Order peak hours",
+    "noActivityData": "Not enough activity data.",
+    "unknownService": "Unknown service"
+  },
+  "dynamicFeed": {
+    "description": "High quality {{type}} services from {{name}}, located at {{address}}."
+  },
+  "userManagement": {
+    "title": "User management",
+    "registeredUsers": "Registered users ({{count}})",
+    "table": {
+      "name": "Name",
+      "contact": "Contact",
+      "loyalty": "Loyalty points",
+      "referral": "Referral code",
+      "joined": "Joined on",
+      "actions": "Actions"
+    },
+    "adminBadge": "ADMIN",
+    "partnerBadge": "PARTNER",
+    "linkToPartner": "Link to partner",
+    "noUsers": "No users found.",
+    "linkToLogisticsPartner": "Link to Logistics",
+    "logisticsBadge": "LOGISTICS"
+  },
+  "orderManagement": {
+    "title": "Order management",
+    "allOrders": "All orders ({{count}})",
+    "filterByStatus": "Filter by status:",
+    "all": "All",
+    "orderId": "Order number",
+    "customer": "Customer",
+    "partner": "Partner",
+    "total": "Total",
+    "status": "Status",
+    "date": "Date",
+    "chat": "Chat",
+    "noOrdersForFilter": "No orders found for this filter.",
+    "guest": "Guest",
+    "unknownUser": "Unknown user",
+    "openChat": "Open chat"
+  },
+  "adminOrderManagement": {
+    "customer": "Customer",
+    "partner": "Partner",
+    "total": "Total",
+    "date": "Date"
+  },
+  "promoManagement": {
+    "title": "Promotion management",
+    "createCode": "Create code",
+    "editCode": "Edit promo code",
+    "newCode": "New promo code",
+    "formError": "Please fill in the code and a discount value greater than 0.",
+    "code": "Code",
+    "discountType": "Discount type",
+    "percentage": "Percentage",
+    "fixedAmount": "Fixed amount",
+    "discountValue": "Discount value",
+    "minOrderValue": "Minimum order value ($)",
+    "newUsersOnly": "New users only",
+    "active": "Active",
+    "inactive": "Inactive",
+    "cancel": "Cancel",
+    "saveChanges": "Save changes",
+    "create": "Create",
+    "existingCodes": "Existing codes ({{count}})",
+    "discount": "Discount",
+    "conditions": "Conditions",
+    "createdBy": "Created by",
+    "status": "Status",
+    "actions": "Actions",
+    "minAmount": "Min. {{amount}}$",
+    "noConditions": "None",
+    "platform": "Platform",
+    "confirmDelete": "Are you sure you want to delete this promo code?",
+    "noPromoCodes": "No promo codes created yet.",
+    "totalCodes": "Total Codes",
+    "activeCodes": "Active Codes",
+    "expiredCodes": "Expired Codes",
+    "totalUsage": "Total Usage",
+    "all": "All",
+    "expired": "Expired",
+    "export": "Export",
+    "validity": "Validity"
+  },
+  "contentManagement": {
+    "saveChanges": "Save changes",
+    "heroSection": "Hero section",
+    "mainTitle": "Main title (translation key)",
+    "subtitle": "Subtitle (translation key)",
+    "howItWorksSection": "How it works section",
+    "stepTitle": "Step {{index}} title",
+    "description": "Description",
+    "faqSection": "FAQ section",
+    "addQuestion": "Add question",
+    "question": "Question",
+    "answer": "Answer",
+    "noFaq": "No FAQ items at the moment. Click 'Add question' to create one.",
+    "newQuestion": "New question",
+    "newAnswer": "New answer"
+  },
+  "adminSupport": {
+    "title": "Support center",
+    "allTickets": "All tickets ({{count}})",
+    "filterByStatus": "Filter by status:",
+    "all": "All",
+    "subjectAiSummary": "Subject / AI Summary",
+    "category": "Category",
+    "user": "User",
+    "status": "Status",
+    "lastUpdate": "Last update",
+    "action": "Action",
+    "viewReply": "View/Reply",
+    "noTicketsForFilter": "No tickets found for this filter."
+  },
+  "driverManagement": {
+    "title": "Driver management",
+    "allDrivers": "All drivers ({{count}})",
+    "logisticsPartner": "Logistics partner",
+    "vehicle": "Vehicle",
+    "status": "Status",
+    "currentMission": "Current mission",
+    "noMission": "None",
+    "name": "Name",
+    "noDrivers": "No drivers registered at the moment."
+  },
+  "serviceManagement": {
+    "title": "Service management",
+    "addService": "Add service",
+    "platformServices": "Platform services ({{count}})",
+    "confirmDelete": "Are you sure you want to delete this platform-wide service?",
+    "noServices": "No platform-wide services created yet."
+  },
+  "loyaltyManagement": {
+    "title": "Loyalty program management",
+    "enableLabel": "Enable loyalty program",
+    "enableDescription": "Allow users to earn and redeem loyalty points.",
+    "earningRateLabel": "Earning rate",
+    "earningRateDescription": "Points earned for each dollar spent.",
+    "redemptionRateLabel": "Redemption rate",
+    "redemptionRateDescription": "Points required to exchange for 1$ discount.",
+    "saveButton": "Save settings",
+    "settingsSaved": "Loyalty settings saved successfully."
+  },
+  "referralManagement": {
+    "title": "Referral program management",
+    "enableLabel": "Enable referral program",
+    "enableDescription": "Allow users to refer friends for rewards.",
+    "referrerBonusLabel": "Referrer bonus (points)",
+    "referrerBonusDescription": "Points the referrer receives when their code is used.",
+    "refereeDiscountLabel": "Referee discount ($)",
+    "refereeDiscountDescription": "Discount the new user receives on their first order.",
+    "saveButton": "Save settings",
+    "settingsSaved": "Referral settings saved successfully."
+  },
+  "adManagement": {
+    "title": "Advertisement management",
+    "createAd": "Create advertisement",
+    "editAd": "Edit advertisement",
+    "newAd": "New advertisement",
+    "validationError": "Please fill in the title, image URL, and link URL.",
+    "adTitle": "Advertisement title",
+    "description": "Description",
+    "imageUrl": "Image URL",
+    "linkUrl": "Link URL",
+    "active": "Active",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "existingAds": "Existing advertisements ({{count}})",
+    "status": "Status",
+    "actions": "Actions",
+    "noAds": "No advertisements created yet.",
+    "confirmDelete": "Are you sure you want to delete this advertisement?"
+  },
+  "adminAdminManagement": {
+    "title": "Admin management",
+    "existingAdmins": "Existing admins",
+    "newAdminButton": "New admin",
+    "name": "Name",
+    "email": "Email",
+    "actions": "Actions",
+    "editPermissions": "Edit permissions",
+    "noAdmins": "No other admins found.",
+    "editingFor": "Editing permissions for {{name}}",
+    "saveButton": "Save permissions",
+    "newAdminFormTitle": "Create new admin",
+    "adminName": "Full name",
+    "tempPassword": "Temporary password",
+    "createButton": "Create admin",
+    "permissions": {
+      "dashboard": {
+        "description": "View main dashboard statistics."
+      },
+      "analytics": {
+        "description": "Access detailed platform analytics."
+      },
+      "partners": {
+        "description": "Manage partners and applications."
+      },
+      "services": {
+        "description": "Manage platform-wide services."
+      },
+      "users": {
+        "description": "View and manage all users."
+      },
+      "orders": {
+        "description": "View all platform orders."
+      },
+      "drivers": {
+        "description": "View all drivers and their status."
+      },
+      "promotions": {
+        "description": "Manage platform-wide promotions."
+      },
+      "advertisements": {
+        "description": "Manage homepage advertisements."
+      },
+      "loyalty": {
+        "description": "Configure loyalty program settings."
+      },
+      "referral": {
+        "description": "Configure referral program settings."
+      },
+      "content": {
+        "description": "Manage site content (homepage, FAQ)."
+      },
+      "support": {
+        "description": "View and respond to all support tickets."
+      },
+      "adminManagement": {
+        "description": "Create, edit, and manage other admins."
+      }
+    }
+  },
+  "trackingManagement": {
+    "title": "Tracking & Integrations",
+    "description": "Manage third-party tracking and analytics scripts. Changes may require a page refresh to take effect.",
+    "settingsSaved": "Tracking settings saved successfully.",
+    "gtm": {
+      "title": "Google Tag Manager",
+      "description": "GTM is the recommended method to manage all your tracking scripts, including Meta Pixel, Google Ads, etc. Enter your container ID to enable it.",
+      "label": "GTM Container ID",
+      "placeholder": "GTM-XXXXXXX"
+    },
+    "meta": {
+      "title": "Meta Pixel (Facebook)",
+      "description": "If you're not using GTM, you can enter your Pixel ID directly here. It's recommended to manage this via GTM.",
+      "label": "Meta Pixel ID",
+      "placeholder": "123456789012345"
+    },
+    "saveButton": "Save settings"
+  },
+  "partnerDashboardPage": {
+    "accessDenied": "Access denied",
+    "partnersOnly": "This dashboard is for partners only.",
+    "backToHome": "Back to home",
+    "partnerMenu": "Partner menu",
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "orderManagement": "Order management",
+    "financials": "Financials",
+    "myProfile": "My profile",
+    "promotions": "Promotions",
+    "teamManagement": "Team management",
+    "security": "Security",
+    "apiIntegrations": "API & Integrations",
+    "automation": "Automation",
+    "support": "Support center",
+    "inventory": "Inventory",
+    "delivery": "Delivery",
+    "subscription": "Subscription",
+    "invoicing": "Invoicing"
+  },
+  "partnerDashboard": {
+    "title": "Welcome to your dashboard, {{name}}",
+    "newOrders": "New orders",
+    "newOrderFrom": "New order from",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "activeOrders": "Active orders",
+    "revenueThisMonth": "Revenue (this month)",
+    "avgOrderValue": "Average order value",
+    "viewDetails": "View details",
+    "pendingNewOrders": "Pending new orders ({{count}})",
+    "noNewOrders": "No new orders to accept.",
+    "recentReviewsTitle": "Recent reviews",
+    "noReviews": "No reviews yet.",
+    "rejectionReasonPrompt": "Please provide a reason for rejecting this order (optional).",
+    "defaultRejectionReason": "The partner is currently unavailable.",
+    "orderAcceptedNotification": "Order accepted! It's now ready for pickup by the driver.",
+    "orderUpdateError": "Error updating order.",
+    "reviewAssistant": {
+      "success": "AI response generated!",
+      "copy": "Copied!",
+      "generatedResponse": "Generated response:",
+      "clear": "Clear",
+      "generating": "Generating...",
+      "respondWithAI": "Respond with AI",
+      "replyPosted": "Review response posted successfully!"
+    },
+    "demandForecast": {
+      "title": "Demand forecast",
+      "loading": "Analyzing...",
+      "generateButton": "Generate 7-day forecast",
+      "demandLevel": {
+        "low": "Low",
+        "average": "Average",
+        "high": "High"
+      }
+    },
+    "times": "{{count}} times"
+  },
+  "orderDetailsModal": {
+    "title": "Order details",
+    "orderId": "Order #{{id}}",
+    "customerInfo": "Customer information",
+    "name": "Name",
+    "phone": "Phone",
+    "address": "Address",
+    "pickupSchedule": "Pickup schedule",
+    "orderDetails": "Order details",
+    "itemHeader": "Item",
+    "quantityHeader": "Qty",
+    "priceHeader": "Price",
+    "estimatedWeight": "Estimated weight",
+    "estimatedTotal": "Total",
+    "openChat": "Open Chat"
+  },
+  "estimateTimeModal": {
+    "title": "Estimate completion time",
+    "description": "Please provide an estimated completion date and time for this order.",
+    "timeLabel": "Completion time",
+    "confirm": "Confirm",
+    "confirming": "Confirming...",
+    "quickOptions": "Quick options",
+    "customTime": "Custom date"
+  },
+  "partnerOrderManagement": {
+    "title": "Order management",
+    "myOrders": "My orders ({{count}})",
+    "filterByStatus": "Filter by status:",
+    "all": "All",
+    "orderId": "Order number",
+    "customer": "Customer",
+    "service": "Service",
+    "total": "Total",
+    "status": "Status",
+    "date": "Date",
+    "action": "Action",
+    "noOrdersForFilter": "No orders found for this filter.",
+    "statusUpdateError": "Error updating status.",
+    "moveTo": "Move to {{status}}",
+    "assignedDriver": "Driver",
+    "openChat": "Open chat"
+  },
+  "partnerProfileManagement": {
+    "title": "My profile",
+    "myInfo": "My information",
+    "editInfo": "Edit",
+    "name": "Name",
+    "address": "Address",
+    "videoUrl": "Video URL",
+    "myServices": "My services",
+    "addService": "Add service",
+    "noServices": "You haven't added any services yet.",
+    "confirmDeleteService": "Are you sure you want to delete this service from your offerings?",
+    "serviceType": "Service type",
+    "shareableUrl": {
+      "title": "Your public page",
+      "description": "Share this link with your customers to direct them to your profile on Laundry Express.",
+      "copyButton": "Copy link",
+      "copySuccess": "Link copied successfully!",
+      "copyError": "Failed to copy link."
+    },
+    "subdomain": {
+      "title": "Your custom subdomain",
+      "description": "Use this professional link on your marketing materials. It's a direct showcase to you.",
+      "description_preview": "This is a preview. Custom subdomains are active on our production site.",
+      "copyButton": "Copy subdomain",
+      "copySuccess": "Subdomain copied successfully!",
+      "copyError": "Failed to copy subdomain."
+    },
+    "customDomain": {
+      "title": "Custom domain",
+      "description": "Connect your own domain (ex: www.mydrycleaner.com) to your Laundry Express showcase.",
+      "inputLabel": "Your configured domain:",
+      "notConfigured": "Not configured",
+      "instructionsTitle": "How to configure",
+      "step1": "Purchase a domain from a provider like GoDaddy or Namecheap.",
+      "step2": "In your provider's DNS settings, create a CNAME record.",
+      "step3": "Set the Host/Name to 'www' (or your desired subdomain).",
+      "step4": "Point the Value/Target to 'cname.laundry.app'.",
+      "step5": "Save and wait for DNS propagation (up to 24 hours)."
+    },
+    "openingHours": {
+      "title": "Opening hours",
+      "closed": "Closed",
+      "saveButton": "Save hours",
+      "saveSuccess": "Opening hours updated successfully.",
+      "saveError": "Failed to update opening hours."
+    }
+  },
+  "partnerPromoManagement": {
+    "title": "My promotions",
+    "errorNoPartner": "Partner ID not found. Cannot create promo code.",
+    "editMyCode": "Edit my promo code",
+    "newCode": "Create new promo code",
+    "codePlaceholder": "ex: SAVE10",
+    "myCreatedCodes": "My created codes ({{count}})",
+    "usage": "Usage",
+    "noPromoCodes": "You haven't created any promo codes yet.",
+    "assistant": {
+      "title": "Marketing Assistant ✨",
+      "description": "Need a promotion idea? Describe your goal and let our AI assistant help you!",
+      "promptPlaceholder": "ex: 'A weekend promotion for new customers', 'A discount on dresses', 'A flash sale for tonight'...",
+      "tryThese": "Try these:",
+      "example1": "Discount on dresses",
+      "example2": "First order from my shop",
+      "example3": "Weekend flash sale",
+      "loading": "Generating...",
+      "generateButton": "Generate promotion",
+      "marketingTextLabel": "Marketing text",
+      "bannerConceptLabel": "Banner concept",
+      "bannerStyles": {
+        "elegant": "Elegant",
+        "vibrant": "Vibrant",
+        "minimal": "Minimal",
+        "luxury": "Luxury"
+      },
+      "downloadButton": "Download banner",
+      "usePromoButton": "Use this promotion",
+      "imageGenerationFailed": "Image generation failed. You can edit the concept and try regenerating the image.",
+      "regenerateImageButton": "Regenerate Image",
+      "doneButton": "Done",
+      "newIdeaButton": "New Idea"
+    }
+  },
+  "partnerFinancials": {
+    "title": "Financials",
+    "totalRevenue": "Total revenue",
+    "revenueLast30Days": "Revenue (last 30 days)",
+    "completedOrders": "Completed orders",
+    "avgOrderValue": "Average order value",
+    "revenueChartTitle": "Daily revenue (last 30 days)",
+    "transactionHistoryTitle": "Transaction history",
+    "noTransactions": "No completed transactions yet.",
+    "payoutStatus": {
+      "paidOut": "Paid out",
+      "pending": "Pending"
+    },
+    "table": {
+      "orderId": "Order number",
+      "completionDate": "Completion date",
+      "service": "Service",
+      "amount": "Amount",
+      "payoutStatus": "Payout status"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "Analytics",
+    "exportData": "Export data",
+    "revenueOverview": "Revenue overview",
+    "timeRange": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "totalRevenue": "Total revenue (period)",
+    "avgOrderValue": "Average order value",
+    "ordersThisMonth": "Orders this month",
+    "revenueChartTitle": "Revenue by day",
+    "noRevenueData": "No revenue data for this period.",
+    "promotionPerformance": "Promotion performance",
+    "topPromosByUsage": "Top promos by usage",
+    "topPromosByRevenue": "Top promos by revenue",
+    "noPromoData": "No promotion data available.",
+    "servicePerformance": "Service performance",
+    "mostPopularServices": "Most popular services",
+    "noServiceData": "No service data available.",
+    "customerInsights": "Customer insights",
+    "newVsReturning": "New vs. Returning",
+    "new": "New",
+    "returning": "Returning",
+    "topClients": "Top clients",
+    "ordersCount": "{{count}} orders",
+    "noCustomerData": "No customer data available.",
+    "unknownClient": "Unknown client"
+  },
+  "teamManagement": {
+    "title": "Team management",
+    "teamMembers": "Team members",
+    "inviteMember": "Invite member",
+    "inviteSuccess": "Invitation sent successfully!",
+    "inviteErrorExists": "This user is already part of a team or doesn't exist.",
+    "inviteError": "Failed to send invitation.",
+    "updateSuccess": "Role updated successfully.",
+    "updateError": "Failed to update role.",
+    "removeSuccess": "Team member removed.",
+    "removeError": "Failed to remove member.",
+    "confirmRemove": "Are you sure you want to remove {{name}} from your team?",
+    "nameLabel": "Full name",
+    "emailLabel": "Email address",
+    "roleLabel": "Role",
+    "roles": {
+      "OWNER": "Owner",
+      "MANAGER": "Manager",
+      "STAFF": "Staff"
+    },
+    "managerDescription": "Can manage orders, profile, and promotions.",
+    "staffDescription": "Can only view and manage orders.",
+    "inviteButton": "Send invitation",
+    "nameHeader": "Name",
+    "emailHeader": "Email",
+    "roleHeader": "Role",
+    "actionsHeader": "Actions"
+  },
+  "security": {
+    "title": "Security & Activity",
+    "twoFactorAuth": {
+      "title": "Two-Factor Authentication (2FA)",
+      "description": "Add an extra layer of security to your account.",
+      "setup": {
+        "title": "Set up 2FA",
+        "step1": "Scan this QR code with your authenticator app (ex: Google Authenticator).",
+        "qrAlt": "2FA QR code",
+        "step2": "Enter the 6-digit code from your app to verify.",
+        "verificationCode": "Verification code",
+        "invalidCode": "Invalid code. Please try again.",
+        "verifyAndEnable": "Verify & Enable"
+      },
+      "status": "Status",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "confirmDisable": "Are you sure you want to disable two-factor authentication?",
+      "disableButton": "Disable",
+      "enableButton": "Enable 2FA"
+    },
+    "activityLog": {
+      "title": "Activity log",
+      "description": "Recent security-related and important actions on your account.",
+      "filterByUser": "Filter by user",
+      "noLogs": "No activity logs found.",
+      "actions": {
+        "USER_LOGIN": "logged in.",
+        "USER_LOGIN_FAILURE": "had a failed login attempt.",
+        "USER_2FA_ENABLED": "enabled two-factor authentication.",
+        "USER_2FA_DISABLED": "disabled two-factor authentication.",
+        "PARTNER_PROFILE_UPDATE": "updated partner profile.",
+        "PARTNER_SERVICE_ADD": "added a new service.",
+        "PARTNER_SERVICE_UPDATE": "updated a service.",
+        "PARTNER_SERVICE_DELETE": "deleted a service.",
+        "PROMO_CODE_CREATE": "created a new promo code.",
+        "PROMO_CODE_UPDATE": "updated a promo code.",
+        "TEAM_MEMBER_INVITE": "invited a new team member.",
+        "TEAM_MEMBER_ROLE_CHANGE": "changed a team member's role.",
+        "TEAM_MEMBER_REMOVE": "removed a team member."
+      }
+    }
+  },
+  "apiIntegrationsPage": {
+    "title": "API & Integrations",
+    "description": "Manage your API keys and webhooks to connect Laundry Express to your other tools.",
+    "apiKey": {
+      "title": "API Key",
+      "description": "Use this key to authenticate requests to the Laundry Express API. Keep it secret!",
+      "yourKey": "Your live API key",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "confirmGenerate": "Are you sure you want to generate a new API key? The old key will be immediately invalidated.",
+      "generateNew": "Generate new key",
+      "generateSuccess": "New API key generated successfully."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "Be notified of events happening in your Laundry Express account by providing a webhook endpoint.",
+      "endpointUrl": "Endpoint URL",
+      "placeholder": "https://your-app.com/webhook",
+      "subscribedEvents": "Subscribed events",
+      "events": {
+        "NEW_ORDER": {
+          "label": "New order",
+          "description": "Triggered when a new order is placed for your business."
+        },
+        "STATUS_UPDATE": {
+          "label": "Order status update",
+          "description": "Triggered on every order status change."
+        }
+      },
+      "test": "Send test",
+      "save": "Save webhooks",
+      "saveSuccess": "Webhook settings saved.",
+      "testSuccess": "Webhook test sent successfully!"
+    },
+    "integrations": {
+      "title": "Third-party integrations",
+      "description": "Easily connect to other services.",
+      "zapier": "Connect with Zapier",
+      "make": "Connect with Make.com"
+    }
+  },
+  "logisticsDashboard": {
+    "title": "Logistics Dashboard",
+    "completedDeliveries": "Completed deliveries",
+    "totalEarnings": "Total earnings (est.)",
+    "activeMissions": "Active missions",
+    "availableDrivers": "Available drivers",
+    "totalDrivers": "Total drivers",
+    "deliveryChartTitle": "Daily deliveries (last 30 days)",
+    "addDriverTitle": "Add new driver",
+    "driverName": "Driver name",
+    "driverEmail": "Driver email",
+    "driverPhone": "Driver phone",
+    "vehicleInfo": "Vehicle (ex: TVS Motorcycle 123-ABC)",
+    "submitAddDriver": "Add driver",
+    "driverListTitle": "My drivers",
+    "noDrivers": "No drivers added yet.",
+    "availableMissions": "Available missions",
+    "pickupMissions": "Pickup missions",
+    "deliveryMissions": "Delivery missions",
+    "collectMissionFor": "Collect for",
+    "deliveryMissionFor": "Deliver for",
+    "selectCollector": "Select collector",
+    "selectDeliverer": "Select deliverer",
+    "confirmAssignment": "Assign",
+    "noPickupMissions": "No pickup missions available.",
+    "noDeliveryMissions": "No delivery missions available.",
+    "logisticsOnly": "This dashboard is for logistics managers only.",
+    "optimizeRoutes": {
+      "button": "Optimize routes",
+      "disabledTooltip": "There are no available missions or drivers to optimize.",
+      "modalTitle": "AI Route Optimization ✨",
+      "modalDescription": "Our AI has calculated the most efficient routes for your available drivers.",
+      "loading": "Optimizing routes...",
+      "stops": "stops",
+      "estimatedTime": "Est. time",
+      "pickup": "PICKUP",
+      "delivery": "DELIVERY",
+      "noRoutes": "All missions are assigned or no missions available.",
+      "confirmButton": "Confirm & Assign all",
+      "assignSuccess": "Routes confirmed and missions assigned!",
+      "assignError": "Error assigning routes."
+    }
+  },
+  "logisticsPartnership": {
+    "title": "Logistics Partnership",
+    "role": {
+      "title": "Our role and your role",
+      "point1": "We provide the demand for pickups and deliveries through our platform.",
+      "point2": "You provide the fleet of drivers (motorcycles, cars) to execute these missions efficiently."
+    },
+    "pricing": {
+      "title": "Pricing & Commission",
+      "subtitle": "You receive a fixed rate per delivery, based on zones in Kinshasa. These fees are paid to you, and you are responsible for paying your drivers.",
+      "byZone": "Base rate per zone",
+      "zone1": "Zone 1 (Gombe, Kintambo)",
+      "zone2": "Zone 2 (Ngaliema, Bandalungwa)",
+      "zone3": "Zone 3 (Lingwala, Kalamu)",
+      "zone4": "Zone 4 (Masina, Limete)",
+      "outOfZone": "Out of zone",
+      "options": "Additional options (paid to you)",
+      "optionExpress": "Express delivery (< 2h)",
+      "optionNight": "Night delivery (after 8pm)",
+      "optionHeavy": "Heavy/bulky items (>15kg)"
+    }
+  },
+  "reviewModal": {
+    "rateOutOf5": "Rate {{star}} out of 5 stars",
+    "leaveReview": "Leave review",
+    "shareExperience": "Share your experience with {{name}}.",
+    "pleaseSelectRating": "Please select a rating.",
+    "yourComment": "Your comment (optional)",
+    "commentPlaceholder": "Tell us what you liked or what could be improved...",
+    "submitReview": "Submit review"
+  },
+  "linkUserModal": {
+    "title": "Link user to partner",
+    "description": "Link {{name}} to an unmanaged partner account.",
+    "availablePartners": "Available partners",
+    "selectPartner": "Select partner",
+    "noUnlinkedPartners": {
+      "title": "No unlinked partners",
+      "description": "All partners currently have a linked owner account."
+    },
+    "cancel": "Cancel",
+    "confirm": "Confirm link"
+  },
+  "logisticsPartnerEditModal": {
+    "title": "Edit logistics partner",
+    "nameLabel": "Partner name"
+  },
+  "mapLocationPickerModal": {
+    "title": "Select location",
+    "instructions": "Click on the map to place a marker at the desired location.",
+    "confirm": "Confirm location"
+  },
+  "partnerMapView": {
+    "select": "Select"
+  },
+  "partnerCard": {
+    "altText": "Image of {{name}}, a {{type}}"
+  },
+  "serviceCard": {
+    "altText": "Image for service: {{title}}"
+  },
+  "laundryScannerModal": {
+    "noCamera": "No camera found on this device.",
+    "cameraDenied": "Camera access denied. Please allow camera permissions.",
+    "networkError": "Network error. Please check your connection.",
+    "title": "Laundry scanner",
+    "instructions": "Point your camera at your laundry pile.",
+    "analyzing": "Analyzing...",
+    "error": "Analysis failed. Please try again.",
+    "tryAgain": "Try again",
+    "capture": "Capture image",
+    "cancel": "Cancel"
+  },
+  "stainAnalysisModal": {
+    "title": "Stain analysis",
+    "analyzing": "Analyzing stain...",
+    "resultTitle": "Analysis result",
+    "probableStain": "Probable stain type",
+    "confidence": "Confidence",
+    "recommendation": "Recommendation",
+    "close": "Close",
+    "addToDryCleaning": "Add to dry cleaning",
+    "addToLaundry": "Add to laundry",
+    "cancel": "Cancel",
+    "tryAgain": "Try again"
+  },
+  "chatbot": {
+    "welcomeMessage": "Hello! I'm the Laundry Express assistant. How can I help you today?",
+    "inputPlaceholder": "Ask your question here...",
+    "suggestion1": "What are your opening hours?",
+    "suggestion2": "How much does it cost?",
+    "suggestion3": "Track my order status"
+  },
+  "supportCenterPage": {
+    "unauthorized": "Restricted access",
+    "loginToAccess": "Please log in to access the support center.",
+    "login": "Login",
+    "title": "Support center",
+    "botError": "Sorry, an error occurred. Please try again.",
+    "createTicket": "Need help? Create a support ticket"
+  },
+  "createTicketModal": {
+    "error": "Please fill in the subject and message.",
+    "errorUser": "User not found. Cannot create ticket.",
+    "title": "Create new support ticket",
+    "subject": "Subject",
+    "subjectPlaceholder": "ex: Problem with my last order",
+    "relatedOrder": "Related order (optional)",
+    "noOrder": "None",
+    "message": "Message",
+    "messagePlaceholder": "Please describe your problem in detail...",
+    "sendButton": "Send ticket"
+  },
+  "viewTicketModal": {
+    "adminAuthor": "Admin",
+    "by": "By: {{name}}",
+    "order": "Order: #{{id}}",
+    "aiSummaryTitle": "AI Summary",
+    "you": "You",
+    "typeResponse": "Type your response here...",
+    "changeStatus": "Change status:",
+    "send": "Send"
+  },
+  "ticketStatus": {
+    "OPEN": "Open",
+    "IN_PROGRESS": "In progress",
+    "CLOSED": "Closed"
+  },
+  "ticketCategory": {
+    "BILLING": "Billing",
+    "DAMAGED_ITEM": "Damaged item",
+    "DELIVERY_ISSUE": "Delivery issue",
+    "SERVICE_QUALITY": "Service quality",
+    "ACCOUNT_HELP": "Account help",
+    "OTHER": "Other"
+  },
+  "chatModal": {
+    "systemMessage": "{{message}}",
+    "chat": "Chat",
+    "title": "Chat for order #{{id}}",
+    "typeMessage": "Type your message...",
+    "messageInputLabel": "Message input",
+    "sendMessageLabel": "Send message",
+    "sendHint": "Press Enter to send, Shift+Enter for new line.",
+    "sendError": "Failed to send message",
+    "noMessages": "No messages yet. Start the conversation!"
+  },
+  "notificationPanel": {
+    "markAllAsRead": "Mark all as read",
+    "viewAll": "View all"
+  },
+  "onboarding": {
+    "title": "Let's set up your shop!",
+    "subtitle": "Complete these steps to start receiving orders.",
+    "progress": "{{completed}} of {{total}} completed",
+    "allDone": "You're all set!",
+    "steps": {
+      "setHours": {
+        "title": "Set your opening hours",
+        "description": "Inform customers of your schedule."
+      },
+      "addService": {
+        "title": "Add at least one service",
+        "description": "Define what you offer (ex: dry cleaning, wash-dry-fold)."
+      },
+      "addVideo": {
+        "title": "Add an introduction video",
+        "description": "Showcase your business to attract more customers."
+      },
+      "createPromo": {
+        "title": "Create your first promotion",
+        "description": "Attract new customers with a special offer."
+      }
+    }
+  },
+  "tooltips": {
+    "dashboard": "View your main dashboard and statistics.",
+    "analytics": "View detailed analytics about your performance.",
+    "orders": "Manage all incoming and active orders.",
+    "financials": "Track your revenue and payments.",
+    "profile": "Edit your public profile and services.",
+    "promotions": "Create and manage promotional codes.",
+    "team": "Invite and manage team members.",
+    "security": "Manage 2FA and view activity logs.",
+    "apiIntegrations": "Connect to external tools via API.",
+    "automation": "Configure automations to save time.",
+    "support": "Contact our support team.",
+    "inventory": "Manage your supply stock and set low stock alerts.",
+    "delivery": "Configure your delivery model and zones.",
+    "subscription": "Manage your subscription plan and billing.",
+    "invoicing": "Generate and manage proforma and invoices for your orders."
+  },
+  "partnerFeatures": {
+    "promotions": "Promotions",
+    "financials": "Financials",
+    "analytics": "Analytics",
+    "customDomain": "Custom domain",
+    "customSubdomain": "Custom subdomain",
+    "teamManagement": "Team management",
+    "apiAccess": "API access",
+    "advancedAutomation": "Advanced automation",
+    "aiReviewAssistant": "AI review assistant",
+    "invoiceGenerator": "Invoice generator"
+  },
+  "bulkFeatureEditModal": {
+    "title": "Bulk Feature Management",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "saveButton": "Save changes"
+  },
+  "landingPage": {
+    "header": {
+      "brandName": "Laundry Express"
+    },
+    "mobileCta": {
+      "order": "Order a pickup",
+      "chat": "Chat on WhatsApp"
+    },
+    "exitModal": {
+      "title": "Wait, don't leave!",
+      "subtitle": "Get 20% off your first order. Let us take care of the laundry.",
+      "ctaOrder": "Order now and get 20% off",
+      "ctaLater": "Maybe later"
+    },
+    "socialProof": {
+      "message": "{{name}} in {{location}} just placed an order!",
+      "timeAgo": "{{count}} minutes ago"
+    },
+    "hero": {
+      "title": "Laundry & Dry Cleaning, Delivered to Your Door in Kinshasa.",
+      "subtitle": "Tired of laundry day? Schedule a pickup in seconds. We partner with the best cleaners to bring you fresh, clean clothes without the hassle.",
+      "ctaOrder": "Order a pickup",
+      "ctaPartner": "Become a partner",
+      "launchOffer": "Launch offer! -20% on your first order. Time remaining:",
+      "offerExpired": "Offer expired!",
+      "tagline": "Proudly Congolese 🇨🇩 | Secure payments with:",
+      "paymentMethods": {
+        "airtel": "Airtel Money",
+        "mpesa": "M-Pesa",
+        "orange": "Orange Money"
+      },
+      "trustBadges": {
+        "rating": "4.8/5 Customer rating",
+        "payment": "Secure mobile payments",
+        "delivery": "Fast & reliable delivery"
+      }
+    },
+    "whyUs": {
+      "title": "Why choose Laundry Express?",
+      "subtitle": "We're not just a laundry service; we're a lifestyle upgrade.",
+      "card1": {
+        "title": "Save time & effort",
+        "description": "Get your weekends back. Schedule a pickup in under 2 minutes and let us handle the rest. More time for what you love."
+      },
+      "card2": {
+        "title": "Quality guaranteed",
+        "description": "We vet every partner to ensure they meet our high standards of cleaning, care, and customer service. Your clothes are in good hands."
+      },
+      "card3": {
+        "title": "Simple & Transparent",
+        "description": "No hidden fees. Track your order from your phone, communicate with your cleaner, and pay securely via mobile money."
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "subtitle": "Got questions? We've got answers.",
+      "q1": {
+        "question": "How does pricing work?",
+        "answer": "Pricing is set by our partners. Laundry is typically priced per kilogram (kg), while dry cleaning is priced per piece. You'll see an estimated total before confirming your order."
+      },
+      "q2": {
+        "question": "What's the processing time?",
+        "answer": "Our standard processing time is 48 hours for most orders. Many partners also offer 24-hour express service for an additional fee."
+      },
+      "q3": {
+        "question": "How can I pay?",
+        "answer": "We accept secure payments through all major mobile money providers in DRC: M-Pesa, Airtel Money, and Orange Money."
+      },
+      "q4": {
+        "question": "Can I choose my laundry partner?",
+        "answer": "Absolutely! You can browse our network of verified, high-quality local laundries and dry cleaners, and choose the one that best fits your needs."
+      }
+    }
+  },
+  "faqPage": {
+    "title": "Frequently asked questions",
+    "subtitle": "Find answers to the most common questions about our service.",
+    "noFaqTitle": "No questions at the moment",
+    "noFaqSubtitle": "The FAQ section is being updated. Please check back later."
+  },
+  "partnerDetailPage": {
+    "imageAlt": "Image of {{name}}",
+    "backButton": "Back",
+    "reviews": "Reviews",
+    "shareButton": "Share",
+    "discoverVideo": "Discovery video",
+    "servicesTitle": "Services",
+    "reviewsTitle": "Customer reviews",
+    "noReviewsTitle": "No reviews yet",
+    "noReviewsSubtitle": "Be the first to rate {{name}}",
+    "practicalInfo": "Practical information",
+    "openingHours": "Opening hours",
+    "today": "(Today)",
+    "closed": "Closed",
+    "location": "Location",
+    "mapAlt": "Map of {{name}}'s location",
+    "viewPrices": "View prices",
+    "selectService": "Select this service",
+    "orderWith": "Order with {{name}}",
+    "selectAndContinue": "Select this partner & Continue",
+    "shareTitle": "Discover {{name}} on Laundry Express!",
+    "shareText": "I found {{name}} on Laundry Express. Check out their services!",
+    "linkCopied": "Partner profile link copied!",
+    "copyError": "Failed to copy link.",
+    "temporaryUnavailability": "Temporary unavailability",
+    "fromTo": "from {{start}} to {{end}}",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "goToImage": "Go to image {{index}}",
+    "shareAriaLabel": "Share this partner",
+    "videoPlaceholderAlt": "Introduction video for {{name}}",
+    "videoComingSoon": {
+      "title": "Introduction video coming soon",
+      "subtitle": "Check back soon for a virtual tour of this establishment."
+    },
+    "priceList": "Price list"
+  },
+  "inventoryManagement": {
+    "title": "Inventory Management",
+    "description": "Track your supplies to ensure you're always ready for new orders.",
+    "saveChanges": "Save changes",
+    "addItem": "Add item",
+    "itemName": "Item name",
+    "currentStock": "Current stock",
+    "lowStockThreshold": "Low stock threshold",
+    "units": {
+      "pcs": "Pieces",
+      "units": "Units",
+      "liters": "Liters",
+      "kg": "Kilograms"
+    },
+    "stockLabel": "Stock: {{current}}/{{threshold}} {{unit}}",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "saveSuccess": "Inventory updated successfully.",
+    "saveError": "Failed to update inventory.",
+    "lowStockAlertTitle": "Low stock alert! ({{count}})",
+    "manageInventory": "Manage inventory"
+  },
+  "deliverySettings": {
+    "title": "Delivery Settings",
+    "description": "Choose how you want to handle order deliveries.",
+    "deliveryModel": "Delivery model",
+    "platform": {
+      "title": "Platform logistics",
+      "description": "Use Laundry Express's driver network for all your pickups and deliveries. Simple and efficient."
+    },
+    "self": {
+      "title": "Self-delivery",
+      "description": "Manage your own deliveries using your internal drivers or a third-party service you manage."
+    },
+    "zones": {
+      "title": "Delivery Zones & Fees",
+      "description": "Define the communes you serve and set fees for each. The currency is your partner account's currency ({{currency}}).",
+      "feeLabel": "Delivery fee"
+    },
+    "saveSuccess": "Delivery settings saved successfully.",
+    "saveError": "Failed to save delivery settings."
+  },
+  "refundRequestModal": {
+    "title": "Request refund",
+    "forOrder": "For order #{{id}}",
+    "commentsRequired": "Please provide comments explaining the issue.",
+    "reasonLabel": "Reason for request",
+    "commentsLabel": "Please describe the problem",
+    "commentsPlaceholder": "ex: 'My shirt was returned with a new stain on the collar...'",
+    "note": "Our team will review your request and get back to you within 48 hours.",
+    "submitButton": "Submit request"
+  },
+  "refundManagement": {
+    "requests": "Refund requests ({{count}})",
+    "forOrder": "For order",
+    "requestedBy": "Requested by: {{name}}",
+    "reject": "Reject",
+    "approve": "Approve",
+    "resolutionNotes": "Resolution notes:",
+    "resolvedOn": "Resolved on {{date}}",
+    "noRequests": "No refund requests found for this filter."
+  },
+  "resolveRefundModal": {
+    "approveTitle": "Approve refund request",
+    "rejectTitle": "Reject refund request",
+    "notesLabel": "Resolution notes (optional, visible to customer)",
+    "notesPlaceholder": "ex: Refund processed via mobile money...",
+    "approveButton": "Approve refund",
+    "rejectButton": "Reject refund"
+  },
+  "refundStatus": {
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected"
+  },
+  "refundReasons": {
+    "ITEM_DAMAGED": "Item(s) damaged",
+    "ITEM_MISSING": "Item(s) missing",
+    "POOR_QUALITY": "Poor service quality",
+    "LATE_DELIVERY": "Late delivery",
+    "OTHER": "Other"
+  },
+  "subscription": {
+    "title": "Subscription & Billing",
+    "subtitle": "Choose the plan that best fits your business needs.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save20": "Save 20%",
+    "mostPopular": "Most popular",
+    "currentPlan": "Current plan",
+    "upgrade": "Upgrade",
+    "downgrade": "Downgrade",
+    "subscribeSuccess": "Successfully subscribed to {{planName}} plan!",
+    "subscribeError": "Failed to update subscription.",
+    "billingHistory": {
+      "title": "Billing history",
+      "date": "Date",
+      "plan": "Plan",
+      "amount": "Amount",
+      "status": "Status",
+      "paid": "Paid",
+      "failed": "Failed",
+      "noInvoices": "No invoices found."
+    },
+    "confirm": {
+      "title": "Confirm subscription to {{planName}}",
+      "description": "You will be charged {{amount}}$ / {{cycle}}.",
+      "confirmButton": "Confirm & Subscribe"
+    }
+  },
+  "subscriptionManagement": {
+    "title": "Subscription Plans",
+    "newPlan": "New plan",
+    "editPlan": "Edit plan"
+  },
+  "invoicingPage": {
+    "title": "Invoicing",
+    "description": "Generate proforma invoices and final invoices for your completed orders.",
+    "completedOrders": "Completed orders",
+    "noCompletedOrders": "You have no completed orders to invoice at the moment.",
+    "orderId": "Order ID",
+    "customer": "Customer",
+    "date": "Date",
+    "total": "Total",
+    "status": "Status",
+    "actions": "Actions",
+    "generateProforma": "Generate Proforma",
+    "viewProforma": "View Proforma",
+    "generateInvoice": "Generate Invoice",
+    "viewInvoice": "View Invoice",
+    "proformaGenerated": "Proforma generated",
+    "invoiceGenerated": "Invoice generated"
+  },
+  "invoiceModal": {
+    "proformaTitle": "PROFORMA INVOICE",
+    "invoiceTitle": "INVOICE",
+    "from": "From:",
+    "billTo": "Bill to:",
+    "orderId": "Order ID:",
+    "orderDate": "Order date:",
+    "proformaDate": "Proforma date:",
+    "invoiceDate": "Invoice date:",
+    "item": "Item",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "grandTotal": "Grand total",
+    "thankYou": "Thank you for your business!",
+    "print": "Print",
+    "close": "Close"
+  },
+  "debug": {
+    "cameraStarting": "Starting camera...",
+    "cameraActive": "Camera active",
+    "imageCaptured": "Image captured",
+    "aiAnalyzing": "AI analyzing...",
+    "matchingArticles": "Finding matching items...",
+    "matchesFound": "{{count}} matches found"
+  },
+  "linkUserToLogisticsPartnerModal": {
+    "title": "Link User to Logistics Partner",
+    "description": "Link {{name}} to an unmanaged logistics partner account.",
+    "availablePartners": "Available Logistics Partners",
+    "selectPartner": "Select a logistics partner",
+    "noUnlinkedPartners": {
+      "title": "No Unlinked Logistics Partners",
+      "description": "All logistics partners currently have a linked manager account."
+    },
+    "cancel": "Cancel",
+    "confirm": "Confirm Link"
+  }
+}

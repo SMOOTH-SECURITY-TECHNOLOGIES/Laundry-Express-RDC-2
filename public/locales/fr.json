@@ -1,0 +1,2071 @@
+{
+  "language": "fr",
+  "app": {
+    "loading": "Chargement de l'application..."
+  },
+  "common": {
+    "userNotFound": "Utilisateur non trouvé.",
+    "backToHome": "Retour à l'accueil",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English",
+    "sw": "Kiswahili"
+  },
+  "buttons": {
+    "close": "Fermer",
+    "loading": "Chargement...",
+    "saving": "Enregistrement...",
+    "refresh": "Actualiser",
+    "cancel": "Annuler",
+    "dismiss": "Ignorer",
+    "apply": "Appliquer",
+    "clear": "Effacer"
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire.",
+    "invalidEmail": "Veuillez saisir une adresse email valide.",
+    "invalidPhone": "Veuillez saisir un numéro de téléphone valide (ex: 0812345678).",
+    "minLength": "Doit contenir au moins {{count}} caractères."
+  },
+  "header": {
+    "home": "Accueil",
+    "tracking": "Suivre ma commande",
+    "profile": "Mon profil",
+    "history": "Mes commandes",
+    "admin": "Admin",
+    "dashboard": "Tableau de bord",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion",
+    "greeting": "Bonjour, {{name}}",
+    "openMenu": "Ouvrir le menu"
+  },
+  "footer": {
+    "tagline": "Votre linge, livré. La façon la plus simple de faire votre lessive et nettoyage à sec en RDC.",
+    "navigation": "Navigation",
+    "home": "Accueil",
+    "order": "Passer commande",
+    "myProfile": "Mon profil",
+    "faq": "FAQ",
+    "partners": "Partenaires",
+    "becomePartner": "Devenir partenaire",
+    "logisticsPartnership": "Partenariat logistique",
+    "contactUs": "Nous contacter",
+    "phone": "+243 81 234 5678",
+    "copyright": "© {{year}} Laundry Express RDC. Tous droits réservés."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "Vous n'avez aucune nouvelle notification.",
+    "filters": {
+      "all": "Toutes",
+      "unread": "Non lues"
+    },
+    "time": {
+      "years": "il y a {{count}} an",
+      "years_plural": "il y a {{count}} ans",
+      "months": "il y a {{count}} mois",
+      "months_plural": "il y a {{count}} mois",
+      "days": "il y a {{count}} jour",
+      "days_plural": "il y a {{count}} jours",
+      "hours": "il y a {{count}} heure",
+      "hours_plural": "il y a {{count}} heures",
+      "minutes": "il y a {{count}} minute",
+      "minutes_plural": "il y a {{count}} minutes",
+      "justNow": "À l'instant"
+    },
+    "userProfileUpdated": "Profil mis à jour avec succès.",
+    "userProfileUpdateError": "Erreur lors de la mise à jour de votre profil.",
+    "preferencesUpdated": "Préférences mises à jour avec succès.",
+    "preferencesUpdateError": "Erreur lors de la mise à jour des préférences.",
+    "siteContentUpdated": "Contenu du site mis à jour.",
+    "partnerApproved": "Le partenariat pour \"{{companyName}}\" a été approuvé.",
+    "partnerRejected": "Demande de partenariat pour \"{{companyName}}\" rejetée.",
+    "partnerDeleted": "Partenaire supprimé avec succès.",
+    "userLinkedToPartner": "L'utilisateur {{name}} a été lié avec succès au partenaire.",
+    "serviceSaved": "Service enregistré avec succès.",
+    "serviceDeleted": "Service supprimé avec succès.",
+    "serviceUnlinked": "Service dissocié du partenaire.",
+    "ticketCreated": "Ticket d'assistance créé avec succès.",
+    "ticketStatusUpdated": "Statut du ticket #{{id}} mis à jour.",
+    "promoAdded": "Code promo ajouté avec succès.",
+    "promoUpdated": "Code promo mis à jour avec succès.",
+    "promoDeleted": "Code promo supprimé avec succès.",
+    "driverAdded": "Chauffeur {{name}} ajouté avec succès.",
+    "emailExists": "Cet email existe déjà.",
+    "pickupMissionAssigned": "Mission de ramassage assignée avec succès.",
+    "deliveryMissionAssigned": "Mission de livraison assignée avec succès.",
+    "pointsEarnedToast": "Vous avez gagné {{points}} points ! Nouveau solde : {{total}}.",
+    "reviewThanks": "Merci pour votre avis !",
+    "newOrder": "Nouvelle commande #{{id}} de {{name}}.",
+    "aClient": "un client",
+    "actions": {
+      "accept": "Accepter",
+      "reject": "Rejeter"
+    },
+    "newOrderAdmin": "Nouvelle commande #{{id}} pour {{partner}}.",
+    "emailSendFailure": "Échec de l'envoi de l'email à {{email}}. L'adresse peut être invalide.",
+    "orderConfirmedWithTime": "Commande #{{id}} confirmée. Fin estimée : {{time}}.",
+    "orderRejected": "Commande #{{id}} a été rejetée. Raison : {{reason}}.",
+    "orderRejectedNoReason": "Aucune raison fournie.",
+    "orderStatusUpdate": "Commande #{{id}} est maintenant : {{status}}.",
+    "orderStatusUpdateSystemChat": "Statut de commande automatiquement mis à jour vers : {{status}}.",
+    "newPickupMission": "Nouvelle mission de ramassage disponible pour la commande #{{orderId}} chez {{partnerName}}.",
+    "newDeliveryMission": "Nouvelle mission de livraison disponible pour la commande #{{orderId}} de {{partnerName}}.",
+    "newPickupMissionDriver": "Nouvelle mission de ramassage assignée : Commande #{{orderId}} de {{partnerName}}.",
+    "newDeliveryMissionDriver": "Nouvelle mission de livraison assignée : Commande #{{orderId}} pour {{clientName}}.",
+    "driverAssignedForPickup": "Un chauffeur est en route pour ramasser votre commande #{{id}} !",
+    "orderOnTheWayForDelivery": "Bonne nouvelle ! Votre commande #{{id}} est en route pour la livraison.",
+    "orderReaccepted": "Le nouveau partenaire a accepté la commande réassignée #{{id}}. Une mission de ramassage sera bientôt disponible pour la logistique.",
+    "missionCancelledReassigned": "Votre mission pour la commande #{{id}} a été annulée car la commande a été réassignée.",
+    "permissionsUpdated": "Permissions mises à jour avec succès.",
+    "permissionsUpdateError": "Erreur lors de la mise à jour des permissions.",
+    "adminCreated": "Nouvel admin '{{name}}' créé avec succès.",
+    "adminCreationError": "Échec de la création de l'admin : {{error}}.",
+    "applicationSettingsUpdated": "Paramètres de l'application mis à jour.",
+    "settingsSaveError": "Échec de l'enregistrement des paramètres.",
+    "codeCopied": "Code copié dans le presse-papiers !",
+    "copyError": "Échec de la copie du code.",
+    "pointsEarned": "Félicitations ! Vous avez gagné {{points}} points de fidélité.",
+    "partnerUpdated": "Partenaire mis à jour avec succès.",
+    "partnerFeaturesUpdated": "Fonctionnalités du partenaire mises à jour avec succès.",
+    "refundRequestSubmitted": "Demande de remboursement soumise avec succès.",
+    "refundRequestError": "Échec de la soumission de la demande de remboursement.",
+    "refundApproved": "Demande de remboursement approuvée.",
+    "refundRejected": "Demande de remboursement rejetée.",
+    "refundError": "Échec du traitement de la demande de remboursement.",
+    "scanSuccess": "{{count}} articles scannés avec succès",
+    "scanNoMatches": "Aucun article correspondant trouvé lors du scan"
+  },
+  "automationPage": {
+    "title": "Paramètres d'automatisation",
+    "description": "Automatisez vos processus métier pour gagner du temps et améliorer la communication client",
+    "tabs": {
+      "basic": "Basique",
+      "messaging": "Messagerie",
+      "rules": "Règles",
+      "analytics": "Analytiques"
+    },
+    "autoAccept": {
+      "title": "Acceptation automatique des commandes",
+      "enableLabel": "Activer l'auto-acceptation",
+      "enableDescription": "Accepter automatiquement les nouvelles commandes entrantes",
+      "maxPriceLabel": "Valeur maximale de commande à auto-accepter ($)",
+      "maxPriceDescription": "Les commandes au-dessus de cette valeur nécessiteront une confirmation manuelle. Mettez 0 pour tout accepter.",
+      "serviceFilters": "Filtres de type de service",
+      "serviceFiltersDescription": "Auto-accepter uniquement les commandes pour les services sélectionnés"
+    },
+    "businessHours": {
+      "title": "Heures d'ouverture",
+      "enableLabel": "Activer les heures d'ouverture",
+      "enableDescription": "Exécuter l'automatisation uniquement pendant vos heures d'ouverture",
+      "timezone": "Fuseau horaire",
+      "open": "Ouvre",
+      "close": "Ferme"
+    },
+    "autoMessages": {
+      "title": "Messages automatisés",
+      "enableLabel": "Activer les messages auto",
+      "enableDescription": "Envoyer des messages prédéfinis aux clients lors du changement de statut de commande",
+      "variables": "Utilisez des variables comme {customerName}, {orderNumber}, {estimatedTime} dans vos messages"
+    },
+    "templateTokens": {
+      "title": "Variables de message",
+      "description": "Cliquez pour insérer des variables qui seront remplacées par les données réelles",
+      "customerName": "Nom complet du client",
+      "orderNumber": "Numéro de référence de commande",
+      "estimatedTime": "Temps de traitement estimé",
+      "serviceType": "Type de service commandé",
+      "pickupTime": "Heure de disponibilité du ramassage",
+      "deliveryTime": "Heure de livraison programmée",
+      "totalAmount": "Montant total de la commande",
+      "driverName": "Nom du chauffeur de livraison",
+      "driverPhone": "Numéro de contact du chauffeur",
+      "businessAddress": "Votre adresse commerciale"
+    },
+    "messageCategories": {
+      "orderStatus": "Mises à jour de statut",
+      "payment": "Notifications de paiement",
+      "delivery": "Livraison & Ramassage",
+      "customerService": "Service client",
+      "appointments": "Rappels de rendez-vous",
+      "qualityUpdates": "Mises à jour qualité",
+      "promotional": "Messages promotionnels"
+    },
+    "messageTitles": {
+      "CONFIRMED": "Commande Confirmée",
+      "PROCESSING": "Traitement Commencé",
+      "READY_FOR_PICKUP": "Prêt pour Ramassage",
+      "READY_FOR_DELIVERY": "En Livraison",
+      "COMPLETED": "Commande Terminée",
+      "DELAYED": "Commande Retardée",
+      "PAYMENT_CONFIRMED": "Paiement Confirmé",
+      "PAYMENT_FAILED": "Paiement Échoué",
+      "INVOICE_READY": "Facture Prête",
+      "DRIVER_ASSIGNED": "Chauffeur Assigné",
+      "OUT_FOR_DELIVERY": "En Livraison",
+      "DELIVERY_ATTEMPT_FAILED": "Tentative de Livraison Échouée",
+      "PICKUP_REMINDER": "Rappel de Ramassage",
+      "WELCOME_NEW_CUSTOMER": "Bienvenue Nouveau Client",
+      "FEEDBACK_REQUEST": "Demande d'Avis",
+      "LOYALTY_UPDATE": "Mise à jour Points Fidélité",
+      "SUBSCRIPTION_RENEWAL": "Renouvellement Abonnement",
+      "APPOINTMENT_CONFIRMATION": "Confirmation Rendez-vous",
+      "APPOINTMENT_REMINDER_24H": "Rappel 24 Heures",
+      "APPOINTMENT_REMINDER_2H": "Rappel 2 Heures",
+      "QUALITY_CHECK_PASSED": "Contrôle Qualité Réussi",
+      "SPECIAL_CARE_UPDATE": "Mise à jour Soins Spéciaux",
+      "SPECIAL_OFFER": "Offre Spéciale",
+      "BIRTHDAY_GREETING": "Message d'Anniversaire"
+    },
+    "messagePlaceholders": {
+      "CONFIRMED": "Bonjour {customerName}, votre commande #{orderNumber} a été confirmée ! Nous allons bientôt commencer son traitement.",
+      "PROCESSING": "Bonjour {customerName}, nous traitons maintenant votre commande {serviceType} #{orderNumber}. Fin estimée : {estimatedTime}.",
+      "READY_FOR_PICKUP": "Bonjour {customerName}, votre commande #{orderNumber} est prête pour ramassage ! Vous pouvez la récupérer jusqu'à {pickupTime}.",
+      "READY_FOR_DELIVERY": "Bonjour {customerName}, votre commande #{orderNumber} est en livraison ! Livraison programmée : {deliveryTime}.",
+      "COMPLETED": "Merci de nous avoir choisis, {customerName} ! La commande #{orderNumber} a été terminée. Nous espérons vous revoir bientôt ! 💫",
+      "DELAYED": "Bonjour {customerName}, nous nous excusons pour le retard avec la commande #{orderNumber}. Nouvelle heure estimée : {newEstimatedTime}. Merci de votre patience !",
+      "PAYMENT_CONFIRMED": "Bonjour {customerName}, le paiement pour la commande #{orderNumber} a été confirmé. Total : {totalAmount}",
+      "PAYMENT_FAILED": "Bonjour {customerName}, nous avons rencontré un problème avec votre paiement pour la commande #{orderNumber}. Veuillez mettre à jour votre méthode de paiement.",
+      "INVOICE_READY": "Bonjour {customerName}, votre facture pour la commande #{orderNumber} est prête. Montant : {totalAmount}. Voir : {invoiceLink}",
+      "DRIVER_ASSIGNED": "Bonjour {customerName}, {driverName} est assigné à la livraison de votre commande #{orderNumber}. Contact : {driverPhone}",
+      "OUT_FOR_DELIVERY": "Bonjour {customerName}, votre commande #{orderNumber} est en livraison ! Suivre ici : {trackingLink}",
+      "DELIVERY_ATTEMPT_FAILED": "Bonjour {customerName}, nous vous avons manqué pour la livraison de la commande #{orderNumber}. Veuillez nous contacter pour reprogrammer.",
+      "PICKUP_REMINDER": "Bonjour {customerName}, rappel amical : la commande #{orderNumber} est prête pour ramassage à {businessAddress}",
+      "WELCOME_NEW_CUSTOMER": "Bienvenue {customerName} ! 🎉 Merci d'avoir choisi notre service de lessive. Utilisez le code WELCOME10 pour 10% de réduction sur votre prochaine commande !",
+      "FEEDBACK_REQUEST": "Bonjour {customerName}, comment était votre expérience avec la commande #{orderNumber} ? Notez-nous : {feedbackLink}",
+      "LOYALTY_UPDATE": "Bonjour {customerName}, vous avez gagné {points} points de fidélité ! Total : {totalPoints}. Échangez : {rewardsLink}",
+      "SUBSCRIPTION_RENEWAL": "Bonjour {customerName}, votre abonnement lessive se renouvelle dans 3 jours. Total : {renewalAmount}",
+      "APPOINTMENT_CONFIRMATION": "Bonjour {customerName}, votre rendez-vous pour {serviceType} est confirmé pour {appointmentDate} à {appointmentTime}",
+      "APPOINTMENT_REMINDER_24H": "Rappel : Votre rendez-vous lessive est demain à {appointmentTime}. À bientôt !",
+      "APPOINTMENT_REMINDER_2H": "Rappel amical : Votre rendez-vous est dans 2 heures à {appointmentTime}",
+      "QUALITY_CHECK_PASSED": "Bonne nouvelle {customerName} ! Votre commande #{orderNumber} a passé notre contrôle qualité haut la main 🎉",
+      "SPECIAL_CARE_UPDATE": "Bonjour {customerName}, nous apportons des soins spéciaux aux articles délicats de la commande #{orderNumber}. Tout se passe très bien !",
+      "SPECIAL_OFFER": "Bonjour {customerName} ! Offre spéciale juste pour vous : {promoDescription}. Code : {promoCode}",
+      "BIRTHDAY_GREETING": "Joyeux Anniversaire {customerName} ! 🎂 Profitez de 20% de réduction sur votre prochaine commande avec le code BDAY20"
+    },
+    "advancedMessaging": {
+      "title": "Options de messagerie avancées",
+      "enableEmojis": "Activer les émojis",
+      "enableEmojisDescription": "Autoriser les émojis dans les messages automatisés",
+      "enableDeliveryReports": "Rapports de livraison",
+      "enableDeliveryReportsDescription": "Recevoir des rapports quand les messages sont livrés",
+      "enableAppointmentReminders": "Rappels de rendez-vous",
+      "enableAppointmentRemindersDescription": "Envoyer des rappels de rendez-vous automatiques",
+      "enablePromotionalMessages": "Messages promotionnels",
+      "enablePromotionalMessagesDescription": "Envoyer des offres spéciales et promotions"
+    },
+    "escalationRules": {
+      "title": "Règles d'escalade",
+      "notifyOnFailure": "Notifier en cas d'échec",
+      "notifyOnFailureDescription": "Être notifié quand l'automatisation échoue",
+      "escalationEmail": "Email de notification",
+      "escalationEmailPlaceholder": "manager@example.com",
+      "notificationMethods": "Méthodes de notification",
+      "email": "Email",
+      "sms": "SMS",
+      "push": "Push",
+      "fallbackAction": "Action de secours",
+      "fallbackActionDescription": "Sélectionner l'action à prendre quand l'automatisation échoue",
+      "maxRetries": "Tentatives maximum",
+      "maxRetriesDescription": "Nombre de tentatives de réessai avant escalade",
+      "fallbackActions": {
+        "holdForReview": "Mettre en attente",
+        "notifyManager": "Notifier le manager",
+        "autoDecline": "Refuser automatiquement",
+        "assignToStaff": "Assigner au personnel"
+      }
+    },
+    "autoDecline": {
+      "title": "Règles de refus automatique",
+      "enableLabel": "Activer le refus auto",
+      "enableDescription": "Refuser automatiquement les commandes répondant à certains critères",
+      "maxPriceLabel": "Valeur maximale de commande à refuser automatiquement ($)",
+      "maxPriceDescription": "Les commandes au-dessus de cette valeur seront automatiquement refusées",
+      "maxDistanceLabel": "Distance de livraison maximale (miles)",
+      "maxDistanceDescription": "Les commandes au-delà de cette distance seront automatiquement refusées",
+      "complexServices": "Filtres de services complexes",
+      "complexServicesDescription": "Refuser automatiquement les commandes contenant ces services complexes"
+    },
+    "priorityHandling": {
+      "title": "Traitement prioritaire",
+      "enableLabel": "Activer le traitement prioritaire",
+      "enableDescription": "Traiter les commandes haute valeur ou VIP avec une priorité spéciale",
+      "enableVip": "Priorité clients VIP",
+      "enableVipDescription": "Donner la priorité aux commandes des clients VIP",
+      "minOrderValue": "Valeur minimale de commande pour priorité ($)",
+      "minOrderValueDescription": "Les commandes au-dessus de cette valeur reçoivent un traitement prioritaire"
+    },
+    "analytics": {
+      "title": "Analytiques d'automatisation",
+      "ordersProcessed": "Commandes traitées",
+      "messagesSent": "Messages envoyés",
+      "timeSavedWeekly": "Temps gagné (hebdomadaire)",
+      "errors": "Erreurs",
+      "efficiencyGains": "Gains d'efficacité",
+      "weeklyTimeSaved": "Temps gagné hebdomadaire",
+      "monthlyTimeSaved": "Temps gagné mensuel",
+      "successRate": "Taux de réussite",
+      "totalUsage": "Utilisation totale"
+    },
+    "showPreview": "Aperçu",
+    "hidePreview": "Masquer l'aperçu",
+    "testMessage": "Test",
+    "testMessageSent": "Message test envoyé : {preview}",
+    "noMessageToTest": "Aucun message à tester",
+    "characterCount": "{current}/{max} caractères",
+    "emojisEnabled": "Émojis activés 😊",
+    "saveSuccess": "Paramètres d'automatisation enregistrés avec succès",
+    "saveError": "Erreur lors de l'enregistrement des paramètres d'automatisation",
+    "selectedCount": "{count} sélectionné(s)",
+    "selectAction": "Sélectionner une action",
+    "activate": "Activer",
+    "deactivate": "Désactiver",
+    "delete": "Supprimer",
+    "confirmBulkDelete": "Êtes-vous sûr de vouloir supprimer {count} codes promo ?",
+    "export": "Exporter",
+    "all": "Tous",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "expired": "Expiré",
+    "totalCodes": "Codes Totaux",
+    "activeCodes": "Codes Actifs",
+    "expiredCodes": "Codes Expirés"
+  },
+  "days": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche"
+  },
+  "partnerManagement": {
+    "title": "Gestion des partenaires",
+    "healthScoreTitle": "Score de santé",
+    "analyzeHealth": "Analyser la santé",
+    "applicationSettings": {
+      "title": "Paramètres des candidatures",
+      "description": "Activer ou désactiver les nouvelles candidatures de partenariat par type.",
+      "savingButton": "Enregistrement...",
+      "saveButton": "Enregistrer"
+    },
+    "pendingRequests": "Demandes en attente ({{count}})",
+    "noPendingRequestsTitle": "Aucune demande en attente",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "activePartners": "Partenaires actifs ({{count}})",
+    "noActivePartners": "Aucun partenaire actif pour le moment.",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce partenaire ? Cette action est irréversible.",
+    "featured": "En vedette",
+    "setFeatured": "Mettre en vedette",
+    "tabs": {
+      "laundry": "Nettoyage à sec & Lessive",
+      "logistics": "Logistique"
+    },
+    "activeLogisticsPartners": "Partenaires logistiques actifs ({{count}})",
+    "addLogisticsPartnerPlaceholder": "Nom du nouveau partenaire logistique",
+    "addLogisticsPartnerButton": "Ajouter",
+    "confirmDeleteLogistics": "Êtes-vous sûr de vouloir supprimer ce partenaire logistique ?",
+    "downloadFeed": "Télécharger le flux produit",
+    "bulkFeatureManagement": {
+      "title": "Gestion groupée des fonctionnalités",
+      "description": "Activer ou désactiver rapidement une fonctionnalité spécifique pour tous les partenaires à la fois.",
+      "manageButton": "Gérer"
+    }
+  },
+  "activityLog": {
+    "date": "Date",
+    "user": "Utilisateur",
+    "action": "Action",
+    "partner": "Partenaire",
+    "details": "Détails",
+    "allUsers": "Tous les utilisateurs",
+    "allActions": "Toutes les actions"
+  },
+  "driverDashboard": {
+    "title": "Tableau de bord chauffeur",
+    "myStatus": "Mon statut",
+    "available": "Disponible",
+    "unavailable": "Indisponible",
+    "onMission": "En mission",
+    "statusChangedToAvailable": "Statut changé à DISPONIBLE.",
+    "statusChangedToUnavailable": "Statut changé à INDISPONIBLE.",
+    "statusLocked": "Statut verrouillé (En mission)",
+    "goUnavailable": "Devenir indisponible",
+    "goAvailable": "Devenir disponible",
+    "missionsCompleted": "Missions terminées",
+    "totalEarnings": "Gains totaux (est.)",
+    "currentMission": "Mission actuelle",
+    "pickupFrom": "Ramasser chez",
+    "deliverTo": "Livrer à",
+    "pickupTo": "Livrer à",
+    "deliverFrom": "Ramasser chez",
+    "confirmPickup": "Confirmer ramassage",
+    "confirmDelivery": "Confirmer livraison",
+    "openChat": "Ouvrir chat",
+    "noMissions": "Aucune mission active",
+    "noMissionsDesc": "Vous êtes actuellement libre. Vous serez notifié quand une nouvelle mission sera disponible.",
+    "driversOnly": "Ce tableau de bord est réservé aux chauffeurs.",
+    "missionHistory": "Historique des missions",
+    "missionChartTitle": "Missions quotidiennes (30 derniers jours)",
+    "noMissionHistory": "Aucun historique de mission pour le moment.",
+    "pickupConfirmed": "Ramassage confirmé !",
+    "deliveryConfirmed": "Livraison confirmée !",
+    "missionUpdateError": "Erreur lors de la mise à jour du statut de mission."
+  },
+  "paymentModal": {
+    "title": "Paiement",
+    "totalToPay": "Total à payer",
+    "payWith": "Payer avec",
+    "payNow": "Payer maintenant"
+  },
+  "multiServiceOrder": {
+    "title": "Sélectionnez vos articles",
+    "subtitle": "Ajoutez des articles à votre commande chez {{name}}.",
+    "stainHelperText": "Une tache récalcitrante ? Laissez notre assistant IA recommander le bon service.",
+    "selectItems": "Sélectionner les articles",
+    "scanItemsButton": "Scanner avec caméra",
+    "scanSuccess": "{{count}} articles scannés avec succès",
+    "scanNoMatches": "Aucun article correspondant trouvé lors du scan",
+    "itemsSelected": "{{count}} articles sélectionnés",
+    "changePartner": "Changer de partenaire",
+    "selectedServices": "Services sélectionnés"
+  },
+  "emailService": {
+    "errors": {
+      "hardBounce": "Rebond dur détecté",
+      "invalidRequest": "Requête invalide vers le service email"
+    }
+  },
+  "emails": {
+    "welcome": {
+      "title": "Bienvenue chez Laundry Express RDC !",
+      "subject": "Bienvenue à bord, {{userName}} !",
+      "header": "Bienvenue chez Laundry Express RDC, {{name}} !",
+      "body1": "Nous sommes ravis de vous accueillir dans notre communauté. Faire votre lessive n'a jamais été aussi simple.",
+      "body2": "Voici ce que vous pouvez faire maintenant :",
+      "listItem1": "Passez votre première commande et choisissez parmi les meilleurs partenaires locaux.",
+      "listItem2": "Suivez votre commande du ramassage à la livraison en temps réel.",
+      "listItem3": "Gagnez des points fidélité avec chaque commande terminée.",
+      "body3": "Prêt à commencer ?",
+      "cta": "Passer ma première commande",
+      "footer": "Cordialement,",
+      "team": "L'équipe Laundry Express RDC"
+    },
+    "orderStatusUpdate": {
+      "title": "Mise à jour pour votre commande #{{id}}",
+      "greeting": "Bonjour {{name}},",
+      "orderId": "Numéro de commande",
+      "newStatus": "Nouveau statut",
+      "estimatedCompletion": "Fin estimée",
+      "summaryTitle": "Résumé de commande",
+      "itemHeader": "Article",
+      "quantityHeader": "Quantité",
+      "priceHeader": "Prix",
+      "subtotal": "Sous-total",
+      "promoDiscount": "Remise promo ({{code}})",
+      "referralDiscount": "Remise parrainage",
+      "loyaltyDiscount": "Remise fidélité",
+      "totalPaid": "Total payé",
+      "body": "Vous pouvez suivre l'avancement de votre commande à tout moment depuis votre profil.",
+      "cta": "Suivre ma commande",
+      "footer": "Merci d'utiliser Laundry Express RDC !",
+      "headlines": {
+        "CONFIRMED": "Votre commande #{{id}} est confirmée !",
+        "PROCESSING": "Votre commande #{{id}} est en cours de traitement !",
+        "READY_FOR_DELIVERY": "Bonne nouvelle ! Votre commande #{{id}} est prête pour livraison !",
+        "DELIVERY": "Votre commande #{{id}} est en route !",
+        "COMPLETED": "Votre commande #{{id}} a été livrée !",
+        "REJECTED": "Mise à jour concernant votre commande #{{id}}"
+      }
+    },
+    "newPartnerWelcome": {
+      "title": "Votre candidature de partenariat est approuvée !",
+      "subject": "Bienvenue dans le réseau Laundry Express, {{companyName}} !",
+      "header": "Félicitations, {{name}} !",
+      "body1": "Nous avons le plaisir de vous informer que votre candidature pour {{companyName}} a été approuvée. Bienvenue dans le réseau Laundry Express RDC !",
+      "body2": "Un compte a été créé pour vous. Veuillez vous connecter en utilisant votre email ({{email}}) et le mot de passe temporaire envoyé dans un email séparé.",
+      "cta": "Accéder à votre tableau de bord partenaire",
+      "body3": "Nous recommandons de changer votre mot de passe et de configurer votre profil lors de votre première connexion. Nous nous réjouissons de ce partenariat réussi !",
+      "footer": "Cordialement,",
+      "team": "L'équipe Laundry Express RDC"
+    }
+  },
+  "orderStatus": {
+    "AWAITING_CONFIRMATION": "En attente de confirmation",
+    "CONFIRMED": "Confirmée",
+    "READY_FOR_PICKUP": "Prête pour ramassage",
+    "REJECTED": "Rejetée",
+    "PICKUP": "Ramassage en cours",
+    "PROCESSING": "En traitement",
+    "READY_FOR_DELIVERY": "Prête pour livraison",
+    "DELIVERY": "Livraison en cours",
+    "COMPLETED": "Terminée"
+  },
+  "partnerTypeEnum": {
+    "PRESSING": "Nettoyage à sec",
+    "LAVANDIER": "Lessive",
+    "LOGISTICS": "Logistique"
+  },
+  "adBanner": {
+    "altText": "Publicité : {{title}}"
+  },
+  "loggedInHomePage": {
+    "welcome": "Bon retour, {{name}} !",
+    "whatToDo": "Que souhaitez-vous faire aujourd'hui ?",
+    "newOrder": "Nouvelle commande",
+    "trackOrder": "Suivre ma commande"
+  },
+  "homePage": {
+    "hero": {
+      "title": "Votre linge, livré.",
+      "subtitle": "Le premier marché de lessive et nettoyage à sec à Kinshasa. Commandez en ligne, nous ramassons, nettoyons et livrons à votre porte.",
+      "cta": "Passer commande",
+      "launchOffer": "Offre de lancement -20% !",
+      "offerExpired": "Offre expirée !",
+      "tagline": "Fièrement Congolais 🇨🇩 | Payer avec",
+      "paymentMethods": {
+        "airtel": "Airtel Money",
+        "mpesa": "M-Pesa",
+        "orange": "Orange Money"
+      }
+    },
+    "howItWorks": {
+      "step1": {
+        "title": "Choisissez votre service",
+        "description": "Sélectionnez parmi nos partenaires locaux de confiance."
+      },
+      "step2": {
+        "title": "Nous ramassons",
+        "description": "Planifiez un créneau de ramassage qui vous convient."
+      },
+      "step3": {
+        "title": "Nettoyage expert",
+        "description": "Vos vêtements sont traités avec le plus grand soin."
+      },
+      "step4": {
+        "title": "Nous livrons",
+        "description": "Frais et propres, directement à votre porte."
+      }
+    },
+    "faq": {
+      "q1": {
+        "question": "Comment ça marche ?",
+        "answer": "Choisissez simplement un service, sélectionnez un partenaire et planifiez votre ramassage. Nous nous occupons du reste !"
+      },
+      "q2": {
+        "question": "Quels sont les prix ?",
+        "answer": "Les prix varient selon le partenaire et le service. Vous pouvez voir tous les prix avant de passer commande."
+      },
+      "q3": {
+        "question": "Combien de temps ça prend ?",
+        "answer": "La livraison standard est généralement sous 48 heures. Des options express sont disponibles."
+      }
+    },
+    "adBanner": {
+      "sponsored": "Sponsorisé"
+    },
+    "trustedPartners": {
+      "title": "Nos partenaires de confiance",
+      "subtitle": "Nous collaborons avec les meilleures lessiveries et nettoyeurs à sec de la ville pour garantir un service de qualité."
+    }
+  },
+  "orderPage": {
+    "completeAllSteps": "Veuillez compléter toutes les étapes avant de procéder au paiement.",
+    "orderCreationError": "Erreur lors de la création de la commande. Veuillez réessayer."
+  },
+  "trackingPage": {
+    "noActiveOrder": "Aucune commande active",
+    "noActiveOrderSubtitle": "Vous n'avez aucune commande en cours. Prêt à en commencer une ?",
+    "orderNow": "Commander maintenant",
+    "orderRejected": "Commande rejetée",
+    "orderId": "Numéro de commande : {{id}}",
+    "orderRejectedReason": "Raison du rejet :",
+    "reason": "Raison : {{reason}}",
+    "defaultRejectionReason": "Le partenaire n'a pas pu honorer votre demande pour le moment.",
+    "noCharge": "Vous n'avez pas été facturé pour cette commande.",
+    "newOrder": "Passer une nouvelle commande",
+    "trackYourOrder": "Suivre votre commande",
+    "openChat": "Ouvrir chat",
+    "awaitingDriver": "En attente d'assignation d'un chauffeur...",
+    "readyForDelivery": "Votre commande est prête pour livraison !",
+    "readyForDeliverySubtitle": "Nous recherchons actuellement un chauffeur pour vous rapporter vos articles.",
+    "driverInfo": "Votre chauffeur est en route !",
+    "driverName": "Nom du chauffeur",
+    "vehicleInfo": "Véhicule",
+    "service": "Service",
+    "partner": "Partenaire",
+    "scheduledPickup": "Ramassage programmé",
+    "estimatedCompletion": "Fin estimée",
+    "customerInfo": "Informations client",
+    "articles": "Articles",
+    "itemsCount": "{{count}} articles",
+    "totalPaid": "Total payé",
+    "promoDiscount": "Promo '{{code}}' : -{{amount}}$",
+    "referralDiscount": "Remise parrainage : -{{amount}}$",
+    "loyaltyDiscount": "Points fidélité : -{{amount}}$",
+    "orderCompleted": "Commande terminée !",
+    "pointsEarned": "Vous avez gagné {{points}} points de fidélité !",
+    "howWasExperience": "Comment était votre expérience ?",
+    "later": "Plus tard",
+    "leaveReview": "Laisser un avis",
+    "thanksForReview": "Merci pour votre retour !",
+    "backToHome": "Retour à l'accueil"
+  },
+  "profilePage": {
+    "personalSpace": "Votre espace personnel",
+    "loginToView": "Connectez-vous ou créez un compte pour voir votre profil, historique de commandes et points de fidélité.",
+    "login": "Connexion",
+    "createAccount": "Créer un compte",
+    "myProfile": "Mon profil",
+    "orderNow": "Commander maintenant",
+    "loyaltyProgram": "Programme de fidélité",
+    "loyaltySubtitle": "Gagnez des points avec chaque commande et échangez-les contre des réductions !",
+    "yourPointsBalance": "VOTRE SOLDE DE POINTS",
+    "referralProgram": "Programme de parrainage",
+    "referralSubtitleDynamic": "Partagez votre code avec des amis. Ils obtiennent {{discountAmount}}$ de réduction, et vous gagnez {{bonusPoints}} points !",
+    "yourReferralCode": "VOTRE CODE DE PARRAINAGE",
+    "copyCode": "Copier le code",
+    "myInfo": "Mes informations",
+    "editInfo": "Modifier",
+    "contactSupport": "Contacter le support",
+    "name": "Nom complet",
+    "defaultAddress": "Adresse par défaut",
+    "email": "Adresse email",
+    "phone": "Numéro de téléphone",
+    "notificationPreferences": "Préférences de notification",
+    "saveChanges": "Enregistrer les modifications",
+    "orderHistory": "Historique des commandes",
+    "noOrders": "Aucune commande pour le moment",
+    "noOrdersSubtitle": "Vos commandes passées et actuelles apparaîtront ici. Prêt à passer votre première commande ?",
+    "partnerLabel": "Partenaire : {{name}}",
+    "leaveReview": "Laisser un avis",
+    "requestRefund": "Demander remboursement",
+    "prefs": {
+      "newOrder": {
+        "label": "Nouvelles commandes",
+        "desc": "Recevoir une notification pour chaque nouvelle commande reçue."
+      },
+      "orderStatusChange": {
+        "label": "Changements de statut",
+        "desc": "Être informé de l'avancement de votre commande."
+      },
+      "newChatMessage": {
+        "label": "Nouveaux messages",
+        "desc": "Être notifié des nouveaux messages concernant vos commandes."
+      },
+      "promotions": {
+        "label": "Promotions & offres",
+        "desc": "Recevoir des offres spéciales et des nouvelles de Laundry Express."
+      },
+      "general": {
+        "label": "Annonces générales",
+        "desc": "Recevoir des mises à jour importantes du système et du compte."
+      }
+    },
+    "cancel": "Annuler",
+    "push": {
+      "title": "Notifications push",
+      "status": "Statut actuel :",
+      "notSupported": "Non supporté sur ce navigateur.",
+      "blocked": "Bloqué. Veuillez autoriser dans les paramètres du navigateur.",
+      "enabled": "Activé.",
+      "disabled": "Désactivé.",
+      "enableButton": "Activer les notifications",
+      "blockedHint": "Vous devez autoriser les notifications dans les paramètres du site de votre navigateur pour activer cette fonctionnalité."
+    }
+  },
+  "serviceSelector": {
+    "error": "Erreur",
+    "noPartnerSelected": "Aucun partenaire sélectionné. Veuillez retourner en arrière et choisir un partenaire.",
+    "back": "Retour",
+    "whatToClean": "Que souhaitez-vous nettoyer ?",
+    "servicesFor": "Services chez {{name}}",
+    "laundry": "Lessive",
+    "perKg": "(par kg)",
+    "dryCleaning": "Nettoyage à sec",
+    "perItem": "(par article)",
+    "pricePerKg": "{{price}}$/kg",
+    "ratesPerItem": "Tarifs par article"
+  },
+  "pressingSelector": {
+    "chooseLavandier": "Choisissez votre lessiverie",
+    "choosePressing": "Choisissez votre nettoyeur à sec",
+    "selectPartner": "Sélectionnez un de nos partenaires de confiance",
+    "searchByName": "Rechercher par nom...",
+    "listView": "Vue liste",
+    "mapView": "Vue carte",
+    "sortBy": "Trier par",
+    "defaultSort": "Défaut",
+    "ratingHighToLow": "Note (élevée à basse)",
+    "ratingLowToHigh": "Note (basse à élevée)",
+    "filterByService": "Filtrer par service",
+    "allServices": "Tous les services",
+    "priceRange": "Prix max/kg",
+    "reviews": "{{count}} avis",
+    "viewProfile": "Voir profil & Commander",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "pageOf": "Page {{current}} sur {{total}}",
+    "noPartnerFoundFor": "Aucun partenaire trouvé pour \"{{term}}\".",
+    "noPartnerAvailable": "Aucun partenaire disponible pour ce service.",
+    "tryAnotherName": "Essayez un autre nom ou effacez la recherche.",
+    "goBackAndSelect": "Retournez et sélectionnez un autre type de service.",
+    "filtersAndSort": "Filtres & Tri"
+  },
+  "schedulePicker": {
+    "partnerHoursUnavailable": "Les heures d'ouverture du partenaire ne sont pas disponibles.",
+    "partnerUnavailable": "Le partenaire est indisponible du {{start}} au {{end}}.",
+    "partnerClosed": "Le partenaire est fermé ce jour.",
+    "tooLateToday": "Il est trop tard pour un ramassage aujourd'hui. Veuillez sélectionner un autre jour.",
+    "schedulePickup": "Planifiez votre ramassage",
+    "pickupDate": "Date de ramassage",
+    "pickupTime": "Heure de ramassage"
+  },
+  "orderSummary": {
+    "title": "Résumé de commande",
+    "estimatedWeight": "Poids estimé",
+    "estimatedSubtotal": "Sous-total estimé",
+    "welcomeDiscount": "Remise de bienvenue",
+    "promoDiscount": "Promo '{{code}}'",
+    "loyaltyDiscount": "Points fidélité",
+    "estimatedTotal": "Total estimé",
+    "youHavePoints": "Vous avez {{points}} points de fidélité.",
+    "usePointsForDiscount": "Utiliser {{points}} points pour {{amount}}$ de réduction ?",
+    "notEnoughPoints": "Pas assez de points pour une réduction sur cette commande.",
+    "loyaltyDiscountApplied": "Remise fidélité appliquée !",
+    "remove": "Retirer",
+    "promoCode": "Avez-vous un code promo ?",
+    "promoPlaceholder": "ex: WELCOME20",
+    "apply": "Appliquer",
+    "codeApplied": "Code '{{code}}' appliqué !",
+    "paymentInfo": "Le paiement sera traité de manière sécurisée. Vous devrez confirmer sur votre téléphone mobile.",
+    "confirmAndPay": "Confirmer & Payer",
+    "noItems": "Votre panier est vide.",
+    "promoValidation": {
+      "invalid": "Ce code promo n'est pas valide.",
+      "newUsersOnly": "Ce code est réservé aux nouveaux utilisateurs.",
+      "notForPartner": "Ce code n'est pas valide pour ce partenaire.",
+      "minValue": "Un minimum de {{value}}$ est requis pour utiliser ce code.",
+      "success": "Code promo appliqué avec succès !"
+    }
+  },
+  "articleSelector": {
+    "stainAnalysisRecommendation": "L'IA recommande {{serviceType}} pour votre tache. Nous sommes passés à ce type de service pour vous.",
+    "stainAnalysisComplete": "Analyse de tache terminée.",
+    "noServiceSelected": "Aucun service sélectionné.",
+    "back": "Retour",
+    "estimateWeight": "Estimez le poids de votre lessive",
+    "selectArticles": "Sélectionnez vos articles",
+    "scanWithCamera": "Scanner avec caméra",
+    "analyzeStain": "Analyser une tache",
+    "estimatedWeightKg": "Poids estimé (en kg)",
+    "weightPlaceholder": "ex: 5.5",
+    "pricePerKg": "Prix : {{price}}$/kg",
+    "pricePerUnit": "{{price}}$ / unité",
+    "estimatedTotal": "Total estimé",
+    "next": "Suivant"
+  },
+  "clientDetailsForm": {
+    "yourInfo": "Vos informations",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "ex: Jean Dupont",
+    "phoneNumber": "Numéro de téléphone",
+    "phonePlaceholder": "0812345678",
+    "pickupAddress": "Adresse de ramassage",
+    "selectOnMap": "Sélectionner l'emplacement sur la carte"
+  },
+  "serviceTypeSelector": {
+    "title": "De quel service avez-vous besoin ?",
+    "laundryAlt": "Pile de linge plié",
+    "laundry": "Lessive",
+    "laundryDesc": "Lavage, séchage et pliage pour vos vêtements du quotidien. Prix au kilogramme.",
+    "dryCleaningAlt": "Vêtements sur cintres",
+    "dryCleaning": "Nettoyage à sec",
+    "dryCleaningDesc": "Soins spécialisés pour articles délicats comme costumes, robes et manteaux. Prix par article."
+  },
+  "becomePartnerPage": {
+    "dryCleaning": "Nettoyage à sec",
+    "dryCleaningDesc": "Pour les entreprises proposant nettoyage à sec et repassage à la pièce.",
+    "lavandier": "Lessive",
+    "lavandierDesc": "Pour les entreprises proposant services lavage-séchage-pliage au poids.",
+    "logisticsPartner": "Partenaire logistique",
+    "logisticsPartnerDesc": "Pour les entreprises de livraison avec une flotte de chauffeurs.",
+    "thanks": "Merci !",
+    "requestSent": "Votre demande de partenariat a été envoyée. Notre équipe l'examinera et vous recontactera sous peu.",
+    "backToHome": "Retour à l'accueil",
+    "becomePartner": "Devenir partenaire",
+    "joinUs": "Rejoignez notre réseau de professionnels et développez votre entreprise. Choisissez votre type de partenariat pour commencer.",
+    "applicationsClosed": "Les candidatures de partenariat sont actuellement fermées. Veuillez réessayer plus tard.",
+    "partnerRegistration": "Inscription partenaire",
+    "fillForm": "Veuillez remplir le formulaire ci-dessous pour postuler.",
+    "serviceType": "Type de service",
+    "pressingPerItem": "Nettoyage à sec (à la pièce)",
+    "lavandierPerKg": "Lessive (par kg)",
+    "change": "Changer",
+    "companyName": "Nom de l'entreprise",
+    "contactName": "Nom du contact",
+    "phone": "Téléphone",
+    "email": "Email",
+    "address": "Adresse commerciale",
+    "message": "Message (optionnel)",
+    "submitRequest": "Soumettre la demande",
+    "submitError": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "registrationPrompt": {
+    "createAccountToContinue": "Créez un compte pour continuer",
+    "guestLimit": "Vous avez atteint la limite de commande pour les utilisateurs invités. Créez un compte gratuit pour profiter de commandes illimitées et plus d'avantages !",
+    "benefit1": "Suivez facilement votre historique de commandes.",
+    "benefit2": "Gagnez des points fidélité pour des réductions.",
+    "benefit3": "Sauvegardez vos informations pour un paiement plus rapide.",
+    "createMyAccount": "Créer mon compte",
+    "cancel": "Non merci"
+  },
+  "loginPage": {
+    "login": "Connexion",
+    "email": "Adresse email",
+    "emailPlaceholder": "vous@exemple.com",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "********",
+    "or": "Ou continuer avec",
+    "googleSignIn": "Se connecter avec Google",
+    "facebookSignIn": "Se connecter avec Facebook",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "register": "Inscrivez-vous ici",
+    "invalidCredentials": "Email ou mot de passe incorrect."
+  },
+  "registerPage": {
+    "createAccount": "Créer un compte",
+    "fullName": "Nom complet",
+    "email": "Adresse email",
+    "phone": "Numéro de téléphone",
+    "phonePlaceholder": "0812345678",
+    "defaultAddress": "Adresse de ramassage par défaut",
+    "password": "Mot de passe",
+    "referralCode": "Code de parrainage (optionnel)",
+    "register": "S'inscrire",
+    "googleSignUp": "S'inscrire avec Google",
+    "facebookSignUp": "S'inscrire avec Facebook",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "login": "Connectez-vous ici",
+    "error": "L'inscription a échoué. Veuillez réessayer."
+  },
+  "adminPage": {
+    "accessDenied": "Accès refusé",
+    "noPermission": "Vous n'avez pas l'autorisation de voir cette page.",
+    "backToHome": "Retour à la page d'accueil",
+    "adminMenu": "Menu admin",
+    "dashboard": "Tableau de bord",
+    "analytics": "Analytiques",
+    "partners": "Partenaires",
+    "services": "Services",
+    "subscriptions": "Abonnements",
+    "users": "Utilisateurs",
+    "orders": "Commandes",
+    "refunds": "Remboursements",
+    "drivers": "Chauffeurs",
+    "promotions": "Promotions",
+    "advertisements": "Publicités",
+    "loyalty": "Programme de fidélité",
+    "referral": "Programme de parrainage",
+    "contentManagement": "Gestion de contenu",
+    "support": "Support",
+    "tracking": "Suivi & Intégrations",
+    "adminManagement": "Gestion admin"
+  },
+  "adminDashboard": {
+    "title": "Tableau de bord admin",
+    "adminDashboard": "Tableau de bord admin",
+    "revenue30days": "0,00 $",
+    "orders30days": "0",
+    "newPartners30days": "4",
+    "totalRevenue": "Revenu total",
+    "orders": "Commandes",
+    "users": "Utilisateurs",
+    "partners": "Partenaires",
+    "viewAnalytics": "Voir les analytiques détaillées",
+    "partnerApplications": "Candidatures partenaires en attente ({{count}})",
+    "reject": "Rejeter",
+    "approve": "Approuver",
+    "noNewApplications": "Aucune nouvelle candidature.",
+    "bulkNotifications": {
+      "title": "Notifications groupées",
+      "target": "Public cible",
+      "allUsers": "Tous les clients",
+      "partnersOnly": "Partenaires uniquement",
+      "messageLabel": "Message",
+      "placeholder": "Entrez votre message promotionnel ici...",
+      "personalizationHint": "Utilisez {{name}} pour personnaliser le message avec le prénom de l'utilisateur.",
+      "preview": "Aperçu personnalisé",
+      "sendButton": "Envoyer",
+      "feedbackSuccess": "Notification envoyée avec succès !",
+      "feedbackError": "Erreur lors de l'envoi de la notification. Veuillez réessayer.",
+      "successMessage": "Notification groupée envoyée à {{count}} utilisateurs.",
+      "errorMessage": "Échec de l'envoi de la notification groupée."
+    },
+    "aiPoweredSecurityAlerts": "Alertes de sécurité IA",
+    "runSecurityScan": "Lancer scan de sécurité",
+    "securityScanDescription": "Cliquez sur \"Lancer scan de sécurité\" pour vérifier les activités suspectes.",
+    "newOrdersTitle": "Nouvelles commandes",
+    "noNewOrders": "Aucune nouvelle commande",
+    "recentCompletedTitle": "Commandes récemment terminées",
+    "noCompletedOrders": "Aucune commande récemment terminée"
+  },
+  "adminAnalytics": {
+    "title": "Analytiques de la plateforme",
+    "timeRange": {
+      "week": "Semaine",
+      "month": "Mois",
+      "year": "Année"
+    },
+    "revenueOverPeriod": "Revenu (période)",
+    "ordersOverPeriod": "Commandes (période)",
+    "newUsers": "Nouveaux utilisateurs (période)",
+    "avgOrderValue": "Valeur moyenne de commande",
+    "revenue": "Revenu",
+    "orders": "Commandes",
+    "partnerPerformance": "Performance des partenaires",
+    "servicePerformance": "Performance des services",
+    "revenueByService": "Revenu par service",
+    "geographicalAnalysis": "Analyse géographique",
+    "noGeoData": "Aucune donnée géographique disponible.",
+    "activityAnalysis": "Analyse de l'activité utilisateur",
+    "peakHours": "Heures de pointe des commandes",
+    "noActivityData": "Pas assez de données d'activité.",
+    "unknownService": "Service inconnu"
+  },
+  "dynamicFeed": {
+    "description": "Services {{type}} de haute qualité de {{name}}, situé à {{address}}."
+  },
+  "userManagement": {
+    "title": "Gestion des utilisateurs",
+    "registeredUsers": "Utilisateurs enregistrés ({{count}})",
+    "table": {
+      "name": "Nom",
+      "contact": "Contact",
+      "loyalty": "Points fidélité",
+      "referral": "Code parrainage",
+      "joined": "Inscrit le",
+      "actions": "Actions"
+    },
+    "adminBadge": "ADMIN",
+    "partnerBadge": "PARTENAIRE",
+    "linkToPartner": "Lier au partenaire",
+    "noUsers": "Aucun utilisateur trouvé."
+  },
+  "orderManagement": {
+    "title": "Gestion des commandes",
+    "allOrders": "Toutes les commandes ({{count}})",
+    "filterByStatus": "Filtrer par statut :",
+    "all": "Toutes",
+    "orderId": "Numéro de commande",
+    "customer": "Client",
+    "partner": "Partenaire",
+    "total": "Total",
+    "status": "Statut",
+    "date": "Date",
+    "chat": "Chat",
+    "noOrdersForFilter": "Aucune commande trouvée pour ce filtre.",
+    "guest": "Invité",
+    "unknownUser": "Utilisateur inconnu",
+    "openChat": "Ouvrir chat"
+  },
+  "adminOrderManagement": {
+    "customer": "Client",
+    "partner": "Partenaire",
+    "total": "Total",
+    "date": "Date"
+  },
+  "promoManagement": {
+    "title": "Gestion des promotions",
+    "createCode": "Créer code",
+    "editCode": "Modifier code promo",
+    "newCode": "Nouveau code promo",
+    "formError": "Veuillez remplir le code et une valeur de réduction supérieure à 0.",
+    "code": "Code",
+    "discountType": "Type de réduction",
+    "percentage": "Pourcentage",
+    "fixedAmount": "Montant fixe",
+    "discountValue": "Valeur de réduction",
+    "minOrderValue": "Valeur minimale de commande ($)",
+    "newUsersOnly": "Nouveaux utilisateurs uniquement",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer modifications",
+    "create": "Créer",
+    "existingCodes": "Codes existants ({{count}})",
+    "discount": "Réduction",
+    "conditions": "Conditions",
+    "createdBy": "Créé par",
+    "status": "Statut",
+    "actions": "Actions",
+    "minAmount": "Min. {{amount}}$",
+    "noConditions": "Aucune",
+    "platform": "Plateforme",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce code promo ?",
+    "noPromoCodes": "Aucun code promo créé pour le moment.",
+    "totalCodes": "Codes Totaux",
+    "activeCodes": "Codes Actifs",
+    "expiredCodes": "Codes Expirés",
+    "totalUsage": "Utilisation Totale",
+    "all": "Tous",
+    "expired": "Expiré",
+    "export": "Exporter",
+    "validity": "Validité"
+  },
+  "contentManagement": {
+    "saveChanges": "Enregistrer modifications",
+    "heroSection": "Section hero",
+    "mainTitle": "Titre principal (clé de traduction)",
+    "subtitle": "Sous-titre (clé de traduction)",
+    "howItWorksSection": "Section comment ça marche",
+    "stepTitle": "Titre étape {{index}}",
+    "description": "Description",
+    "faqSection": "Section FAQ",
+    "addQuestion": "Ajouter question",
+    "question": "Question",
+    "answer": "Réponse",
+    "noFaq": "Aucun élément FAQ pour le moment. Cliquez sur 'Ajouter question' pour en créer un.",
+    "newQuestion": "Nouvelle question",
+    "newAnswer": "Nouvelle réponse"
+  },
+  "adminSupport": {
+    "title": "Centre de support",
+    "allTickets": "Tous les tickets ({{count}})",
+    "filterByStatus": "Filtrer par statut :",
+    "all": "Tous",
+    "subjectAiSummary": "Sujet / Résumé IA",
+    "category": "Catégorie",
+    "user": "Utilisateur",
+    "status": "Statut",
+    "lastUpdate": "Dernière mise à jour",
+    "action": "Action",
+    "viewReply": "Voir/Répondre",
+    "noTicketsForFilter": "Aucun ticket trouvé pour ce filtre."
+  },
+  "driverManagement": {
+    "title": "Gestion des chauffeurs",
+    "allDrivers": "Tous les chauffeurs ({{count}})",
+    "logisticsPartner": "Partenaire logistique",
+    "vehicle": "Véhicule",
+    "status": "Statut",
+    "currentMission": "Mission actuelle",
+    "noMission": "Aucune",
+    "name": "Nom",
+    "noDrivers": "Aucun chauffeur enregistré pour le moment."
+  },
+  "serviceManagement": {
+    "title": "Gestion des services",
+    "addService": "Ajouter service",
+    "platformServices": "Services de la plateforme ({{count}})",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce service à l'échelle de la plateforme ?",
+    "noServices": "Aucun service à l'échelle de la plateforme créé pour le moment."
+  },
+  "loyaltyManagement": {
+    "title": "Gestion programme de fidélité",
+    "enableLabel": "Activer programme fidélité",
+    "enableDescription": "Permettre aux utilisateurs de gagner et échanger des points de fidélité.",
+    "earningRateLabel": "Taux de gain",
+    "earningRateDescription": "Points gagnés pour chaque dollar dépensé.",
+    "redemptionRateLabel": "Taux d'échange",
+    "redemptionRateDescription": "Points requis pour échanger contre 1$ de réduction.",
+    "saveButton": "Enregistrer paramètres",
+    "settingsSaved": "Paramètres fidélité enregistrés avec succès."
+  },
+  "referralManagement": {
+    "title": "Gestion programme parrainage",
+    "enableLabel": "Activer programme parrainage",
+    "enableDescription": "Permettre aux utilisateurs de parrainer des amis pour des récompenses.",
+    "referrerBonusLabel": "Bonus parrain (points)",
+    "referrerBonusDescription": "Points que le parrain reçoit quand son code est utilisé.",
+    "refereeDiscountLabel": "Réduction filleul ($)",
+    "refereeDiscountDescription": "Réduction que le nouvel utilisateur reçoit sur sa première commande.",
+    "saveButton": "Enregistrer paramètres",
+    "settingsSaved": "Paramètres parrainage enregistrés avec succès."
+  },
+  "adManagement": {
+    "title": "Gestion publicité",
+    "createAd": "Créer publicité",
+    "editAd": "Modifier publicité",
+    "newAd": "Nouvelle publicité",
+    "validationError": "Veuillez remplir le titre, l'URL de l'image et l'URL du lien.",
+    "adTitle": "Titre de la publicité",
+    "description": "Description",
+    "imageUrl": "URL de l'image",
+    "linkUrl": "URL du lien",
+    "active": "Actif",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "create": "Créer",
+    "existingAds": "Publicités existantes ({{count}})",
+    "status": "Statut",
+    "actions": "Actions",
+    "noAds": "Aucune publicité créée pour le moment.",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette publicité ?"
+  },
+  "adminAdminManagement": {
+    "title": "Gestion admin",
+    "existingAdmins": "Admins existants",
+    "newAdminButton": "Nouvel admin",
+    "name": "Nom",
+    "email": "Email",
+    "actions": "Actions",
+    "editPermissions": "Modifier permissions",
+    "noAdmins": "Aucun autre admin trouvé.",
+    "editingFor": "Modification permissions pour {{name}}",
+    "saveButton": "Enregistrer permissions",
+    "newAdminFormTitle": "Créer nouvel admin",
+    "adminName": "Nom complet",
+    "tempPassword": "Mot de passe temporaire",
+    "createButton": "Créer admin",
+    "permissions": {
+      "dashboard": {
+        "description": "Voir les statistiques du tableau de bord principal."
+      },
+      "analytics": {
+        "description": "Accéder aux analytiques détaillées de la plateforme."
+      },
+      "partners": {
+        "description": "Gérer partenaires et candidatures."
+      },
+      "services": {
+        "description": "Gérer services à l'échelle de la plateforme."
+      },
+      "users": {
+        "description": "Voir et gérer tous les utilisateurs."
+      },
+      "orders": {
+        "description": "Voir toutes les commandes de la plateforme."
+      },
+      "drivers": {
+        "description": "Voir tous les chauffeurs et leur statut."
+      },
+      "promotions": {
+        "description": "Gérer promotions à l'échelle de la plateforme."
+      },
+      "advertisements": {
+        "description": "Gérer publicités page d'accueil."
+      },
+      "loyalty": {
+        "description": "Configurer paramètres programme fidélité."
+      },
+      "referral": {
+        "description": "Configurer paramètres programme parrainage."
+      },
+      "content": {
+        "description": "Gérer contenu site (accueil, FAQ)."
+      },
+      "support": {
+        "description": "Voir et répondre à tous les tickets support."
+      },
+      "adminManagement": {
+        "description": "Créer, modifier et gérer autres admins."
+      }
+    }
+  },
+  "trackingManagement": {
+    "title": "Suivi & Intégrations",
+    "description": "Gérer scripts de suivi et analytiques tiers. Les changements peuvent nécessiter un rafraîchissement de page.",
+    "settingsSaved": "Paramètres de suivi enregistrés avec succès.",
+    "gtm": {
+      "title": "Google Tag Manager",
+      "description": "GTM est la méthode recommandée pour gérer tous vos scripts de suivi, y compris Meta Pixel, Google Ads, etc. Entrez votre ID de conteneur pour l'activer.",
+      "label": "ID Conteneur GTM",
+      "placeholder": "GTM-XXXXXXX"
+    },
+    "meta": {
+      "title": "Meta Pixel (Facebook)",
+      "description": "Si vous n'utilisez pas GTM, vous pouvez entrer votre Pixel ID directement ici. Il est recommandé de gérer cela via GTM.",
+      "label": "ID Meta Pixel",
+      "placeholder": "123456789012345"
+    },
+    "saveButton": "Enregistrer paramètres"
+  },
+  "partnerDashboardPage": {
+    "accessDenied": "Accès refusé",
+    "partnersOnly": "Ce tableau de bord est réservé aux partenaires.",
+    "backToHome": "Retour à l'accueil",
+    "partnerMenu": "Menu partenaire",
+    "dashboard": "Tableau de bord",
+    "analytics": "Analytiques",
+    "orderManagement": "Gestion commandes",
+    "financials": "Finances",
+    "myProfile": "Mon profil",
+    "promotions": "Promotions",
+    "teamManagement": "Gestion équipe",
+    "security": "Sécurité",
+    "apiIntegrations": "API & Intégrations",
+    "automation": "Automatisation",
+    "support": "Centre de support",
+    "inventory": "Inventaire",
+    "delivery": "Livraison",
+    "subscription": "Abonnement",
+    "invoicing": "Facturation"
+  },
+  "partnerDashboard": {
+    "title": "Bienvenue sur votre tableau de bord, {{name}}",
+    "newOrders": "Nouvelles commandes",
+    "newOrderFrom": "Nouvelle commande de",
+    "confirm": "Confirmer",
+    "reject": "Rejeter",
+    "activeOrders": "Commandes actives",
+    "revenueThisMonth": "Revenu (ce mois)",
+    "avgOrderValue": "Valeur moyenne commande",
+    "viewDetails": "Voir détails",
+    "pendingNewOrders": "Nouvelles commandes en attente ({{count}})",
+    "noNewOrders": "Aucune nouvelle commande à accepter.",
+    "recentReviewsTitle": "Avis récents",
+    "noReviews": "Aucun avis pour le moment.",
+    "rejectionReasonPrompt": "Veuillez fournir une raison pour rejeter cette commande (optionnel).",
+    "defaultRejectionReason": "Le partenaire est actuellement indisponible.",
+    "orderAcceptedNotification": "Commande acceptée ! Elle est maintenant prête pour ramassage par le chauffeur.",
+    "orderUpdateError": "Erreur lors de la mise à jour de la commande.",
+    "reviewAssistant": {
+      "success": "Réponse IA générée !",
+      "copy": "Copié !",
+      "generatedResponse": "Réponse générée :",
+      "clear": "Effacer",
+      "generating": "Génération...",
+      "respondWithAI": "Répondre avec IA",
+      "replyPosted": "Réponse à l'avis publiée avec succès !"
+    },
+    "demandForecast": {
+      "title": "Prévision demande",
+      "loading": "Analyse...",
+      "generateButton": "Générer prévision 7 jours",
+      "demandLevel": {
+        "low": "Faible",
+        "average": "Moyenne",
+        "high": "Élevée"
+      }
+    },
+    "times": "{{count}} fois"
+  },
+  "orderDetailsModal": {
+    "title": "Détails commande",
+    "orderId": "Commande #{{id}}",
+    "customerInfo": "Informations client",
+    "name": "Nom",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "pickupSchedule": "Planning ramassage",
+    "orderDetails": "Détails commande",
+    "itemHeader": "Article",
+    "quantityHeader": "Qté",
+    "priceHeader": "Prix",
+    "estimatedWeight": "Poids estimé",
+    "estimatedTotal": "Total",
+    "openChat": "Ouvrir Chat"
+  },
+  "estimateTimeModal": {
+    "title": "Estimer temps de fin",
+    "description": "Veuillez fournir une date et heure de fin estimée pour cette commande.",
+    "timeLabel": "Heure de fin",
+    "confirm": "Confirmer",
+    "confirming": "Confirmation...",
+    "quickOptions": "Options rapides",
+    "customTime": "Date personnalisée"
+  },
+  "partnerOrderManagement": {
+    "title": "Gestion commandes",
+    "myOrders": "Mes commandes ({{count}})",
+    "filterByStatus": "Filtrer par statut :",
+    "all": "Toutes",
+    "orderId": "Numéro commande",
+    "customer": "Client",
+    "service": "Service",
+    "total": "Total",
+    "status": "Statut",
+    "date": "Date",
+    "action": "Action",
+    "noOrdersForFilter": "Aucune commande trouvée pour ce filtre.",
+    "statusUpdateError": "Erreur lors de la mise à jour du statut.",
+    "moveTo": "Déplacer vers {{status}}",
+    "assignedDriver": "Chauffeur",
+    "openChat": "Ouvrir chat"
+  },
+  "partnerProfileManagement": {
+    "title": "Mon profil",
+    "myInfo": "Mes informations",
+    "editInfo": "Modifier",
+    "name": "Nom",
+    "address": "Adresse",
+    "videoUrl": "URL vidéo",
+    "myServices": "Mes services",
+    "addService": "Ajouter service",
+    "noServices": "Vous n'avez ajouté aucun service pour le moment.",
+    "confirmDeleteService": "Êtes-vous sûr de vouloir supprimer ce service de vos offres ?",
+    "serviceType": "Type de service",
+    "shareableUrl": {
+      "title": "Votre page publique",
+      "description": "Partagez ce lien avec vos clients pour les diriger vers votre profil sur Laundry Express.",
+      "copyButton": "Copier lien",
+      "copySuccess": "Lien copié avec succès !",
+      "copyError": "Échec de la copie du lien."
+    },
+    "subdomain": {
+      "title": "Votre sous-domaine personnalisé",
+      "description": "Utilisez ce lien professionnel sur vos supports marketing. C'est une vitrine directe vers vous.",
+      "description_preview": "Ceci est un aperçu. Les sous-domaines personnalisés sont actifs sur notre site de production.",
+      "copyButton": "Copier sous-domaine",
+      "copySuccess": "Sous-domaine copié avec succès !",
+      "copyError": "Échec de la copie du sous-domaine."
+    },
+    "customDomain": {
+      "title": "Domaine personnalisé",
+      "description": "Connectez votre propre domaine (ex: www.mondrycleaner.com) à votre vitrine Laundry Express.",
+      "inputLabel": "Votre domaine configuré :",
+      "notConfigured": "Non configuré",
+      "instructionsTitle": "Comment configurer",
+      "step1": "Achetez un domaine chez un fournisseur comme GoDaddy ou Namecheap.",
+      "step2": "Dans les paramètres DNS de votre fournisseur, créez un enregistrement CNAME.",
+      "step3": "Définissez le Host/Nom sur 'www' (ou votre sous-domaine souhaité).",
+      "step4": "Pointez la Valeur/Cible vers 'cname.laundry.app'.",
+      "step5": "Enregistrez et attendez la propagation DNS (jusqu'à 24 heures)."
+    },
+    "openingHours": {
+      "title": "Heures d'ouverture",
+      "closed": "Fermé",
+      "saveButton": "Enregistrer heures",
+      "saveSuccess": "Heures d'ouverture mises à jour avec succès.",
+      "saveError": "Échec de la mise à jour des heures d'ouverture."
+    }
+  },
+  "partnerPromoManagement": {
+    "title": "Mes promotions",
+    "errorNoPartner": "ID partenaire non trouvé. Impossible de créer code promo.",
+    "editMyCode": "Modifier mon code promo",
+    "newCode": "Créer nouveau code promo",
+    "codePlaceholder": "ex: ECONOMISE10",
+    "myCreatedCodes": "Mes codes créés ({{count}})",
+    "usage": "Utilisation",
+    "noPromoCodes": "Vous n'avez créé aucun code promo pour le moment.",
+    "assistant": {
+      "title": "Assistant Marketing ✨",
+      "description": "Besoin d'une idée de promotion ? Décrivez votre objectif et laissez notre assistant IA vous aider !",
+      "promptPlaceholder": "ex: 'Une promotion week-end pour nouveaux clients', 'Une réduction sur les robes', 'Une vente flash pour ce soir'...",
+      "tryThese": "Essayez ceux-ci :",
+      "example1": "Réduction sur robes",
+      "example2": "Première commande de ma boutique",
+      "example3": "Vente flash week-end",
+      "loading": "Génération...",
+      "generateButton": "Générer promotion",
+      "marketingTextLabel": "Texte marketing",
+      "bannerConceptLabel": "Concept bannière",
+      "bannerStyles": {
+        "elegant": "Élégant",
+        "vibrant": "Vibrant",
+        "minimal": "Minimal",
+        "luxury": "Luxe"
+      },
+      "downloadButton": "Télécharger bannière",
+      "usePromoButton": "Utiliser cette promotion",
+      "imageGenerationFailed": "Échec génération image. Vous pouvez modifier le concept et réessayer.",
+      "regenerateImageButton": "Regénérer Image",
+      "doneButton": "Terminé",
+      "newIdeaButton": "Nouvelle Idée"
+    }
+  },
+  "partnerFinancials": {
+    "title": "Finances",
+    "totalRevenue": "Revenu total",
+    "revenueLast30Days": "Revenu (30 derniers jours)",
+    "completedOrders": "Commandes terminées",
+    "avgOrderValue": "Valeur moyenne commande",
+    "revenueChartTitle": "Revenu quotidien (30 derniers jours)",
+    "transactionHistoryTitle": "Historique transactions",
+    "noTransactions": "Aucune transaction terminée pour le moment.",
+    "payoutStatus": {
+      "paidOut": "Payé",
+      "pending": "En attente"
+    },
+    "table": {
+      "orderId": "Numéro commande",
+      "completionDate": "Date fin",
+      "service": "Service",
+      "amount": "Montant",
+      "payoutStatus": "Statut paiement"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "Analytiques",
+    "exportData": "Exporter données",
+    "revenueOverview": "Aperçu revenu",
+    "timeRange": {
+      "week": "Semaine",
+      "month": "Mois",
+      "year": "Année"
+    },
+    "totalRevenue": "Revenu total (période)",
+    "avgOrderValue": "Valeur moyenne commande",
+    "ordersThisMonth": "Commandes ce mois",
+    "revenueChartTitle": "Revenu par jour",
+    "noRevenueData": "Aucune donnée de revenu pour cette période.",
+    "promotionPerformance": "Performance promotions",
+    "topPromosByUsage": "Top promos par utilisation",
+    "topPromosByRevenue": "Top promos par revenu",
+    "noPromoData": "Aucune donnée promotion disponible.",
+    "servicePerformance": "Performance services",
+    "mostPopularServices": "Services plus populaires",
+    "noServiceData": "Aucune donnée service disponible.",
+    "customerInsights": "Insights clients",
+    "newVsReturning": "Nouveaux vs. Fidèles",
+    "new": "Nouveaux",
+    "returning": "Fidèles",
+    "topClients": "Meilleurs clients",
+    "ordersCount": "{{count}} commandes",
+    "noCustomerData": "Aucune donnée client disponible.",
+    "unknownClient": "Client inconnu"
+  },
+  "teamManagement": {
+    "title": "Gestion équipe",
+    "teamMembers": "Membres équipe",
+    "inviteMember": "Inviter membre",
+    "inviteSuccess": "Invitation envoyée avec succès !",
+    "inviteErrorExists": "Cet utilisateur fait déjà partie d'une équipe ou n'existe pas.",
+    "inviteError": "Échec envoi invitation.",
+    "updateSuccess": "Rôle mis à jour avec succès.",
+    "updateError": "Échec mise à jour rôle.",
+    "removeSuccess": "Membre équipe supprimé.",
+    "removeError": "Échec suppression membre.",
+    "confirmRemove": "Êtes-vous sûr de vouloir supprimer {{name}} de votre équipe ?",
+    "nameLabel": "Nom complet",
+    "emailLabel": "Adresse email",
+    "roleLabel": "Rôle",
+    "roles": {
+      "OWNER": "Propriétaire",
+      "MANAGER": "Manager",
+      "STAFF": "Staff"
+    },
+    "managerDescription": "Peut gérer commandes, profil et promotions.",
+    "staffDescription": "Peut seulement voir et gérer commandes.",
+    "inviteButton": "Envoyer invitation",
+    "nameHeader": "Nom",
+    "emailHeader": "Email",
+    "roleHeader": "Rôle",
+    "actionsHeader": "Actions"
+  },
+  "security": {
+    "title": "Sécurité & Activité",
+    "twoFactorAuth": {
+      "title": "Authentification à deux facteurs (2FA)",
+      "description": "Ajoutez une couche de sécurité supplémentaire à votre compte.",
+      "setup": {
+        "title": "Configurer 2FA",
+        "step1": "Scannez ce QR code avec votre app d'authentification (ex: Google Authenticator).",
+        "qrAlt": "QR code 2FA",
+        "step2": "Entrez le code à 6 chiffres de votre app pour vérifier.",
+        "verificationCode": "Code de vérification",
+        "invalidCode": "Code invalide. Veuillez réessayer.",
+        "verifyAndEnable": "Vérifier & Activer"
+      },
+      "status": "Statut",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "confirmDisable": "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?",
+      "disableButton": "Désactiver",
+      "enableButton": "Activer 2FA"
+    },
+    "activityLog": {
+      "title": "Journal d'activité",
+      "description": "Actions récentes liées à la sécurité et importantes sur votre compte.",
+      "filterByUser": "Filtrer par utilisateur",
+      "noLogs": "Aucun journal d'activité trouvé.",
+      "actions": {
+        "USER_LOGIN": "s'est connecté.",
+        "USER_LOGIN_FAILURE": "a eu une tentative de connexion échouée.",
+        "USER_2FA_ENABLED": "a activé l'authentification à deux facteurs.",
+        "USER_2FA_DISABLED": "a désactivé l'authentification à deux facteurs.",
+        "PARTNER_PROFILE_UPDATE": "a mis à jour le profil partenaire.",
+        "PARTNER_SERVICE_ADD": "a ajouté un nouveau service.",
+        "PARTNER_SERVICE_UPDATE": "a mis à jour un service.",
+        "PARTNER_SERVICE_DELETE": "a supprimé un service.",
+        "PROMO_CODE_CREATE": "a créé un nouveau code promo.",
+        "PROMO_CODE_UPDATE": "a mis à jour un code promo.",
+        "TEAM_MEMBER_INVITE": "a invité un nouveau membre d'équipe.",
+        "TEAM_MEMBER_ROLE_CHANGE": "a changé le rôle d'un membre d'équipe.",
+        "TEAM_MEMBER_REMOVE": "a supprimé un membre d'équipe."
+      }
+    }
+  },
+  "apiIntegrationsPage": {
+    "title": "API & Intégrations",
+    "description": "Gérez vos clés API et webhooks pour connecter Laundry Express à vos autres outils.",
+    "apiKey": {
+      "title": "Clé API",
+      "description": "Utilisez cette clé pour authentifier les requêtes à l'API Laundry Express. Gardez-la secrète !",
+      "yourKey": "Votre clé API live",
+      "copied": "Copié !",
+      "copy": "Copier",
+      "confirmGenerate": "Êtes-vous sûr de vouloir générer une nouvelle clé API ? L'ancienne clé sera immédiatement invalidée.",
+      "generateNew": "Générer nouvelle clé",
+      "generateSuccess": "Nouvelle clé API générée avec succès."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "Soyez notifié des événements survenant dans votre compte Laundry Express en fournissant un endpoint webhook.",
+      "endpointUrl": "URL endpoint",
+      "placeholder": "https://votre-app.com/webhook",
+      "subscribedEvents": "Événements souscrits",
+      "events": {
+        "NEW_ORDER": {
+          "label": "Nouvelle commande",
+          "description": "Déclenché quand une nouvelle commande est passée pour votre entreprise."
+        },
+        "STATUS_UPDATE": {
+          "label": "Mise à jour statut commande",
+          "description": "Déclenché à chaque changement de statut de commande."
+        }
+      },
+      "test": "Envoyer test",
+      "save": "Enregistrer webhooks",
+      "saveSuccess": "Paramètres webhook enregistrés.",
+      "testSuccess": "Test webhook envoyé avec succès !"
+    },
+    "integrations": {
+      "title": "Intégrations tierces",
+      "description": "Connectez-vous facilement à d'autres services.",
+      "zapier": "Se connecter avec Zapier",
+      "make": "Se connecter avec Make.com"
+    }
+  },
+  "logisticsDashboard": {
+    "title": "Tableau de bord Logistique",
+    "completedDeliveries": "Livraisons terminées",
+    "totalEarnings": "Gains totaux (est.)",
+    "activeMissions": "Missions actives",
+    "availableDrivers": "Chauffeurs disponibles",
+    "totalDrivers": "Chauffeurs totaux",
+    "deliveryChartTitle": "Livraisons quotidiennes (30 derniers jours)",
+    "addDriverTitle": "Ajouter nouveau chauffeur",
+    "driverName": "Nom chauffeur",
+    "driverEmail": "Email chauffeur",
+    "driverPhone": "Téléphone chauffeur",
+    "vehicleInfo": "Véhicule (ex: Moto TVS 123-ABC)",
+    "submitAddDriver": "Ajouter chauffeur",
+    "driverListTitle": "Mes chauffeurs",
+    "noDrivers": "Aucun chauffeur ajouté pour le moment.",
+    "availableMissions": "Missions disponibles",
+    "pickupMissions": "Missions ramassage",
+    "deliveryMissions": "Missions livraison",
+    "collectMissionFor": "Ramasser pour",
+    "deliveryMissionFor": "Livrer pour",
+    "selectCollector": "Sélectionner collecteur",
+    "selectDeliverer": "Sélectionner livreur",
+    "confirmAssignment": "Assigner",
+    "noPickupMissions": "Aucune mission ramassage disponible.",
+    "noDeliveryMissions": "Aucune mission livraison disponible.",
+    "logisticsOnly": "Ce tableau de bord est réservé aux managers logistiques.",
+    "optimizeRoutes": {
+      "button": "Optimiser itinéraires",
+      "disabledTooltip": "Il n'y a aucune mission ou chauffeur disponible à optimiser.",
+      "modalTitle": "Optimisation IA Itinéraires ✨",
+      "modalDescription": "Notre IA a calculé les itinéraires les plus efficaces pour vos chauffeurs disponibles.",
+      "loading": "Optimisation itinéraires...",
+      "stops": "arrêts",
+      "estimatedTime": "Temps estimé",
+      "pickup": "RAMASSAGE",
+      "delivery": "LIVRAISON",
+      "noRoutes": "Toutes missions assignées ou aucune mission disponible.",
+      "confirmButton": "Confirmer & Assigner tout",
+      "assignSuccess": "Itinéraires confirmés et missions assignées !",
+      "assignError": "Erreur assignation itinéraires."
+    }
+  },
+  "logisticsPartnership": {
+    "title": "Partenariat Logistique",
+    "role": {
+      "title": "Notre rôle et votre rôle",
+      "point1": "Nous fournissons la demande de ramassages et livraisons via notre plateforme.",
+      "point2": "Vous fournissez la flotte de chauffeurs (motos, voitures) pour exécuter ces missions efficacement."
+    },
+    "pricing": {
+      "title": "Tarification & Commission",
+      "subtitle": "Vous recevez un tarif fixe par livraison, basé sur des zones à Kinshasa. Ces frais vous sont payés, et vous êtes responsable de payer vos chauffeurs.",
+      "byZone": "Tarif de base par zone",
+      "zone1": "Zone 1 (Gombe, Kintambo)",
+      "zone2": "Zone 2 (Ngaliema, Bandalungwa)",
+      "zone3": "Zone 3 (Lingwala, Kalamu)",
+      "zone4": "Zone 4 (Masina, Limete)",
+      "outOfZone": "Hors zone",
+      "options": "Options supplémentaires (payées à vous)",
+      "optionExpress": "Livraison express (< 2h)",
+      "optionNight": "Livraison nuit (après 20h)",
+      "optionHeavy": "Articles lourds/encombrants (>15kg)"
+    }
+  },
+  "reviewModal": {
+    "rateOutOf5": "Noter {{star}} sur 5 étoiles",
+    "leaveReview": "Laisser un avis",
+    "shareExperience": "Partagez votre expérience avec {{name}}.",
+    "pleaseSelectRating": "Veuillez sélectionner une note.",
+    "yourComment": "Votre commentaire (optionnel)",
+    "commentPlaceholder": "Dites-nous ce que vous avez aimé ou ce qui pourrait être amélioré...",
+    "submitReview": "Soumettre avis"
+  },
+  "linkUserModal": {
+    "title": "Lier utilisateur à partenaire",
+    "description": "Lier {{name}} à un compte partenaire non géré.",
+    "availablePartners": "Partenaires disponibles",
+    "selectPartner": "Sélectionner partenaire",
+    "noUnlinkedPartners": {
+      "title": "Aucun partenaire non lié",
+      "description": "Tous les partenaires ont actuellement un compte propriétaire lié."
+    },
+    "cancel": "Annuler",
+    "confirm": "Confirmer lien"
+  },
+  "logisticsPartnerEditModal": {
+    "title": "Modifier partenaire logistique",
+    "nameLabel": "Nom partenaire"
+  },
+  "mapLocationPickerModal": {
+    "title": "Sélectionner emplacement",
+    "instructions": "Cliquez sur la carte pour placer un marqueur à l'emplacement souhaité.",
+    "confirm": "Confirmer emplacement"
+  },
+  "partnerMapView": {
+    "select": "Sélectionner"
+  },
+  "partnerCard": {
+    "altText": "Image de {{name}}, un {{type}}"
+  },
+  "serviceCard": {
+    "altText": "Image pour service : {{title}}"
+  },
+  "laundryScannerModal": {
+    "noCamera": "Aucune caméra trouvée sur cet appareil.",
+    "cameraDenied": "Accès caméra refusé. Veuillez autoriser permissions caméra.",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "title": "Scanner lessive",
+    "instructions": "Pointez votre caméra vers votre pile de linge.",
+    "analyzing": "Analyse...",
+    "error": "Échec analyse. Veuillez réessayer.",
+    "tryAgain": "Réessayer",
+    "capture": "Capturer image",
+    "cancel": "Annuler"
+  },
+  "stainAnalysisModal": {
+    "title": "Analyse de tache",
+    "analyzing": "Analyse tache...",
+    "resultTitle": "Résultat analyse",
+    "probableStain": "Type de tache probable",
+    "confidence": "Confiance",
+    "recommendation": "Recommandation",
+    "close": "Fermer",
+    "addToDryCleaning": "Ajouter nettoyage à sec",
+    "addToLaundry": "Ajouter lessive",
+    "cancel": "Annuler",
+    "tryAgain": "Réessayer"
+  },
+  "chatbot": {
+    "welcomeMessage": "Bonjour ! Je suis l'assistant Laundry Express. Comment puis-je vous aider aujourd'hui ?",
+    "inputPlaceholder": "Posez votre question ici...",
+    "suggestion1": "Quelles sont vos heures d'ouverture ?",
+    "suggestion2": "Combien ça coûte ?",
+    "suggestion3": "Suivre statut ma commande"
+  },
+  "supportCenterPage": {
+    "unauthorized": "Accès restreint",
+    "loginToAccess": "Veuillez vous connecter pour accéder au centre de support.",
+    "login": "Connexion",
+    "title": "Centre de support",
+    "botError": "Désolé, une erreur est survenue. Veuillez réessayer.",
+    "createTicket": "Besoin d'aide ? Créer un ticket support"
+  },
+  "createTicketModal": {
+    "error": "Veuillez remplir le sujet et le message.",
+    "errorUser": "Utilisateur non trouvé. Impossible de créer ticket.",
+    "title": "Créer nouveau ticket support",
+    "subject": "Sujet",
+    "subjectPlaceholder": "ex: Problème avec ma dernière commande",
+    "relatedOrder": "Commande liée (optionnel)",
+    "noOrder": "Aucune",
+    "message": "Message",
+    "messagePlaceholder": "Veuillez décrire votre problème en détail...",
+    "sendButton": "Envoyer ticket"
+  },
+  "viewTicketModal": {
+    "adminAuthor": "Admin",
+    "by": "Par : {{name}}",
+    "order": "Commande : #{{id}}",
+    "aiSummaryTitle": "Résumé IA",
+    "you": "Vous",
+    "typeResponse": "Tapez votre réponse ici...",
+    "changeStatus": "Changer statut :",
+    "send": "Envoyer"
+  },
+  "ticketStatus": {
+    "OPEN": "Ouvert",
+    "IN_PROGRESS": "En cours",
+    "CLOSED": "Fermé"
+  },
+  "ticketCategory": {
+    "BILLING": "Facturation",
+    "DAMAGED_ITEM": "Article endommagé",
+    "DELIVERY_ISSUE": "Problème livraison",
+    "SERVICE_QUALITY": "Qualité service",
+    "ACCOUNT_HELP": "Aide compte",
+    "OTHER": "Autre"
+  },
+  "chatModal": {
+    "systemMessage": "{{message}}",
+    "chat": "Chat",
+    "title": "Chat commande #{{id}}",
+    "typeMessage": "Tapez votre message...",
+    "messageInputLabel": "Saisie message",
+    "sendMessageLabel": "Envoyer message",
+    "sendHint": "Entrée pour envoyer, Maj+Entrée pour nouvelle ligne.",
+    "sendError": "Échec envoi message",
+    "noMessages": "Aucun message pour le moment. Commencez la conversation !"
+  },
+  "notificationPanel": {
+    "markAllAsRead": "Tout marquer comme lu",
+    "viewAll": "Voir tout"
+  },
+  "onboarding": {
+    "title": "Configurons votre boutique !",
+    "subtitle": "Complétez ces étapes pour commencer à recevoir des commandes.",
+    "progress": "{{completed}} sur {{total}} complété(s)",
+    "allDone": "Vous êtes prêt !",
+    "steps": {
+      "setHours": {
+        "title": "Définir heures d'ouverture",
+        "description": "Informez les clients de votre planning."
+      },
+      "addService": {
+        "title": "Ajouter au moins un service",
+        "description": "Définissez ce que vous proposez (ex: nettoyage à sec, lavage-séchage-pliage)."
+      },
+      "addVideo": {
+        "title": "Ajouter une vidéo de présentation",
+        "description": "Mettez en valeur votre entreprise pour attirer plus de clients."
+      },
+      "createPromo": {
+        "title": "Créer votre première promotion",
+        "description": "Attirez de nouveaux clients avec une offre spéciale."
+      }
+    }
+  },
+  "tooltips": {
+    "dashboard": "Voir votre tableau de bord principal et statistiques.",
+    "analytics": "Voir analytiques détaillées sur votre performance.",
+    "orders": "Gérer toutes commandes entrantes et actives.",
+    "financials": "Suivre revenus et paiements.",
+    "profile": "Modifier profil public et services.",
+    "promotions": "Créer et gérer codes promotionnels.",
+    "team": "Inviter et gérer membres équipe.",
+    "security": "Gérer 2FA et voir journaux activité.",
+    "apiIntegrations": "Se connecter à outils externes via API.",
+    "automation": "Configurer automatisations pour gagner du temps.",
+    "support": "Contacter notre équipe support.",
+    "inventory": "Gérer stock fournitures et alertes stock bas.",
+    "delivery": "Configurer modèle livraison et zones.",
+    "subscription": "Gérer plan abonnement et facturation.",
+    "invoicing": "Générer et gérer proforma et factures pour vos commandes."
+  },
+  "partnerFeatures": {
+    "promotions": "Promotions",
+    "financials": "Finances",
+    "analytics": "Analytiques",
+    "customDomain": "Domaine personnalisé",
+    "customSubdomain": "Sous-domaine personnalisé",
+    "teamManagement": "Gestion équipe",
+    "apiAccess": "Accès API",
+    "advancedAutomation": "Automatisation avancée",
+    "aiReviewAssistant": "Assistant IA avis",
+    "invoiceGenerator": "Générateur factures"
+  },
+  "bulkFeatureEditModal": {
+    "title": "Gestion Groupée Fonctionnalités",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "saveButton": "Enregistrer modifications"
+  },
+  "landingPage": {
+    "header": {
+      "brandName": "Laundry Express"
+    },
+    "mobileCta": {
+      "order": "Commander ramassage",
+      "chat": "Chat WhatsApp"
+    },
+    "exitModal": {
+      "title": "Attendez, ne partez pas !",
+      "subtitle": "Obtenez 20% de réduction sur votre première commande. Laissez-nous nous occuper de la lessive.",
+      "ctaOrder": "Commander maintenant avec 20% de réduction",
+      "ctaLater": "Peut-être plus tard"
+    },
+    "socialProof": {
+      "message": "{{name}} à {{location}} vient de passer commande !",
+      "timeAgo": "il y a {{count}} minutes"
+    },
+    "hero": {
+      "title": "Lessive & Nettoyage à Sec, Livrés à Votre Porte à Kinshasa.",
+      "subtitle": "Fatigué du jour de lessive ? Planifiez un ramassage en quelques secondes. Nous collaborons avec les meilleurs nettoyeurs pour vous apporter des vêtements frais et propres sans tracas.",
+      "ctaOrder": "Commander ramassage",
+      "ctaPartner": "Devenir partenaire",
+      "launchOffer": "Offre de lancement ! -20% sur votre première commande. Temps restant :",
+      "offerExpired": "Offre expirée !",
+      "tagline": "Fièrement Congolais 🇨🇩 | Paiements sécurisés avec :",
+      "paymentMethods": {
+        "airtel": "Airtel Money",
+        "mpesa": "M-Pesa",
+        "orange": "Orange Money"
+      },
+      "trustBadges": {
+        "rating": "4,8/5 Note clients",
+        "payment": "Paiements mobiles sécurisés",
+        "delivery": "Livraison rapide & fiable"
+      }
+    },
+    "whyUs": {
+      "title": "Pourquoi choisir Laundry Express ?",
+      "subtitle": "Nous ne sommes pas qu'un service de lessive ; nous sommes une amélioration de style de vie.",
+      "card1": {
+        "title": "Gagnez temps & effort",
+        "description": "Récupérez vos week-ends. Planifiez un ramassage en moins de 2 minutes et laissez-nous gérer le reste. Plus de temps pour ce que vous aimez."
+      },
+      "card2": {
+        "title": "Qualité garantie",
+        "description": "Nous vérifions chaque partenaire pour garantir nos normes élevées de nettoyage, soin et service client. Vos vêtements entre bonnes mains."
+      },
+      "card3": {
+        "title": "Simple & Transparent",
+        "description": "Pas de frais cachés. Suivez commande depuis téléphone, communiquez avec nettoyeur, payez sécurisé via mobile money."
+      }
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "subtitle": "Des questions ? Nous avons réponses.",
+      "q1": {
+        "question": "Comment fonctionne tarification ?",
+        "answer": "Tarification définie par nos partenaires. Lessive généralement prix kilogramme (kg), nettoyage à sec prix pièce. Vous verrez total estimé avant confirmation commande."
+      },
+      "q2": {
+        "question": "Quel délai traitement ?",
+        "answer": "Délai standard 48 heures plupart commandes. Beaucoup partenaires offrent service express 24 heures supplément."
+      },
+      "q3": {
+        "question": "Comment payer ?",
+        "answer": "Nous acceptons paiements sécurisés via tous opérateurs mobile money RDC : M-Pesa, Airtel Money, Orange Money."
+      },
+      "q4": {
+        "question": "Puis-je choisir lessiverie ?",
+        "answer": "Absolument ! Parcourez réseau lessiveries nettoyeurs à sec vérifiés qualité, choisissez celui besoins."
+      }
+    }
+  },
+  "faqPage": {
+    "title": "Questions fréquentes",
+    "subtitle": "Trouvez réponses questions courantes sur notre service.",
+    "noFaqTitle": "Aucune question moment",
+    "noFaqSubtitle": "Section FAQ mise à jour. Revenez plus tard."
+  },
+  "partnerDetailPage": {
+    "imageAlt": "Image de {{name}}",
+    "backButton": "Retour",
+    "reviews": "Avis",
+    "shareButton": "Partager",
+    "discoverVideo": "Vidéo découverte",
+    "servicesTitle": "Services",
+    "reviewsTitle": "Avis clients",
+    "noReviewsTitle": "Aucun avis pour le moment",
+    "noReviewsSubtitle": "Soyez premier noter {{name}}",
+    "practicalInfo": "Informations pratiques",
+    "openingHours": "Heures d'ouverture",
+    "today": "(Aujourd'hui)",
+    "closed": "Fermé",
+    "location": "Localisation",
+    "mapAlt": "Carte localisation {{name}}",
+    "viewPrices": "Voir prix",
+    "selectService": "Sélectionner ce service",
+    "orderWith": "Commander avec {{name}}",
+    "selectAndContinue": "Sélectionner ce partenaire & Continuer",
+    "shareTitle": "Découvrez {{name}} sur Laundry Express !",
+    "shareText": "J'ai trouvé {{name}} sur Laundry Express. Découvrez leurs services !",
+    "linkCopied": "Lien profil partenaire copié !",
+    "copyError": "Échec copie lien.",
+    "temporaryUnavailability": "Indisponibilité temporaire",
+    "fromTo": "du {{start}} au {{end}}",
+    "previousImage": "Image précédente",
+    "nextImage": "Image suivante",
+    "goToImage": "Aller image {{index}}",
+    "shareAriaLabel": "Partager ce partenaire",
+    "videoPlaceholderAlt": "Vidéo présentation {{name}}",
+    "videoComingSoon": {
+      "title": "Vidéo présentation bientôt disponible",
+      "subtitle": "Revenez bientôt visite virtuelle établissement."
+    },
+    "priceList": "Liste prix"
+  },
+  "inventoryManagement": {
+    "title": "Gestion Inventaire",
+    "description": "Suivez vos fournitures pour être toujours prêt nouvelles commandes.",
+    "saveChanges": "Enregistrer modifications",
+    "addItem": "Ajouter article",
+    "itemName": "Nom article",
+    "currentStock": "Stock actuel",
+    "lowStockThreshold": "Seuil stock bas",
+    "units": {
+      "pcs": "Pièces",
+      "units": "Unités",
+      "liters": "Litres",
+      "kg": "Kilogrammes"
+    },
+    "stockLabel": "Stock : {{current}}/{{threshold}} {{unit}}",
+    "confirmDelete": "Êtes-vous sûr vouloir supprimer cet article ?",
+    "saveSuccess": "Inventaire mis à jour succès.",
+    "saveError": "Échec mise à jour inventaire.",
+    "lowStockAlertTitle": "Alerte stock bas ! ({{count}})",
+    "manageInventory": "Gérer inventaire"
+  },
+  "deliverySettings": {
+    "title": "Paramètres Livraison",
+    "description": "Choisissez comment gérer livraisons commandes.",
+    "deliveryModel": "Modèle livraison",
+    "platform": {
+      "title": "Logistique plateforme",
+      "description": "Utiliser réseau chauffeurs Laundry Express tous ramassages livraisons. Simple efficace."
+    },
+    "self": {
+      "title": "Auto-livraison",
+      "description": "Gérer livraisons utilisant chauffeurs internes service tiers géré."
+    },
+    "zones": {
+      "title": "Zones Livraison & Frais",
+      "description": "Définir communes servies fixer frais chacun. Devise compte partenaire ({{currency}}).",
+      "feeLabel": "Frais livraison"
+    },
+    "saveSuccess": "Paramètres livraison enregistrés succès.",
+    "saveError": "Échec enregistrement paramètres livraison."
+  },
+  "refundRequestModal": {
+    "title": "Demander remboursement",
+    "forOrder": "Pour commande #{{id}}",
+    "commentsRequired": "Veuillez fournir commentaires expliquant problème.",
+    "reasonLabel": "Raison demande",
+    "commentsLabel": "Veuillez décrire problème",
+    "commentsPlaceholder": "ex: 'Ma chemise rendue nouvelle tache col...'",
+    "note": "Notre équipe examinera demande reviendra vers vous sous 48 heures.",
+    "submitButton": "Soumettre demande"
+  },
+  "refundManagement": {
+    "requests": "Demandes remboursement ({{count}})",
+    "forOrder": "Pour commande",
+    "requestedBy": "Demandé par : {{name}}",
+    "reject": "Rejeter",
+    "approve": "Approuver",
+    "resolutionNotes": "Notes résolution :",
+    "resolvedOn": "Résolu le {{date}}",
+    "noRequests": "Aucune demande remboursement trouvée ce filtre."
+  },
+  "resolveRefundModal": {
+    "approveTitle": "Approuver demande remboursement",
+    "rejectTitle": "Rejeter demande remboursement",
+    "notesLabel": "Notes résolution (optionnel, visible client)",
+    "notesPlaceholder": "ex: Remboursement traité mobile money...",
+    "approveButton": "Approuver remboursement",
+    "rejectButton": "Rejeter remboursement"
+  },
+  "refundStatus": {
+    "PENDING": "En attente",
+    "APPROVED": "Approuvé",
+    "REJECTED": "Rejeté"
+  },
+  "refundReasons": {
+    "ITEM_DAMAGED": "Article(s) endommagé(s)",
+    "ITEM_MISSING": "Article(s) manquant(s)",
+    "POOR_QUALITY": "Mauvaise qualité service",
+    "LATE_DELIVERY": "Livraison tardive",
+    "OTHER": "Autre"
+  },
+  "subscription": {
+    "title": "Abonnement & Facturation",
+    "subtitle": "Choisissez plan correspondant besoins entreprise.",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "save20": "Économisez 20%",
+    "mostPopular": "Plus populaire",
+    "currentPlan": "Plan actuel",
+    "upgrade": "Améliorer",
+    "downgrade": "Rétrograder",
+    "subscribeSuccess": "Abonnement plan {{planName}} réussi !",
+    "subscribeError": "Échec mise à jour abonnement.",
+    "billingHistory": {
+      "title": "Historique facturation",
+      "date": "Date",
+      "plan": "Plan",
+      "amount": "Montant",
+      "status": "Statut",
+      "paid": "Payé",
+      "failed": "Échoué",
+      "noInvoices": "Aucune facture trouvée."
+    },
+    "confirm": {
+      "title": "Confirmer abonnement {{planName}}",
+      "description": "Vous serez facturé {{amount}}$ / {{cycle}}.",
+      "confirmButton": "Confirmer & S'abonner"
+    }
+  },
+  "subscriptionManagement": {
+    "title": "Plans Abonnement",
+    "newPlan": "Nouveau plan",
+    "editPlan": "Modifier plan"
+  },
+  "invoicingPage": {
+    "title": "Facturation",
+    "description": "Générer proforma factures finales commandes terminées.",
+    "completedOrders": "Commandes terminées",
+    "noCompletedOrders": "Aucune commande terminée facturer moment.",
+    "orderId": "ID Commande",
+    "customer": "Client",
+    "date": "Date",
+    "total": "Total",
+    "status": "Statut",
+    "actions": "Actions",
+    "generateProforma": "Générer Proforma",
+    "viewProforma": "Voir Proforma",
+    "generateInvoice": "Générer Facture",
+    "viewInvoice": "Voir Facture",
+    "proformaGenerated": "Proforma généré",
+    "invoiceGenerated": "Facture générée"
+  },
+  "invoiceModal": {
+    "proformaTitle": "FACTURE PROFORMA",
+    "invoiceTitle": "FACTURE",
+    "from": "De :",
+    "billTo": "Facturer à :",
+    "orderId": "ID Commande :",
+    "orderDate": "Date commande :",
+    "proformaDate": "Date proforma :",
+    "invoiceDate": "Date facture :",
+    "item": "Article",
+    "quantity": "Quantité",
+    "unitPrice": "Prix unitaire",
+    "total": "Total",
+    "subtotal": "Sous-total",
+    "discount": "Remise",
+    "grandTotal": "Total général",
+    "thankYou": "Merci pour votre confiance !",
+    "print": "Imprimer",
+    "close": "Fermer"
+  },
+  "debug": {
+    "cameraStarting": "Démarrage caméra...",
+    "cameraActive": "Caméra active",
+    "imageCaptured": "Image capturée",
+    "aiAnalyzing": "IA analyse...",
+    "matchingArticles": "Recherche articles correspondants...",
+    "matchesFound": "{{count}} correspondances trouvées"
+  }
+}

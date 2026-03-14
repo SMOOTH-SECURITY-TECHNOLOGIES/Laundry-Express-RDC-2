@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Laundry Express RDC",
+  "description": "An on-demand laundry app for cities in the DRC, connecting customers with local laundromats for quick and easy laundry service, pickup, and delivery.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
