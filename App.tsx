@@ -221,6 +221,8 @@ const App: React.FC = () => {
           setActivePartnerId(partner.id);
         }
         setRouterPage('mini-site');
+      } else if (path === '/order/service') {
+        setRouterPage('order');
       } else if (path === '/partner-detail') {
         const partnerId = params.get('partnerId');
         if (partnerId) {
@@ -323,6 +325,8 @@ const App: React.FC = () => {
                 setActivePartnerId(partner.id);
             }
             setRouterPage('mini-site');
+        } else if (path === '/order/service') {
+            setRouterPage('order');
         } else if (path === '/partner-detail') {
             const partnerId = params.get('partnerId');
             if (partnerId) {
@@ -455,6 +459,19 @@ const App: React.FC = () => {
         <Header />
         <NotificationContainer />
         <main className="flex-grow pt-24">
+          {renderPage()}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (currentPage === 'become-partner') {
+    return (
+      <div className="min-h-screen flex flex-col font-sans bg-[#f7fbff]">
+        <Header />
+        <NotificationContainer />
+        <main className="flex-grow pt-24 animate-fade-in">
           {renderPage()}
         </main>
         <Footer />
