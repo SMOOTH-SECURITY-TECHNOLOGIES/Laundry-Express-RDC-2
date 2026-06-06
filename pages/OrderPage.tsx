@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
 import { ServiceType } from '../types';
@@ -109,6 +109,12 @@ const serviceToTypeMap: Record<string, ServiceType> = {
   cordonnerie: ServiceType.CORDONNERIE,
 };
 
+const serviceTypeToServiceMap: Record<ServiceType, string> = {
+  [ServiceType.BLANCHISSERIE]: 'lessive',
+  [ServiceType.PRESSING]: 'nettoyage',
+  [ServiceType.CORDONNERIE]: 'cordonnerie',
+};
+
 type Step = 0 | 1 | 2;
 
 const stepLabels = ['Service', 'Partenaire', 'Commande'];
@@ -123,12 +129,28 @@ const partnerGradients = [
 ];
 
 export const OrderPage: React.FC = () => {
-  const { partners, services: dataServices, setCurrentPage, updateOrderDraft, formatPrice } = useAppContext();
+  const { partners, services: dataServices, setCurrentPage, updateOrderDraft, formatPrice, orderDraft } = useAppContext();
 
   const [step, setStep] = useState<Step>(0);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [estimatorItems, setEstimatorItems] = useState<EstimatorItem[]>(estimatorItemsDefault);
+
+  useEffect(() => {
+    if (!orderDraft.partner && !orderDraft.serviceType) return;
+
+    if (orderDraft.serviceType) {
+      setSelectedService(serviceTypeToServiceMap[orderDraft.serviceType]);
+    }
+
+    if (orderDraft.partner) {
+      setSelectedPartnerId(orderDraft.partner.id);
+      setStep(orderDraft.serviceType ? 2 : 1);
+      return;
+    }
+
+    setStep(1);
+  }, [orderDraft.partner, orderDraft.serviceType]);
 
   const estimatorTotal = useMemo(() => {
     return estimatorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
