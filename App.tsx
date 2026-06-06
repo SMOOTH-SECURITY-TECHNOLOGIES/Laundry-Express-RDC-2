@@ -203,6 +203,7 @@ const App: React.FC = () => {
     const handleLocationChange = () => {
       const path = window.location.pathname;
       const pathParts = path.split('/').filter(Boolean);
+      const params = new URLSearchParams(window.location.search);
       
       if (path.startsWith('/partner/')) {
         const partnerSlug = pathParts[1];
@@ -220,6 +221,12 @@ const App: React.FC = () => {
           setActivePartnerId(partner.id);
         }
         setRouterPage('mini-site');
+      } else if (path === '/partner-detail') {
+        const partnerId = params.get('partnerId');
+        if (partnerId) {
+          setActivePartnerId(partnerId);
+        }
+        setRouterPage('partner-detail');
       } else {
         const page = (pathParts[0] as Page) || 'home';
         const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
@@ -316,6 +323,12 @@ const App: React.FC = () => {
                 setActivePartnerId(partner.id);
             }
             setRouterPage('mini-site');
+        } else if (path === '/partner-detail') {
+            const partnerId = params.get('partnerId');
+            if (partnerId) {
+                setActivePartnerId(partnerId);
+            }
+            setRouterPage('partner-detail');
         } else if (pathParts[0]) {
             const pageFromPath = pathParts[0] as Page;
             const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];

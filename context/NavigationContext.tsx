@@ -62,13 +62,13 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }, []);
 
     const navigate = useCallback((path: string) => {
-        if (window.location.pathname === path) return;
+        if (`${window.location.pathname}${window.location.search}` === path) return;
 
         try {
             window.history.pushState(null, '', path);
             window.dispatchEvent(new PopStateEvent('popstate'));
         } catch (error) {
-            const pageFromPath = path === '/' ? 'home' : path.replace('/', '') as Page;
+            const pageFromPath = path === '/' ? 'home' : path.split('?')[0].replace('/', '') as Page;
             const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications'];
             
             if (validPages.includes(pageFromPath)) {
@@ -80,12 +80,18 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }, [setRouterPage]);
 
     const setCurrentPage = useCallback((page: PageObject) => {
-        const path = page.name === 'home' ? '/' : `/${page.name}`;
-        navigate(path);
-        
         if (page.params?.partnerId) {
             setActivePartnerId(page.params.partnerId);
         }
+
+        const params = new URLSearchParams();
+        if (page.params?.partnerId) {
+            params.set('partnerId', String(page.params.partnerId));
+        }
+
+        const query = params.toString();
+        const path = page.name === 'home' ? '/' : `/${page.name}${query ? `?${query}` : ''}`;
+        navigate(path);
     }, [navigate, setActivePartnerId]);
 
     const value = useMemo(() => ({ 

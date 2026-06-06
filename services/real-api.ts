@@ -1047,7 +1047,26 @@ class ApiClient {
     return !!token?.startsWith('TOKEN-');
   }
 
+  private syncTokensFromStorage() {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const storedAccessToken = localStorage.getItem('auth_token');
+    const storedRefreshToken = localStorage.getItem('auth_refresh_token');
+
+    if (storedAccessToken !== this.accessToken) {
+      this.accessToken = storedAccessToken;
+    }
+
+    if (storedRefreshToken !== this.refreshToken) {
+      this.refreshToken = storedRefreshToken;
+    }
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    this.syncTokensFromStorage();
+
     const url = `${this.baseUrl}${endpoint}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
