@@ -165,11 +165,8 @@ const DriverTopbar: React.FC<{
   avatarUrl?: string;
   onMenuClick: () => void;
 }> = ({ driverName, avatarUrl, onMenuClick }) => (
-  <header className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b border-[#e4edf9] bg-white/95 px-4 backdrop-blur lg:pl-[292px] lg:pr-8">
+  <header className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b border-[#e4edf9] bg-white/95 px-4 backdrop-blur lg:hidden">
     <button onClick={onMenuClick} className="rounded-xl p-2 text-[#52607f] hover:bg-[#f1f7ff] lg:hidden" aria-label="Ouvrir le menu chauffeur">
-      <Icon name="bars3" className="h-6 w-6" />
-    </button>
-    <button onClick={onMenuClick} className="hidden rounded-xl p-2 text-[#52607f] hover:bg-[#f1f7ff] lg:block" aria-label="Réduire le menu">
       <Icon name="bars3" className="h-6 w-6" />
     </button>
     <div className="flex items-center gap-3 sm:gap-5">
