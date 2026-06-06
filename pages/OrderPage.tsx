@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
 import { Service, ServiceType, formatAddress } from '../types';
+import { ServiceSelectionPage } from '../components/order-marketplace/ServiceSelectionPage';
+import { OrderAddressPaymentPage } from './OrderAddressPaymentPage';
 
 interface EstimatorItem {
   id: string;
@@ -46,8 +48,8 @@ const services = [
     title: 'Lessive',
     price: '1.50$/kg',
     description: 'Lavage, sechage et pliage pour vos vetements du quotidien',
-    gradient: 'from-[#0077B6]/10 to-[#00B4D8]/10',
-    iconColor: 'text-[#0077B6]',
+    gradient: 'from-brand-blue/10 to-[#00B4D8]/10',
+    iconColor: 'text-brand-blue',
     badges: ['Lavage', 'Sechage', 'Pliage'],
   },
   {
@@ -93,7 +95,7 @@ const popularPartners = [
     rating: 4.8,
     delay: '2-3h',
     commune: 'Gombe',
-    gradient: 'from-[#0077B6] to-[#00B4D8]',
+    gradient: 'from-brand-blue to-[#00B4D8]',
   },
   {
     id: 'p2',
@@ -181,16 +183,15 @@ const serviceTypeToServiceMap: Record<ServiceType, string> = {
 type Step = 0 | 1 | 2 | 3;
 
 const stepLabels = [
-  { label: 'Service', detail: 'Nettoyage a sec' },
+  { label: 'Service', detail: 'Nettoyage à sec' },
   { label: 'Partenaire', detail: 'Prestige Pressing' },
-  { label: 'Commande', detail: 'Vos articles' },
-  { label: 'Adresse', detail: 'Ou livrer ?' },
-  { label: 'Paiement', detail: 'Paiement securise' },
-  { label: 'Confirmation', detail: 'Commande recue' },
+  { label: 'Articles', detail: 'Vos articles' },
+  { label: 'Adresse & paiement', detail: 'Règlement' },
+  { label: 'Confirmation', detail: 'Commande reçue' },
 ];
 
 const partnerGradients = [
-  'from-[#0077B6] to-[#00B4D8]',
+  'from-brand-blue to-[#00B4D8]',
   'from-purple-500 to-pink-500',
   'from-amber-500 to-orange-500',
   'from-green-500 to-emerald-500',
@@ -201,7 +202,7 @@ const partnerGradients = [
 export const OrderPage: React.FC = () => {
   const {
     partners, services: dataServices, setCurrentPage, updateOrderDraft, formatPrice, orderDraft,
-    user, addOrderToHistory, setActiveOrder, addNotification, isLoading,
+    user, addOrderToHistory, setActiveOrder, addNotification, isLoading, reviews,
   } = useAppContext();
 
   const [step, setStep] = useState<Step>(0);
@@ -211,13 +212,15 @@ export const OrderPage: React.FC = () => {
   const [pickupTime, setPickupTime] = useState('Aujourd hui, 16h-18h');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mobile_money' | 'card'>('cash');
   const [specialInstructions, setSpecialInstructions] = useState(orderDraft.clientDetails?.pickupAddress?.reference || '');
+  const [partnerFilter, setPartnerFilter] = useState<'popular' | 'nearby' | 'fast' | 'rated'>('popular');
+  const [partnerSort, setPartnerSort] = useState<'recommended' | 'rating' | 'delivery'>('recommended');
   const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>(
     serviceOptions.filter((option) => option.defaultSelected).map((option) => option.id)
   );
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
+  const [laundryWeightKg, setLaundryWeightKg] = useState(5);
 
   useEffect(() => {
-    if (step >= 2) return;
     if (!orderDraft.partner && !orderDraft.serviceType) return;
 
     if (orderDraft.serviceType) {
@@ -231,7 +234,7 @@ export const OrderPage: React.FC = () => {
     }
 
     setStep(1);
-  }, [orderDraft.partner, orderDraft.serviceType, step]);
+  }, [orderDraft.partner, orderDraft.serviceType]);
 
   const estimatorTotal = useMemo(() => {
     return estimatorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -241,11 +244,14 @@ export const OrderPage: React.FC = () => {
     return estimatorItems.filter((item) => item.quantity > 0);
   }, [estimatorItems]);
 
+  const isLaundryFlow = selectedService === 'lessive';
+
   const addOnTotal = useMemo(() => {
+    if (isLaundryFlow) return 0;
     return addOnItems
       .filter((item) => selectedAddOnIds.includes(item.id))
       .reduce((sum, item) => sum + item.price, 0);
-  }, [selectedAddOnIds]);
+  }, [isLaundryFlow, selectedAddOnIds]);
 
   const optionsTotal = useMemo(() => {
     return serviceOptions
@@ -254,8 +260,6 @@ export const OrderPage: React.FC = () => {
   }, [selectedOptionIds]);
 
   const deliveryFee = selectedOptionIds.includes('pickup') ? 2 : 0;
-  const orderTotal = estimatorTotal + addOnTotal + optionsTotal + deliveryFee;
-  const articleCount = selectedEstimatorItems.reduce((sum, item) => sum + item.quantity, 0) + selectedAddOnIds.length;
   const addressLine = user?.pickupAddress ? formatAddress(user.pickupAddress) : 'Adresse a completer dans votre profil';
 
   const filteredPartners = useMemo(() => {
@@ -271,13 +275,93 @@ export const OrderPage: React.FC = () => {
       }
       // Map service types to compatible partner types
       const compatibleTypes: Record<string, string[]> = {
-        'BLANCHISSERIE': ['LAVANDIER', 'PRESSING'],
+        'BLANCHISSERIE': ['LAVANDIER'],
         'PRESSING': ['PRESSING'],
         'CORDONNERIE': ['PRESSING', 'LAVANDIER'],
       };
       return (compatibleTypes[serviceType] || []).includes(p.type as string);
     });
   }, [partners, dataServices, selectedService]);
+
+  const visiblePartners = useMemo(() => {
+    const userCommune = user?.pickupAddress?.commune?.toLowerCase();
+    const partnerScore = (partner: typeof filteredPartners[number], index: number) => {
+      const address = partner.address?.toLowerCase() || '';
+      const proximity = userCommune && address.includes(userCommune) ? 20 : 0;
+      const featured = partner.isFeatured ? 25 : 0;
+      const rating = Number(partner.rating || 0) * 10;
+      const reviews = Math.min(Number(partner.reviewCount || 0), 200) / 10;
+      const speed = 10 - (index % 3) * 2;
+      return featured + rating + reviews + proximity + speed;
+    };
+
+    const sorted = [...filteredPartners].sort((a, b) => {
+      if (partnerSort === 'rating' || partnerFilter === 'rated') {
+        return Number(b.rating || 0) - Number(a.rating || 0) || Number(b.reviewCount || 0) - Number(a.reviewCount || 0);
+      }
+      if (partnerSort === 'delivery' || partnerFilter === 'fast') {
+        return filteredPartners.indexOf(a) - filteredPartners.indexOf(b);
+      }
+      if (partnerFilter === 'nearby') {
+        const aNearby = userCommune && a.address?.toLowerCase().includes(userCommune) ? 1 : 0;
+        const bNearby = userCommune && b.address?.toLowerCase().includes(userCommune) ? 1 : 0;
+        return bNearby - aNearby || Number(b.rating || 0) - Number(a.rating || 0);
+      }
+      return partnerScore(b, filteredPartners.indexOf(b)) - partnerScore(a, filteredPartners.indexOf(a));
+    });
+
+    return sorted;
+  }, [filteredPartners, partnerFilter, partnerSort, user?.pickupAddress?.commune]);
+
+  const partnerServiceAccent = selectedService === 'nettoyage'
+    ? {
+      gradient: 'from-violet-500 to-fuchsia-500',
+      soft: 'bg-violet-50 text-violet-700',
+      border: 'border-violet-500',
+      button: 'bg-violet-600 hover:bg-violet-700',
+      ring: 'ring-violet-600',
+      icon: 'sparkles' as const,
+      image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=640&q=80',
+    }
+    : selectedService === 'cordonnerie'
+      ? {
+        gradient: 'from-orange-500 to-amber-500',
+        soft: 'bg-orange-50 text-orange-700',
+        border: 'border-orange-500',
+        button: 'bg-orange-600 hover:bg-orange-700',
+        ring: 'ring-orange-600',
+        icon: 'shoppingBag' as const,
+        image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=640&q=80',
+      }
+      : {
+        gradient: 'from-brand-blue to-[#00B4D8]',
+        soft: 'bg-blue-50 text-brand-blue',
+        border: 'border-brand-blue',
+        button: 'bg-brand-blue hover:bg-brand-blue-700',
+        ring: 'ring-brand-blue',
+        icon: 'wash' as const,
+        image: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=640&q=80',
+      };
+
+  const marketplaceServices = useMemo<Service[]>(() => {
+    return services.map((localService) => {
+      const serviceType = serviceToTypeMap[localService.id];
+      const backendService = (dataServices || []).find((service) => service.type === serviceType);
+      const fallbackPrice = Number(localService.price.match(/[\d.]+/)?.[0] || 0);
+
+      return {
+        id: localService.id,
+        type: serviceType,
+        title: backendService?.title || localService.title,
+        description: backendService?.description || localService.description,
+        iconName: backendService?.iconName || localService.icon,
+        imageUrl: backendService?.imageUrl || '',
+        priceModel: backendService?.priceModel || (localService.id === 'lessive' ? 'per_kg' : 'per_item'),
+        price: Number(backendService?.price || fallbackPrice),
+        articleCategories: backendService?.articleCategories,
+      };
+    });
+  }, [dataServices]);
 
   const selectedPartner = useMemo(() => {
     if (!selectedPartnerId) return null;
@@ -308,8 +392,8 @@ export const OrderPage: React.FC = () => {
       description: catalogService?.description || localService?.description || '',
       iconName: catalogService?.iconName || localService?.icon || 'shirt',
       imageUrl: catalogService?.imageUrl || '',
-      priceModel: 'per_item',
-      price: catalogService?.price || estimatorItemsDefault[0].price,
+      priceModel: catalogService?.priceModel || (selectedService === 'lessive' ? 'per_kg' : 'per_item'),
+      price: catalogService?.price || (selectedService === 'lessive' ? 1.5 : estimatorItemsDefault[0].price),
       articleCategories: catalogService?.articleCategories,
     };
   }, [dataServices, selectedPartner, selectedService]);
@@ -322,9 +406,28 @@ export const OrderPage: React.FC = () => {
     return estimatorTotal;
   }, [selectedService, estimatorTotal]);
 
+  const laundryPricePerKg = selectedServiceDefinition?.price || 1.5;
+  const laundrySubtotal = isLaundryFlow ? laundryWeightKg * laundryPricePerKg : 0;
+  const orderSubtotal = isLaundryFlow ? laundrySubtotal : estimatorTotal + addOnTotal;
+  const orderTotal = orderSubtotal + optionsTotal + deliveryFee;
+  const articleCount = isLaundryFlow
+    ? laundryWeightKg
+    : selectedEstimatorItems.reduce((sum, item) => sum + item.quantity, 0) + selectedAddOnIds.length;
+
   useEffect(() => {
     if (!selectedServiceDefinition) {
       updateOrderDraft({ serviceItems: [], totalPrice: 0 });
+      return;
+    }
+
+    if (selectedServiceDefinition.priceModel === 'per_kg') {
+      updateOrderDraft({
+        serviceItems: laundryWeightKg > 0 ? [{
+          service: selectedServiceDefinition,
+          weight: laundryWeightKg,
+        }] : [],
+        totalPrice: orderTotal,
+      });
       return;
     }
 
@@ -361,7 +464,7 @@ export const OrderPage: React.FC = () => {
       }] : [],
       totalPrice: orderTotal,
     });
-  }, [estimatorItems, orderTotal, selectedAddOnIds, selectedServiceDefinition, updateOrderDraft]);
+  }, [estimatorItems, laundryWeightKg, orderTotal, selectedAddOnIds, selectedServiceDefinition, updateOrderDraft]);
 
   /* ─── Handlers ─── */
 
@@ -382,7 +485,7 @@ export const OrderPage: React.FC = () => {
   };
 
   const handleContinue = () => {
-    if (estimatorTotal === 0) return;
+    if (orderSubtotal === 0) return;
     setStep(3);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -497,7 +600,7 @@ export const OrderPage: React.FC = () => {
             {index > 0 && (
               <div
                 className={`hidden sm:block h-0.5 w-10 lg:w-20 mt-4 transition-colors duration-300 ${
-                  isCompleted ? 'bg-[#0077B6]' : 'bg-gray-200 dark:bg-slate-700'
+                  isCompleted ? 'bg-brand-blue' : 'bg-gray-200 dark:bg-slate-700'
                 }`}
               />
             )}
@@ -505,9 +608,9 @@ export const OrderPage: React.FC = () => {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${
                   isCompleted
-                    ? 'bg-[#0077B6] text-white'
+                    ? 'bg-brand-blue text-white'
                     : isCurrent
-                    ? 'bg-[#0077B6] text-white ring-4 ring-[#0077B6]/20'
+                    ? 'bg-brand-blue text-white ring-4 ring-brand-blue/20'
                     : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400'
                 }`}
               >
@@ -521,7 +624,7 @@ export const OrderPage: React.FC = () => {
                 <p
                   className={`text-sm font-semibold leading-tight ${
                     isCurrent
-                      ? 'text-[#0077B6]'
+                      ? 'text-brand-blue'
                       : isCompleted
                       ? 'text-gray-900 dark:text-white'
                       : 'text-gray-500 dark:text-gray-400'
@@ -539,13 +642,30 @@ export const OrderPage: React.FC = () => {
   );
   };
 
+  const renderMarketplaceStep0 = () => (
+    <ServiceSelectionPage
+      services={marketplaceServices}
+      partners={partners || []}
+      reviews={reviews || []}
+      estimateItems={estimatorItems}
+      estimateTotal={estimatorTotal}
+      isLoading={isLoading}
+      formatPrice={formatPrice}
+      onSelectService={handleSelectService}
+      onIncrementEstimate={increment}
+      onDecrementEstimate={decrement}
+      onContinueEstimate={() => handleSelectService(selectedService || 'lessive')}
+      onChoosePartner={handleSelectPartner}
+    />
+  );
+
   /* ─── Step 0: Service Selection ─── */
   const renderStep0 = () => (
     <div className="space-y-16">
       {/* Hero */}
       <section className="text-center space-y-6">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
-          De quel service avez-vous <span className="text-[#0077B6]">besoin</span> ?
+          De quel service avez-vous <span className="text-brand-blue">besoin</span> ?
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           Choisissez le service qui correspond a vos besoins et laissez-nous nous occuper du reste.
@@ -556,7 +676,7 @@ export const OrderPage: React.FC = () => {
               key={badge.label}
               className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-full px-4 py-2 shadow-sm border border-gray-100 dark:border-slate-700"
             >
-              <Icon name={badge.icon} className="w-4 h-4 text-[#0077B6]" />
+              <Icon name={badge.icon} className="w-4 h-4 text-brand-blue" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{badge.label}</span>
             </div>
           ))}
@@ -575,7 +695,7 @@ export const OrderPage: React.FC = () => {
               onClick={() => handleSelectService(service.id)}
               className={`relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
                 selectedService === service.id
-                  ? 'ring-4 ring-[#0077B6] shadow-xl'
+                  ? 'ring-4 ring-brand-blue shadow-xl'
                   : 'shadow-card hover:shadow-lg'
               } bg-white dark:bg-slate-800`}
             >
@@ -587,7 +707,7 @@ export const OrderPage: React.FC = () => {
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">{service.title}</h3>
-                  <span className="text-lg font-bold text-[#0077B6]">{service.price}</span>
+                  <span className="text-lg font-bold text-brand-blue">{service.price}</span>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">{service.description}</p>
                 <div className="flex flex-wrap gap-2">
@@ -606,7 +726,7 @@ export const OrderPage: React.FC = () => {
                     e.stopPropagation();
                     handleSelectService(service.id);
                   }}
-                  className="w-full mt-4 bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+                  className="w-full mt-4 bg-brand-blue hover:bg-brand-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
                 >
                   Choisir ce service
                   <Icon name="arrowRight" className="w-4 h-4" />
@@ -625,8 +745,8 @@ export const OrderPage: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
           {trustBenefits.map((benefit) => (
             <div key={benefit.title} className="flex flex-col items-center text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-[#0077B6]/10 flex items-center justify-center">
-                <Icon name={benefit.icon} className="w-7 h-7 text-[#0077B6]" />
+              <div className="w-14 h-14 rounded-full bg-brand-blue/10 flex items-center justify-center">
+                <Icon name={benefit.icon} className="w-7 h-7 text-brand-blue" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{benefit.title}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">{benefit.description}</p>
@@ -666,7 +786,7 @@ export const OrderPage: React.FC = () => {
                 </span>
                 <button
                   onClick={() => increment(item.id)}
-                  className="w-9 h-9 rounded-full bg-[#0077B6] flex items-center justify-center text-white font-bold hover:bg-[#005f8f] transition-colors"
+                  className="w-9 h-9 rounded-full bg-brand-blue flex items-center justify-center text-white font-bold hover:bg-brand-blue-700 transition-colors"
                 >
                   <Icon name="plus" className="w-4 h-4" />
                 </button>
@@ -675,14 +795,14 @@ export const OrderPage: React.FC = () => {
           ))}
         </div>
         <div className="mt-8 max-w-lg mx-auto">
-          <div className="flex items-center justify-between p-4 bg-[#0077B6]/10 rounded-xl mb-4">
+          <div className="flex items-center justify-between p-4 bg-brand-blue/10 rounded-xl mb-4">
             <span className="font-semibold text-gray-900 dark:text-white">Total estime</span>
-            <span className="text-2xl font-bold text-[#0077B6]">{estimatorTotal.toFixed(2)}$</span>
+            <span className="text-2xl font-bold text-brand-blue">{estimatorTotal.toFixed(2)}$</span>
           </div>
           <button
             onClick={() => handleSelectService(selectedService || 'lessive')}
             disabled={estimatorTotal === 0}
-            className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-brand-blue hover:bg-brand-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continuer la commande
             <Icon name="arrowRight" className="w-4 h-4" />
@@ -740,7 +860,7 @@ export const OrderPage: React.FC = () => {
               className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card space-y-4"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0077B6] to-[#00B4D8] flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-[#00B4D8] flex items-center justify-center text-white font-bold text-lg">
                   {testimonial.name.charAt(0)}
                 </div>
                 <div>
@@ -767,8 +887,8 @@ export const OrderPage: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {reassuranceCards.map((card) => (
             <div key={card.title} className="flex flex-col items-center text-center space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-[#0077B6]/10 flex items-center justify-center">
-                <Icon name={card.icon} className="w-8 h-8 text-[#0077B6]" />
+              <div className="w-16 h-16 rounded-2xl bg-brand-blue/10 flex items-center justify-center">
+                <Icon name={card.icon} className="w-8 h-8 text-brand-blue" />
               </div>
               <h3 className="font-bold text-gray-900 dark:text-white">{card.title}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">{card.description}</p>
@@ -781,97 +901,189 @@ export const OrderPage: React.FC = () => {
 
   /* ─── Step 1: Partner Selection ─── */
   const renderStep1 = () => (
-    <div className="space-y-8">
-      {/* Back button */}
+    <div className="space-y-8 max-w-7xl mx-auto">
       <button
         onClick={handleBack}
-        className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#0077B6] dark:hover:text-[#00B4D8] transition-colors font-medium"
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-brand-blue dark:hover:text-[#00B4D8] transition-colors font-medium"
       >
         <Icon name="arrowLeft" className="w-5 h-5" />
         Retour aux services
       </button>
 
-      {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-          Choisissez votre <span className="text-[#0077B6]">partenaire</span>
+          Choisissez votre <span className="text-brand-blue">partenaire</span>
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          {filteredPartners.length > 0
-            ? `${filteredPartners.length} partenaire${filteredPartners.length > 1 ? 's' : ''} disponible${filteredPartners.length > 1 ? 's' : ''} pour le service : ${selectedServiceLabel}`
+          {visiblePartners.length > 0
+            ? `${visiblePartners.length} partenaire${visiblePartners.length > 1 ? 's' : ''} disponible${visiblePartners.length > 1 ? 's' : ''} pour le service : ${isLaundryFlow ? 'Lavage & pliage au kilo' : selectedServiceLabel}`
             : 'Aucun partenaire disponible pour ce service dans votre zone.'}
         </p>
       </div>
 
-      {/* Partner Grid */}
-      {filteredPartners.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPartners.map((partner, index) => (
-            <div
-              key={partner.id}
-              className={`relative bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover:shadow-lg transition-all duration-300 ${
-                selectedPartnerId === partner.id
-                  ? 'ring-4 ring-[#0077B6] shadow-xl'
-                  : ''
-              }`}
+      {visiblePartners.length > 0 && (
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+            {[
+              { id: 'popular', label: 'Populaire', icon: 'star' },
+              { id: 'nearby', label: 'Proximite', icon: 'mapPin' },
+              { id: 'fast', label: 'Delai de livraison', icon: 'clock' },
+              { id: 'rated', label: 'Mieux notes', icon: 'star' },
+            ].map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                onClick={() => setPartnerFilter(filter.id as typeof partnerFilter)}
+                className={`h-11 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition focus:outline-none focus:ring-2 focus:ring-brand-blue/30 ${
+                  partnerFilter === filter.id
+                    ? `${partnerServiceAccent.border} text-brand-blue bg-white`
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-brand-blue/50'
+                }`}
+              >
+                <Icon name={filter.icon as any} className="w-4 h-4" />
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
+          <label className="h-11 rounded-lg border border-gray-200 bg-white px-4 flex items-center gap-3 text-sm text-gray-500">
+            Trier par
+            <select
+              value={partnerSort}
+              onChange={(event) => setPartnerSort(event.target.value as typeof partnerSort)}
+              className="bg-transparent text-gray-900 font-bold focus:outline-none"
+              aria-label="Trier les partenaires"
             >
-              {/* Gradient Header */}
-              <div className={`h-36 bg-gradient-to-r ${partnerGradients[index % partnerGradients.length]} flex items-center justify-center relative`}>
-                <div className="w-20 h-20 rounded-full bg-white/80 dark:bg-slate-700/80 flex items-center justify-center shadow-lg">
-                  <Icon name="users" className="w-10 h-10 text-gray-700 dark:text-gray-200" />
-                </div>
-                {partner.isFeatured && (
-                  <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 rounded-full px-3 py-1 flex items-center gap-1 shadow">
-                    <Icon name="star" className="w-3.5 h-3.5 text-amber-500" />
-                    <span className="text-xs font-bold text-gray-900 dark:text-white">Populaire</span>
-                  </div>
-                )}
-              </div>
+              <option value="recommended">Recommande</option>
+              <option value="rating">Note</option>
+              <option value="delivery">Livraison</option>
+            </select>
+          </label>
+        </div>
+      )}
 
-              {/* Content */}
-              <div className="p-5 space-y-4">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{partner.name}</h3>
+      {visiblePartners.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {visiblePartners.map((partner, index) => {
+            const imageUrl = partner.imageUrls?.find(Boolean) || partnerServiceAccent.image;
+            const deliveryHour = index === 0 ? '14h00' : index === 1 ? '15h00' : '16h00';
+            const onTimeRate = Math.max(92, 98 - index * 3);
+            const responseMinutes = Math.max(2, 3 + index * 2);
+            const neighborhood = partner.address?.split(',')[1]?.trim() || partner.address?.split(',')[0]?.trim() || 'Kinshasa';
 
-                {/* Meta Row */}
-                <div className="flex items-center flex-wrap gap-3 text-sm text-gray-600 dark:text-gray-300">
-                  <div className="flex items-center gap-1">
-                    <Icon name="star" className="w-4 h-4 text-yellow-400" />
-                    <span className="font-semibold">{partner.rating}</span>
-                    <span className="text-gray-400">({partner.reviewCount || 0})</span>
+            return (
+              <article
+                key={partner.id}
+                className={`relative overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-xl transition-all duration-300 ${
+                  selectedPartnerId === partner.id ? `ring-4 ${partnerServiceAccent.ring}/20` : ''
+                }`}
+              >
+                <div className={`relative h-40 bg-gradient-to-r ${partnerServiceAccent.gradient}`}>
+                  <img src={imageUrl} alt="" className="absolute inset-0 h-full w-1/2 object-cover opacity-90" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-transparent to-black/5" />
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white shadow-lg flex flex-col items-center justify-center text-center">
+                    <Icon name={partnerServiceAccent.icon} className="w-8 h-8 text-gray-900" />
+                    <span className="text-[10px] font-black text-gray-900 uppercase mt-1 leading-tight">{partner.name.split(' ').slice(0, 2).join(' ')}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Icon name="clock" className="w-4 h-4 text-gray-400" />
-                    <span>2-4h</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Icon name="mapPin" className="w-4 h-4 text-gray-400" />
-                    <span>{partner.address?.split(',')[1]?.trim() || partner.address}</span>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{partner.address}</p>
-
-                {/* View Profile + Choose Buttons */}
-                <div className="flex gap-2 mt-2">
+                  {(partner.isFeatured || index === 0) && (
+                    <div className="absolute top-3 right-16 rounded-full bg-white/95 px-3 py-1 flex items-center gap-1 shadow-sm">
+                      <Icon name="star" className="w-3.5 h-3.5 text-gray-800" />
+                      <span className="text-xs font-bold text-gray-900">Populaire</span>
+                    </div>
+                  )}
                   <button
-                    onClick={() => setCurrentPage({ name: 'partner-detail', params: { partnerId: partner.id } } as any)}
-                    className="flex-1 border border-[#0077B6] text-[#0077B6] hover:bg-[#0077B6]/5 font-semibold py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
+                    type="button"
+                    className="absolute top-4 right-4 text-white hover:scale-110 transition"
+                    aria-label={`Ajouter ${partner.name} aux favoris`}
                   >
-                    <Icon name="magnifying-glass-plus" className="w-4 h-4" />
-                    Voir profil
-                  </button>
-                  <button
-                    onClick={() => handleSelectPartner(partner.id)}
-                    className="flex-1 bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
-                  >
-                    Choisir
-                    <Icon name="arrowRight" className="w-4 h-4" />
+                    <Icon name="heart" className="w-7 h-7" />
                   </button>
                 </div>
-              </div>
-            </div>
-          ))}
+
+                <div className="p-6 space-y-5">
+                  <div>
+                    {isLaundryFlow && (
+                      <span className={`inline-flex items-center gap-1 rounded-full ${partnerServiceAccent.soft} text-xs font-bold px-3 py-1 mb-3`}>
+                        <Icon name="wash" className="w-3.5 h-3.5" />
+                        Specialiste lavage au kilo
+                      </span>
+                    )}
+                    <h3 className="text-2xl font-extrabold text-gray-900">{partner.name}</h3>
+                    <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-gray-600">
+                      <span className="inline-flex items-center gap-1">
+                        <Icon name="star" className="w-4 h-4 text-yellow-400" />
+                        <strong className="text-gray-900">{Number(partner.rating || 0).toFixed(1)}</strong>
+                        <span>({partner.reviewCount || 0} avis)</span>
+                      </span>
+                      <span className="text-gray-300">|</span>
+                      <span className="inline-flex items-center gap-1"><Icon name="clock" className="w-4 h-4 text-gray-400" />2-4h</span>
+                      <span className="text-gray-300">|</span>
+                      <span className="inline-flex items-center gap-1"><Icon name="mapPin" className="w-4 h-4 text-gray-400" />{neighborhood}</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-3 line-clamp-1">{partner.address}</p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-lg border border-gray-100 bg-white px-3 py-2 text-sm font-semibold text-gray-700">
+                      <Icon name="check" className="w-4 h-4 text-emerald-600" />
+                      {onTimeRate}% livraisons a temps
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-lg border border-gray-100 bg-white px-3 py-2 text-sm font-semibold text-gray-700">
+                      <Icon name="fire" className="w-4 h-4 text-brand-blue" />
+                      Repond en &lt; {responseMinutes} min
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-lg border border-gray-100 bg-white px-3 py-2 text-sm font-semibold text-gray-700">
+                      <Icon name="shield-check" className="w-4 h-4 text-brand-blue" />
+                      Partenaire verifie
+                    </span>
+                  </div>
+
+                  <div className={`rounded-xl ${partnerServiceAccent.soft} p-4 flex items-center justify-between gap-4`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center">
+                        <Icon name="truck" className="w-6 h-6 text-brand-blue" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">Ramassage aujourd'hui</p>
+                        <p className="text-sm text-gray-600">Disponible entre 16h00 - 18h00</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Livraison estimee</p>
+                      <p className="font-extrabold text-brand-blue">Demain avant {deliveryHour}</p>
+                    </div>
+                  </div>
+
+                  {isLaundryFlow && (
+                    <div className="rounded-xl bg-brand-blue/10 p-3 flex items-center justify-between text-sm">
+                      <span className="font-semibold text-gray-700">Tarif lavage & pliage</span>
+                      <span className="font-extrabold text-brand-blue">{formatPrice(laundryPricePerKg)} / kg</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        updateOrderDraft({ partner, serviceType: selectedService ? serviceToTypeMap[selectedService] : undefined });
+                        setCurrentPage({ name: 'partner-detail', params: { partnerId: partner.id } } as any);
+                      }}
+                      className={`border ${partnerServiceAccent.border} text-brand-blue hover:bg-brand-blue/5 font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30`}
+                    >
+                      <Icon name="magnifying-glass-plus" className="w-4 h-4" />
+                      Voir le profil
+                    </button>
+                    <button
+                      onClick={() => handleSelectPartner(partner.id)}
+                      className={`${partnerServiceAccent.button} text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-lg shadow-brand-blue/20 focus:outline-none focus:ring-2 focus:ring-brand-blue/30`}
+                    >
+                      Choisir ce partenaire
+                      <Icon name="arrowRight" className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : (
         /* Empty State */
@@ -885,12 +1097,50 @@ export const OrderPage: React.FC = () => {
           </p>
           <button
             onClick={handleBack}
-            className="mt-4 bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 inline-flex items-center gap-2"
+            className="mt-4 bg-brand-blue hover:bg-brand-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 inline-flex items-center gap-2"
           >
             <Icon name="arrowLeft" className="w-4 h-4" />
             Voir les autres services
           </button>
         </div>
+      )}
+
+      {visiblePartners.length > 0 && (
+        <>
+          <section className="rounded-2xl bg-white border border-gray-100 shadow-card p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {[
+                ['shield-check', 'Paiement securise', 'Transactions 100% protegees'],
+                ['archive-box', 'Articles assures', 'Vos articles sont couverts'],
+                ['badge-check', 'Partenaires verifies', 'Selectionnes avec soin'],
+                ['lifebuoy', 'Support 24/7', 'Assistance a tout moment'],
+                ['heart', 'Satisfait ou rembourse', 'Garantie satisfaction'],
+              ].map(([icon, title, description]) => (
+                <div key={title} className="flex items-center gap-3 lg:border-r last:border-r-0 border-gray-100">
+                  <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0">
+                    <Icon name={icon as any} className="w-6 h-6 text-brand-blue" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">{title}</p>
+                    <p className="text-xs text-gray-500">{description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5 text-sm text-gray-500">
+            <span>Besoin d'aide pour choisir ?</span>
+            <a href="tel:+243812345678" className="inline-flex items-center gap-2 text-brand-blue font-bold hover:underline">
+              <Icon name="phone" className="w-4 h-4" />
+              +243 81 234 5678
+            </a>
+            <button type="button" onClick={() => setCurrentPage({ name: 'support' })} className="inline-flex items-center gap-2 text-brand-blue font-bold hover:underline">
+              <Icon name="chatBubble" className="w-4 h-4" />
+              Chattez avec nous
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -900,7 +1150,7 @@ export const OrderPage: React.FC = () => {
     <div className="space-y-8">
       <button
         onClick={handleBack}
-        className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#0077B6] dark:hover:text-[#00B4D8] transition-colors font-medium"
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-brand-blue dark:hover:text-[#00B4D8] transition-colors font-medium"
       >
         <Icon name="arrowLeft" className="w-5 h-5" />
         Retour aux partenaires
@@ -908,7 +1158,7 @@ export const OrderPage: React.FC = () => {
 
       <div className="max-w-3xl">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-          Preparez votre <span className="text-[#0077B6]">commande</span>
+          Preparez votre <span className="text-brand-blue">commande</span>
         </h1>
         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mt-2">
           Ajoutez les articles, choisissez vos options et verifiez le recapitulatif avant de continuer.
@@ -920,89 +1170,157 @@ export const OrderPage: React.FC = () => {
           <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">1</span>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Vos articles</h2>
+                <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">1</span>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {isLaundryFlow ? 'Poids estime du linge' : 'Vos articles'}
+                </h2>
               </div>
-              <button
-                type="button"
-                onClick={addNextArticle}
-                className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-[#0077B6] hover:text-[#005f8f]"
-              >
-                <Icon name="plus" className="w-4 h-4" />
-                Ajouter un autre article
-              </button>
-            </div>
-
-            <div className="hidden md:grid grid-cols-[minmax(0,1.5fr)_120px_130px_120px_40px] gap-4 px-2 pb-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
-              <span>Article</span>
-              <span className="text-right">Prix unitaire</span>
-              <span className="text-center">Quantite</span>
-              <span className="text-right">Sous-total</span>
-              <span />
-            </div>
-
-            <div className="space-y-3">
-              {estimatorItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-1 md:grid-cols-[minmax(0,1.5fr)_120px_130px_120px_40px] gap-4 items-center p-3 rounded-xl border border-gray-100 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-700/40"
+              {!isLaundryFlow && (
+                <button
+                  type="button"
+                  onClick={addNextArticle}
+                  className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-blue-700"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-16 h-16 rounded-lg object-cover bg-gray-100 dark:bg-slate-700 shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 dark:text-white truncate">{item.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
+                  <Icon name="plus" className="w-4 h-4" />
+                  Ajouter un autre article
+                </button>
+              )}
+            </div>
+
+            {isLaundryFlow ? (
+              <div className="rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50/70 dark:bg-slate-700/40 p-5">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-brand-blue uppercase">Facturation au kilo</p>
+                    <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">Lavage & pliage</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                      Indiquez le poids estime de votre sac. Le partenaire pese le linge a la reception et ajuste le total si necessaire.
+                    </p>
+                    <div className="grid grid-cols-3 gap-3 mt-5">
+                      {[3, 5, 8].map((weight) => (
+                        <button
+                          key={weight}
+                          type="button"
+                          onClick={() => setLaundryWeightKg(weight)}
+                          className={`rounded-xl border px-3 py-3 text-sm font-bold transition ${
+                            laundryWeightKg === weight
+                              ? 'border-brand-blue bg-white text-brand-blue shadow-sm'
+                              : 'border-blue-100 bg-white/70 text-gray-700 hover:border-brand-blue/50'
+                          }`}
+                        >
+                          {weight} kg
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  <p className="md:text-right font-semibold text-gray-900 dark:text-white">{formatPrice(item.price)}</p>
-                  <div className="flex items-center md:justify-center gap-3">
-                    <button
-                      onClick={() => decrement(item.id)}
-                      disabled={item.quantity === 0}
-                      className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                      aria-label={`Retirer ${item.name}`}
-                    >
-                      <Icon name="minus" className="w-4 h-4" />
-                    </button>
-                    <span className="w-8 text-center font-bold text-gray-900 dark:text-white">{item.quantity}</span>
-                    <button
-                      onClick={() => increment(item.id)}
-                      className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:border-[#0077B6] hover:text-[#0077B6] transition-colors"
-                      aria-label={`Ajouter ${item.name}`}
-                    >
-                      <Icon name="plus" className="w-4 h-4" />
-                    </button>
+                  <div className="lg:w-72 rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 p-5">
+                    <div className="flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setLaundryWeightKg((value) => Math.max(1, value - 1))}
+                        className="w-10 h-10 rounded-full border border-gray-200 dark:border-slate-600 flex items-center justify-center text-brand-blue hover:border-brand-blue"
+                        aria-label="Diminuer le poids"
+                      >
+                        <Icon name="minus" className="w-4 h-4" />
+                      </button>
+                      <div className="text-center">
+                        <p className="text-4xl font-extrabold text-gray-900 dark:text-white">{laundryWeightKg}</p>
+                        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">kg estimes</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLaundryWeightKg((value) => value + 1)}
+                        className="w-10 h-10 rounded-full border border-gray-200 dark:border-slate-600 flex items-center justify-center text-brand-blue hover:border-brand-blue"
+                        aria-label="Augmenter le poids"
+                      >
+                        <Icon name="plus" className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">Prix / kg</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{formatPrice(laundryPricePerKg)}</span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="font-bold text-gray-900 dark:text-white">Sous-total linge</span>
+                      <span className="text-2xl font-extrabold text-brand-blue">{formatPrice(laundrySubtotal)}</span>
+                    </div>
                   </div>
-                  <p className="md:text-right font-bold text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)}</p>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    disabled={item.quantity === 0}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed"
-                    aria-label={`Supprimer ${item.name}`}
-                  >
-                    <Icon name="xmark" className="w-4 h-4" />
-                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <>
+                <div className="hidden md:grid grid-cols-[minmax(0,1.5fr)_120px_130px_120px_40px] gap-4 px-2 pb-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                  <span>Article</span>
+                  <span className="text-right">Prix unitaire</span>
+                  <span className="text-center">Quantite</span>
+                  <span className="text-right">Sous-total</span>
+                  <span />
+                </div>
+
+                <div className="space-y-3">
+                  {estimatorItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-1 md:grid-cols-[minmax(0,1.5fr)_120px_130px_120px_40px] gap-4 items-center p-3 rounded-xl border border-gray-100 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-700/40"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-16 h-16 rounded-lg object-cover bg-gray-100 dark:bg-slate-700 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-gray-900 dark:text-white truncate">{item.name}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
+                        </div>
+                      </div>
+                      <p className="md:text-right font-semibold text-gray-900 dark:text-white">{formatPrice(item.price)}</p>
+                      <div className="flex items-center md:justify-center gap-3">
+                        <button
+                          onClick={() => decrement(item.id)}
+                          disabled={item.quantity === 0}
+                          className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          aria-label={`Retirer ${item.name}`}
+                        >
+                          <Icon name="minus" className="w-4 h-4" />
+                        </button>
+                        <span className="w-8 text-center font-bold text-gray-900 dark:text-white">{item.quantity}</span>
+                        <button
+                          onClick={() => increment(item.id)}
+                          className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:border-brand-blue hover:text-brand-blue transition-colors"
+                          aria-label={`Ajouter ${item.name}`}
+                        >
+                          <Icon name="plus" className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="md:text-right font-bold text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)}</p>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        disabled={item.quantity === 0}
+                        className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label={`Supprimer ${item.name}`}
+                      >
+                        <Icon name="xmark" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
           {selectedPartner && (
             <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">2</span>
+                <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">2</span>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Partenaire selectionne</h2>
               </div>
               <div className="flex flex-col lg:flex-row gap-5">
                 {partnerImageUrl ? (
                   <img src={partnerImageUrl} alt={selectedPartner.name} className="w-full lg:w-56 h-36 rounded-xl object-cover bg-gray-100" />
                 ) : (
-                  <div className="w-full lg:w-56 h-36 rounded-xl bg-gradient-to-br from-[#0077B6] to-[#00B4D8] flex items-center justify-center">
+                  <div className="w-full lg:w-56 h-36 rounded-xl bg-gradient-to-br from-brand-blue to-[#00B4D8] flex items-center justify-center">
                     <Icon name="building" className="w-12 h-12 text-white" />
                   </div>
                 )}
@@ -1026,17 +1344,17 @@ export const OrderPage: React.FC = () => {
                       ['shield-check', 'Qualite garantie', 'Controle qualite'],
                     ].map(([icon, title, desc]) => (
                       <div key={title} className="rounded-xl border border-gray-100 dark:border-slate-700 p-3">
-                        <Icon name={icon as any} className="w-4 h-4 text-[#0077B6] mb-1" />
+                        <Icon name={icon as any} className="w-4 h-4 text-brand-blue mb-1" />
                         <p className="text-xs font-bold text-gray-900 dark:text-white">{title}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{desc}</p>
                       </div>
                     ))}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
-                    <button onClick={openPartnerProfile} className="border border-gray-200 dark:border-slate-700 hover:border-[#0077B6] text-[#0077B6] font-semibold py-3 px-4 rounded-xl transition-colors">
+                    <button onClick={openPartnerProfile} className="border border-gray-200 dark:border-slate-700 hover:border-brand-blue text-brand-blue font-semibold py-3 px-4 rounded-xl transition-colors">
                       Voir le profil
                     </button>
-                    <button onClick={handleBack} className="bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-3 px-4 rounded-xl transition-colors">
+                    <button onClick={handleBack} className="bg-brand-blue hover:bg-brand-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors">
                       Changer de partenaire
                     </button>
                   </div>
@@ -1047,7 +1365,7 @@ export const OrderPage: React.FC = () => {
 
           <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
             <div className="flex items-center gap-3 mb-6">
-              <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">3</span>
+              <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">3</span>
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">Delais estimes</h2>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1058,11 +1376,11 @@ export const OrderPage: React.FC = () => {
                 { icon: 'truck', title: 'Livraison', main: 'Demain avant', sub: '18h00' },
               ].map((stage) => (
                 <div key={stage.title} className="text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#0077B6]/10 flex items-center justify-center mx-auto mb-3">
-                    <Icon name={stage.icon as any} className="w-7 h-7 text-[#0077B6]" />
+                  <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 flex items-center justify-center mx-auto mb-3">
+                    <Icon name={stage.icon as any} className="w-7 h-7 text-brand-blue" />
                   </div>
                   <p className="font-bold text-gray-900 dark:text-white">{stage.title}</p>
-                  <p className="text-sm text-[#0077B6] font-semibold">{stage.main}</p>
+                  <p className="text-sm text-brand-blue font-semibold">{stage.main}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{stage.sub}</p>
                 </div>
               ))}
@@ -1072,7 +1390,7 @@ export const OrderPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-5">
-                <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">4</span>
+                <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">4</span>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Options de service</h2>
               </div>
               <div className="space-y-3">
@@ -1084,11 +1402,11 @@ export const OrderPage: React.FC = () => {
                       type="button"
                       onClick={() => toggleServiceOption(option.id)}
                       className={`w-full text-left rounded-xl border p-3 transition ${
-                        checked ? 'border-[#0077B6] bg-[#0077B6]/5' : 'border-gray-200 dark:border-slate-700 hover:border-[#0077B6]/50'
+                        checked ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200 dark:border-slate-700 hover:border-brand-blue/50'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <span className={`mt-1 w-5 h-5 rounded border flex items-center justify-center ${checked ? 'bg-[#0077B6] border-[#0077B6] text-white' : 'border-gray-300 dark:border-slate-600'}`}>
+                        <span className={`mt-1 w-5 h-5 rounded border flex items-center justify-center ${checked ? 'bg-brand-blue border-brand-blue text-white' : 'border-gray-300 dark:border-slate-600'}`}>
                           {checked && <Icon name="check" className="w-3.5 h-3.5" />}
                         </span>
                         <span className="flex-1">
@@ -1108,10 +1426,10 @@ export const OrderPage: React.FC = () => {
             <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
               <div className="flex items-center justify-between gap-3 mb-5">
                 <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">5</span>
+                  <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">5</span>
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">Adresse de ramassage</h2>
                 </div>
-                <button type="button" onClick={() => setCurrentPage({ name: 'profile' })} className="text-sm font-semibold text-[#0077B6] inline-flex items-center gap-1">
+                <button type="button" onClick={() => setCurrentPage({ name: 'profile' })} className="text-sm font-semibold text-brand-blue inline-flex items-center gap-1">
                   <Icon name="pencil" className="w-4 h-4" />
                   Modifier
                 </button>
@@ -1131,7 +1449,7 @@ export const OrderPage: React.FC = () => {
                 </div>
                 <div className="mt-4 rounded-xl bg-gray-100 dark:bg-slate-700 h-28 flex items-center justify-center">
                   <div className="text-center text-gray-500 dark:text-gray-300">
-                    <Icon name="mapPin" className="w-7 h-7 text-[#0077B6] mx-auto mb-1" />
+                    <Icon name="mapPin" className="w-7 h-7 text-brand-blue mx-auto mb-1" />
                     <span className="text-xs">Zone de ramassage confirmee</span>
                   </div>
                 </div>
@@ -1139,46 +1457,48 @@ export const OrderPage: React.FC = () => {
             </section>
           </div>
 
-          <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">6</span>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Vous pourriez aussi avoir besoin de</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              {addOnItems.map((item) => {
-                const checked = selectedAddOnIds.includes(item.id);
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => toggleAddOn(item.id)}
-                    className={`text-left rounded-xl border p-3 transition ${
-                      checked ? 'border-[#0077B6] bg-[#0077B6]/5' : 'border-gray-200 dark:border-slate-700 hover:border-[#0077B6]/50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className={`mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 ${checked ? 'bg-[#0077B6] border-[#0077B6] text-white' : 'border-gray-300 dark:border-slate-600'}`}>
-                        {checked && <Icon name="check" className="w-3.5 h-3.5" />}
-                      </span>
-                      <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shrink-0" />
-                      <span className="min-w-0">
-                        <span className="block font-bold text-sm text-gray-900 dark:text-white">{item.name}</span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">{item.description}</span>
-                        <span className="block text-sm font-bold text-[#0077B6] mt-2">+ {formatPrice(item.price)}</span>
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          {!isLaundryFlow && (
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">6</span>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Vous pourriez aussi avoir besoin de</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                {addOnItems.map((item) => {
+                  const checked = selectedAddOnIds.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => toggleAddOn(item.id)}
+                      className={`text-left rounded-xl border p-3 transition ${
+                        checked ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200 dark:border-slate-700 hover:border-brand-blue/50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 ${checked ? 'bg-brand-blue border-brand-blue text-white' : 'border-gray-300 dark:border-slate-600'}`}>
+                          {checked && <Icon name="check" className="w-3.5 h-3.5" />}
+                        </span>
+                        <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shrink-0" />
+                        <span className="min-w-0">
+                          <span className="block font-bold text-sm text-gray-900 dark:text-white">{item.name}</span>
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">{item.description}</span>
+                          <span className="block text-sm font-bold text-brand-blue mt-2">+ {formatPrice(item.price)}</span>
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
 
         <aside className="space-y-6 xl:sticky xl:top-24">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#0077B6]/10 flex items-center justify-center">
-                <Icon name="shoppingBag" className="w-5 h-5 text-[#0077B6]" />
+              <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center">
+                <Icon name="shoppingBag" className="w-5 h-5 text-brand-blue" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recapitulatif de commande</h2>
             </div>
@@ -1190,8 +1510,8 @@ export const OrderPage: React.FC = () => {
                   {partnerImageUrl ? (
                     <img src={partnerImageUrl} alt={selectedPartner.name} className="w-24 h-20 rounded-lg object-cover bg-gray-100" />
                   ) : (
-                    <div className="w-24 h-20 rounded-lg bg-[#0077B6]/10 flex items-center justify-center">
-                      <Icon name="building" className="w-8 h-8 text-[#0077B6]" />
+                    <div className="w-24 h-20 rounded-lg bg-brand-blue/10 flex items-center justify-center">
+                      <Icon name="building" className="w-8 h-8 text-brand-blue" />
                     </div>
                   )}
                   <div className="min-w-0">
@@ -1205,26 +1525,39 @@ export const OrderPage: React.FC = () => {
             )}
 
             <div className="space-y-3 border-b border-gray-100 dark:border-slate-700 pb-5">
-              <p className="text-sm font-bold text-gray-900 dark:text-white">Articles ({articleCount})</p>
-              {selectedEstimatorItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">{item.quantity}x {item.name}</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.quantity * item.price)}</span>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">
+                {isLaundryFlow ? `Linge estime (${laundryWeightKg} kg)` : `Articles (${articleCount})`}
+              </p>
+              {isLaundryFlow ? (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">
+                    {laundryWeightKg} kg x {formatPrice(laundryPricePerKg)}
+                  </span>
+                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(laundrySubtotal)}</span>
                 </div>
-              ))}
-              {addOnItems.filter((item) => selectedAddOnIds.includes(item.id)).map((item) => (
-                <div key={item.id} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">1x {item.name}</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.price)}</span>
-                </div>
-              ))}
-              {articleCount === 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">Ajoutez au moins un article pour continuer.</p>
+              ) : (
+                <>
+                  {selectedEstimatorItems.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">{item.quantity}x {item.name}</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.quantity * item.price)}</span>
+                    </div>
+                  ))}
+                  {addOnItems.filter((item) => selectedAddOnIds.includes(item.id)).map((item) => (
+                    <div key={item.id} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">1x {item.name}</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.price)}</span>
+                    </div>
+                  ))}
+                  {articleCount === 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Ajoutez au moins un article pour continuer.</p>
+                  )}
+                </>
               )}
             </div>
 
             <div className="space-y-3 py-5 border-b border-gray-100 dark:border-slate-700 text-sm">
-              <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Sous-total</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(estimatorTotal + addOnTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Sous-total</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(orderSubtotal)}</span></div>
               <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Livraison</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(deliveryFee)}</span></div>
               <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Options</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(optionsTotal)}</span></div>
               <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Taxes</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(0)}</span></div>
@@ -1236,7 +1569,7 @@ export const OrderPage: React.FC = () => {
                   <p className="font-bold text-gray-900 dark:text-white">Total estime</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Prix variable selon le poids / nombre d'articles</p>
                 </div>
-                <p className="text-3xl font-bold text-[#0077B6]">{formatPrice(orderTotal)}</p>
+                <p className="text-3xl font-bold text-brand-blue">{formatPrice(orderTotal)}</p>
               </div>
             </div>
 
@@ -1247,16 +1580,16 @@ export const OrderPage: React.FC = () => {
               </div>
               <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm flex justify-between">
                 <span className="text-blue-900 font-semibold">Delai estime</span>
-                <span className="text-[#0077B6] font-bold">24h</span>
+                <span className="text-brand-blue font-bold">24h</span>
               </div>
             </div>
 
             <button
               onClick={handleContinue}
-              disabled={estimatorTotal === 0}
-              className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 shadow-lg shadow-[#0077B6]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              disabled={orderSubtotal === 0}
+              className="w-full bg-brand-blue hover:bg-brand-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 shadow-lg shadow-brand-blue/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              <span>{estimatorTotal > 0 ? 'Continuer' : 'Ajoutez un article'}</span>
+              <span>{orderSubtotal > 0 ? 'Continuer' : isLaundryFlow ? 'Indiquez le poids' : 'Ajoutez un article'}</span>
               <span className="text-sm font-normal opacity-90">Adresse et paiement</span>
               <Icon name="arrowRight" className="w-5 h-5" />
             </button>
@@ -1265,8 +1598,8 @@ export const OrderPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 space-y-5">
             {reassuranceCards.map((card) => (
               <div key={card.title} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#0077B6]/10 flex items-center justify-center shrink-0">
-                  <Icon name={card.icon} className="w-5 h-5 text-[#0077B6]" />
+                <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0">
+                  <Icon name={card.icon} className="w-5 h-5 text-brand-blue" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 dark:text-white">{card.title}</p>
@@ -1282,125 +1615,20 @@ export const OrderPage: React.FC = () => {
 
   /* ─── Step 3: Address + Payment ─── */
   const renderStep3 = () => (
-    <div className="space-y-8 max-w-2xl mx-auto">
-      <button
-        onClick={handleBack}
-        className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#0077B6] dark:hover:text-[#00B4D8] transition-colors font-medium"
-      >
-        <Icon name="arrowLeft" className="w-5 h-5" />
-        Retour a la commande
-      </button>
-
-      <div className="text-center space-y-3">
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-          Adresse et <span className="text-[#0077B6]">paiement</span>
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
-          Confirmez le ramassage et choisissez comment regler la commande.
-        </p>
-      </div>
-
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-slate-700">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#0077B6]/10 flex items-center justify-center shrink-0">
-              <Icon name="mapPin" className="w-6 h-6 text-[#0077B6]" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Adresse de ramassage</p>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white mt-1">{user?.name || 'Client'}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                {user?.pickupAddress ? formatAddress(user.pickupAddress) : 'Aucune adresse enregistree'}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user?.phone}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div>
-            <label htmlFor="pickupTime" className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-              Creneau de ramassage
-            </label>
-            <select
-              id="pickupTime"
-              value={pickupTime}
-              onChange={(event) => setPickupTime(event.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0077B6]/30 focus:border-[#0077B6]"
-            >
-              <option>Aujourd hui, 16h-18h</option>
-              <option>Aujourd hui, 18h-20h</option>
-              <option>Demain, 08h-10h</option>
-              <option>Demain, 10h-12h</option>
-              <option>Demain, 14h-16h</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="specialInstructions" className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-              Instructions pour le chauffeur
-            </label>
-            <textarea
-              id="specialInstructions"
-              value={specialInstructions}
-              onChange={(event) => setSpecialInstructions(event.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0077B6]/30 focus:border-[#0077B6]"
-              placeholder="Ex: appeler en arrivant, portail noir, 2e etage..."
-            />
-          </div>
-
-          <div>
-            <p className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Mode de paiement</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { id: 'cash', label: 'Cash', desc: 'A la livraison', icon: 'currencyDollar' },
-                { id: 'mobile_money', label: 'Mobile Money', desc: 'M-Pesa / Airtel', icon: 'phone' },
-                { id: 'card', label: 'Carte', desc: 'Visa / Mastercard', icon: 'credit-card' },
-              ].map((method) => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => setPaymentMethod(method.id as 'cash' | 'mobile_money' | 'card')}
-                  className={`p-4 rounded-xl border text-left transition ${
-                    paymentMethod === method.id
-                      ? 'border-[#0077B6] bg-[#0077B6]/5 ring-2 ring-[#0077B6]/20'
-                      : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-[#0077B6]/50'
-                  }`}
-                >
-                  <Icon name={method.icon as any} className="w-5 h-5 text-[#0077B6] mb-2" />
-                  <p className="font-bold text-gray-900 dark:text-white">{method.label}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{method.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-100 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Total a confirmer</span>
-            <span className="text-3xl font-bold text-[#0077B6]">{formatPrice(orderTotal)}</span>
-          </div>
-          <button
-            onClick={handleConfirmOrder}
-            disabled={isLoading || !user || estimatorTotal === 0}
-            className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#0077B6]/25 hover:shadow-xl hover:shadow-[#0077B6]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-          >
-            <Icon name="check" className="w-5 h-5" />
-            {isLoading ? 'Creation en cours...' : 'Confirmer la commande'}
-          </button>
-        </div>
-      </div>
-    </div>
+    <OrderAddressPaymentPage
+      onBack={() => {
+        setStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }}
+    />
   );
 
   /* ─── Main Render ─── */
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderStepIndicator()}
-        {step === 0 && renderStep0()}
+        {step !== 3 && renderStepIndicator()}
+        {step === 0 && renderMarketplaceStep0()}
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}

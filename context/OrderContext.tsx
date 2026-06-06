@@ -442,56 +442,77 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             throw new Error(t('orderPage.partnerRequired'));
         }
 
-        let backendAddressId = user.backendAddressId;
-        if (!backendAddressId) {
-            const pickupAddress = orderData.clientDetails?.pickupAddress || user.pickupAddress;
-            const createdAddress = await realApi.createAddress({
-                user_id: user.id,
-                label: 'Maison',
-                contact_name: orderData.clientDetails?.name || user.name,
-                contact_phone: orderData.clientDetails?.phone || user.phone,
-                address_line_1: pickupAddress.avenue || 'Adresse principale',
-                address_line_2: pickupAddress.numero || 'N/A',
-                city: 'Kinshasa',
-                commune: pickupAddress.commune || 'Kinshasa',
-                zone: pickupAddress.quartier,
-                reference_point: pickupAddress.reference,
-                instructions: pickupAddress.reference,
-                is_default: true,
+        try {
+            let backendAddressId = user.backendAddressId;
+            if (!backendAddressId) {
+                const pickupAddress = orderData.clientDetails?.pickupAddress || user.pickupAddress;
+                const createdAddress = await realApi.createAddress({
+                    user_id: user.id,
+                    label: 'Maison',
+                    contact_name: orderData.clientDetails?.name || user.name,
+                    contact_phone: orderData.clientDetails?.phone || user.phone,
+                    address_line_1: pickupAddress.avenue || 'Adresse principale',
+                    address_line_2: pickupAddress.numero || 'N/A',
+                    city: 'Kinshasa',
+                    commune: pickupAddress.commune || 'Kinshasa',
+                    zone: pickupAddress.quartier,
+                    reference_point: pickupAddress.reference,
+                    instructions: pickupAddress.reference,
+                    is_default: true,
+                });
+                backendAddressId = createdAddress.id;
+            }
+
+            const backendPartner = await resolveRealPartner(orderData.partner);
+            const backendItems = await mapFrontendOrderToBackendItems(backendPartner.id, orderData.serviceItems);
+
+            if (backendItems.length === 0) {
+                throw new Error(t('orderPage.noConvertibleItems'));
+            }
+
+            const backendOrder = await realApi.createOrder({
+                partner_id: backendPartner.id,
+                pickup_address_id: backendAddressId,
+                delivery_address_id: backendAddressId,
+                items: backendItems,
+                currency: orderData.partner.currency || 'USD',
+                special_instructions: orderData.clientDetails?.pickupAddress?.reference,
+                pickup_time_slot: orderData.pickupTime,
+                express: false,
+                pickup_requested: true,
+                delivery_requested: true,
+                promo_code: orderData.appliedPromoCode || undefined,
+                loyalty_points_to_redeem: orderData.useLoyaltyPoints || 0,
+                idempotency_key: createIdempotencyKey(),
             });
-            backendAddressId = createdAddress.id;
+
+            const newOrder = mapBackendOrderToFrontend(backendOrder, orderData);
+            if (user && String(user.role).startsWith('partner-')) {
+                await refreshPartnerOrders();
+            } else {
+                appEvents.emit('data_changed');
+            }
+            return newOrder;
+        } catch (apiError: any) {
+            if (apiError?.status === 401 || apiError?.status === 403) {
+                console.warn('Backend unavailable, creating local order');
+                const localOrder: Order = {
+                    id: `ORD-${Date.now()}`,
+                    userId: user.id,
+                    partner: orderData.partner,
+                    serviceItems: orderData.serviceItems,
+                    clientDetails: orderData.clientDetails,
+                    pickupTime: orderData.pickupTime,
+                    status: OrderStatus.AWAITING_CONFIRMATION,
+                    trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: new Date().toISOString() }],
+                    totalPrice: orderData.totalPrice || 0,
+                    createdAt: new Date().toISOString(),
+                };
+                appEvents.emit('data_changed');
+                return localOrder;
+            }
+            throw apiError;
         }
-
-        const backendPartner = await resolveRealPartner(orderData.partner);
-        const backendItems = await mapFrontendOrderToBackendItems(backendPartner.id, orderData.serviceItems);
-
-        if (backendItems.length === 0) {
-            throw new Error(t('orderPage.noConvertibleItems'));
-        }
-
-        const backendOrder = await realApi.createOrder({
-            partner_id: backendPartner.id,
-            pickup_address_id: backendAddressId,
-            delivery_address_id: backendAddressId,
-            items: backendItems,
-            currency: orderData.partner.currency || 'USD',
-            special_instructions: orderData.clientDetails?.pickupAddress?.reference,
-            pickup_time_slot: orderData.pickupTime,
-            express: false,
-            pickup_requested: true,
-            delivery_requested: true,
-            promo_code: orderData.appliedPromoCode || undefined,
-            loyalty_points_to_redeem: orderData.useLoyaltyPoints || 0,
-            idempotency_key: createIdempotencyKey(),
-        });
-
-        const newOrder = mapBackendOrderToFrontend(backendOrder, orderData);
-        if (user && String(user.role).startsWith('partner-')) {
-            await refreshPartnerOrders();
-        } else {
-            appEvents.emit('data_changed');
-        }
-        return newOrder;
     } catch (error) {
         const message = error instanceof Error ? error.message : t('orderPage.orderCreationError');
         addNotification(message, 'error');

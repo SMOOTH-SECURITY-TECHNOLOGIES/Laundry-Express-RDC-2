@@ -32,7 +32,7 @@ const todayKey = dayOrder[new Date().getDay() === 0 ? 6 : new Date().getDay() - 
 const SectionTitle: React.FC<{ icon?: React.ReactNode; title: string; action?: React.ReactNode }> = ({ icon, title, action }) => (
   <div className="flex items-center justify-between mb-4">
     <div className="flex items-center gap-2.5">
-      {icon && <div className="p-1.5 bg-blue-50 rounded-lg text-[#0077B6]">{icon}</div>}
+      {icon && <div className="p-1.5 bg-blue-50 rounded-lg text-brand-blue">{icon}</div>}
       <h2 className="text-lg font-bold text-[#03045E]">{title}</h2>
     </div>
     {action}
@@ -41,7 +41,7 @@ const SectionTitle: React.FC<{ icon?: React.ReactNode; title: string; action?: R
 
 const TrustBadge: React.FC<{ icon: React.ReactNode; label: string; sub: string }> = ({ icon, label, sub }) => (
   <div className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm min-w-[180px] flex-1">
-    <div className="p-2 bg-blue-50 rounded-lg text-[#0077B6] shrink-0">{icon}</div>
+    <div className="p-2 bg-blue-50 rounded-lg text-brand-blue shrink-0">{icon}</div>
     <div>
       <p className="text-sm font-bold text-[#0F172A]">{label}</p>
       <p className="text-xs text-slate-500">{sub}</p>
@@ -51,13 +51,19 @@ const TrustBadge: React.FC<{ icon: React.ReactNode; label: string; sub: string }
 
 const StatCard: React.FC<{ icon: React.ReactNode; value: string; label: string }> = ({ icon, value, label }) => (
   <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
-    <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]">{icon}</div>
+    <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue">{icon}</div>
     <div>
       <p className="text-xl font-extrabold text-[#0F172A]">{value}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>
   </div>
 );
+
+const servicePriceLabel = (service: Service, currency = 'USD') => {
+  const price = Number(service.price || 0);
+  const suffix = service.priceModel === 'per_kg' ? '/kg' : '/article';
+  return currency === 'CDF' ? `${price.toFixed(0)} CDF${suffix}` : `${price.toFixed(2)} $${suffix}`;
+};
 
 const ReviewCard: React.FC<{ review: Review; getUserById: (id: string) => any }> = ({ review, getUserById }) => {
   const user = getUserById(review.userId);
@@ -104,7 +110,7 @@ const MapEmbed: React.FC<{ lat?: number; lng?: number }> = ({ lat, lng }) => {
         style={{ filter: 'grayscale(0.2) contrast(1.05)' }}
       />
       <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm border border-white/50">
-        <Icon name="mapPin" className="w-3 h-3 text-[#0077B6] inline mr-1" />
+        <Icon name="mapPin" className="w-3 h-3 text-brand-blue inline mr-1" />
         Zone couverte
       </div>
     </div>
@@ -116,7 +122,7 @@ export const PartnerDetailPage: React.FC = () => {
   const {
     activePartnerId, partners, services, getReviewsForPartner,
     setCurrentPage, updateOrderDraft, resetOrderDraft,
-    addNotification, previousPage, user, getUserById,
+    addNotification, previousPage, user, getUserById, orderDraft,
   } = useAppContext();
   const _t = useT();
 
@@ -131,6 +137,8 @@ export const PartnerDetailPage: React.FC = () => {
   const partner = partners.find(p => p.id === activePartnerId);
   const reviews = activePartnerId ? getReviewsForPartner(activePartnerId) : [];
   const isInOrderFlow = previousPage === 'order';
+  const requestedServiceType = orderDraft.serviceType || (partner?.type === PartnerType.LAVANDIER ? ServiceType.BLANCHISSERIE : ServiceType.PRESSING);
+  const isLaundryProfile = requestedServiceType === ServiceType.BLANCHISSERIE;
 
   /* Fetch real services */
   useEffect(() => {
@@ -217,13 +225,30 @@ export const PartnerDetailPage: React.FC = () => {
     return pressingServices.filter(s => s.articleCategories?.some(c => c.name === pressingCategoryFilter));
   }, [pressingServices, pressingCategoryFilter]);
 
+  const activeServices = useMemo(
+    () => partnerServicesList.filter(service => service.type === requestedServiceType),
+    [partnerServicesList, requestedServiceType]
+  );
+
+  const otherServices = useMemo(
+    () => partnerServicesList.filter(service => service.type !== requestedServiceType),
+    [partnerServicesList, requestedServiceType]
+  );
+
+  const highlightedService = activeServices[0];
+  const startingPriceLabel = highlightedService
+    ? servicePriceLabel(highlightedService, partner?.currency)
+    : isLaundryProfile
+      ? 'A partir de 1.50 $/kg'
+      : 'A partir de 2.00 $/article';
+
   if (!partner) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <Icon name="search" className="w-12 h-12 mx-auto text-slate-300 mb-3" />
           <p className="text-slate-600 font-medium">{_t('partnerDetailPage.notFound', 'Partenaire introuvable')}</p>
-          <button onClick={() => setCurrentPage({ name: previousPage || 'home' })} className="mt-3 px-4 py-2 bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f]">
+          <button onClick={() => setCurrentPage({ name: previousPage || 'home' })} className="mt-3 px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700">
             {_t('partnerDetailPage.backToHome', "Retour a l'accueil")}
           </button>
         </div>
@@ -291,7 +316,7 @@ export const PartnerDetailPage: React.FC = () => {
 
   const handleStartGeneralOrder = () => {
     resetOrderDraft();
-    updateOrderDraft({ partner, serviceType: partner.type === PartnerType.LAVANDIER ? ServiceType.BLANCHISSERIE : ServiceType.PRESSING });
+    updateOrderDraft({ partner, serviceType: requestedServiceType });
     setCurrentPage({ name: 'order' });
   };
 
@@ -319,7 +344,7 @@ export const PartnerDetailPage: React.FC = () => {
       {/* ─── Breadcrumb ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <nav className="flex items-center gap-2 text-sm text-slate-500">
-          <button onClick={() => setCurrentPage({ name: 'home' })} className="hover:text-[#0077B6] transition">Accueil</button>
+          <button onClick={() => setCurrentPage({ name: 'home' })} className="hover:text-brand-blue transition">Accueil</button>
           <span className="text-slate-300">/</span>
           <span>Pressings</span>
           <span className="text-slate-300">/</span>
@@ -361,7 +386,7 @@ export const PartnerDetailPage: React.FC = () => {
               <span className="text-sm text-slate-500">({partner.reviewCount} avis)</span>
             </div>
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <span className="px-2.5 py-1 bg-blue-50 text-[#0077B6] text-xs font-bold rounded-lg flex items-center gap-1">
+              <span className="px-2.5 py-1 bg-blue-50 text-brand-blue text-xs font-bold rounded-lg flex items-center gap-1">
                 <Icon name="badge-check" className="w-3.5 h-3.5" />Partenaire verifie
               </span>
               <span className="px-2.5 py-1 bg-yellow-50 text-yellow-700 text-xs font-bold rounded-lg flex items-center gap-1">
@@ -377,16 +402,35 @@ export const PartnerDetailPage: React.FC = () => {
                 <Icon name="shoppingBag" className="w-3.5 h-3.5" />{publicStats.totalOrders.toLocaleString('fr-FR')} commandes
               </span>
             </div>
+            {isInOrderFlow && (
+              <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-brand-blue shrink-0">
+                    <Icon name={isLaundryProfile ? 'wash' : 'sparkles'} className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-extrabold text-[#0F172A]">
+                      {isLaundryProfile ? 'Profil Lavage & Pliage au kilo' : 'Profil nettoyage specialise'}
+                    </p>
+                    <p className="text-sm text-slate-600 mt-1">
+                      {isLaundryProfile
+                        ? 'Ce partenaire sera utilise pour une commande de linge pesee en kg, avec ramassage et pliage.'
+                        : 'Ce partenaire sera utilise pour une commande par article avec traitement textile specialise.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="space-y-2 text-sm text-slate-600 mb-6">
               <div className="flex items-center gap-2"><Icon name="mapPin" className="w-4 h-4 text-slate-400" />{partner.address}</div>
               <div className="flex items-center gap-2"><Icon name="truck" className="w-4 h-4 text-slate-400" />Livraison en {publicStats.avgDeliveryHours}h</div>
               <div className="flex items-center gap-2"><Icon name="calendar" className="w-4 h-4 text-slate-400" />Membre depuis {publicStats.memberSince}</div>
               <div className="flex items-center gap-2"><Icon name="clock" className="w-4 h-4 text-slate-400" />Repond generalement en {publicStats.responseTime}</div>
             </div>
-            <button onClick={handleStartGeneralOrder} className="w-full py-3.5 bg-[#0077B6] text-white font-bold rounded-xl hover:bg-[#005f8f] transition shadow-lg shadow-[#0077B6]/20 mb-3">
+            <button onClick={handleStartGeneralOrder} className="w-full py-3.5 bg-brand-blue text-white font-bold rounded-xl hover:bg-brand-blue-700 transition shadow-lg shadow-brand-blue/20 mb-3">
               Commander maintenant
             </button>
-            <button onClick={handleShare} className="w-full py-3 bg-white text-[#0F172A] font-bold rounded-xl border-2 border-slate-200 hover:border-[#0077B6] hover:text-[#0077B6] transition flex items-center justify-center gap-2">
+            <button onClick={handleShare} className="w-full py-3 bg-white text-[#0F172A] font-bold rounded-xl border-2 border-slate-200 hover:border-brand-blue hover:text-brand-blue transition flex items-center justify-center gap-2">
               <Icon name="phone" className="w-4 h-4" />Contacter sur WhatsApp
             </button>
           </div>
@@ -413,7 +457,7 @@ export const PartnerDetailPage: React.FC = () => {
 
             {/* Gallery — Airbnb style */}
             <section>
-              <SectionTitle icon={<Icon name="photo" className="w-5 h-5" />} title="Galerie" action={<button className="text-sm font-bold text-[#0077B6] hover:underline">Voir toutes les photos</button>} />
+              <SectionTitle icon={<Icon name="photo" className="w-5 h-5" />} title="Galerie" action={<button className="text-sm font-bold text-brand-blue hover:underline">Voir toutes les photos</button>} />
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 h-[320px]">
                 <div className="col-span-2 md:col-span-2 row-span-2 relative rounded-xl overflow-hidden group">
                   <img src={galleryImages[0].src} alt={galleryImages[0].label} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
@@ -448,25 +492,58 @@ export const PartnerDetailPage: React.FC = () => {
             {/* Pricing + Delivery Times */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <section className="bg-white rounded-2xl border border-slate-100 p-6">
-                <SectionTitle icon={<Icon name="currencyDollar" className="w-5 h-5" />} title="Tarifs et services" />
+                <SectionTitle
+                  icon={<Icon name={isLaundryProfile ? 'wash' : 'currencyDollar'} className="w-5 h-5" />}
+                  title={isLaundryProfile ? 'Lavage & pliage au kilo' : 'Service selectionne'}
+                  action={servicesLoading ? <span className="text-xs text-slate-400">Chargement...</span> : null}
+                />
                 <div className="space-y-3">
-                  {priceList.map(p => (
-                    <div key={p.item} className="py-2 border-b border-slate-50 last:border-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2"><Icon name="shirt" className="w-4 h-4 text-slate-400" /><span className="text-sm font-bold text-[#0F172A]">{p.item}</span></div>
-                        <span className="text-sm font-bold text-[#0077B6]">{p.price} $</span>
-                      </div>
-                      <div className="flex items-center gap-3 ml-6">
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Lavage</span>
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Repassage</span>
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Pliage</span>
+                  {activeServices.length > 0 ? activeServices.map(service => (
+                    <div key={service.id} className="rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-brand-blue shrink-0">
+                            <Icon name={service.priceModel === 'per_kg' ? 'wash' : 'shirt'} className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-extrabold text-[#0F172A]">{service.title}</p>
+                            <p className="text-xs text-slate-600 mt-1">{service.description || (service.priceModel === 'per_kg' ? 'Facturation selon le poids pese a la reception.' : 'Facturation par article.')}</p>
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              <span className="text-[10px] text-slate-600 bg-white rounded-full px-2 py-1 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Service actif</span>
+                              <span className="text-[10px] text-slate-600 bg-white rounded-full px-2 py-1 flex items-center gap-1"><Icon name="truck" className="w-3 h-3 text-brand-blue" />Ramassage disponible</span>
+                              {service.priceModel === 'per_kg' && <span className="text-[10px] text-slate-600 bg-white rounded-full px-2 py-1 flex items-center gap-1"><Icon name="shoppingBag" className="w-3 h-3 text-brand-blue" />Pesee au kg</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-sm font-extrabold text-brand-blue whitespace-nowrap">{servicePriceLabel(service, partner.currency)}</span>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+                      <p className="text-sm font-extrabold text-[#0F172A]">{isLaundryProfile ? 'Lavage & pliage' : 'Nettoyage textile'}</p>
+                      <p className="text-xs text-slate-600 mt-1">Ce partenaire est compatible avec le service demande. Les tarifs precis seront confirmes lors de la commande.</p>
+                    </div>
+                  )}
+
+                  {otherServices.length > 0 && (
+                    <div className="pt-3 mt-3 border-t border-slate-100">
+                      <p className="text-xs font-bold text-slate-500 uppercase mb-2">Autres services proposes</p>
+                      <div className="space-y-2">
+                        {otherServices.map(service => (
+                          <div key={service.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Icon name={service.priceModel === 'per_kg' ? 'wash' : 'shirt'} className="w-4 h-4 text-slate-400 shrink-0" />
+                              <span className="text-sm font-semibold text-[#0F172A] truncate">{service.title}</span>
+                            </div>
+                            <span className="text-xs font-bold text-slate-600 whitespace-nowrap">{servicePriceLabel(service, partner.currency)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <button className="mt-4 text-sm font-bold text-[#0077B6] hover:underline">Voir tous les services (20+)</button>
                 <div className="mt-4 flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-xs font-bold text-[#0077B6]"><Icon name="truck" className="w-4 h-4" />Livraison gratuite dans les zones couvertes</div>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-xs font-bold text-brand-blue"><Icon name="truck" className="w-4 h-4" />Livraison gratuite dans les zones couvertes</div>
                   <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 rounded-lg text-xs font-bold text-[#FF7A00]"><Icon name="clock" className="w-4 h-4" />Express disponible . Livraison en 12h (+ frais)</div>
                 </div>
               </section>
@@ -477,7 +554,7 @@ export const PartnerDetailPage: React.FC = () => {
                   {deliveryTimes.map(d => (
                     <div key={d.item} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                       <div className="flex items-center gap-2"><Icon name="shirt" className="w-4 h-4 text-slate-400" /><span className="text-sm text-[#0F172A]">{d.item}</span></div>
-                      <span className="text-sm font-bold text-[#0077B6]">{d.time}</span>
+                      <span className="text-sm font-bold text-brand-blue">{d.time}</span>
                     </div>
                   ))}
                 </div>
@@ -486,7 +563,7 @@ export const PartnerDetailPage: React.FC = () => {
 
             {/* Coverage Zone */}
             <section className="bg-white rounded-2xl border border-slate-100 p-6">
-              <SectionTitle icon={<Icon name="mapPin" className="w-5 h-5" />} title="Zone de livraison" action={<button className="text-sm font-bold text-[#0077B6] hover:underline">Voir toutes les zones</button>} />
+              <SectionTitle icon={<Icon name="mapPin" className="w-5 h-5" />} title="Zone de livraison" action={<button className="text-sm font-bold text-brand-blue hover:underline">Voir toutes les zones</button>} />
               <MapEmbed lat={partner.coordinates?.lat} lng={partner.coordinates?.lng} />
               <div className="mt-5">
                 <h4 className="text-sm font-bold text-[#0F172A] mb-3">Communes desservies et frais de livraison</h4>
@@ -534,14 +611,14 @@ export const PartnerDetailPage: React.FC = () => {
                       <tr key={i} className="border-b border-slate-50 last:border-0">
                         <td className="py-3 px-2">
                           <div className="flex items-center gap-2">
-                            {row.verified && <Icon name="badge-check" className="w-4 h-4 text-[#0077B6]" />}
+                            {row.verified && <Icon name="badge-check" className="w-4 h-4 text-brand-blue" />}
                             <div>
                               <p className="font-bold text-[#0F172A]">{row.name}</p>
-                              {row.verified && <p className="text-[10px] text-[#0077B6]">Partenaire verifie</p>}
+                              {row.verified && <p className="text-[10px] text-brand-blue">Partenaire verifie</p>}
                               {i === 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1">
                                   <span className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold rounded">Meilleure note</span>
-                                  <span className="px-1.5 py-0.5 bg-blue-50 text-[#0077B6] text-[10px] font-bold rounded">Plus rapide</span>
+                                  <span className="px-1.5 py-0.5 bg-blue-50 text-brand-blue text-[10px] font-bold rounded">Plus rapide</span>
                                   <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[10px] font-bold rounded">Plus populaire</span>
                                 </div>
                               )}
@@ -560,14 +637,14 @@ export const PartnerDetailPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <button className="mt-4 text-sm font-bold text-[#0077B6] hover:underline">Voir plus de pressings (15+)</button>
+              <button className="mt-4 text-sm font-bold text-brand-blue hover:underline">Voir plus de pressings (15+)</button>
             </section>
 
             {/* Reviews */}
             <section className="bg-white rounded-2xl border border-slate-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <SectionTitle icon={<Icon name="star" className="w-5 h-5" />} title={`Avis clients (${reviews.length})`} />
-                {reviews.length > 0 && <button className="text-sm font-bold text-[#0077B6] hover:underline">Voir tous les avis</button>}
+                {reviews.length > 0 && <button className="text-sm font-bold text-brand-blue hover:underline">Voir tous les avis</button>}
               </div>
               {reviews.length > 0 ? (
                 <>
@@ -577,7 +654,7 @@ export const PartnerDetailPage: React.FC = () => {
                     ))}
                   </div>
                   {reviews.length > 4 && (
-                    <button onClick={() => setShowAllReviews(!showAllReviews)} className="mt-4 w-full py-3 text-sm font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-xl hover:bg-[#0077B6]/5 transition">
+                    <button onClick={() => setShowAllReviews(!showAllReviews)} className="mt-4 w-full py-3 text-sm font-bold text-brand-blue border border-brand-blue/20 rounded-xl hover:bg-brand-blue/5 transition">
                       {showAllReviews ? 'Voir moins' : `Voir les ${reviews.length} avis`}
                     </button>
                   )}
@@ -593,7 +670,7 @@ export const PartnerDetailPage: React.FC = () => {
 
             {/* Before / After */}
             <section className="bg-white rounded-2xl border border-slate-100 p-6">
-              <SectionTitle icon={<Icon name="photo" className="w-5 h-5" />} title="Avant / Apres" action={<button className="text-sm font-bold text-[#0077B6] hover:underline">Voir plus de resultats</button>} />
+              <SectionTitle icon={<Icon name="photo" className="w-5 h-5" />} title="Avant / Apres" action={<button className="text-sm font-bold text-brand-blue hover:underline">Voir plus de resultats</button>} />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {beforeAfter.map((ba, i) => (
                   <div key={i} className="relative rounded-xl overflow-hidden group">
@@ -667,17 +744,17 @@ export const PartnerDetailPage: React.FC = () => {
               <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-lg">
                 <div className="p-4 bg-[#F8FAFC] rounded-xl mb-5">
                   <p className="text-xs text-slate-500 mb-1">Prix estime</p>
-                  <p className="text-3xl font-extrabold text-[#0F172A]">A partir de 2 $</p>
+                  <p className="text-3xl font-extrabold text-[#0F172A]">{startingPriceLabel}</p>
                   <p className="text-xs text-slate-400 mt-1">Le prix final depend de votre commande.</p>
                 </div>
                 <div className="space-y-2 text-sm text-slate-600 mb-5">
                   <div className="flex items-center gap-2"><Icon name="clock" className="w-4 h-4 text-slate-400" />Temps estime : {publicStats.avgDeliveryHours}h</div>
                   <div className="flex items-center gap-2"><Icon name="badge-check" className="w-4 h-4 text-[#22C55E]" />Disponible aujourd'hui</div>
                 </div>
-                <button onClick={handleStartGeneralOrder} className="w-full py-3.5 bg-[#0077B6] text-white font-bold rounded-xl hover:bg-[#005f8f] transition shadow-lg shadow-[#0077B6]/20 mb-3">
+                <button onClick={handleStartGeneralOrder} className="w-full py-3.5 bg-brand-blue text-white font-bold rounded-xl hover:bg-brand-blue-700 transition shadow-lg shadow-brand-blue/20 mb-3">
                   Commander maintenant
                 </button>
-                <button onClick={handleShare} className="w-full py-3 bg-white text-[#0F172A] font-bold rounded-xl border-2 border-slate-200 hover:border-[#0077B6] hover:text-[#0077B6] transition flex items-center justify-center gap-2">
+                <button onClick={handleShare} className="w-full py-3 bg-white text-[#0F172A] font-bold rounded-xl border-2 border-slate-200 hover:border-brand-blue hover:text-brand-blue transition flex items-center justify-center gap-2">
                   <Icon name="phone" className="w-4 h-4" />Contacter
                 </button>
                 <div className="mt-4 flex items-center gap-2">
@@ -704,7 +781,7 @@ export const PartnerDetailPage: React.FC = () => {
                           const hours: DayWorkingHours = partner.workingHours![day];
                           const isToday = day === todayKey;
                           return (
-                            <div key={day} className={`flex justify-between py-0.5 px-2 rounded ${isToday ? 'bg-[#0077B6]/5 font-bold text-[#0077B6]' : 'text-slate-600'}`}>
+                            <div key={day} className={`flex justify-between py-0.5 px-2 rounded ${isToday ? 'bg-brand-blue/5 font-bold text-brand-blue' : 'text-slate-600'}`}>
                               <span>{dayNames[day]} {isToday ? "(aujourd'hui)" : ''}</span>
                               <span>{hours.isClosed ? 'Ferme' : `${hours.open} – ${hours.close}`}</span>
                             </div>
@@ -727,7 +804,7 @@ export const PartnerDetailPage: React.FC = () => {
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-xs text-slate-400">A partir de</p>
-            <p className="text-xl font-extrabold text-[#0F172A]">2 $</p>
+            <p className="text-xl font-extrabold text-[#0F172A]">{startingPriceLabel}</p>
           </div>
           <div className="text-right">
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-[#15803d] text-xs font-bold rounded-lg">
@@ -735,10 +812,11 @@ export const PartnerDetailPage: React.FC = () => {
             </span>
           </div>
         </div>
-        <button onClick={handleStartGeneralOrder} className="block w-full py-3.5 bg-[#0077B6] text-white text-center font-bold rounded-xl hover:bg-[#005f8f] transition shadow-lg shadow-[#0077B6]/20">
+        <button onClick={handleStartGeneralOrder} className="block w-full py-3.5 bg-brand-blue text-white text-center font-bold rounded-xl hover:bg-brand-blue-700 transition shadow-lg shadow-brand-blue/20">
           Commander maintenant
         </button>
       </div>
     </div>
   );
 };
+
