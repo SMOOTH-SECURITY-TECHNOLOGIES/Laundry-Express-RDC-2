@@ -1053,17 +1053,12 @@ export const OrderPage: React.FC = () => {
           </div>
           <button
             onClick={handleConfirmOrder}
-            disabled={isLoading || !user || !user.backendAddressId || estimatorTotal === 0}
+            disabled={isLoading || !user || estimatorTotal === 0}
             className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#0077B6]/25 hover:shadow-xl hover:shadow-[#0077B6]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
             <Icon name="check" className="w-5 h-5" />
             {isLoading ? 'Creation en cours...' : 'Confirmer la commande'}
           </button>
-          {!user?.backendAddressId && (
-            <p className="mt-3 text-xs text-red-500 text-center">
-              Votre adresse doit etre synchronisee avec le backend avant de creer la commande.
-            </p>
-          )}
         </div>
       </div>
     </div>

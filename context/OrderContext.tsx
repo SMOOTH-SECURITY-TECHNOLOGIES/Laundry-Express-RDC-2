@@ -438,12 +438,28 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             throw new Error(t('orderPage.loginRequired'));
         }
 
-        if (!user.backendAddressId) {
-            throw new Error(t('orderPage.missingBackendAddress'));
-        }
-
         if (!orderData.partner) {
             throw new Error(t('orderPage.partnerRequired'));
+        }
+
+        let backendAddressId = user.backendAddressId;
+        if (!backendAddressId) {
+            const pickupAddress = orderData.clientDetails?.pickupAddress || user.pickupAddress;
+            const createdAddress = await realApi.createAddress({
+                user_id: user.id,
+                label: 'Maison',
+                contact_name: orderData.clientDetails?.name || user.name,
+                contact_phone: orderData.clientDetails?.phone || user.phone,
+                address_line_1: pickupAddress.avenue || 'Adresse principale',
+                address_line_2: pickupAddress.numero || 'N/A',
+                city: 'Kinshasa',
+                commune: pickupAddress.commune || 'Kinshasa',
+                zone: pickupAddress.quartier,
+                reference_point: pickupAddress.reference,
+                instructions: pickupAddress.reference,
+                is_default: true,
+            });
+            backendAddressId = createdAddress.id;
         }
 
         const backendPartner = await resolveRealPartner(orderData.partner);
@@ -455,8 +471,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         const backendOrder = await realApi.createOrder({
             partner_id: backendPartner.id,
-            pickup_address_id: user.backendAddressId,
-            delivery_address_id: user.backendAddressId,
+            pickup_address_id: backendAddressId,
+            delivery_address_id: backendAddressId,
             items: backendItems,
             currency: orderData.partner.currency || 'USD',
             special_instructions: orderData.clientDetails?.pickupAddress?.reference,
