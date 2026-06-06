@@ -6,14 +6,37 @@ import { Service, ServiceType, formatAddress } from '../types';
 interface EstimatorItem {
   id: string;
   name: string;
+  description: string;
+  imageUrl: string;
   price: number;
   quantity: number;
 }
 
 const estimatorItemsDefault: EstimatorItem[] = [
-  { id: 'costume', name: 'Costume', price: 7.0, quantity: 0 },
-  { id: 'chemise', name: 'Chemise', price: 2.0, quantity: 0 },
-  { id: 'pantalon', name: 'Pantalon', price: 3.0, quantity: 0 },
+  {
+    id: 'costume',
+    name: 'Costume',
+    description: 'Nettoyage a sec professionnel',
+    imageUrl: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=160&q=80',
+    price: 7.0,
+    quantity: 0,
+  },
+  {
+    id: 'chemise',
+    name: 'Chemise',
+    description: 'Lavage et repassage',
+    imageUrl: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&w=160&q=80',
+    price: 2.0,
+    quantity: 0,
+  },
+  {
+    id: 'pantalon',
+    name: 'Pantalon',
+    description: 'Nettoyage a sec',
+    imageUrl: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=160&q=80',
+    price: 3.0,
+    quantity: 0,
+  },
 ];
 
 const services = [
@@ -97,10 +120,50 @@ const testimonials = [
 ];
 
 const reassuranceCards = [
-  { icon: 'shield-check' as const, title: 'Paiement', description: 'Securise et flexible' },
-  { icon: 'truck' as const, title: 'Livraison', description: 'Rapide et ponctuelle' },
-  { icon: 'heart' as const, title: 'Qualite', description: 'Satisfait ou rembourse' },
-  { icon: 'phone' as const, title: 'Support', description: '24h/24, 7j/7' },
+  { icon: 'shield-check' as const, title: 'Paiement securise', description: 'Transactions 100% protegees' },
+  { icon: 'heart' as const, title: 'Satisfait ou rembourse', description: 'Satisfaction garantie' },
+  { icon: 'truck' as const, title: 'Livraison suivie', description: 'Suivi en temps reel' },
+  { icon: 'phone' as const, title: 'Support 24/7', description: 'Nous sommes toujours la' },
+  { icon: 'shield' as const, title: 'Assurance textile incluse', description: 'Vos articles sont proteges' },
+];
+
+const serviceOptions = [
+  { id: 'pickup', title: 'Ramassage a domicile', description: 'Nous venons chez vous recuperer votre linge.', price: 0, defaultSelected: true },
+  { id: 'express', title: 'Livraison express', description: 'Livraison prioritaire en moins de 24h.', price: 3, defaultSelected: false },
+  { id: 'priority', title: 'Traitement prioritaire', description: 'Votre commande sera traitee en priorite.', price: 5, defaultSelected: false },
+  { id: 'premium_packaging', title: 'Emballage premium', description: 'Emballage individuel et protection renforcee.', price: 2, defaultSelected: false },
+  { id: 'hanger', title: 'Hanger service', description: 'Vetements sur cintres inclus.', price: 1, defaultSelected: false },
+];
+
+const addOnItems = [
+  {
+    id: 'chaussures',
+    name: 'Nettoyage chaussures',
+    description: 'Entretien complet de vos chaussures.',
+    imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=180&q=80',
+    price: 5,
+  },
+  {
+    id: 'repassage-premium',
+    name: 'Repassage premium',
+    description: 'Repassage vapeur professionnel.',
+    imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=180&q=80',
+    price: 3,
+  },
+  {
+    id: 'desodorisation',
+    name: 'Desodorisation textile',
+    description: 'Elimine les odeurs et rafraichit.',
+    imageUrl: 'https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?auto=format&fit=crop&w=180&q=80',
+    price: 2,
+  },
+  {
+    id: 'sac-transport',
+    name: 'Sac de transport',
+    description: 'Sac premium pour votre linge.',
+    imageUrl: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?auto=format&fit=crop&w=180&q=80',
+    price: 2,
+  },
 ];
 
 const serviceToTypeMap: Record<string, ServiceType> = {
@@ -117,7 +180,14 @@ const serviceTypeToServiceMap: Record<ServiceType, string> = {
 
 type Step = 0 | 1 | 2 | 3;
 
-const stepLabels = ['Service', 'Partenaire', 'Commande', 'Adresse & paiement'];
+const stepLabels = [
+  { label: 'Service', detail: 'Nettoyage a sec' },
+  { label: 'Partenaire', detail: 'Prestige Pressing' },
+  { label: 'Commande', detail: 'Vos articles' },
+  { label: 'Adresse', detail: 'Ou livrer ?' },
+  { label: 'Paiement', detail: 'Paiement securise' },
+  { label: 'Confirmation', detail: 'Commande recue' },
+];
 
 const partnerGradients = [
   'from-[#0077B6] to-[#00B4D8]',
@@ -141,6 +211,10 @@ export const OrderPage: React.FC = () => {
   const [pickupTime, setPickupTime] = useState('Aujourd hui, 16h-18h');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mobile_money' | 'card'>('cash');
   const [specialInstructions, setSpecialInstructions] = useState(orderDraft.clientDetails?.pickupAddress?.reference || '');
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>(
+    serviceOptions.filter((option) => option.defaultSelected).map((option) => option.id)
+  );
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (step >= 2) return;
@@ -162,6 +236,27 @@ export const OrderPage: React.FC = () => {
   const estimatorTotal = useMemo(() => {
     return estimatorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [estimatorItems]);
+
+  const selectedEstimatorItems = useMemo(() => {
+    return estimatorItems.filter((item) => item.quantity > 0);
+  }, [estimatorItems]);
+
+  const addOnTotal = useMemo(() => {
+    return addOnItems
+      .filter((item) => selectedAddOnIds.includes(item.id))
+      .reduce((sum, item) => sum + item.price, 0);
+  }, [selectedAddOnIds]);
+
+  const optionsTotal = useMemo(() => {
+    return serviceOptions
+      .filter((option) => selectedOptionIds.includes(option.id))
+      .reduce((sum, option) => sum + option.price, 0);
+  }, [selectedOptionIds]);
+
+  const deliveryFee = selectedOptionIds.includes('pickup') ? 2 : 0;
+  const orderTotal = estimatorTotal + addOnTotal + optionsTotal + deliveryFee;
+  const articleCount = selectedEstimatorItems.reduce((sum, item) => sum + item.quantity, 0) + selectedAddOnIds.length;
+  const addressLine = user?.pickupAddress ? formatAddress(user.pickupAddress) : 'Adresse a completer dans votre profil';
 
   const filteredPartners = useMemo(() => {
     if (!selectedService) return [];
@@ -188,6 +283,8 @@ export const OrderPage: React.FC = () => {
     if (!selectedPartnerId) return null;
     return (partners || []).find((p) => p.id === selectedPartnerId) || null;
   }, [partners, selectedPartnerId]);
+
+  const partnerImageUrl = selectedPartner?.imageUrls?.find(Boolean);
 
   const selectedServiceLabel = useMemo(() => {
     const svc = services.find((s) => s.id === selectedService);
@@ -238,18 +335,33 @@ export const OrderPage: React.FC = () => {
           id: item.id,
           name: item.name,
           price: item.price,
+          description: item.description,
         },
         quantity: item.quantity,
       }));
 
+    const selectedAddOns = addOnItems
+      .filter((item) => selectedAddOnIds.includes(item.id))
+      .map((item) => ({
+        article: {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+        },
+        quantity: 1,
+      }));
+
+    const draftItems = [...selectedItems, ...selectedAddOns];
+
     updateOrderDraft({
-      serviceItems: selectedItems.length > 0 ? [{
+      serviceItems: draftItems.length > 0 ? [{
         service: selectedServiceDefinition,
-        items: selectedItems,
+        items: draftItems,
       }] : [],
-      totalPrice: estimatorTotal,
+      totalPrice: orderTotal,
     });
-  }, [estimatorItems, estimatorTotal, selectedServiceDefinition, updateOrderDraft]);
+  }, [estimatorItems, orderTotal, selectedAddOnIds, selectedServiceDefinition, updateOrderDraft]);
 
   /* ─── Handlers ─── */
 
@@ -304,7 +416,7 @@ export const OrderPage: React.FC = () => {
         discountAmount: orderDraft.discountAmount,
         pointsDiscount: orderDraft.pointsDiscount,
         referralDiscount: orderDraft.referralDiscount,
-        totalPrice: estimatorTotal,
+        totalPrice: orderTotal,
       });
 
       setActiveOrder(createdOrder);
@@ -339,24 +451,59 @@ export const OrderPage: React.FC = () => {
     );
   };
 
+  const removeItem = (itemId: string) => {
+    setEstimatorItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, quantity: 0 } : item))
+    );
+  };
+
+  const addNextArticle = () => {
+    const nextItem = estimatorItems.find((item) => item.quantity === 0);
+    if (!nextItem) {
+      addNotification('Tous les articles courants sont deja dans la commande.', 'info');
+      return;
+    }
+    increment(nextItem.id);
+  };
+
+  const toggleServiceOption = (optionId: string) => {
+    setSelectedOptionIds((prev) =>
+      prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]
+    );
+  };
+
+  const toggleAddOn = (itemId: string) => {
+    setSelectedAddOnIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+    );
+  };
+
+  const openPartnerProfile = () => {
+    if (!selectedPartner) return;
+    setCurrentPage({ name: 'partner-detail', params: { partnerId: selectedPartner.id } });
+  };
+
   /* ─── Step Indicator ─── */
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-2 sm:gap-4 mb-10">
-      {stepLabels.map((label, index) => {
-        const isCompleted = step > index;
-        const isCurrent = step === index;
+  const renderStepIndicator = () => {
+    const visualStep = step;
+
+    return (
+    <div className="flex items-start justify-center gap-2 sm:gap-3 mb-10 overflow-x-auto pb-2">
+      {stepLabels.map((item, index) => {
+        const isCompleted = visualStep > index;
+        const isCurrent = visualStep === index;
         return (
-          <React.Fragment key={label}>
+          <React.Fragment key={item.label}>
             {index > 0 && (
               <div
-                className={`hidden sm:block h-0.5 w-12 lg:w-20 transition-colors duration-300 ${
+                className={`hidden sm:block h-0.5 w-10 lg:w-20 mt-4 transition-colors duration-300 ${
                   isCompleted ? 'bg-[#0077B6]' : 'bg-gray-200 dark:bg-slate-700'
                 }`}
               />
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-[112px] items-start gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${
                   isCompleted
                     ? 'bg-[#0077B6] text-white'
                     : isCurrent
@@ -370,23 +517,27 @@ export const OrderPage: React.FC = () => {
                   index + 1
                 )}
               </div>
-              <span
-                className={`text-sm font-medium hidden sm:inline ${
-                  isCurrent
-                    ? 'text-[#0077B6]'
-                    : isCompleted
-                    ? 'text-gray-900 dark:text-white'
-                    : 'text-gray-400 dark:text-gray-500'
-                }`}
-              >
-                {label}
-              </span>
+              <div className="hidden sm:block min-w-0">
+                <p
+                  className={`text-sm font-semibold leading-tight ${
+                    isCurrent
+                      ? 'text-[#0077B6]'
+                      : isCompleted
+                      ? 'text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  {item.label}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight mt-0.5">{item.detail}</p>
+              </div>
             </div>
           </React.Fragment>
         );
       })}
     </div>
   );
+  };
 
   /* ─── Step 0: Service Selection ─── */
   const renderStep0 = () => (
@@ -744,10 +895,9 @@ export const OrderPage: React.FC = () => {
     </div>
   );
 
-  /* ─── Step 2: Order Summary + Continue ─── */
+  /* ─── Step 2: Order Builder ─── */
   const renderStep2 = () => (
-    <div className="space-y-8 max-w-2xl mx-auto">
-      {/* Back button */}
+    <div className="space-y-8">
       <button
         onClick={handleBack}
         className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#0077B6] dark:hover:text-[#00B4D8] transition-colors font-medium"
@@ -756,195 +906,376 @@ export const OrderPage: React.FC = () => {
         Retour aux partenaires
       </button>
 
-      {/* Header */}
-      <div className="text-center space-y-3">
+      <div className="max-w-3xl">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
           Preparez votre <span className="text-[#0077B6]">commande</span>
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
-          Ajoutez les articles, puis verifiez les details avant de continuer.
+        <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mt-2">
+          Ajoutez les articles, choisissez vos options et verifiez le recapitulatif avant de continuer.
         </p>
       </div>
 
-      {/* Article Selection */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-6">
-        <div className="flex items-start justify-between gap-4 mb-5">
-          <div>
-            <p className="text-xs font-bold text-[#0077B6] uppercase tracking-wide">Articles a traiter</p>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">Que doit nettoyer le partenaire ?</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Indiquez les articles et quantites pour preparer une commande claire.
-            </p>
-          </div>
-          <div className="hidden sm:flex w-11 h-11 rounded-xl bg-[#0077B6]/10 items-center justify-center">
-            <Icon name="shirt" className="w-6 h-6 text-[#0077B6]" />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {estimatorItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl"
-            >
-              <div className="min-w-0">
-                <h4 className="font-semibold text-gray-900 dark:text-white">{item.name}</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{formatPrice(item.price)} / article</p>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-8 items-start">
+        <div className="space-y-6">
+          <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">1</span>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Vos articles</h2>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <button
-                  onClick={() => decrement(item.id)}
-                  disabled={item.quantity === 0}
-                  className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  aria-label={`Retirer ${item.name}`}
+              <button
+                type="button"
+                onClick={addNextArticle}
+                className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-[#0077B6] hover:text-[#005f8f]"
+              >
+                <Icon name="plus" className="w-4 h-4" />
+                Ajouter un autre article
+              </button>
+            </div>
+
+            <div className="hidden md:grid grid-cols-[minmax(0,1.5fr)_120px_130px_120px_40px] gap-4 px-2 pb-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
+              <span>Article</span>
+              <span className="text-right">Prix unitaire</span>
+              <span className="text-center">Quantite</span>
+              <span className="text-right">Sous-total</span>
+              <span />
+            </div>
+
+            <div className="space-y-3">
+              {estimatorItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-1 md:grid-cols-[minmax(0,1.5fr)_120px_130px_120px_40px] gap-4 items-center p-3 rounded-xl border border-gray-100 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-700/40"
                 >
-                  <Icon name="minus" className="w-4 h-4" />
-                </button>
-                <span className="w-8 text-center font-bold text-lg text-gray-900 dark:text-white">
-                  {item.quantity}
-                </span>
-                <button
-                  onClick={() => increment(item.id)}
-                  className="w-9 h-9 rounded-full bg-[#0077B6] flex items-center justify-center text-white hover:bg-[#005f8f] transition-colors"
-                  aria-label={`Ajouter ${item.name}`}
-                >
-                  <Icon name="plus" className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-5 flex items-center justify-between p-4 bg-[#0077B6]/10 rounded-xl">
-          <span className="font-semibold text-gray-900 dark:text-white">Total articles</span>
-          <span className="text-2xl font-bold text-[#0077B6]">{estimatorTotal > 0 ? formatPrice(estimatorTotal) : '0 $'}</span>
-        </div>
-      </div>
-
-      {/* Summary Card */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card overflow-hidden">
-        {/* Service & Partner Info */}
-        <div className="p-6 space-y-6 border-b border-gray-100 dark:border-slate-700">
-          {/* Service Row */}
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#0077B6]/10 flex items-center justify-center flex-shrink-0">
-              <Icon
-                name={
-                  selectedService === 'lessive'
-                    ? 'shirt'
-                    : selectedService === 'nettoyage'
-                    ? 'sparkles'
-                    : 'shoppingBag'
-                }
-                className="w-7 h-7 text-[#0077B6]"
-              />
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Service</p>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{selectedServiceLabel}</h3>
-            </div>
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1 bg-[#0077B6]/10 text-[#0077B6] text-xs font-semibold px-3 py-1 rounded-full">
-                <Icon name="check" className="w-3 h-3" />
-                Selectionne
-              </span>
-            </div>
-          </div>
-
-          {/* Partner Row */}
-          {selectedPartner && (
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0077B6] to-[#00B4D8] flex items-center justify-center flex-shrink-0">
-                <Icon name="users" className="w-7 h-7 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Partenaire</p>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{selectedPartner.name}</h3>
-                <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Icon name="star" className="w-3.5 h-3.5 text-yellow-400" />
-                    <span>{selectedPartner.rating}</span>
+                  <div className="flex items-center gap-4 min-w-0">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-16 h-16 rounded-lg object-cover bg-gray-100 dark:bg-slate-700 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-gray-900 dark:text-white truncate">{item.name}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Icon name="mapPin" className="w-3.5 h-3.5" />
-                    <span>{selectedPartner.address?.split(',')[1]?.trim() || selectedPartner.address}</span>
+                  <p className="md:text-right font-semibold text-gray-900 dark:text-white">{formatPrice(item.price)}</p>
+                  <div className="flex items-center md:justify-center gap-3">
+                    <button
+                      onClick={() => decrement(item.id)}
+                      disabled={item.quantity === 0}
+                      className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      aria-label={`Retirer ${item.name}`}
+                    >
+                      <Icon name="minus" className="w-4 h-4" />
+                    </button>
+                    <span className="w-8 text-center font-bold text-gray-900 dark:text-white">{item.quantity}</span>
+                    <button
+                      onClick={() => increment(item.id)}
+                      className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:border-[#0077B6] hover:text-[#0077B6] transition-colors"
+                      aria-label={`Ajouter ${item.name}`}
+                    >
+                      <Icon name="plus" className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="md:text-right font-bold text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)}</p>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    disabled={item.quantity === 0}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label={`Supprimer ${item.name}`}
+                  >
+                    <Icon name="xmark" className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {selectedPartner && (
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">2</span>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Partenaire selectionne</h2>
+              </div>
+              <div className="flex flex-col lg:flex-row gap-5">
+                {partnerImageUrl ? (
+                  <img src={partnerImageUrl} alt={selectedPartner.name} className="w-full lg:w-56 h-36 rounded-xl object-cover bg-gray-100" />
+                ) : (
+                  <div className="w-full lg:w-56 h-36 rounded-xl bg-gradient-to-br from-[#0077B6] to-[#00B4D8] flex items-center justify-center">
+                    <Icon name="building" className="w-12 h-12 text-white" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedPartner.name}</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1">
+                      <Icon name="badge-check" className="w-3.5 h-3.5" />
+                      Partenaire certifie
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-300">
+                    <span className="inline-flex items-center gap-1"><Icon name="star" className="w-4 h-4 text-yellow-400" /> {selectedPartner.rating} ({selectedPartner.reviewCount} avis)</span>
+                    <span className="inline-flex items-center gap-1"><Icon name="mapPin" className="w-4 h-4" /> {selectedPartner.address?.split(',')[1]?.trim() || selectedPartner.address}</span>
+                    <span className="inline-flex items-center gap-1"><Icon name="calendar" className="w-4 h-4" /> 240 commandes ce mois</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+                    {[
+                      ['home', 'Livraison 24h', 'Delai moyen'],
+                      ['truck', 'Ramassage disponible', 'A domicile'],
+                      ['shield-check', 'Qualite garantie', 'Controle qualite'],
+                    ].map(([icon, title, desc]) => (
+                      <div key={title} className="rounded-xl border border-gray-100 dark:border-slate-700 p-3">
+                        <Icon name={icon as any} className="w-4 h-4 text-[#0077B6] mb-1" />
+                        <p className="text-xs font-bold text-gray-900 dark:text-white">{title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                    <button onClick={openPartnerProfile} className="border border-gray-200 dark:border-slate-700 hover:border-[#0077B6] text-[#0077B6] font-semibold py-3 px-4 rounded-xl transition-colors">
+                      Voir le profil
+                    </button>
+                    <button onClick={handleBack} className="bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-3 px-4 rounded-xl transition-colors">
+                      Changer de partenaire
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Estimator Items Summary */}
-          {estimatorItems.some((item) => item.quantity > 0) && (
-            <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4 space-y-3">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Articles estimes</p>
-              {estimatorItems
-                .filter((item) => item.quantity > 0)
-                .map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700 dark:text-gray-200">
-                      {item.quantity}x {item.name}
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {(item.price * item.quantity).toFixed(2)}$
-                    </span>
+          <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">3</span>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Delais estimes</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { icon: 'shoppingBag', title: 'Ramassage', main: "Aujourd'hui", sub: '14h00' },
+                { icon: 'calendar-days', title: 'Traitement', main: '6 heures', sub: 'Prioritaire disponible' },
+                { icon: 'shirt', title: 'Pret', main: 'Demain', sub: '10h00' },
+                { icon: 'truck', title: 'Livraison', main: 'Demain avant', sub: '18h00' },
+              ].map((stage) => (
+                <div key={stage.title} className="text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-[#0077B6]/10 flex items-center justify-center mx-auto mb-3">
+                    <Icon name={stage.icon as any} className="w-7 h-7 text-[#0077B6]" />
                   </div>
-                ))}
+                  <p className="font-bold text-gray-900 dark:text-white">{stage.title}</p>
+                  <p className="text-sm text-[#0077B6] font-semibold">{stage.main}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{stage.sub}</p>
+                </div>
+              ))}
             </div>
-          )}
+          </section>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">4</span>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Options de service</h2>
+              </div>
+              <div className="space-y-3">
+                {serviceOptions.map((option) => {
+                  const checked = selectedOptionIds.includes(option.id);
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => toggleServiceOption(option.id)}
+                      className={`w-full text-left rounded-xl border p-3 transition ${
+                        checked ? 'border-[#0077B6] bg-[#0077B6]/5' : 'border-gray-200 dark:border-slate-700 hover:border-[#0077B6]/50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`mt-1 w-5 h-5 rounded border flex items-center justify-center ${checked ? 'bg-[#0077B6] border-[#0077B6] text-white' : 'border-gray-300 dark:border-slate-600'}`}>
+                          {checked && <Icon name="check" className="w-3.5 h-3.5" />}
+                        </span>
+                        <span className="flex-1">
+                          <span className="block font-bold text-gray-900 dark:text-white text-sm">{option.title}</span>
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{option.description}</span>
+                        </span>
+                        <span className={`text-sm font-bold ${option.price === 0 ? 'text-emerald-600' : 'text-gray-900 dark:text-white'}`}>
+                          {option.price === 0 ? 'Gratuit' : `+ ${formatPrice(option.price)}`}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3 mb-5">
+                <div className="flex items-center gap-3">
+                  <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">5</span>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Adresse de ramassage</h2>
+                </div>
+                <button type="button" onClick={() => setCurrentPage({ name: 'profile' })} className="text-sm font-semibold text-[#0077B6] inline-flex items-center gap-1">
+                  <Icon name="pencil" className="w-4 h-4" />
+                  Modifier
+                </button>
+              </div>
+              <div className="rounded-xl border border-gray-100 dark:border-slate-700 p-4">
+                <h3 className="font-bold text-gray-900 dark:text-white">{addressLine}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kinshasa, Republique Democratique du Congo</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Nom</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{user?.name || 'Client'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Telephone</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{user?.phone || 'A completer'}</p>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-xl bg-gray-100 dark:bg-slate-700 h-28 flex items-center justify-center">
+                  <div className="text-center text-gray-500 dark:text-gray-300">
+                    <Icon name="mapPin" className="w-7 h-7 text-[#0077B6] mx-auto mb-1" />
+                    <span className="text-xs">Zone de ramassage confirmee</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="w-7 h-7 rounded-full bg-[#0077B6] text-white text-sm font-bold flex items-center justify-center">6</span>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Vous pourriez aussi avoir besoin de</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {addOnItems.map((item) => {
+                const checked = selectedAddOnIds.includes(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleAddOn(item.id)}
+                    className={`text-left rounded-xl border p-3 transition ${
+                      checked ? 'border-[#0077B6] bg-[#0077B6]/5' : 'border-gray-200 dark:border-slate-700 hover:border-[#0077B6]/50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className={`mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 ${checked ? 'bg-[#0077B6] border-[#0077B6] text-white' : 'border-gray-300 dark:border-slate-600'}`}>
+                        {checked && <Icon name="check" className="w-3.5 h-3.5" />}
+                      </span>
+                      <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-lg object-cover bg-gray-100 shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block font-bold text-sm text-gray-900 dark:text-white">{item.name}</span>
+                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">{item.description}</span>
+                        <span className="block text-sm font-bold text-[#0077B6] mt-2">+ {formatPrice(item.price)}</span>
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         </div>
 
-        {/* Total */}
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total estime</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Prix variable selon le poids / nombre d'articles</p>
+        <aside className="space-y-6 xl:sticky xl:top-24">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-[#0077B6]/10 flex items-center justify-center">
+                <Icon name="shoppingBag" className="w-5 h-5 text-[#0077B6]" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recapitulatif de commande</h2>
             </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-[#0077B6]">{estimatorTotal > 0 ? `${estimatorTotal.toFixed(2)}$` : 'A determiner'}</p>
+
+            {selectedPartner && (
+              <div className="mb-6">
+                <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">Partenaire</p>
+                <div className="flex gap-3 rounded-xl border border-gray-100 dark:border-slate-700 p-3">
+                  {partnerImageUrl ? (
+                    <img src={partnerImageUrl} alt={selectedPartner.name} className="w-24 h-20 rounded-lg object-cover bg-gray-100" />
+                  ) : (
+                    <div className="w-24 h-20 rounded-lg bg-[#0077B6]/10 flex items-center justify-center">
+                      <Icon name="building" className="w-8 h-8 text-[#0077B6]" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-900 dark:text-white truncate">{selectedPartner.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1"><Icon name="star" className="inline w-3.5 h-3.5 text-yellow-400" /> {selectedPartner.rating} ({selectedPartner.reviewCount} avis)</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1"><Icon name="mapPin" className="inline w-3.5 h-3.5" /> {selectedPartner.address?.split(',')[1]?.trim() || selectedPartner.address}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1"><Icon name="home" className="inline w-3.5 h-3.5" /> Livraison 24h</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 border-b border-gray-100 dark:border-slate-700 pb-5">
+              <p className="text-sm font-bold text-gray-900 dark:text-white">Articles ({articleCount})</p>
+              {selectedEstimatorItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">{item.quantity}x {item.name}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.quantity * item.price)}</span>
+                </div>
+              ))}
+              {addOnItems.filter((item) => selectedAddOnIds.includes(item.id)).map((item) => (
+                <div key={item.id} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">1x {item.name}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.price)}</span>
+                </div>
+              ))}
+              {articleCount === 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Ajoutez au moins un article pour continuer.</p>
+              )}
             </div>
+
+            <div className="space-y-3 py-5 border-b border-gray-100 dark:border-slate-700 text-sm">
+              <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Sous-total</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(estimatorTotal + addOnTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Livraison</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(deliveryFee)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Options</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(optionsTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-300">Taxes</span><span className="font-bold text-gray-900 dark:text-white">{formatPrice(0)}</span></div>
+            </div>
+
+            <div className="py-5">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">Total estime</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Prix variable selon le poids / nombre d'articles</p>
+                </div>
+                <p className="text-3xl font-bold text-[#0077B6]">{formatPrice(orderTotal)}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 mb-5">
+              <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 text-sm flex justify-between">
+                <span className="text-amber-800 font-semibold">Economies</span>
+                <span className="text-amber-800 font-bold">{formatPrice(0)}</span>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm flex justify-between">
+                <span className="text-blue-900 font-semibold">Delai estime</span>
+                <span className="text-[#0077B6] font-bold">24h</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleContinue}
+              disabled={estimatorTotal === 0}
+              className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 shadow-lg shadow-[#0077B6]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              <span>{estimatorTotal > 0 ? 'Continuer' : 'Ajoutez un article'}</span>
+              <span className="text-sm font-normal opacity-90">Adresse et paiement</span>
+              <Icon name="arrowRight" className="w-5 h-5" />
+            </button>
           </div>
-        </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-4">
-        <button
-          onClick={handleContinue}
-          disabled={estimatorTotal === 0}
-          className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#0077B6]/25 hover:shadow-xl hover:shadow-[#0077B6]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          <Icon name="shoppingBag" className="w-5 h-5" />
-          {estimatorTotal > 0 ? 'Continuer vers adresse et paiement' : 'Ajoutez au moins un article'}
-          <Icon name="arrowRight" className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={handleBack}
-          className="w-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 font-semibold py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
-        >
-          <Icon name="arrowLeft" className="w-4 h-4" />
-          Modifier le partenaire
-        </button>
-      </div>
-
-      {/* Reassurance Mini */}
-      <div className="grid grid-cols-2 gap-3">
-        {reassuranceCards.map((card) => (
-          <div
-            key={card.title}
-            className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-slate-700"
-          >
-            <div className="w-10 h-10 rounded-lg bg-[#0077B6]/10 flex items-center justify-center flex-shrink-0">
-              <Icon name={card.icon} className="w-5 h-5 text-[#0077B6]" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{card.description}</p>
-            </div>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 space-y-5">
+            {reassuranceCards.map((card) => (
+              <div key={card.title} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#0077B6]/10 flex items-center justify-center shrink-0">
+                  <Icon name={card.icon} className="w-5 h-5 text-[#0077B6]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{card.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{card.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </aside>
       </div>
     </div>
   );
@@ -1049,7 +1380,7 @@ export const OrderPage: React.FC = () => {
         <div className="p-6 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-100 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Total a confirmer</span>
-            <span className="text-3xl font-bold text-[#0077B6]">{formatPrice(estimatorTotal)}</span>
+            <span className="text-3xl font-bold text-[#0077B6]">{formatPrice(orderTotal)}</span>
           </div>
           <button
             onClick={handleConfirmOrder}
