@@ -11,11 +11,11 @@ type OrderFilter = 'all' | 'pending' | 'confirmed' | 'pickup' | 'processing' | '
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   [OrderStatus.AWAITING_CONFIRMATION]: { label: 'En attente', color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' },
-  [OrderStatus.CONFIRMED]: { label: 'Confirmee', color: 'text-[#0077B6]', bg: 'bg-blue-50 border-blue-200' },
+  [OrderStatus.CONFIRMED]: { label: 'Confirmee', color: 'text-brand-blue', bg: 'bg-blue-50 border-blue-200' },
   [OrderStatus.READY_FOR_PICKUP]: { label: 'A ramasser', color: 'text-cyan-700', bg: 'bg-cyan-50 border-cyan-200' },
   [OrderStatus.PICKUP]: { label: 'Ramassage', color: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' },
   [OrderStatus.PROCESSING]: { label: 'En traitement', color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-200' },
-  [OrderStatus.READY_FOR_DELIVERY]: { label: 'Prete', color: 'text-[#0077B6]', bg: 'bg-blue-50 border-blue-200' },
+  [OrderStatus.READY_FOR_DELIVERY]: { label: 'Prete', color: 'text-brand-blue', bg: 'bg-blue-50 border-blue-200' },
   [OrderStatus.DELIVERY]: { label: 'En livraison', color: 'text-teal-700', bg: 'bg-teal-50 border-teal-200' },
   [OrderStatus.COMPLETED]: { label: 'Livree', color: 'text-[#22C55E]', bg: 'bg-green-50 border-green-200' },
   [OrderStatus.REJECTED]: { label: 'Annulee', color: 'text-red-700', bg: 'bg-red-50 border-red-200' },
@@ -84,7 +84,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
   ], []);
 
   const recentActivity = useMemo(() => [
-    { time: '10:24', icon: 'shoppingBag', color: 'text-[#0077B6]', bg: 'bg-blue-50', title: 'Nouvelle commande recue', detail: 'Patrick M. — Gombe' },
+    { time: '10:24', icon: 'shoppingBag', color: 'text-brand-blue', bg: 'bg-blue-50', title: 'Nouvelle commande recue', detail: 'Patrick M. — Gombe' },
     { time: '10:22', icon: 'check', color: 'text-[#22C55E]', bg: 'bg-green-50', title: 'Commande confirmee', detail: 'ORDER-2047 — Sarah K.' },
     { time: '10:15', icon: 'currencyDollar', color: 'text-purple-600', bg: 'bg-purple-50', title: 'Paiement recu', detail: 'ORDER-2047 — 12$' },
     { time: '09:58', icon: 'truck', color: 'text-orange-500', bg: 'bg-orange-50', title: 'Ramassage effectue', detail: 'ORDER-2046 — Alain T.' },
@@ -115,7 +115,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
           <button className="px-4 py-2 bg-white border border-slate-200 text-sm font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-2">
             <Icon name="arrow-down-tray" className="w-4 h-4" />Exporter
           </button>
-          {setSection && <button className="px-4 py-2 bg-[#0077B6] text-white text-sm font-bold rounded-xl hover:bg-[#005f8f] transition flex items-center gap-2">
+          {setSection && <button className="px-4 py-2 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-brand-blue-700 transition flex items-center gap-2">
             <Icon name="plus" className="w-4 h-4" />Nouvelle commande
           </button>}
         </div>
@@ -125,7 +125,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: 'En attente', value: stats.pending, sub: 'A confirmer', icon: 'clock', bg: 'bg-orange-50', color: 'text-orange-500', border: 'border-orange-200' },
-          { label: 'Actives', value: stats.active, sub: 'En traitement', icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-[#0077B6]', border: 'border-blue-200' },
+          { label: 'Actives', value: stats.active, sub: 'En traitement', icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-brand-blue', border: 'border-blue-200' },
           { label: 'Pretes', value: stats.ready, sub: 'A livrer', icon: 'truck', bg: 'bg-indigo-50', color: 'text-indigo-500', border: 'border-indigo-200' },
           { label: 'Livrees', value: stats.completedCount, sub: 'Ce mois', icon: 'check', bg: 'bg-green-50', color: 'text-[#22C55E]', border: 'border-green-200' },
           { label: "CA aujourd'hui", value: formatPrice(stats.todayRevenue), sub: `${stats.todayCount} commandes`, icon: 'currencyDollar', bg: 'bg-emerald-50', color: 'text-emerald-500', border: 'border-emerald-200' },
@@ -148,7 +148,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
           <div className="space-y-2.5">
             {[
               { icon: 'clock', color: 'text-orange-500', bg: 'bg-orange-50', text: `${stats.pending} commandes a confirmer` },
-              { icon: 'truck', color: 'text-[#0077B6]', bg: 'bg-blue-50', text: '1 ramassage dans 30 min' },
+              { icon: 'truck', color: 'text-brand-blue', bg: 'bg-blue-50', text: '1 ramassage dans 30 min' },
               { icon: 'warning', color: 'text-red-500', bg: 'bg-red-50', text: '1 livraison en retard' },
               { icon: 'currencyDollar', color: 'text-purple-500', bg: 'bg-purple-50', text: '3 paiements a verifier' },
             ].map((a, i) => (
@@ -158,14 +158,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-1.5 text-xs font-bold text-[#0077B6] hover:underline">Voir toutes les actions</button>
+          <button className="w-full mt-3 py-1.5 text-xs font-bold text-brand-blue hover:underline">Voir toutes les actions</button>
         </div>
 
         {/* Planning du jour */}
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#0F172A]">Planning du jour</h3>
-            {setSection && <button onClick={() => setSection('delivery')} className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir calendrier</button>}
+            {setSection && <button onClick={() => setSection('delivery')} className="text-[10px] font-bold text-brand-blue hover:underline">Voir calendrier</button>}
           </div>
           <div className="space-y-2.5">
             {todaySchedule.map((s, i) => (
@@ -203,7 +203,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                     <div className="flex gap-1.5">
                       <button onClick={() => { setSelectedOrder(order); setIsDrawerOpen(true); }} className="px-2.5 py-1 text-[10px] font-bold border border-slate-200 rounded-lg hover:bg-slate-100 transition">Voir</button>
                       {order.status === OrderStatus.AWAITING_CONFIRMATION && (
-                        <button onClick={() => handleAcceptOrder(order)} className="px-2.5 py-1 text-[10px] font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Accepter</button>
+                        <button onClick={() => handleAcceptOrder(order)} className="px-2.5 py-1 text-[10px] font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Accepter</button>
                       )}
                     </div>
                   </div>
@@ -224,14 +224,14 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
           {/* Search */}
           <div className="relative mb-4">
             <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="Rechercher (client, telephone, numero...)" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0077B6]" />
+            <input type="text" placeholder="Rechercher (client, telephone, numero...)" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue" />
           </div>
           {/* Filters */}
           <div className="flex gap-1.5 overflow-x-auto pb-3 mb-3">
             {(['all', 'pending', 'confirmed', 'pickup', 'processing', 'ready', 'delivery', 'completed', 'cancelled'] as OrderFilter[]).map(f => {
               const labels: Record<OrderFilter, string> = { all: 'Toutes', pending: 'En attente', confirmed: 'Confirmees', pickup: 'Ramassees', processing: 'En traitement', ready: 'Pretes', delivery: 'Livrees', completed: 'Livrees', cancelled: 'Annulees' };
               return (
-                <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${filter === f ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${filter === f ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                   {labels[f]}
                 </button>
               );
@@ -247,7 +247,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                 <div key={order.id} className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition cursor-pointer" onClick={() => { setSelectedOrder(order); setIsDrawerOpen(true); }}>
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-xs">{initials}</div>
+                      <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-xs">{initials}</div>
                       <div>
                         <p className="text-sm font-bold text-[#0F172A]">{clientName}</p>
                         <p className="text-[10px] text-slate-400">{order.backendOrderNumber || order.id} • {order.clientDetails?.pickupAddress?.commune || 'Gombe'}</p>
@@ -263,7 +263,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                     <p className="text-[10px] text-slate-400">{order.createdAt ? timeSince(order.createdAt) : ''}</p>
                     <div className="flex gap-1">
                       {order.status === OrderStatus.AWAITING_CONFIRMATION && (
-                        <button onClick={(e) => { e.stopPropagation(); handleAcceptOrder(order); }} className="px-2.5 py-1 text-[10px] font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Accepter</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleAcceptOrder(order); }} className="px-2.5 py-1 text-[10px] font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Accepter</button>
                       )}
                       <span className="text-[10px] text-slate-400">Détails →</span>
                     </div>
@@ -275,7 +275,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                 <Icon name="shoppingBag" className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                 <p className="text-sm text-slate-500 font-medium">Aucune commande disponible</p>
                 <p className="text-xs text-slate-400 mt-1">Creez une promotion pour attirer vos premiers clients.</p>
-                {setSection && <button onClick={() => setSection('promotions')} className="mt-2 px-4 py-1.5 bg-[#0077B6] text-white text-xs font-bold rounded-lg hover:bg-[#005f8f] transition">Creer une promotion</button>}
+                {setSection && <button onClick={() => setSection('promotions')} className="mt-2 px-4 py-1.5 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition">Creer une promotion</button>}
               </div>
             )}
           </div>
@@ -293,7 +293,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                   {[
                     { name: 'Gombe', x: '10%', y: '20%', count: 3, color: 'bg-[#22C55E]' },
                     { name: 'Ngaliema', x: '30%', y: '60%', count: 2, color: 'bg-orange-500' },
-                    { name: 'Limete', x: '70%', y: '30%', count: 1, color: 'bg-[#0077B6]' },
+                    { name: 'Limete', x: '70%', y: '30%', count: 1, color: 'bg-brand-blue' },
                     { name: 'Kintambo', x: '50%', y: '70%', count: 1, color: 'bg-red-500' },
                   ].map((z, i) => (
                     <div key={i} className="text-center">
@@ -316,7 +316,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
               ].map((d, i) => (
                 <div key={i} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-[10px]">{d.name[0]}</div>
+                    <div className="w-7 h-7 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-[10px]">{d.name[0]}</div>
                     <div>
                       <p className="text-xs font-bold text-[#0F172A]">{d.name}</p>
                       <p className="text-[10px] text-slate-400">{d.deliveries} livraisons • {d.remaining} restantes</p>
@@ -330,7 +330,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                   <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 font-bold text-[10px]">+</div>
                   <p className="text-xs font-medium text-slate-500">Aucun livreur</p>
                 </div>
-                <button className="px-2 py-1 text-[10px] font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Assigner</button>
+                <button className="px-2 py-1 text-[10px] font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Assigner</button>
               </div>
             </div>
           </div>
@@ -383,8 +383,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
           <p className="text-xs text-slate-400 mb-4">{stats.todayCount} commandes • Panier moyen {stats.todayCount > 0 ? formatPrice(stats.todayRevenue / stats.todayCount) : '0 $'}</p>
           <div className="h-20 bg-slate-50 rounded-xl flex items-end justify-between gap-1 p-3">
             {[0.2, 0.4, 0.6, 0.8, 1.0, 0.9, 0.7, 0.5, 0.3, 0.6, 0.8, 0.4].map((h, i) => (
-              <div key={i} className="flex-1 bg-[#0077B6]/20 rounded-t" style={{ height: `${h * 100}%` }}>
-                <div className="w-full bg-[#0077B6] rounded-t" style={{ height: `${h * 100}%` }} />
+              <div key={i} className="flex-1 bg-brand-blue/20 rounded-t" style={{ height: `${h * 100}%` }}>
+                <div className="w-full bg-brand-blue rounded-t" style={{ height: `${h * 100}%` }} />
               </div>
             ))}
           </div>
@@ -395,7 +395,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
       </div>
 
       {/* ─── Footer CTA ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🚀</span>
           <div>
@@ -403,7 +403,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
             <p className="text-xs text-white/80">Assignez un livreur et gagnez du temps sur vos livraisons.</p>
           </div>
         </div>
-        {setSection && <button onClick={() => setSection('delivery')} className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Gerer mes livreurs</button>}
+        {setSection && <button onClick={() => setSection('delivery')} className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Gerer mes livreurs</button>}
       </div>
 
       {/* ─── Modals ─── */}
@@ -454,7 +454,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
                 <div className="space-y-2">
                   {(selectedOrder.trackingHistory || []).map((h, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#0077B6]" />
+                      <div className="w-2 h-2 rounded-full bg-brand-blue" />
                       <div>
                         <p className="text-xs font-medium text-[#0F172A]">{getStatusStyle(h.status).label}</p>
                         <p className="text-[10px] text-slate-400">{h.time ? new Date(h.time).toLocaleString('fr-FR') : ''}</p>
@@ -465,7 +465,7 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ setSection }) 
               </div>
               <div className="flex gap-2 pt-2">
                 {selectedOrder.status === OrderStatus.AWAITING_CONFIRMATION && (
-                  <button onClick={() => { setIsDrawerOpen(false); handleAcceptOrder(selectedOrder); }} className="flex-1 py-2.5 bg-[#0077B6] text-white text-sm font-bold rounded-xl hover:bg-[#005f8f] transition">Accepter</button>
+                  <button onClick={() => { setIsDrawerOpen(false); handleAcceptOrder(selectedOrder); }} className="flex-1 py-2.5 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-brand-blue-700 transition">Accepter</button>
                 )}
                 <button onClick={() => setIsDrawerOpen(false)} className="flex-1 py-2.5 bg-white border border-slate-200 text-sm font-bold rounded-xl hover:bg-slate-50 transition">Fermer</button>
               </div>

@@ -24,7 +24,7 @@ const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
   'Payee': { color: 'text-[#22C55E]', bg: 'bg-green-50' },
   'En attente': { color: 'text-[#FF7A00]', bg: 'bg-orange-50' },
   'En retard': { color: 'text-red-500', bg: 'bg-red-50' },
-  'Envoyee': { color: 'text-[#0077B6]', bg: 'bg-blue-50' },
+  'Envoyee': { color: 'text-brand-blue', bg: 'bg-blue-50' },
   'Annulee': { color: 'text-slate-400', bg: 'bg-slate-50' },
 };
 
@@ -59,7 +59,7 @@ const InvoiceModal: React.FC<{ document: PartnerGeneratedDocument; onClose: () =
           <div className="flex justify-end"><div className="w-48 space-y-1">
             <div className="flex justify-between text-sm"><span className="text-slate-500">Sous-total</span><span>{formatPrice(Number(payload.subtotal_amount || 0))}</span></div>
             {Number(payload.discount_amount || 0) > 0 && <div className="flex justify-between text-sm"><span className="text-slate-500">Remise</span><span className="text-red-500">-{formatPrice(Number(payload.discount_amount || 0))}</span></div>}
-            <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-[#0077B6]">{formatPrice(Number(payload.total_amount || 0))}</span></div>
+            <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-brand-blue">{formatPrice(Number(payload.total_amount || 0))}</span></div>
           </div></div>
         </div>
       </div>
@@ -160,7 +160,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
       result.push({
         label: `${d.getDate()}/${d.getMonth() + 1}`,
         values: [
-          { name: 'Facture', value: billed, color: '#0077B6' },
+          { name: 'Facture', value: billed, color: '#005bd8' },
           { name: 'Encaisse', value: collected, color: '#22C55E' },
           { name: 'En attente', value: billed - collected, color: '#FF7A00' },
         ],
@@ -183,14 +183,14 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
           <button className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-1.5"><Icon name="arrow-down-tray" className="w-3.5 h-3.5" />PDF</button>
           <button className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-1.5"><Icon name="arrow-down-tray" className="w-3.5 h-3.5" />Excel</button>
           <button className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition">Proforma</button>
-          <button className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition">+ Creer facture</button>
+          <button className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition">+ Creer facture</button>
         </div>
       </div>
 
       {/* ─── 6 KPI Cards ─── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { label: 'Factures ce mois', value: String(stats.count), change: '+18%', icon: 'document-text', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Factures ce mois', value: String(stats.count), change: '+18%', icon: 'document-text', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'CA facture', value: formatPrice(stats.total), change: '+12%', icon: 'currencyDollar', bg: 'bg-green-50', color: 'text-[#22C55E]' },
           { label: 'Montant encaisse', value: formatPrice(stats.collected), sub: `${stats.total > 0 ? Math.round((stats.collected / stats.total) * 100) : 0}% du CA`, icon: 'check', bg: 'bg-emerald-50', color: 'text-emerald-600' },
           { label: 'En attente paiement', value: formatPrice(stats.awaiting), sub: `${stats.total > 0 ? Math.round((stats.awaiting / stats.total) * 100) : 0}% du CA`, icon: 'clock', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
@@ -320,7 +320,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
             <div className="flex items-center gap-3">
               {['Facture', 'Encaisse', 'En attente'].map((n, i) => (
                 <span key={n} className="flex items-center gap-1 text-[10px] text-slate-500">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#0077B6', '#22C55E', '#FF7A00'][i] }} />{n}
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#005bd8', '#22C55E', '#FF7A00'][i] }} />{n}
                 </span>
               ))}
             </div>
@@ -334,7 +334,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
                 </g>
               ))}
               {['Facture', 'Encaisse', 'En attente'].map((name, si) => {
-                const color = ['#0077B6', '#22C55E', '#FF7A00'][si];
+                const color = ['#005bd8', '#22C55E', '#FF7A00'][si];
                 const max = Math.max(...revenueData.flatMap(d => d.values.map(v => v.value)), 1);
                 const pts = revenueData.map((d, i) => `${50 + (i / (revenueData.length - 1)) * 540},${20 + (1 - (d.values[si]?.value || 0) / max) * 160}`).join(' ');
                 return <polyline key={si} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" points={pts} />;
@@ -354,7 +354,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#0F172A]">Factures en attente ({pendingInvoices.length})</h3>
-            {setSection && <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir toutes</button>}
+            {setSection && <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir toutes</button>}
           </div>
           <div className="space-y-3">
             {pendingInvoices.length > 0 ? pendingInvoices.map(inv => {
@@ -371,7 +371,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
                     <button className="flex-1 py-1.5 text-[10px] font-bold bg-[#25D366] text-white rounded-lg hover:bg-[#1ebe5d] transition flex items-center justify-center gap-1">
                       <Icon name="device-phone-mobile" className="w-3 h-3" />WhatsApp
                     </button>
-                    <button className="flex-1 py-1.5 text-[10px] font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition flex items-center justify-center gap-1">
+                    <button className="flex-1 py-1.5 text-[10px] font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition flex items-center justify-center gap-1">
                       <Icon name="envelope" className="w-3 h-3" />Email
                     </button>
                   </div>
@@ -388,7 +388,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
       <div className="bg-white rounded-2xl border border-slate-100 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-[#0F172A]">Documents recents</h2>
-          {setSection && <button className="text-xs font-bold text-[#0077B6] hover:underline">Voir tous les documents</button>}
+          {setSection && <button className="text-xs font-bold text-brand-blue hover:underline">Voir tous les documents</button>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -435,8 +435,8 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
           <div className="flex items-center justify-between">
             {[
               { icon: 'check', label: 'Commande livree', sub: 'Terminee', color: 'bg-[#22C55E]', active: true },
-              { icon: 'document-text', label: 'Facture generee', sub: 'En cours', color: 'bg-[#0077B6]', active: true },
-              { icon: 'arrow-right', label: 'Envoyee', sub: 'En cours', color: 'bg-[#0077B6]', active: false },
+              { icon: 'document-text', label: 'Facture generee', sub: 'En cours', color: 'bg-brand-blue', active: true },
+              { icon: 'arrow-right', label: 'Envoyee', sub: 'En cours', color: 'bg-brand-blue', active: false },
               { icon: 'currencyDollar', label: 'Payee', sub: 'En attente', color: 'bg-slate-300', active: false },
               { icon: 'archive-box', label: 'Archivee', sub: 'A venir', color: 'bg-slate-300', active: false },
             ].map((step, i) => (
@@ -455,11 +455,11 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
           <h3 className="text-sm font-bold text-[#0F172A] mb-4">Generation rapide</h3>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: 'document-text', label: 'Nouvelle facture', sub: 'Creer une facture finale', color: 'from-[#0077B6] to-[#005f8f]' },
+              { icon: 'document-text', label: 'Nouvelle facture', sub: 'Creer une facture finale', color: 'from-brand-blue to-brand-blue-700' },
               { icon: 'document-arrow-down', label: 'Nouvelle proforma', sub: 'Creer une estimation', color: 'from-purple-500 to-purple-600' },
               { icon: 'pencil', label: 'Facture manuelle', sub: 'Creer sans commande', color: 'from-[#22C55E] to-[#1a9c4a]' },
             ].map((item, i) => (
-              <button key={i} className="p-4 rounded-xl border border-slate-100 hover:border-[#0077B6]/30 hover:shadow-md transition text-center">
+              <button key={i} className="p-4 rounded-xl border border-slate-100 hover:border-brand-blue/30 hover:shadow-md transition text-center">
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-2`}>
                   <Icon name={item.icon as any} className="w-5 h-5 text-white" />
                 </div>
@@ -476,7 +476,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#0F172A]">Top clients ce mois</h3>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tous</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tous</button>
           </div>
           <div className="space-y-2.5">
             {topClients.map((c, i) => {
@@ -485,7 +485,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
               return (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${isTop ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200' : 'bg-slate-50'}`}>
                   <div className="flex items-center gap-2.5">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${isTop ? 'bg-yellow-100 text-yellow-700' : 'bg-[#0077B6]/10 text-[#0077B6]'}`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${isTop ? 'bg-yellow-100 text-yellow-700' : 'bg-brand-blue/10 text-brand-blue'}`}>
                       {isTop ? '🏆' : initials}
                     </div>
                     <div>
@@ -503,7 +503,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#0F172A]">Top services ce mois</h3>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tous</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tous</button>
           </div>
           <div className="space-y-3">
             {topServices.map((s, i) => {
@@ -524,7 +524,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
                     <span>Marge ~{Math.round(100 - (s.count > 0 ? (s.revenue / s.count) * 2.5 : 0))}%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1.5">
-                    <div className="h-full bg-[#0077B6] rounded-full" style={{ width: `${(s.revenue / maxRev) * 100}%` }} />
+                    <div className="h-full bg-brand-blue rounded-full" style={{ width: `${(s.revenue / maxRev) * 100}%` }} />
                   </div>
                 </div>
               );
@@ -539,14 +539,14 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
             <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="Rechercher (numero, client, telephone...)" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0077B6]" />
+            <input type="text" placeholder="Rechercher (numero, client, telephone...)" value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue" />
           </div>
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-3">
           {(['all', 'paid', 'pending', 'overdue', 'cancelled', 'proforma'] as InvoiceFilter[]).map(f => {
             const labels: Record<InvoiceFilter, string> = { all: 'Toutes', paid: 'Payees', pending: 'En attente', overdue: 'En retard', cancelled: 'Annulees', proforma: 'Proformas' };
             return (
-              <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${filter === f ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${filter === f ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {labels[f]}
               </button>
             );
@@ -560,7 +560,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
               <div key={inv.id} className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition cursor-pointer">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-xs">{initials}</div>
+                    <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-xs">{initials}</div>
                     <div>
                       <p className="text-sm font-bold text-[#0F172A]">{inv.client}</p>
                       <p className="text-[10px] text-slate-400">{inv.id} • {inv.commune}</p>
@@ -583,7 +583,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
               <Icon name="document-text" className="w-10 h-10 mx-auto text-slate-300 mb-2" />
               <p className="text-sm text-slate-500 font-medium">Aucune facture disponible</p>
               <p className="text-xs text-slate-400 mt-1">Les commandes livrees apparaitront ici pour etre transformees en facture.</p>
-              {setSection && <button onClick={() => setSection('orders')} className="mt-2 px-4 py-1.5 bg-[#0077B6] text-white text-xs font-bold rounded-lg hover:bg-[#005f8f] transition">Voir mes commandes</button>}
+              {setSection && <button onClick={() => setSection('orders')} className="mt-2 px-4 py-1.5 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition">Voir mes commandes</button>}
             </div>
           )}
         </div>
@@ -597,7 +597,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
             { icon: 'document-text', label: 'Rapport mensuel', format: 'PDF', color: 'text-red-500' },
             { icon: 'document-text', label: 'Rapport annuel', format: 'PDF', color: 'text-red-500' },
             { icon: 'arrow-down-tray', label: 'Export factures', format: 'Excel', color: 'text-[#22C55E]' },
-            { icon: 'arrow-down-tray', label: 'Export paiements', format: 'CSV', color: 'text-[#0077B6]' },
+            { icon: 'arrow-down-tray', label: 'Export paiements', format: 'CSV', color: 'text-brand-blue' },
             { icon: 'document', label: 'Grand livre', format: 'Excel', color: 'text-[#22C55E]' },
           ].map((exp, i) => (
             <button key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
@@ -609,7 +609,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
       </div>
 
       {/* ─── Footer CTA ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">⚡</span>
           <div>
@@ -617,7 +617,7 @@ export const InvoicingPage: React.FC<InvoicingProps> = ({ setSection }) => {
             <p className="text-xs text-white/80">Gagnez du temps en automatisant les relances de paiement par WhatsApp ou Email.</p>
           </div>
         </div>
-        <button className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Configurer les relances</button>
+        <button className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Configurer les relances</button>
       </div>
 
       {modalDocument && <InvoiceModal document={modalDocument} onClose={() => setModalDocument(null)} />}

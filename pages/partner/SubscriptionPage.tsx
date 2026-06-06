@@ -82,7 +82,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
             { icon: 'wallet', label: 'Gerer le mode de paiement', sub: 'Cartes, Mobile Money, etc.' },
           ].map((a, i) => (
             <button key={i} className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition text-left">
-              <div className="flex items-center gap-2 mb-1"><Icon name={a.icon as any} className="w-4 h-4 text-[#0077B6]" /><span className="text-xs font-bold text-[#0F172A]">{a.label}</span></div>
+              <div className="flex items-center gap-2 mb-1"><Icon name={a.icon as any} className="w-4 h-4 text-brand-blue" /><span className="text-xs font-bold text-[#0F172A]">{a.label}</span></div>
               <p className="text-[10px] text-slate-400 ml-6">{a.sub}</p>
             </button>
           ))}
@@ -97,7 +97,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {[
-            { label: 'Commandes generees', value: String(stats.orders), change: '+15% vs mois dernier', icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+            { label: 'Commandes generees', value: String(stats.orders), change: '+15% vs mois dernier', icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-brand-blue' },
             { label: 'Revenues generes', value: formatPrice(stats.revenue), change: '+22% vs mois dernier', icon: 'currencyDollar', bg: 'bg-green-50', color: 'text-[#22C55E]' },
             { label: 'Nouveaux clients', value: String(stats.prospects), change: '+18% vs mois dernier', icon: 'user', bg: 'bg-purple-50', color: 'text-purple-600' },
             { label: 'Visiteurs du profil', value: stats.visitors.toLocaleString('fr-FR'), change: '+30% vs mois dernier', icon: 'eye', bg: 'bg-cyan-50', color: 'text-cyan-600' },
@@ -117,7 +117,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
               <p className="text-xs text-slate-500">Retour sur investissement : <strong className="text-[#22C55E]">{stats.roi}x</strong></p>
             </div>
           </div>
-          {setSection && <button onClick={() => setSection('analytics')} className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition shrink-0">Voir rapport detaille</button>}
+          {setSection && <button onClick={() => setSection('analytics')} className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition shrink-0">Voir rapport detaille</button>}
         </div>
       </div>
 
@@ -128,8 +128,8 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans.map((plan, i) => (
-            <div key={i} className={`rounded-2xl border-2 p-5 relative ${plan.current ? 'border-[#0077B6] shadow-lg' : 'border-slate-100'}`}>
-              {plan.current && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#0077B6] text-white text-[10px] font-bold rounded-full">Plan actuel</span>}
+            <div key={i} className={`rounded-2xl border-2 p-5 relative ${plan.current ? 'border-brand-blue shadow-lg' : 'border-slate-100'}`}>
+              {plan.current && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-brand-blue text-white text-[10px] font-bold rounded-full">Plan actuel</span>}
               {plan.name === 'Enterprise' && !plan.current && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full">⭐ Recommande</span>}
               <p className="text-lg font-bold text-[#0F172A] mb-1">{plan.name}</p>
               <p className="text-xs text-slate-500 mb-3">{plan.desc}</p>
@@ -145,7 +145,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
                   <div key={j} className="flex items-center gap-2 text-xs text-slate-400"><Icon name="xmark" className="w-3.5 h-3.5 text-slate-300 shrink-0" />{f}</div>
                 ))}
               </div>
-              <button className={`w-full py-2.5 text-xs font-bold rounded-xl transition ${plan.current ? 'bg-[#0077B6]/10 text-[#0077B6] border border-[#0077B6]/20' : plan.name === 'Enterprise' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              <button className={`w-full py-2.5 text-xs font-bold rounded-xl transition ${plan.current ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : plan.name === 'Enterprise' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {plan.current ? 'Plan actuel' : plan.name === 'Enterprise' ? 'Passer a Enterprise' : 'Choisir ce plan'}
               </button>
             </div>
@@ -172,7 +172,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
             <p className="text-xs font-bold text-[#0F172A] mb-2">Resultat estime</p>
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs"><span className="text-slate-500">CA potentiel</span><span className="font-bold text-[#0F172A]">{formatPrice(stats.revenue)}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-slate-500">Plan conseille</span><span className="px-2 py-0.5 bg-[#0077B6] text-white text-[10px] font-bold rounded-full">Professionnel</span></div>
+              <div className="flex justify-between text-xs"><span className="text-slate-500">Plan conseille</span><span className="px-2 py-0.5 bg-brand-blue text-white text-[10px] font-bold rounded-full">Professionnel</span></div>
               <div className="flex justify-between text-xs"><span className="text-slate-500">ROI estime</span><span className="font-bold text-[#22C55E]">{stats.roi}x</span></div>
             </div>
             <div className="flex items-center gap-1.5 mt-3 text-xs text-[#22C55E] font-medium">
@@ -195,14 +195,14 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
                     <span className="text-sm font-bold text-[#0F172A]">{u.used.toLocaleString('fr-FR')} / {u.max.toLocaleString('fr-FR')}</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : pct > 60 ? 'bg-[#FF7A00]' : 'bg-[#0077B6]'}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : pct > 60 ? 'bg-[#FF7A00]' : 'bg-brand-blue'}`} style={{ width: `${pct}%` }} />
                   </div>
                   <p className="text-[10px] text-slate-400 text-right mt-0.5">{pct}%</p>
                 </div>
               );
             })}
           </div>
-          <button className="w-full mt-4 py-2 text-xs font-bold text-[#0077B6] hover:underline">Voir toutes les quotas et limites</button>
+          <button className="w-full mt-4 py-2 text-xs font-bold text-brand-blue hover:underline">Voir toutes les quotas et limites</button>
         </div>
       </div>
 
@@ -232,7 +232,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
               </tbody>
             </table>
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline text-center">Voir tout l'historique</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline text-center">Voir tout l'historique</button>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
@@ -240,7 +240,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
           <div className="space-y-2">
             {[
               { method: 'Mobile Money (Orange Money)', details: '+243 81 234 56 78', status: 'Principal', color: 'bg-[#22C55E]/10 text-[#22C55E]', icon: 'wallet' },
-              { method: 'Visa ****-4242', details: 'Expire 06/27', status: 'Secondaire', color: 'bg-blue-50 text-[#0077B6]', icon: 'wallet' },
+              { method: 'Visa ****-4242', details: 'Expire 06/27', status: 'Secondaire', color: 'bg-blue-50 text-brand-blue', icon: 'wallet' },
               { method: 'Virement bancaire', details: 'XXXX-XXXX-XXXX-1234', status: 'Secondaire', color: 'bg-slate-100 text-slate-500', icon: 'wallet' },
             ].map((p, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
@@ -251,7 +251,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.color}`}>{p.status}</span>
               </div>
             ))}
-            <button className="w-full py-2 text-xs font-bold text-[#0077B6] border border-dashed border-[#0077B6]/30 rounded-xl hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1"><Icon name="plus" className="w-3 h-3" />Ajouter une methode</button>
+            <button className="w-full py-2 text-xs font-bold text-brand-blue border border-dashed border-brand-blue/30 rounded-xl hover:bg-brand-blue/5 transition flex items-center justify-center gap-1"><Icon name="plus" className="w-3 h-3" />Ajouter une methode</button>
           </div>
         </div>
 
@@ -283,7 +283,7 @@ export const SubscriptionPage: React.FC<SubscriptionProps> = ({ setSection }) =>
           <div className="relative">
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200" />
             {[
-              { date: '12 Jan 2026', event: 'Compte cree', icon: 'user', color: 'bg-[#0077B6]' },
+              { date: '12 Jan 2026', event: 'Compte cree', icon: 'user', color: 'bg-brand-blue' },
               { date: '12 Jan 2026', event: 'Abonnement Essentiel', icon: 'star', color: 'bg-[#22C55E]' },
               { date: '15 Mar 2026', event: 'Upgrade Professionnel', icon: 'arrow-path', color: 'bg-purple-600' },
               { date: '15 Juin 2026', event: 'Prochain renouvellement', icon: 'calendar', color: 'bg-[#FF7A00]' },

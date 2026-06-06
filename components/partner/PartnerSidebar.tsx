@@ -16,7 +16,7 @@ const NavItem: React.FC<{
     return (
         <button
             onClick={() => onClick(target, isExternal)}
-            className={`flex items-center w-full shrink-0 px-4 py-3 rounded-lg text-left transition-colors ${isActive ? 'bg-[#0077B6] text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+            className={`flex items-center w-full shrink-0 px-4 py-3 rounded-lg text-left transition-colors ${isActive ? 'bg-brand-blue text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
         >
             <Icon name={iconName} className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400'}`} />
             <span className="font-medium whitespace-nowrap flex-1">{label}</span>

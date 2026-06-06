@@ -31,19 +31,19 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
   ], []);
 
   const activityLog = useMemo(() => [
-    { user: 'Patrice M.', action: "s'est connecte", detail: 'Navigateur Chrome sur Windows', time: 'Il y a 2 min', ip: '197.210.45.12', icon: 'user', color: 'text-[#0077B6]', category: 'Connexion' },
+    { user: 'Patrice M.', action: "s'est connecte", detail: 'Navigateur Chrome sur Windows', time: 'Il y a 2 min', ip: '197.210.45.12', icon: 'user', color: 'text-brand-blue', category: 'Connexion' },
     { user: 'Marie T.', action: 'a modifie un tarif de service', detail: 'Service : Nettoyage a sec', time: 'Il y a 15 min', ip: '197.210.45.12', icon: 'pencil', color: 'text-[#FF7A00]', category: 'Equipe' },
     { user: 'Jean L.', action: 'a accepte la commande', detail: 'Commande #CMD-204', time: 'Il y a 28 min', ip: '197.210.45.88', icon: 'check', color: 'text-[#22C55E]', category: 'Commandes' },
     { user: 'David K.', action: 'a supprime une photo', detail: 'Galerie du profil', time: 'Il y a 1 h', ip: '197.210.45.12', icon: 'xmark', color: 'text-red-500', category: 'Equipe' },
     { user: 'Patrice M.', action: 'a cree une promotion', detail: 'Code : WELCOME20', time: 'Il y a 2 h', ip: '197.210.45.12', icon: 'sparkles', color: 'text-[#FF7A00]', category: 'Facturation' },
     { user: 'Sarah M.', action: 'a mis a jour le profil', detail: 'Photos du pressing', time: 'Il y a 3 h', ip: '197.210.45.12', icon: 'photo', color: 'text-purple-600', category: 'Equipe' },
-    { user: 'Patrice M.', action: 'a genere une facture', detail: 'INV-2026-024', time: 'Il y a 4 h', ip: '197.210.45.12', icon: 'document-text', color: 'text-[#0077B6]', category: 'Facturation' },
+    { user: 'Patrice M.', action: 'a genere une facture', detail: 'INV-2026-024', time: 'Il y a 4 h', ip: '197.210.45.12', icon: 'document-text', color: 'text-brand-blue', category: 'Facturation' },
   ], []);
 
   const anomalies = useMemo(() => [
     { type: 'Connexion inhabituelle', detail: 'Brazzaville, Congo', time: '23:54', severity: 'Moyen', icon: 'warning', color: 'text-[#FF7A00]' },
     { type: 'Tentative mot de passe echouee', detail: '5 fois en 10 min', time: '21:10', severity: 'Eleve', icon: 'shield-check', color: 'text-red-500' },
-    { type: 'Nouvel appareil connecte', detail: 'Inconnu : Android - Samsung', time: '18:22', severity: 'Faible', icon: 'device-phone-mobile', color: 'text-[#0077B6]' },
+    { type: 'Nouvel appareil connecte', detail: 'Inconnu : Android - Samsung', time: '18:22', severity: 'Faible', icon: 'device-phone-mobile', color: 'text-brand-blue' },
   ], []);
 
   const criticalActions = useMemo(() => [
@@ -85,7 +85,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
           { label: 'Score securite', value: `${stats.score}/100`, sub: 'Excellent', icon: 'shield-check', bg: 'bg-green-50', color: 'text-[#22C55E]' },
-          { label: '2FA active', value: `${stats.twoFAEnabled} / ${stats.twoFATotal}`, sub: 'Utilisateurs', icon: 'lock-closed', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: '2FA active', value: `${stats.twoFAEnabled} / ${stats.twoFATotal}`, sub: 'Utilisateurs', icon: 'lock-closed', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'Sessions actives', value: String(stats.activeSessions), sub: 'Voir toutes', icon: 'user', bg: 'bg-purple-50', color: 'text-purple-600' },
           { label: 'Appareils connus', value: String(stats.knownDevices), sub: 'Voir la liste', icon: 'computer', bg: 'bg-cyan-50', color: 'text-cyan-600' },
           { label: 'Tentatives bloquees', value: String(stats.blockedAttempts), sub: '30 derniers jours', icon: 'shield-check', bg: 'bg-red-50', color: 'text-red-500' },
@@ -136,7 +136,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
               <span className="text-[#FF7A00]">5 employs sans 2FA</span>
             </div>
           </div>
-          <button className="w-full py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Ameliorer la securite</button>
+          <button className="w-full py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Ameliorer la securite</button>
         </div>
 
         {/* 2FA */}
@@ -147,7 +147,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
           </div>
           <div className="p-4 bg-slate-50 rounded-xl mb-3">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><Icon name="shield-check" className="w-5 h-5 text-[#0077B6]" /></div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><Icon name="shield-check" className="w-5 h-5 text-brand-blue" /></div>
               <div><p className="text-xs font-bold text-[#0F172A]">Google Authenticator</p><p className="text-[10px] text-slate-400">Activee depuis 14 Mai 2026</p></div>
             </div>
           </div>
@@ -156,8 +156,8 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
             <p className="text-[10px] text-slate-400">10 codes disponibles</p>
           </div>
           <div className="space-y-2">
-            <button className="w-full py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5"><Icon name="search" className="w-3 h-3" />Voir le QR code</button>
-            <button className="w-full py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5"><Icon name="arrow-path" className="w-3 h-3" />Regenerer les codes</button>
+            <button className="w-full py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center justify-center gap-1.5"><Icon name="search" className="w-3 h-3" />Voir le QR code</button>
+            <button className="w-full py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center justify-center gap-1.5"><Icon name="arrow-path" className="w-3 h-3" />Regenerer les codes</button>
             <button className="w-full py-2 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-1.5"><Icon name="xmark" className="w-3 h-3" />Desactiver 2FA</button>
           </div>
         </div>
@@ -176,7 +176,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5"><Icon name="envelope" className="w-3 h-3" />Envoyer un rappel 2FA</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center justify-center gap-1.5"><Icon name="envelope" className="w-3 h-3" />Envoyer un rappel 2FA</button>
         </div>
       </div>
 
@@ -186,7 +186,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-[#0F172A]">Sessions actives</h2>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir toutes les sessions</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir toutes les sessions</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -222,11 +222,11 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-[#0F172A]">Journal d'activite</h2>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tout le journal</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tout le journal</button>
           </div>
           <div className="flex gap-1.5 mb-3 overflow-x-auto">
             {['Tous', 'Connexion', 'Equipe', 'Commandes', 'Facturation', 'Livraison'].map(f => (
-              <button key={f} onClick={() => setActivityFilter(f)} className={`px-2.5 py-1 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${activityFilter === f ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600'}`}>{f}</button>
+              <button key={f} onClick={() => setActivityFilter(f)} className={`px-2.5 py-1 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${activityFilter === f ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}>{f}</button>
             ))}
           </div>
           <div className="space-y-2.5">
@@ -250,11 +250,11 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-[#0F172A]">Activites suspectes</h2>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir toutes</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir toutes</button>
           </div>
           <div className="space-y-2.5">
             {anomalies.map((a, i) => {
-              const sevColor = a.severity === 'Eleve' ? 'bg-red-50 text-red-500' : a.severity === 'Moyen' ? 'bg-orange-50 text-[#FF7A00]' : 'bg-blue-50 text-[#0077B6]';
+              const sevColor = a.severity === 'Eleve' ? 'bg-red-50 text-red-500' : a.severity === 'Moyen' ? 'bg-orange-50 text-[#FF7A00]' : 'bg-blue-50 text-brand-blue';
               return (
                 <div key={i} className="p-3 bg-slate-50 rounded-xl">
                   <div className="flex items-center justify-between mb-1">
@@ -275,7 +275,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-[#0F172A]">Actions sensibles</h2>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tout</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tout</button>
           </div>
           <div className="space-y-2">
             {criticalActions.map((a, i) => (
@@ -307,7 +307,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
           </div>
           <div className="flex gap-2">
             <button className="flex-1 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition">Voir les cles</button>
-            <button className="flex-1 py-2 text-xs font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Journal API</button>
+            <button className="flex-1 py-2 text-xs font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Journal API</button>
           </div>
         </div>
       </div>
@@ -329,7 +329,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Mettre a jour</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Mettre a jour</button>
         </div>
 
         {/* Conformite */}
@@ -348,7 +348,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
                 </div>
                 <div className="flex items-center justify-between ml-6">
                   <span className="text-[10px] text-slate-400">{c.value}</span>
-                  <button className="text-[10px] font-bold text-[#0077B6] hover:underline">{c.action}</button>
+                  <button className="text-[10px] font-bold text-brand-blue hover:underline">{c.action}</button>
                 </div>
               </div>
             ))}
@@ -360,7 +360,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
           <h2 className="text-sm font-bold text-[#0F172A] mb-3">Rapport securite mensuel</h2>
           <div className="grid grid-cols-2 gap-3 mb-4">
             {[
-              { label: 'Connexions', value: '23', icon: 'user', color: 'text-[#0077B6]' },
+              { label: 'Connexions', value: '23', icon: 'user', color: 'text-brand-blue' },
               { label: 'Tentatives bloquees', value: '23', icon: 'shield-check', color: 'text-red-500' },
               { label: 'Appareils utilises', value: '12', icon: 'computer', color: 'text-purple-600' },
               { label: 'Activites suspectes', value: '0', icon: 'warning', color: 'text-[#22C55E]' },
@@ -372,7 +372,7 @@ export const SecurityPage: React.FC<SecurityProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5"><Icon name="arrow-down-tray" className="w-3 h-3" />Telecharger le rapport PDF</button>
+          <button className="w-full py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center justify-center gap-1.5"><Icon name="arrow-down-tray" className="w-3 h-3" />Telecharger le rapport PDF</button>
         </div>
       </div>
 

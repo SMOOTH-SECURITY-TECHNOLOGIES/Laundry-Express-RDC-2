@@ -14,14 +14,14 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
 
   const automations = useMemo(() => [
     { icon: 'shoppingBag', iconBg: 'bg-[#22C55E]/10', iconColor: 'text-[#22C55E]', name: 'Acceptation automatique des commandes', desc: 'Accepter automatiquement les nouvelles commandes entrantes.', detail: 'Toujours actif', enabled: true },
-    { icon: 'clock', iconBg: 'bg-[#0077B6]/10', iconColor: 'text-[#0077B6]', name: "Heures d'ouverture", desc: "N'accepter les commandes automatiquement que pendant vos heures d'ouverture.", detail: 'Tous les jours 07:00 – 19:00', enabled: true },
+    { icon: 'clock', iconBg: 'bg-brand-blue/10', iconColor: 'text-brand-blue', name: "Heures d'ouverture", desc: "N'accepter les commandes automatiquement que pendant vos heures d'ouverture.", detail: 'Tous les jours 07:00 – 19:00', enabled: true },
     { icon: 'chatBubble', iconBg: 'bg-purple-50', iconColor: 'text-purple-600', name: 'Confirmation automatique par SMS', desc: 'Envoyer un SMS de confirmation des qu\'une commande est acceptee.', detail: 'Envoye immediatement', enabled: true },
     { icon: 'bell', iconBg: 'bg-orange-50', iconColor: 'text-[#FF7A00]', name: 'Rappel de commande prete', desc: 'Notifier le client lorsque sa commande est prete a etre recuperee.', detail: 'Envoye 1 heure apres le statut "Pret"', enabled: true },
     { icon: 'star', iconBg: 'bg-red-50', iconColor: 'text-red-500', name: 'Demande d\'avis client', desc: 'Envoyer une demande d\'avis apres la livraison ou le retrait.', detail: 'Envoye 24h apres livraison', enabled: true },
   ], []);
 
   const popularTemplates = useMemo(() => [
-    { icon: 'chatBubble', name: 'Reponse automatique', desc: 'Repondre aux nouveaux messages', color: 'text-[#0077B6]' },
+    { icon: 'chatBubble', name: 'Reponse automatique', desc: 'Repondre aux nouveaux messages', color: 'text-brand-blue' },
     { icon: 'shoppingBag', name: 'Suivi de commande', desc: 'Informer le client du statut', color: 'text-[#22C55E]' },
     { icon: 'clock', name: 'Rappel paiement', desc: 'Relancer les paiements en attente', color: 'text-[#FF7A00]' },
     { icon: 'star', name: 'Anniversaire client', desc: 'Envoyer un coupon le jour J', color: 'text-red-500' },
@@ -50,14 +50,14 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
       {/* ─── Tabs ─── */}
       <div className="flex gap-1 border-b border-slate-200">
         {([['basique', 'Basique'], ['messagerie', 'Messagerie'], ['regles', 'Regles avancees'], ['analytique', 'Analytique']] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setActiveTab(key)} className={`px-4 py-2.5 text-xs font-bold border-b-2 transition ${activeTab === key ? 'border-[#0077B6] text-[#0077B6]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>{label}</button>
+          <button key={key} onClick={() => setActiveTab(key)} className={`px-4 py-2.5 text-xs font-bold border-b-2 transition ${activeTab === key ? 'border-brand-blue text-brand-blue' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>{label}</button>
         ))}
       </div>
 
       {/* ─── KPI Cards ─── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Automatisations actives', value: String(stats.active), change: '+2 ce mois', icon: 'arrow-path', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Automatisations actives', value: String(stats.active), change: '+2 ce mois', icon: 'arrow-path', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'Tems economise', value: `${stats.timeSaved} h`, change: '+18% ce mois', icon: 'clock', bg: 'bg-green-50', color: 'text-[#22C55E]' },
           { label: "Taux d'execution", value: `${stats.executionRate}%`, sub: 'Excellent', icon: 'check', bg: 'bg-emerald-50', color: 'text-emerald-600' },
           { label: 'Actions automatisees', value: stats.totalActions.toLocaleString('fr-FR'), sub: 'Ce mois', icon: 'arrow-right', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
@@ -97,7 +97,7 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-4 py-2.5 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-xl hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5">Voir toutes les automatisations →</button>
+          <button className="w-full mt-4 py-2.5 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-xl hover:bg-brand-blue/5 transition flex items-center justify-center gap-1.5">Voir toutes les automatisations →</button>
         </div>
 
         {/* Sidebar */}
@@ -120,7 +120,7 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
               </div>
             </div>
             <p className="text-[10px] text-[#22C55E] font-bold mb-3">Excellent</p>
-            <button className="w-full py-2 text-xs font-bold text-[#0077B6] hover:underline flex items-center justify-center gap-1">Voir les journaux d'execution →</button>
+            <button className="w-full py-2 text-xs font-bold text-brand-blue hover:underline flex items-center justify-center gap-1">Voir les journaux d'execution →</button>
           </div>
 
           {/* Modeles populaires */}
@@ -137,7 +137,7 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline flex items-center justify-center gap-1">Voir tous les modeles →</button>
+            <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline flex items-center justify-center gap-1">Voir tous les modeles →</button>
           </div>
 
           {/* Actions rapides */}
@@ -145,7 +145,7 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
             <h2 className="text-sm font-bold text-[#0F172A] mb-3">Actions rapides</h2>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { icon: 'plus', label: 'Creer une automatisation', color: 'text-[#0077B6]' },
+                { icon: 'plus', label: 'Creer une automatisation', color: 'text-brand-blue' },
                 { icon: 'arrow-down-tray', label: 'Importer un modele', color: 'text-[#22C55E]' },
                 { icon: 'arrow-path', label: 'Dupliquer une regle', color: 'text-purple-600' },
                 { icon: 'play', label: 'Tester une regle', color: 'text-[#FF7A00]' },
@@ -161,7 +161,7 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
       </div>
 
       {/* ─── Footer CTA ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🤖</span>
           <div>
@@ -169,7 +169,7 @@ export const AutomationPage: React.FC<AutomationProps> = ({ setSection }) => {
             <p className="text-xs text-white/80">Les entreprises utilisant l'automatisation gagnent en moyenne 87 heures par mois.</p>
           </div>
         </div>
-        <button className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Decouvrir plus d'automations</button>
+        <button className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Decouvrir plus d'automations</button>
       </div>
     </div>
   );
