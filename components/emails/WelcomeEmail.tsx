@@ -8,7 +8,7 @@ interface WelcomeEmailProps {
 const styles = {
     container: { padding: '20px', maxWidth: '600px', margin: 'auto', border: '1px solid #ddd', borderRadius: '8px', fontFamily: 'sans-serif', color: '#333' },
     header: { fontSize: '24px', fontWeight: 'bold', color: '#03045E' },
-    button: { backgroundColor: '#0077B6', color: 'white', padding: '12px 20px', textDecoration: 'none', borderRadius: '5px', display: 'inline-block' }
+    button: { backgroundColor: '#0066CC', color: 'white', padding: '12px 20px', textDecoration: 'none', borderRadius: '5px', display: 'inline-block' }
 };
 
 export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ userName, t }) => {

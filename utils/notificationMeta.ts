@@ -15,7 +15,7 @@ export const NOTIFICATION_META: Record<NotificationType, {
 }> = {
   [NotificationType.NEW_ORDER]: {
     icon: 'shoppingBag',
-    color: 'text-[#0077B6]',
+    color: 'text-brand-blue',
     bgColor: 'bg-blue-50',
     label: 'Nouvelle commande',
   },

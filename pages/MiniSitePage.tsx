@@ -260,7 +260,7 @@ export const MiniSitePage: React.FC = () => {
             { icon: <Icon name="hand-thumb-up" className="w-5 h-5" />, label: `${publicStats.satisfactionRate}% reussite`, sub: 'Sur toutes les commandes' },
           ].map((badge, i) => (
             <div key={i} className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm min-w-[180px] flex-1">
-              <div className="p-2 bg-blue-50 rounded-lg text-[#0077B6] shrink-0">{badge.icon}</div>
+              <div className="p-2 bg-blue-50 rounded-lg text-brand-blue shrink-0">{badge.icon}</div>
               <div>
                 <p className="text-sm font-bold text-[#0F172A]">{badge.label}</p>
                 <p className="text-xs text-slate-500">{badge.sub}</p>
@@ -276,42 +276,42 @@ export const MiniSitePage: React.FC = () => {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-xl">
-              <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]"><Icon name="shoppingBag" className="w-5 h-5" /></div>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue"><Icon name="shoppingBag" className="w-5 h-5" /></div>
               <div>
                 <div className="text-xl font-extrabold text-[#0F172A]">{publicStats.totalOrders.toLocaleString('fr-FR')}</div>
                 <div className="text-xs text-slate-500">Commandes realisees</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-xl">
-              <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]"><Icon name="heart" className="w-5 h-5" /></div>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue"><Icon name="heart" className="w-5 h-5" /></div>
               <div>
                 <div className="text-xl font-extrabold text-[#0F172A]">{publicStats.satisfactionRate}%</div>
                 <div className="text-xs text-slate-500">Satisfaction clients</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-xl">
-              <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]"><Icon name="clock" className="w-5 h-5" /></div>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue"><Icon name="clock" className="w-5 h-5" /></div>
               <div>
                 <div className="text-xl font-extrabold text-[#0F172A]">{publicStats.avgDeliveryHours}h</div>
                 <div className="text-xs text-slate-500">Delai moyen</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-xl">
-              <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]"><Icon name="shield-check" className="w-5 h-5" /></div>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue"><Icon name="shield-check" className="w-5 h-5" /></div>
               <div>
                 <div className="text-xl font-extrabold text-[#0F172A]">{publicStats.disputeRate}%</div>
                 <div className="text-xs text-slate-500">Taux de litige</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-xl">
-              <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]"><Icon name="calendar" className="w-5 h-5" /></div>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue"><Icon name="calendar" className="w-5 h-5" /></div>
               <div>
                 <div className="text-xl font-extrabold text-[#0F172A]">{publicStats.memberSince}</div>
                 <div className="text-xs text-slate-500">Membre depuis</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] rounded-xl">
-              <div className="p-2.5 bg-blue-50 rounded-lg text-[#0077B6]"><Icon name="chatBubble" className="w-5 h-5" /></div>
+              <div className="p-2.5 bg-blue-50 rounded-lg text-brand-blue"><Icon name="chatBubble" className="w-5 h-5" /></div>
               <div>
                 <div className="text-xl font-extrabold text-[#0F172A]">{publicStats.responseTime}</div>
                 <div className="text-xs text-slate-500">Temps de reponse</div>
@@ -392,14 +392,14 @@ export const MiniSitePage: React.FC = () => {
                   <tr key={i} className="border-b border-slate-50 last:border-0">
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-2">
-                        {row.verified && <Icon name="badge-check" className="w-4 h-4 text-[#0077B6]" />}
+                        {row.verified && <Icon name="badge-check" className="w-4 h-4 text-brand-blue" />}
                         <div>
                           <p className="font-bold text-[#0F172A]">{row.name}</p>
-                          {row.verified && <p className="text-[10px] text-[#0077B6]">Partenaire verifie</p>}
+                          {row.verified && <p className="text-[10px] text-brand-blue">Partenaire verifie</p>}
                           {i === 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
                               <span className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold rounded">Meilleure note</span>
-                              <span className="px-1.5 py-0.5 bg-blue-50 text-[#0077B6] text-[10px] font-bold rounded">Plus rapide</span>
+                              <span className="px-1.5 py-0.5 bg-blue-50 text-brand-blue text-[10px] font-bold rounded">Plus rapide</span>
                               <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[10px] font-bold rounded">Plus populaire</span>
                             </div>
                           )}
@@ -418,7 +418,7 @@ export const MiniSitePage: React.FC = () => {
               </tbody>
             </table>
           </div>
-          <button className="mt-4 text-sm font-bold text-[#0077B6] hover:underline">Voir plus de pressings (15+)</button>
+          <button className="mt-4 text-sm font-bold text-brand-blue hover:underline">Voir plus de pressings (15+)</button>
         </section>
 
         {/* ─── Coverage Zone ─── */}
@@ -566,3 +566,4 @@ export const MiniSitePage: React.FC = () => {
     </div>
   );
 };
+
