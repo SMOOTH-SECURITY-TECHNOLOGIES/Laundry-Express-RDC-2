@@ -1,0 +1,10 @@
+/* Minimal CSS file to satisfy Vite's html-inline-proxy plugin */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}

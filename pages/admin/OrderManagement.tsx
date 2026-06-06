@@ -1,33 +1,57 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { Order, OrderStatus } from '../../types';
+import { realApi, Order as ApiOrder } from '../../services/real-api';
+import { OrderStatus } from '../../types';
 // FIX: Using correct PascalCase for the implementation file import to resolve casing and export errors.
 import { ChatModal } from '../../components/ChatModal';
 import { Icon } from '../../components/Icon';
 import { useNavigation } from '../../context/NavigationContext';
 
-const getStatusColor = (status: OrderStatus) => {
+const getStatusColor = (status: string) => {
     switch(status) {
-        case OrderStatus.COMPLETED: return 'bg-green-100 text-green-800';
-        case OrderStatus.REJECTED: return 'bg-red-100 text-red-800';
-        case OrderStatus.PROCESSING:
-        case OrderStatus.DELIVERY:
-        case OrderStatus.PICKUP:
+        case 'completed':
+        case 'delivered':
+            return 'bg-green-100 text-green-800';
+        case 'cancelled':
+        case 'failed':
+            return 'bg-red-100 text-red-800';
+        case 'cleaning_in_progress':
+        case 'delivery_in_progress':
+        case 'pickup_in_progress':
+        case 'confirmed':
+        case 'ready_for_delivery':
             return 'bg-blue-100 text-blue-800';
         default: return 'bg-yellow-100 text-yellow-800';
     }
 }
 
 export const OrderManagement: React.FC = () => {
-    const { getAllOrders, getAllUsers, t } = useAppContext();
+    const { t } = useAppContext();
     const { openChatForOrderId, setOpenChatForOrderId } = useNavigation();
-    const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
-    const [chattingOrder, setChattingOrder] = useState<Order | null>(null);
+    const [filter, setFilter] = useState<string>('all');
+    const [chattingOrder, setChattingOrder] = useState<any | null>(null);
+    const [orders, setOrders] = useState<ApiOrder[]>([]);
 
-    const orders = getAllOrders();
-    const users = getAllUsers();
+    useEffect(() => {
+        let isMounted = true;
+
+        realApi.getOrders({ page: 1, page_size: 200 })
+            .then((response) => {
+                if (isMounted) {
+                    setOrders(response.orders || []);
+                }
+            })
+            .catch(() => {
+                if (isMounted) {
+                    setOrders([]);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (openChatForOrderId) {
@@ -43,11 +67,6 @@ export const OrderManagement: React.FC = () => {
         ? orders 
         : orders.filter(o => o.status === filter);
 
-    const getUserName = (userId: string) => {
-        if (userId === 'guest') return t('orderManagement.guest');
-        return users.find(u => u.id === userId)?.name || t('orderManagement.unknownUser');
-    };
-
     return (
         <>
             <div className="space-y-8">
@@ -60,11 +79,11 @@ export const OrderManagement: React.FC = () => {
                             <select 
                                 id="statusFilter"
                                 value={filter}
-                                onChange={(e) => setFilter(e.target.value as OrderStatus | 'all')}
+                                onChange={(e) => setFilter(e.target.value)}
                                 className="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2"
                             >
                                 <option value="all">{t('orderManagement.all')}</option>
-                                {Object.values(OrderStatus).map(status => (
+                                {Array.from(new Set(orders.map(order => order.status))).map(status => (
                                     <option key={status} value={status}>{status}</option>
                                 ))}
                             </select>
@@ -73,23 +92,23 @@ export const OrderManagement: React.FC = () => {
 
                     {/* Mobile Card View */}
                     <div className="space-y-4 md:hidden">
-                        {filteredOrders.map((order: Order) => {
-                            const canChat = order.status !== OrderStatus.AWAITING_CONFIRMATION;
+                        {filteredOrders.map((order) => {
+                            const canChat = order.status !== 'pending_confirmation';
                             return (
                                 <div key={order.id} className="p-4 bg-slate-50 border rounded-lg">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <p className="font-bold text-slate-900">{t('adminOrderManagement.customer')}: {getUserName(order.userId)}</p>
-                                            <p className="text-sm font-mono text-slate-500">{order.id}</p>
+                                            <p className="font-bold text-slate-900">{t('adminOrderManagement.customer')}: {order.customer_name || t('orderManagement.unknownUser')}</p>
+                                            <p className="text-sm font-mono text-slate-500">{order.order_number}</p>
                                         </div>
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
                                             {order.status}
                                         </span>
                                     </div>
                                     <div className="mt-2 pt-2 border-t text-sm space-y-1">
-                                        <p><strong>{t('adminOrderManagement.partner')}:</strong> {order.partner?.name}</p>
-                                        <p><strong>{t('adminOrderManagement.total')}:</strong> <span className="font-semibold">${order.totalPrice.toFixed(2)}</span></p>
-                                        <p><strong>{t('adminOrderManagement.date')}:</strong> {new Date(order.createdAt).toLocaleDateString('fr-FR')}</p>
+                                        <p><strong>{t('adminOrderManagement.partner')}:</strong> {order.partner_name || '-'}</p>
+                                        <p><strong>{t('adminOrderManagement.total')}:</strong> <span className="font-semibold">${Number(order.total_amount || 0).toFixed(2)}</span></p>
+                                        <p><strong>{t('adminOrderManagement.date')}:</strong> {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
                                     </div>
                                     {canChat && (
                                         <div className="mt-2 pt-2 border-t flex justify-end">
@@ -122,20 +141,20 @@ export const OrderManagement: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredOrders.map((order: Order) => {
-                                    const canChat = order.status !== OrderStatus.AWAITING_CONFIRMATION;
+                                {filteredOrders.map((order) => {
+                                    const canChat = order.status !== 'pending_confirmation';
                                     return (
                                         <tr key={order.id} className="bg-white border-b hover:bg-slate-50">
-                                            <td className="px-6 py-4 font-mono text-xs">{order.id}</td>
-                                            <td className="px-6 py-4 font-medium text-slate-900">{getUserName(order.userId)}</td>
-                                            <td className="px-6 py-4">{order.partner?.name}</td>
-                                            <td className="px-6 py-4 font-semibold">${order.totalPrice.toFixed(2)}</td>
+                                            <td className="px-6 py-4 font-mono text-xs">{order.order_number}</td>
+                                            <td className="px-6 py-4 font-medium text-slate-900">{order.customer_name || t('orderManagement.unknownUser')}</td>
+                                            <td className="px-6 py-4">{order.partner_name || '-'}</td>
+                                            <td className="px-6 py-4 font-semibold">${Number(order.total_amount || 0).toFixed(2)}</td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
                                                     {order.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
+                                            <td className="px-6 py-4">{new Date(order.created_at).toLocaleDateString('fr-FR')}</td>
                                             <td className="px-6 py-4">
                                                 {canChat ? (
                                                      <button

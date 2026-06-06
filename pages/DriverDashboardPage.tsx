@@ -7,6 +7,7 @@ import { StatCard } from '../components/StatCard';
 import { BarChart } from '../components/BarChart';
 import { ChatModal } from '../components/ChatModal';
 import { formatAddress } from '../types';
+import { LogisticsTask, realApi } from '../services/real-api';
 
 const MissionDetails: React.FC<{ 
     mission: Order; 
@@ -23,7 +24,16 @@ const MissionDetails: React.FC<{
                 <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-700">
                     <p className="font-semibold text-brand-dark dark:text-slate-100">{missionDetails.title}</p>
                     <p className="text-sm text-slate-600 dark:text-slate-300">{missionDetails.name}</p>
+                    {missionDetails.partnerName ? (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{missionDetails.partnerName}</p>
+                    ) : null}
+                    {missionDetails.phone ? (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{missionDetails.phone}</p>
+                    ) : null}
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{missionDetails.address}</p>
+                    {missionDetails.orderNumber ? (
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">{missionDetails.orderNumber}</p>
+                    ) : null}
                 </div>
                 <div className="flex space-x-4">
                     <button onClick={onChatClick} className="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg flex items-center justify-center space-x-2 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
@@ -49,6 +59,7 @@ export const DriverDashboardPage: React.FC = () => {
     const [status, setStatus] = useState(user?.driverStatus || 'UNAVAILABLE');
     const [isUpdating, setIsUpdating] = useState(false);
     const [chattingOrder, setChattingOrder] = useState<Order | null>(null);
+    const [liveTasks, setLiveTasks] = useState<LogisticsTask[]>([]);
     const missionRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {
@@ -60,12 +71,43 @@ export const DriverDashboardPage: React.FC = () => {
         }
     }, [openDriverMissionForOrderId, setOpenDriverMissionForOrderId]);
 
-    const { currentMission, stats, missionHistoryChartData } = useMemo(() => {
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadTasks = async () => {
+            if (!user || user.role !== 'driver') {
+                if (isMounted) {
+                    setLiveTasks([]);
+                }
+                return;
+            }
+
+            try {
+                const response = await realApi.getLogisticsTasks({ page: 1, page_size: 100 });
+                if (isMounted) {
+                    setLiveTasks(response.tasks || []);
+                }
+            } catch {
+                if (isMounted) {
+                    setLiveTasks([]);
+                }
+            }
+        };
+
+        loadTasks();
+        return () => {
+            isMounted = false;
+        };
+    }, [user]);
+
+    const { currentMission, currentTask, stats, missionHistoryChartData } = useMemo(() => {
         if (!user) return { currentMission: null, stats: {}, missionHistoryChartData: [] };
 
-        const completed = getCompletedOrdersForDriver(user.id);
+        const completedTasks = liveTasks.filter(task => task.status === 'completed');
+        const completed = completedTasks.length > 0 ? completedTasks : getCompletedOrdersForDriver(user.id);
         const dailyMissions = completed.reduce((acc, order) => {
-            const date = new Date(order.createdAt).toISOString().split('T')[0];
+            const rawDate = 'createdAt' in order ? order.createdAt : order.completed_at || order.created_at;
+            const date = new Date(rawDate).toISOString().split('T')[0];
             acc[date] = (acc[date] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
@@ -80,15 +122,49 @@ export const DriverDashboardPage: React.FC = () => {
             };
         }).reverse();
 
+        const activeTask = liveTasks.find(task => ['driver_assigned', 'accepted', 'in_progress'].includes(task.status));
+        const activeTaskAddress = activeTask?.task_type === 'pickup'
+            ? {
+                commune: activeTask.pickup_commune || '',
+                avenue: activeTask.pickup_address_line || activeTask.pickup_address_label || '',
+                numero: '',
+            }
+            : {
+                commune: activeTask?.delivery_commune || '',
+                avenue: activeTask?.delivery_address_line || activeTask?.delivery_address_label || '',
+                numero: '',
+            };
+        const activeTaskName =
+            activeTask?.customer_name ||
+            activeTask?.pickup_contact_name ||
+            activeTask?.partner_name ||
+            (activeTask ? `Order ${activeTask.order_number || activeTask.order_id.slice(0, 8)}` : '');
+
         return {
-            currentMission: getOrdersForDriver(user.id),
+            currentMission: activeTask ? {
+                id: activeTask.order_id,
+                userId: '',
+                partner: null,
+                serviceItems: [],
+                clientDetails: {
+                    name: activeTaskName,
+                    phone: activeTask.customer_phone || activeTask.pickup_contact_phone || '',
+                    pickupAddress: activeTaskAddress,
+                },
+                pickupTime: '',
+                status: activeTask.task_type === 'pickup' ? OrderStatus.PICKUP : OrderStatus.DELIVERY,
+                trackingHistory: [],
+                totalPrice: 0,
+                createdAt: activeTask.created_at,
+            } as Order : getOrdersForDriver(user.id),
+            currentTask: activeTask || null,
             stats: {
                 completedMissions: completed.length,
                 totalEarnings: completed.length * 1.5
             },
             missionHistoryChartData: chartData
         };
-    }, [user, getOrdersForDriver, getCompletedOrdersForDriver]);
+    }, [user, getOrdersForDriver, getCompletedOrdersForDriver, liveTasks]);
     
     useEffect(() => {
         if(user?.driverStatus) {
@@ -115,29 +191,67 @@ export const DriverDashboardPage: React.FC = () => {
     
     const missionDetails = useMemo(() => {
         if (!currentMission) return null;
-        if (currentMission.status === OrderStatus.PICKUP) {
+        if (currentTask?.task_type === 'pickup' || currentMission.status === OrderStatus.PICKUP) {
             return {
                 title: t('driverDashboard.pickupFrom'),
                 name: currentMission.clientDetails?.name,
-                address: formatAddress(currentMission.clientDetails?.pickupAddress),
-                actionText: t('driverDashboard.confirmPickup'),
+                partnerName: currentTask?.partner_name || '',
+                phone: currentMission.clientDetails?.phone || '',
+                address: formatAddress(currentMission.clientDetails?.pickupAddress) || currentTask?.pickup_address_line || currentTask?.order_number || currentTask?.order_id,
+                orderNumber: currentTask?.order_number || '',
+                actionText:
+                    currentTask?.status === 'driver_assigned'
+                        ? 'Accept task'
+                        : currentTask?.status === 'accepted'
+                          ? 'Start pickup'
+                          : t('driverDashboard.confirmPickup'),
             };
         }
-        if (currentMission.status === OrderStatus.DELIVERY) {
+        if (currentTask?.task_type === 'delivery' || currentMission.status === OrderStatus.DELIVERY) {
             return {
                 title: t('driverDashboard.deliverTo'),
                 name: currentMission.clientDetails?.name,
-                address: formatAddress(currentMission.clientDetails?.pickupAddress),
-                actionText: t('driverDashboard.confirmDelivery'),
+                partnerName: currentTask?.partner_name || '',
+                phone: currentMission.clientDetails?.phone || '',
+                address: formatAddress(currentMission.clientDetails?.pickupAddress) || currentTask?.delivery_address_line || currentTask?.order_number || currentTask?.order_id,
+                orderNumber: currentTask?.order_number || '',
+                actionText:
+                    currentTask?.status === 'driver_assigned'
+                        ? 'Accept task'
+                        : currentTask?.status === 'accepted'
+                          ? 'Start delivery'
+                          : t('driverDashboard.confirmDelivery'),
             };
         }
         return null;
-    }, [currentMission, t]);
+    }, [currentMission, currentTask, t]);
     
     const handleActionClick = async () => {
         if (!currentMission) return;
         setIsUpdating(true);
         try {
+            if (currentTask) {
+                let updatedTask: LogisticsTask;
+                if (currentTask.status === 'driver_assigned') {
+                    updatedTask = await realApi.acceptLogisticsTask(currentTask.id);
+                    addNotification('Task accepted', 'success');
+                } else if (currentTask.status === 'accepted') {
+                    updatedTask = await realApi.startLogisticsTask(currentTask.id);
+                    addNotification('Task started', 'success');
+                } else {
+                    updatedTask = await realApi.completeLogisticsTask(currentTask.id);
+                    addNotification(
+                        currentTask.task_type === 'pickup'
+                            ? t('driverDashboard.pickupConfirmed')
+                            : t('driverDashboard.deliveryConfirmed'),
+                        'success'
+                    );
+                }
+
+                setLiveTasks((tasks) => tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+                return;
+            }
+
             if (currentMission.status === OrderStatus.PICKUP) {
                 await updateOrderStatus(currentMission.id, OrderStatus.PROCESSING);
                 addNotification(t('driverDashboard.pickupConfirmed'), 'success');

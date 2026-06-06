@@ -437,7 +437,11 @@
     "scanNoMatches": "Aucun article correspondant trouvé lors du scan",
     "itemsSelected": "{{count}} articles sélectionnés",
     "changePartner": "Changer de partenaire",
-    "selectedServices": "Services sélectionnés"
+    "selectedServices": "Services sélectionnés",
+    "loadingServices": "Chargement des services...",
+    "scannerServiceMissing": "Aucun service n'a été sélectionné pour le scan.",
+    "scannerSummary": "{{count}} articles scannés sur {{matches}} types d'articles.",
+    "scannerNoMatchesDetailed": "Aucun article correspondant n'a été trouvé dans le scan. Veuillez réessayer ou les ajouter manuellement."
   },
   "emailService": {
     "errors": {
@@ -580,7 +584,16 @@
   },
   "orderPage": {
     "completeAllSteps": "Veuillez compléter toutes les étapes avant de procéder au paiement.",
-    "orderCreationError": "Erreur lors de la création de la commande. Veuillez réessayer."
+    "orderCreationError": "Erreur lors de la création de la commande. Veuillez réessayer.",
+    "loginRequired": "Vous devez vous connecter pour créer une commande réelle.",
+    "missingBackendAddress": "Aucune adresse backend par défaut n'est associée à ce compte.",
+    "partnerRequired": "Aucun partenaire n'a été sélectionné.",
+    "partnerNotFound": "Aucun partenaire backend ne correspond à \"{{name}}\". Lancez le bootstrap MVP du catalogue.",
+    "serviceNotFound": "Aucun service backend ne correspond à \"{{name}}\" pour ce partenaire.",
+    "noConvertibleItems": "Aucun article exploitable n'a pu être converti vers le backend.",
+    "cashConfirmed": "Paiement cash confirmé.",
+    "cashPendingConfirmation": "Commande créée. Le paiement cash sera confirmé par l'équipe de livraison.",
+    "paymentIntentCreated": "Intention de paiement créée avec succès."
   },
   "trackingPage": {
     "noActiveOrder": "Aucune commande active",
@@ -728,7 +741,10 @@
     "tooLateToday": "Il est trop tard pour un ramassage aujourd'hui. Veuillez sélectionner un autre jour.",
     "schedulePickup": "Planifiez votre ramassage",
     "pickupDate": "Date de ramassage",
-    "pickupTime": "Heure de ramassage"
+    "pickupTime": "Heure de ramassage",
+    "availableBetween": "Disponible entre {{min}} et {{max}}.",
+    "checkingAvailability": "Vérification de la disponibilité...",
+    "pickupScheduledFor": "Ramassage prévu pour {{datetime}}."
   },
   "orderSummary": {
     "title": "Résumé de commande",
@@ -790,7 +806,9 @@
     "laundryDesc": "Lavage, séchage et pliage pour vos vêtements du quotidien. Prix au kilogramme.",
     "dryCleaningAlt": "Vêtements sur cintres",
     "dryCleaning": "Nettoyage à sec",
-    "dryCleaningDesc": "Soins spécialisés pour articles délicats comme costumes, robes et manteaux. Prix par article."
+    "dryCleaningDesc": "Soins spécialisés pour articles délicats comme costumes, robes et manteaux. Prix par article.",
+    "cordonnerie": "Cordonnerie",
+    "cordonnerieDesc": "Réparation et entretien de vos chaussures et articles en cuir. Prix par article."
   },
   "becomePartnerPage": {
     "dryCleaning": "Nettoyage à sec",
@@ -891,6 +909,8 @@
     "orders": "Commandes",
     "users": "Utilisateurs",
     "partners": "Partenaires",
+    "openDisputes": "Litiges ouverts",
+    "openTickets": "Tickets ouverts",
     "viewAnalytics": "Voir les analytiques détaillées",
     "partnerApplications": "Candidatures partenaires en attente ({{count}})",
     "reject": "Rejeter",
@@ -956,11 +976,13 @@
       "joined": "Inscrit le",
       "actions": "Actions"
     },
-    "adminBadge": "ADMIN",
-    "partnerBadge": "PARTENAIRE",
-    "linkToPartner": "Lier au partenaire",
-    "noUsers": "Aucun utilisateur trouvé."
-  },
+      "adminBadge": "ADMIN",
+      "partnerBadge": "PARTENAIRE",
+      "logisticsBadge": "LOGISTIQUE",
+      "linkToPartner": "Lier au partenaire",
+      "noUsers": "Aucun utilisateur trouvé.",
+      "readOnly": "Lecture seule"
+    },
   "orderManagement": {
     "title": "Gestion des commandes",
     "allOrders": "Toutes les commandes ({{count}})",
@@ -1220,9 +1242,27 @@
     "activeOrders": "Commandes actives",
     "revenueThisMonth": "Revenu (ce mois)",
     "avgOrderValue": "Valeur moyenne commande",
+    "hours": "heures",
+    "activeServices": "Services actifs",
+    "pricingRules": "Règles tarifaires",
+    "averagePrice": "Prix moyen",
+    "orderIntake": "Visibilité des commandes",
+    "visible": "Mis en avant",
+    "live": "En ligne",
+    "paused": "En pause",
+    "dataUnavailableShort": "Indisponible",
+    "dashboardSummaryLoading": "Chargement du résumé du tableau de bord partenaire...",
+    "dashboardSummaryUnavailable": "Le résumé du tableau de bord partenaire est actuellement indisponible. Les cartes ci-dessus ne représentent pas encore une donnée live confirmée.",
+    "summarySource": "Les indicateurs ci-dessus proviennent du résumé backend généré le {{generatedAt}}.",
+    "summarySourceUnavailable": "Les indicateurs ci-dessus attendent encore un résumé backend confirmé.",
+    "pricingSummaryLoading": "Chargement du résumé tarifaire partenaire...",
+    "pricingSummaryUnavailable": "Le résumé tarifaire partenaire est actuellement indisponible. Les cartes ci-dessus ne représentent pas encore une donnée live confirmée.",
+    "liveOrdersSource": "La liste ci-dessous provient du flux live des commandes partenaire.",
+    "loadingOrders": "Chargement des commandes partenaire...",
     "viewDetails": "Voir détails",
     "pendingNewOrders": "Nouvelles commandes en attente ({{count}})",
     "noNewOrders": "Aucune nouvelle commande à accepter.",
+    "setupReadySummary": "{{services}} services et {{rules}} règles tarifaires sont déjà actifs pour ce partenaire.",
     "recentReviewsTitle": "Avis récents",
     "noReviews": "Aucun avis pour le moment.",
     "rejectionReasonPrompt": "Veuillez fournir une raison pour rejeter cette commande (optionnel).",
@@ -1377,6 +1417,8 @@
   },
   "partnerFinancials": {
     "title": "Finances",
+    "backendSource": "Ces indicateurs financiers proviennent du résumé backend canonique.",
+    "backendSourceUnavailable": "Les indicateurs financiers attendent encore un résumé backend confirmé.",
     "totalRevenue": "Revenu total",
     "revenueLast30Days": "Revenu (30 derniers jours)",
     "completedOrders": "Commandes terminées",
@@ -1399,6 +1441,8 @@
   "partnerAnalytics": {
     "title": "Analytiques",
     "exportData": "Exporter données",
+    "backendSource": "Ces analytiques proviennent du résumé backend canonique.",
+    "backendSourceUnavailable": "Ces analytiques attendent encore un résumé backend confirmé.",
     "revenueOverview": "Aperçu revenu",
     "timeRange": {
       "week": "Semaine",
@@ -1407,6 +1451,7 @@
     },
     "totalRevenue": "Revenu total (période)",
     "avgOrderValue": "Valeur moyenne commande",
+    "ordersInRange": "Commandes sur la période",
     "ordersThisMonth": "Commandes ce mois",
     "revenueChartTitle": "Revenu par jour",
     "noRevenueData": "Aucune donnée de revenu pour cette période.",
@@ -1456,32 +1501,36 @@
   },
   "security": {
     "title": "Sécurité & Activité",
-    "twoFactorAuth": {
-      "title": "Authentification à deux facteurs (2FA)",
-      "description": "Ajoutez une couche de sécurité supplémentaire à votre compte.",
-      "setup": {
-        "title": "Configurer 2FA",
-        "step1": "Scannez ce QR code avec votre app d'authentification (ex: Google Authenticator).",
-        "qrAlt": "QR code 2FA",
-        "step2": "Entrez le code à 6 chiffres de votre app pour vérifier.",
-        "verificationCode": "Code de vérification",
-        "invalidCode": "Code invalide. Veuillez réessayer.",
-        "verifyAndEnable": "Vérifier & Activer"
+      "twoFactorAuth": {
+        "title": "Authentification à deux facteurs (2FA)",
+        "description": "Ajoutez une couche de sécurité supplémentaire à votre compte.",
+        "backendSource": "Cette carte utilise désormais le contrat backend d'activation et de désactivation 2FA du compte courant.",
+        "setup": {
+          "title": "Configurer 2FA",
+          "step1": "Confirmez l'activation de la 2FA pour ce compte avec un code à 6 chiffres.",
+          "qrAlt": "QR code 2FA",
+          "step2": "Entrez le code à 6 chiffres de votre app pour vérifier.",
+          "verificationCode": "Code de vérification",
+          "invalidCode": "Code invalide. Veuillez réessayer.",
+          "verifyAndEnable": "Vérifier & Activer"
+        },
+        "status": "Statut",
+        "enabled": "Activé",
+        "disabled": "Désactivé",
+        "confirmDisable": "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?",
+        "disableError": "Impossible de désactiver la 2FA pour le moment.",
+        "disableButton": "Désactiver",
+        "enableButton": "Activer 2FA"
       },
-      "status": "Statut",
-      "enabled": "Activé",
-      "disabled": "Désactivé",
-      "confirmDisable": "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?",
-      "disableButton": "Désactiver",
-      "enableButton": "Activer 2FA"
-    },
-    "activityLog": {
-      "title": "Journal d'activité",
-      "description": "Actions récentes liées à la sécurité et importantes sur votre compte.",
-      "filterByUser": "Filtrer par utilisateur",
-      "noLogs": "Aucun journal d'activité trouvé.",
-      "actions": {
-        "USER_LOGIN": "s'est connecté.",
+      "activityLog": {
+        "title": "Journal d'activité",
+        "description": "Actions récentes liées à la sécurité et importantes sur votre compte.",
+        "backendSource": "Cette liste provient désormais du journal d'activité backend des membres du partenaire.",
+        "filterByUser": "Filtrer par utilisateur",
+        "allUsers": "Tous les utilisateurs",
+        "noLogs": "Aucun journal d'activité trouvé.",
+        "actions": {
+          "USER_LOGIN": "s'est connecté.",
         "USER_LOGIN_FAILURE": "a eu une tentative de connexion échouée.",
         "USER_2FA_ENABLED": "a activé l'authentification à deux facteurs.",
         "USER_2FA_DISABLED": "a désactivé l'authentification à deux facteurs.",
@@ -1736,7 +1785,24 @@
     "title": "Configurons votre boutique !",
     "subtitle": "Complétez ces étapes pour commencer à recevoir des commandes.",
     "progress": "{{completed}} sur {{total}} complété(s)",
+    "priority": "Priorité",
+    "priorityBadgeTooltip": "Des étapes prioritaires sont encore en attente",
+    "tasksRemaining": "{{count}} étape(s) restante(s)",
+    "complete": "Checklist terminée",
     "allDone": "Vous êtes prêt !",
+    "allDoneDescription": "Votre boutique est prête à recevoir des commandes. Vous pouvez maintenant suivre l'activité en direct depuis ce tableau de bord.",
+    "estimatedMinutes": "{{count}} min",
+    "goAction": "Ouvrir",
+    "openTask": "Ouvrir l'étape {{title}}",
+    "showChecklist": "Afficher la checklist",
+    "expandChecklist": "Développer la checklist",
+    "collapseChecklist": "Réduire la checklist",
+    "closeChecklist": "Fermer la checklist",
+    "priorityLevels": {
+      "high": "Priorité élevée",
+      "medium": "Priorité moyenne",
+      "low": "Priorité faible"
+    },
     "steps": {
       "setHours": {
         "title": "Définir heures d'ouverture",
@@ -2023,10 +2089,14 @@
     "editPlan": "Modifier plan"
   },
   "invoicingPage": {
-    "title": "Facturation",
-    "description": "Générer proforma factures finales commandes terminées.",
-    "completedOrders": "Commandes terminées",
-    "noCompletedOrders": "Aucune commande terminée facturer moment.",
+      "title": "Facturation",
+      "description": "Générez des proformas et des factures finales pour vos commandes terminées.",
+      "backendSource": "Cette page utilise la liste canonique des commandes facturables et les documents générés par le backend.",
+      "backendEligibleSource": "Cette liste provient du backend canonique des commandes terminées facturables du partenaire.",
+      "completedOrders": "Commandes terminées",
+      "liveSource": "Cette liste provient du flux live des commandes terminées du partenaire.",
+    "loading": "Chargement des commandes terminées...",
+    "noCompletedOrders": "Aucune commande terminée à facturer pour le moment.",
     "orderId": "ID Commande",
     "customer": "Client",
     "date": "Date",

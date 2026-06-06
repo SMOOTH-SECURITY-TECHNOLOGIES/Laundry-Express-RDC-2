@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""
+Verifie un flow loyalty settings minimal contre l'API reelle.
+"""
+
+import json
+import os
+from urllib import error, request
+
+from local_test_credentials import load_local_test_credentials
+
+
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:18000/api/v1").rstrip("/")
+
+
+def api_request(method: str, path: str, payload=None, token=None):
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    body = None if payload is None else json.dumps(payload).encode("utf-8")
+    req = request.Request(
+        f"{API_BASE_URL}{path}",
+        data=body,
+        headers=headers,
+        method=method,
+    )
+
+    try:
+        with request.urlopen(req, timeout=30) as response:
+            raw = response.read().decode("utf-8")
+            return response.status, json.loads(raw) if raw else {}
+    except error.HTTPError as exc:
+        raw = exc.read().decode("utf-8")
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            parsed = {"raw": raw}
+        return exc.code, parsed
+
+
+def login(email: str, password: str) -> str:
+    status, body = api_request("POST", "/auth/login", {"email": email, "password": password})
+    if status != 200 or "access_token" not in body:
+        raise AssertionError(f"login failed for {email}: {status} {body}")
+    return body["access_token"]
+
+
+def assert_status(name: str, actual: int, expected: int, body) -> None:
+    if actual != expected:
+        raise AssertionError(f"{name} expected {expected}, got {actual}: {body}")
+    print(f"PASS {name}: status={actual}")
+
+
+def main() -> int:
+    print(f"Verifying loyalty flow against {API_BASE_URL}")
+    creds = load_local_test_credentials()
+    admin_token = login(creds["super_admin"]["email"], creds["super_admin"]["password"])
+    customer_token = login(creds["customer"]["email"], creds["customer"]["password"])
+
+    status, body = api_request("GET", "/loyalty/settings")
+    assert_status("loyalty_flow_public_read", status, 200, body)
+    original_payload = {
+        "isEnabled": body["isEnabled"],
+        "pointsPerDollar": body["pointsPerDollar"],
+        "pointsToDollar": body["pointsToDollar"],
+    }
+
+    try:
+        status, body = api_request(
+            "PUT",
+            "/loyalty/settings",
+            {"isEnabled": False, "pointsPerDollar": 7, "pointsToDollar": 70},
+            token=admin_token,
+        )
+        assert_status("loyalty_flow_admin_update", status, 200, body)
+        if body["isEnabled"] is not False or body["pointsPerDollar"] != 7 or body["pointsToDollar"] != 70:
+            raise AssertionError(f"unexpected loyalty payload: {body}")
+        print("PASS loyalty_flow_saved_payload: values updated")
+
+        status, body = api_request(
+            "PUT",
+            "/loyalty/settings",
+            {"isEnabled": True, "pointsPerDollar": 1, "pointsToDollar": 10},
+            token=customer_token,
+        )
+        assert_status("loyalty_flow_customer_forbidden_update", status, 403, body)
+
+        status, body = api_request("GET", "/admin/activity-logs?limit=50", token=admin_token)
+        assert_status("loyalty_flow_admin_activity_logs", status, 200, body)
+        actions = {(entry["action"], entry["resource_type"]) for entry in body["logs"]}
+        if ("update", "loyalty_settings") not in actions:
+            raise AssertionError(f"loyalty_settings audit entry missing: {actions}")
+        print("PASS loyalty_flow_audit_entry: present")
+
+        print("Verified 5/5 loyalty checks")
+        return 0
+    finally:
+        api_request("PUT", "/loyalty/settings", original_payload, token=admin_token)

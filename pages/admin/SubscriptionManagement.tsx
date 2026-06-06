@@ -50,7 +50,15 @@ export const SubscriptionManagement: React.FC = () => {
         <>
             <div className="space-y-8">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">{t('subscriptionManagement.title', { default: 'Subscription Plans' })}</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold">{t('subscriptionManagement.title', { default: 'Subscription Plans' })}</h1>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-3xl">
+                            {t('subscriptionManagement.backendDescription', {
+                                default:
+                                    'Subscription plans are now managed through the backend plan catalog. This proves real plan persistence, while full billing and partner subscription lifecycle remain a separate step.',
+                            })}
+                        </p>
+                    </div>
                     <button 
                         onClick={() => handleOpenModal(null)}
                         className="px-4 py-2 bg-brand-blue text-white font-semibold rounded-lg hover:bg-opacity-90 flex items-center space-x-2"
@@ -58,6 +66,20 @@ export const SubscriptionManagement: React.FC = () => {
                         <Icon name="sparkles" className="w-5 h-5" />
                         <span>{t('subscriptionManagement.newPlan', { default: 'New Plan' })}</span>
                     </button>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-100 p-4 rounded-2xl">
+                    <p className="font-semibold">
+                        {t('subscriptionManagement.backendTitle', {
+                            default: 'Backend-backed subscription plans',
+                        })}
+                    </p>
+                    <p className="text-sm mt-1">
+                        {t('subscriptionManagement.backendNotice', {
+                            default:
+                                'Plan creation and editing now persist through the backend subscription-plan catalog. Real partner billing, invoices, and lifecycle automation are still not yet proven here.',
+                        })}
+                    </p>
                 </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

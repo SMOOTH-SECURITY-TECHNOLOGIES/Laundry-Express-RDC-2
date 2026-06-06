@@ -7,7 +7,7 @@ import {
     ApplicationSettings, Article, OptimizedRoute, RouteMission, DrcAddress,
     UserRole, TeamMemberRole, WebhookEvent, AutomationSettings, TrackingSettings, SubscriptionPlan, Invoice, CommissionSettings, RefundRequest, RefundReason, RefundStatus, SecurityAlert, CreateOrderRequest,
     LoginRequest, RegisterRequest, NotificationAnalytic, BulkNotificationTarget, AdminPermissions, AdminSection, InventoryItem, DeliverySettings,
-    ActivityLog,
+    ActivityLog, TicketCategory,
     BackendUser,
     BackendPartner,
     BackendOrder,
@@ -35,7 +35,7 @@ export const EXCHANGE_RATES = {
 // MOCK DATABASE & HELPERS
 // ====================================================================================
 
-const DB = {
+export const DB = {
     _data: {} as any,
     _isInitialized: false,
 
@@ -47,7 +47,7 @@ const DB = {
             if (storedData) {
                 const parsed = JSON.parse(storedData);
                 // Force merge initial data for sections that might be empty or missing in old storage
-                const sectionsToForce = ['advertisements', 'partners', 'services', 'siteContent'];
+                const sectionsToForce = ['advertisements', 'partners', 'services', 'siteContent', 'users', 'orderHistory', 'reviews', 'appNotifications', 'promoCodes'];
                 sectionsToForce.forEach(key => {
                     if (!parsed[key] || (Array.isArray(parsed[key]) && parsed[key].length === 0)) {
                         parsed[key] = JSON.parse(JSON.stringify(initialDBData[key as keyof typeof initialDBData]));
@@ -124,9 +124,14 @@ const defaultWorkingHours: WorkingHours = {
 
 const initialDBData = {
     users: [
-        { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'hashed_password', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'JOHN-REF', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-ADMIN', name: 'Admin User', email: 'admin@laundry.app', phone: '0810000000', passwordHash: 'hashed_password', role: 'superadmin', pickupAddress: { commune: 'System', avenue: 'Admin', numero: '1' }, loyaltyPoints: 0, referralCode: 'ADMIN-REF', createdAt: '2023-01-01T00:00:00Z', is2FAEnabled: true, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-PARTNER-1', name: 'Patrice Manager', email: 'patrice@prestige.com', phone: '0820000001', passwordHash: 'hashed_password', role: 'partner-owner', partnerId: 'PARTNER-1', pickupAddress: { commune: 'Gombe', avenue: 'Du 30 Juin', numero: '10' }, loyaltyPoints: 0, referralCode: 'PATRICE-REF', createdAt: '2023-01-10T09:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'password123', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'JOHN-REF', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-ADMIN', name: 'Admin User', email: 'admin@laundry.app', phone: '0810000000', passwordHash: 'adminpass123', role: 'superadmin', pickupAddress: { commune: 'System', avenue: 'Admin', numero: '1' }, loyaltyPoints: 0, referralCode: 'ADMIN-REF', createdAt: '2023-01-01T00:00:00Z', is2FAEnabled: true, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-PARTNER-1', name: 'Patrice Manager', email: 'patrice@prestige.com', phone: '0820000001', passwordHash: 'partnerpass123', role: 'partner-owner', partnerId: 'PARTNER-1', pickupAddress: { commune: 'Gombe', avenue: 'Du 30 Juin', numero: '10' }, loyaltyPoints: 0, referralCode: 'PATRICE-REF', createdAt: '2023-01-10T09:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-1', name: 'Driver Kabila', email: 'driver1@kinexpress.cd', phone: '0831111111', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Lingwala', avenue: 'Des Pilotes', numero: '7' }, loyaltyPoints: 0, referralCode: 'DRIVER1-REF', createdAt: '2023-02-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-2', name: 'Driver Mfumu', email: 'driver2@kinexpress.cd', phone: '0832222222', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Kintambo', avenue: 'Makala', numero: '12' }, loyaltyPoints: 0, referralCode: 'DRIVER2-REF', createdAt: '2023-03-15T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-3', name: 'Driver Tshisekedi', email: 'driver3@kinexpress.cd', phone: '0833333333', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Universite', numero: '55' }, loyaltyPoints: 0, referralCode: 'DRIVER3-REF', createdAt: '2023-04-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-002', name: 'Marie Kabongo', email: 'marie.kabongo@example.com', phone: '0844444444', passwordHash: 'mariepass123', role: 'customer', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Equateur', numero: '22' }, loyaltyPoints: 340, referralCode: 'MARIE-REF', createdAt: '2023-06-10T14:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-003', name: 'Jean Mutombo', email: 'jean.mutombo@example.com', phone: '0855555555', passwordHash: 'jeanpass123', role: 'customer', pickupAddress: { commune: 'Limete', avenue: 'Kasavubu', numero: '88' }, loyaltyPoints: 780, referralCode: 'JEAN-REF', createdAt: '2023-08-20T09:30:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: false, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
     ],
     partners: [
         { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: ['https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=800&q=80'], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: { promotions: true, financials: true, analytics: true, customDomain: true, customSubdomain: true, teamManagement: true, apiAccess: true, advancedAutomation: true, aiReviewAssistant: true, invoiceGenerator: true }, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours },
@@ -139,17 +144,68 @@ const initialDBData = {
         { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: 'Lavage complet, séchage et pliage de vos vêtements quotidiens.', iconName: 'wash', imageUrl: 'https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=400&q=80', priceModel: 'per_kg', price: 1.5 },
         { id: 'SERV-CORDONNERIE-STD', type: ServiceType.CORDONNERIE, title: 'Cordonnerie', description: 'Réparation et entretien de vos chaussures et articles en cuir.', iconName: 'sparkles', imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80', priceModel: 'per_item', articleCategories: [{name: 'Général', items: [{id:'ART-TALON', name: 'Réparation Talon', price: 10, description: 'Réparation de talon usé'}, {id:'ART-CIRAGE', name: 'Cirage Complet', price: 5, description: 'Nettoyage et cirage professionnel'}]}] },
     ],
-    orderHistory: [],
-    reviews: [],
-    partnerApplications: [],
-    supportTickets: [],
-    chats: [],
-    promoCodes: [],
+    orderHistory: [
+        { id: 'ORDER-001', userId: 'USER-1', partner: { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: [], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 3 }, { article: { id: 'ART-PANTALON', name: 'Pantalon', price: 3.5 }, quantity: 2 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-05-10T09:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-05-10T08:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-05-10T08:45:00Z' }, { status: OrderStatus.READY_FOR_PICKUP, time: '2024-05-10T09:00:00Z' }, { status: OrderStatus.PICKUP, time: '2024-05-10T09:30:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-05-10T10:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-05-10T14:00:00Z' }, { status: OrderStatus.DELIVERY, time: '2024-05-10T15:30:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-05-10T16:00:00Z' }], totalPrice: 14.5, createdAt: '2024-05-10T08:30:00Z', isReviewed: true, driverId: 'USER-DRIVER-1', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 14.5, backendOrderNumber: 'LE-2024-0001' },
+        { id: 'ORDER-002', userId: 'USER-1', partner: { id: 'PARTNER-2', name: 'Lavage Express Gombe', slug: 'lavage-express-gombe', type: PartnerType.LAVANDIER, rating: 4.6, reviewCount: 89, imageUrls: [], address: '45 Blvd Kasa-Vubu, Gombe', coordinates: { lat: -4.321, lng: 15.312 }, serviceIds: ['SERV-LAUNDRY-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.12, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: '', iconName: 'wash', imageUrl: '', priceModel: 'per_kg', price: 1.5 }, weight: 5.2 }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-05-15T10:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-05-15T09:45:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-05-15T10:00:00Z' }, { status: OrderStatus.PICKUP, time: '2024-05-15T10:30:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-05-15T11:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-05-15T16:00:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-05-15T17:00:00Z' }], totalPrice: 7.8, createdAt: '2024-05-15T09:45:00Z', isReviewed: true, driverId: 'USER-DRIVER-2', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 7.8, backendOrderNumber: 'LE-2024-0002' },
+        { id: 'ORDER-003', userId: 'USER-1', partner: { id: 'PARTNER-3', name: 'Clean Chic Pressing', slug: 'clean-chic-pressing', type: PartnerType.PRESSING, rating: 4.9, reviewCount: 210, imageUrls: [], address: '12 Av. de l\'Equateur, Limete', coordinates: { lat: -4.345, lng: 15.331 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 5 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-05-20T14:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-05-20T13:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-05-20T13:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-05-20T14:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-05-20T15:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-05-20T19:00:00Z' }, { status: OrderStatus.DELIVERY, time: '2024-05-20T19:30:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-05-20T20:00:00Z' }], totalPrice: 12.5, createdAt: '2024-05-20T13:30:00Z', isReviewed: true, driverId: 'USER-DRIVER-1', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 12.5, backendOrderNumber: 'LE-2024-0003' },
+        { id: 'ORDER-004', userId: 'USER-1', partner: { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: [], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-PANTALON', name: 'Pantalon', price: 3.5 }, quantity: 2 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-01T08:00:00Z', status: OrderStatus.DELIVERY, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-01T07:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-06-01T07:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-06-01T08:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-06-01T09:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-06-01T13:00:00Z' }, { status: OrderStatus.DELIVERY, time: '2024-06-01T13:30:00Z' }], totalPrice: 7.0, createdAt: '2024-06-01T07:30:00Z', isReviewed: false, driverId: 'USER-DRIVER-2', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'pending', amountPaid: 0, backendOrderNumber: 'LE-2024-0004' },
+        { id: 'ORDER-005', userId: 'USER-1', partner: { id: 'PARTNER-4', name: 'Rapido Lavage', slug: 'rapido-lavage', type: PartnerType.LAVANDIER, rating: 4.4, reviewCount: 67, imageUrls: [], address: 'Bandal Nord, Kinshasa', coordinates: { lat: -4.338, lng: 15.289 }, serviceIds: ['SERV-LAUNDRY-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.10, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: '', iconName: 'wash', imageUrl: '', priceModel: 'per_kg', price: 1.5 }, weight: 8.0 }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-02T11:00:00Z', status: OrderStatus.PROCESSING, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-02T10:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-06-02T10:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-06-02T11:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-06-02T12:00:00Z' }], totalPrice: 12.0, createdAt: '2024-06-02T10:30:00Z', isReviewed: false, driverId: 'USER-DRIVER-3', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'pending', amountPaid: 0, backendOrderNumber: 'LE-2024-0005' },
+        { id: 'ORDER-006', userId: 'USER-1', partner: { id: 'PARTNER-2', name: 'Lavage Express Gombe', slug: 'lavage-express-gombe', type: PartnerType.LAVANDIER, rating: 4.6, reviewCount: 89, imageUrls: [], address: '45 Blvd Kasa-Vubu, Gombe', coordinates: { lat: -4.321, lng: 15.312 }, serviceIds: ['SERV-LAUNDRY-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.12, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: '', iconName: 'wash', imageUrl: '', priceModel: 'per_kg', price: 1.5 }, weight: 3.5 }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-03T09:00:00Z', status: OrderStatus.READY_FOR_PICKUP, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-03T08:45:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-06-03T09:00:00Z' }, { status: OrderStatus.READY_FOR_PICKUP, time: '2024-06-03T09:15:00Z' }], totalPrice: 5.25, createdAt: '2024-06-03T08:45:00Z', isReviewed: false, logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'pending', amountPaid: 0, backendOrderNumber: 'LE-2024-0006' },
+        { id: 'ORDER-007', userId: 'USER-1', partner: { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: [], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 2 }, { article: { id: 'ART-PANTALON', name: 'Pantalon', price: 3.5 }, quantity: 1 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-04T10:00:00Z', status: OrderStatus.AWAITING_CONFIRMATION, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-04T09:30:00Z' }], totalPrice: 8.5, createdAt: '2024-06-04T09:30:00Z', isReviewed: false, logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'pending', amountPaid: 0, backendOrderNumber: 'LE-2024-0007' },
+        { id: 'ORDER-008', userId: 'USER-1', partner: { id: 'PARTNER-3', name: 'Clean Chic Pressing', slug: 'clean-chic-pressing', type: PartnerType.PRESSING, rating: 4.9, reviewCount: 210, imageUrls: [], address: '12 Av. de l\'Equateur, Limete', coordinates: { lat: -4.345, lng: 15.331 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 4 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-05-25T09:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-05-25T08:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-05-25T08:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-05-25T09:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-05-25T10:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-05-25T15:00:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-05-25T16:00:00Z' }], totalPrice: 10.0, createdAt: '2024-05-25T08:30:00Z', isReviewed: true, driverId: 'USER-DRIVER-1', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 10.0, backendOrderNumber: 'LE-2024-0008' },
+        { id: 'ORDER-009', userId: 'USER-1', partner: { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: [], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 6 }, { article: { id: 'ART-PANTALON', name: 'Pantalon', price: 3.5 }, quantity: 2 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-05-28T08:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-05-28T07:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-05-28T07:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-05-28T08:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-05-28T09:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-05-28T14:00:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-05-28T15:00:00Z' }], totalPrice: 22.0, createdAt: '2024-05-28T07:30:00Z', isReviewed: true, driverId: 'USER-DRIVER-2', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 22.0, backendOrderNumber: 'LE-2024-0009' },
+        { id: 'ORDER-010', userId: 'USER-1', partner: { id: 'PARTNER-2', name: 'Lavage Express Gombe', slug: 'lavage-express-gombe', type: PartnerType.LAVANDIER, rating: 4.6, reviewCount: 89, imageUrls: [], address: '45 Blvd Kasa-Vubu, Gombe', coordinates: { lat: -4.321, lng: 15.312 }, serviceIds: ['SERV-LAUNDRY-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.12, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: '', iconName: 'wash', imageUrl: '', priceModel: 'per_kg', price: 1.5 }, weight: 6.5 }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-05T14:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-05T13:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-06-05T13:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-06-05T14:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-06-05T15:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-06-05T18:00:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-06-05T19:00:00Z' }], totalPrice: 9.75, createdAt: '2024-06-05T13:30:00Z', isReviewed: true, driverId: 'USER-DRIVER-3', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 9.75, backendOrderNumber: 'LE-2024-0010' },
+        { id: 'ORDER-011', userId: 'USER-1', partner: { id: 'PARTNER-4', name: 'Rapido Lavage', slug: 'rapido-lavage', type: PartnerType.LAVANDIER, rating: 4.4, reviewCount: 67, imageUrls: [], address: 'Bandal Nord, Kinshasa', coordinates: { lat: -4.338, lng: 15.289 }, serviceIds: ['SERV-LAUNDRY-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.10, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: '', iconName: 'wash', imageUrl: '', priceModel: 'per_kg', price: 1.5 }, weight: 4.0 }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-06T09:00:00Z', status: OrderStatus.REJECTED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-06T08:30:00Z' }, { status: OrderStatus.REJECTED, time: '2024-06-06T08:45:00Z' }], totalPrice: 6.0, createdAt: '2024-06-06T08:30:00Z', isReviewed: false, rejectionReason: 'Indisponible ce jour-la', backendOrderNumber: 'LE-2024-0011' },
+        { id: 'ORDER-012', userId: 'USER-1', partner: { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: [], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 10 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-06-07T08:00:00Z', status: OrderStatus.DELAYED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-06-07T07:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-06-07T07:45:00Z' }, { status: OrderStatus.PICKUP, time: '2024-06-07T08:15:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-06-07T09:00:00Z' }, { status: OrderStatus.DELAYED, time: '2024-06-07T18:00:00Z' }], totalPrice: 25.0, createdAt: '2024-06-07T07:30:00Z', isReviewed: false, driverId: 'USER-DRIVER-1', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'pending', amountPaid: 0, backendOrderNumber: 'LE-2024-0012' },
+    ],
+    reviews: [
+        { id: 'REVIEW-001', orderId: 'ORDER-001', userId: 'USER-1', partnerId: 'PARTNER-1', rating: 5, comment: 'Service impeccable ! Mes chemises sont parfaitement repassees et le livreur etait ponctuel. Je recommande vivement Prestige Pressing.', createdAt: '2024-05-10T16:30:00Z', reply: 'Merci beaucoup John ! Nous sommes ravis que vous soyez satisfait. A tres bientot.' },
+        { id: 'REVIEW-002', orderId: 'ORDER-002', userId: 'USER-1', partnerId: 'PARTNER-2', rating: 4, comment: 'Bon lavage, mais le delai etait un peu long compare a ce qui etait annonce. Sinon qualite correcte.', createdAt: '2024-05-15T17:30:00Z' },
+        { id: 'REVIEW-003', orderId: 'ORDER-003', userId: 'USER-1', partnerId: 'PARTNER-3', rating: 5, comment: 'Excellente experience avec Clean Chic. Le costume est comme neuf, emballage soigne et livraison rapide. Merci !', createdAt: '2024-05-20T20:30:00Z' },
+        { id: 'REVIEW-004', orderId: 'ORDER-008', userId: 'USER-1', partnerId: 'PARTNER-3', rating: 4, comment: 'Tres bon pressing, tarifs un peu eleves mais la qualite est au rendez-vous.', createdAt: '2024-05-25T16:30:00Z' },
+        { id: 'REVIEW-005', orderId: 'ORDER-009', userId: 'USER-1', partnerId: 'PARTNER-1', rating: 5, comment: 'Encore une fois parfait ! J\'ai pris leur service express cette fois, livre en 6h. Incroyable.', createdAt: '2024-05-28T15:30:00Z', reply: 'C\'est un plaisir John ! L\'option express est faite pour ca.' },
+        { id: 'REVIEW-006', orderId: 'ORDER-010', userId: 'USER-1', partnerId: 'PARTNER-2', rating: 4, comment: 'Lavage propre et bien plie. Rien a redire, je repasserai commande.', createdAt: '2024-06-05T19:30:00Z' },
+    ],
+    partnerApplications: [
+        { id: 'APP-001', companyName: 'Bling Blanchisserie', partnerType: PartnerType.LAVANDIER, contactName: 'Marie Kabongo', phone: '0811122233', email: 'marie@bling.cd', address: '12 Av. de la Paix, Ngaliema', status: ApplicationStatus.PENDING, submittedAt: '2024-05-15T10:00:00Z', message: 'Nous souhaitons rejoindre le reseau pour offrir nos services de lavage ecologique.' },
+        { id: 'APP-002', companyName: 'Elegance Pressing', partnerType: PartnerType.PRESSING, contactName: 'Jean-Pierre Mutombo', phone: '0822334455', email: 'jp@elegance.cd', address: '45 Blvd du 30 Juin, Gombe', status: ApplicationStatus.APPROVED, submittedAt: '2024-04-20T08:00:00Z' },
+        { id: 'APP-003', companyName: 'Quick Wash Bandal', partnerType: PartnerType.LAVANDIER, contactName: 'Sylvie Mbuyi', phone: '0833445566', email: 'sylvie@quickwash.cd', address: '78 Av. Kimbuta, Bandal', status: ApplicationStatus.REJECTED, submittedAt: '2024-05-01T14:00:00Z', rejectionReason: 'Documents incomplets et adresse non verifiable.' },
+    ],
+    supportTickets: [
+        { id: 'TICKET-001', userId: 'USER-1', userName: 'John Doe', orderId: 'ORDER-012', subject: 'Commande en retard', messages: [{ id: 'MSG-001', authorId: 'USER-1', authorName: 'John Doe', message: 'Ma commande LE-2024-0012 etait prevue pour aujourd\'hui 18h et je n\'ai toujours rien recu. Pouvez-vous verifier ?', createdAt: '2024-06-07T19:00:00Z' }, { id: 'MSG-002', authorId: 'USER-ADMIN', authorName: 'Support Laundry', message: 'Bonjour John, nous avons contacte le partenaire. Un probleme technique a retarde le traitement. Votre commande sera livree demain matin avec une remise de 20%.', createdAt: '2024-06-07T19:30:00Z' }], status: TicketStatus.IN_PROGRESS, createdAt: '2024-06-07T19:00:00Z', updatedAt: '2024-06-07T19:30:00Z', category: TicketCategory.DELIVERY_ISSUE },
+        { id: 'TICKET-002', userId: 'USER-1', userName: 'John Doe', subject: 'Question sur le programme de fidelite', messages: [{ id: 'MSG-003', authorId: 'USER-1', authorName: 'John Doe', message: 'Comment puis-je utiliser mes points de fidelite ? J\'en ai 1250.', createdAt: '2024-05-20T10:00:00Z' }, { id: 'MSG-004', authorId: 'USER-ADMIN', authorName: 'Support Laundry', message: 'Bonjour John, vous pouvez convertir 100 points en 1$ de reduction lors du paiement. Vos 1250 points valent donc 12.50$ !', createdAt: '2024-05-20T10:30:00Z' }], status: TicketStatus.CLOSED, createdAt: '2024-05-20T10:00:00Z', updatedAt: '2024-05-20T10:30:00Z', category: TicketCategory.ACCOUNT_HELP },
+        { id: 'TICKET-003', userId: 'USER-PARTNER-1', userName: 'Patrice Manager', subject: 'Probleme de paiement commission', messages: [{ id: 'MSG-005', authorId: 'USER-PARTNER-1', authorName: 'Patrice Manager', message: 'Je n\'ai pas recu mon virement cette semaine. Pouvez-vous verifier ?', createdAt: '2024-06-01T09:00:00Z' }], status: TicketStatus.OPEN, createdAt: '2024-06-01T09:00:00Z', updatedAt: '2024-06-01T09:00:00Z', category: TicketCategory.BILLING },
+    ],
+    chats: [
+        { id: 'CHAT-001', orderId: 'ORDER-001', participants: ['USER-1', 'USER-PARTNER-1'], messages: [{ id: 'CHATMSG-001', authorId: 'USER-1', authorName: 'John Doe', message: 'Bonjour, pouvez-vous repasser mes chemises avec amidon ?', createdAt: '2024-05-10T09:00:00Z' }, { id: 'CHATMSG-002', authorId: 'USER-PARTNER-1', authorName: 'Patrice Manager', message: 'Bonjour John, bien sur ! Nous allons prendre en compte votre demande.', createdAt: '2024-05-10T09:05:00Z' }, { id: 'CHATMSG-003', authorId: 'USER-1', authorName: 'John Doe', message: 'Parfait, merci beaucoup.', createdAt: '2024-05-10T09:06:00Z' }] },
+        { id: 'CHAT-002', orderId: 'ORDER-004', participants: ['USER-1', 'USER-DRIVER-2'], messages: [{ id: 'CHATMSG-004', authorId: 'USER-1', authorName: 'John Doe', message: 'Je suis au bureau, 3eme etage. Merci.', createdAt: '2024-06-01T13:00:00Z' }, { id: 'CHATMSG-005', authorId: 'USER-DRIVER-2', authorName: 'Driver Kabila', message: 'J\'arrive dans 5 minutes. Je monte.', createdAt: '2024-06-01T13:02:00Z' }] },
+    ],
+    promoCodes: [
+        { id: 'PROMO-001', code: 'WELCOME20', discountType: 'percentage', discountValue: 20, minOrderValue: 10, isForNewUsersOnly: true, isActive: true, createdAt: '2024-01-01T00:00:00Z', usageCount: 45, maxUsage: 100, usageLimitPerCustomer: 1, description: '20% de reduction sur la premiere commande', startDate: '2024-01-01', endDate: '2024-12-31' },
+        { id: 'PROMO-002', code: 'FIDELITE10', discountType: 'percentage', discountValue: 10, minOrderValue: 15, isForNewUsersOnly: false, isActive: true, createdAt: '2024-03-01T00:00:00Z', usageCount: 128, maxUsage: null, usageLimitPerCustomer: null, description: '10% de reduction pour les clients fideles', startDate: '2024-03-01', endDate: null },
+        { id: 'PROMO-003', code: 'LIVGRATUITE', discountType: 'fixed', discountValue: 2, minOrderValue: 20, isForNewUsersOnly: false, isActive: true, createdAt: '2024-04-01T00:00:00Z', usageCount: 67, maxUsage: 200, usageLimitPerCustomer: 2, description: '2$ offerts sur les frais de livraison', startDate: '2024-04-01', endDate: '2024-06-30' },
+        { id: 'PROMO-004', code: 'EXPRESS15', discountType: 'percentage', discountValue: 15, minOrderValue: 25, isForNewUsersOnly: false, isActive: true, createdAt: '2024-05-01T00:00:00Z', usageCount: 12, maxUsage: 50, usageLimitPerCustomer: 1, description: '15% sur le service express', startDate: '2024-05-01', endDate: '2024-07-31', applicableServices: ['SERV-PRESSING-STD'] },
+    ],
     logisticsPartners: [{ id: 'LOGISTICS-1', name: 'Kin Express Logistics' }],
     loyaltySettings: { isEnabled: true, pointsPerDollar: 10, pointsToDollar: 100 },
     referralSettings: { isEnabled: true, referrerBonusPoints: 500, refereeDiscountAmount: 5 },
-    appNotifications: [],
-    notificationAnalytics: [],
+    appNotifications: [
+        { id: 'NOTIF-001', recipientId: 'USER-1', message: 'Votre commande LE-2024-0001 a ete confirmee par Prestige Pressing.', notificationType: NotificationType.ORDER_STATUS_CHANGE, createdAt: '2024-05-10T08:45:00Z', isRead: true, link: { page: 'tracking', params: { orderId: 'ORDER-001' } } },
+        { id: 'NOTIF-002', recipientId: 'USER-1', message: 'Votre commande LE-2024-0001 est en cours de livraison. Le chauffeur approche.', notificationType: NotificationType.ORDER_STATUS_CHANGE, createdAt: '2024-05-10T15:30:00Z', isRead: true, link: { page: 'tracking', params: { orderId: 'ORDER-001' } } },
+        { id: 'NOTIF-003', recipientId: 'USER-1', message: 'Votre commande LE-2024-0001 est livree avec succes. Laissez un avis !', notificationType: NotificationType.ORDER_STATUS_CHANGE, createdAt: '2024-05-10T16:05:00Z', isRead: false, link: { page: 'tracking', params: { orderId: 'ORDER-001' } } },
+        { id: 'NOTIF-004', recipientId: 'USER-1', message: 'Bravo ! Vous avez gagne 145 points de fidelite pour cette commande.', notificationType: NotificationType.PROMOTIONS, createdAt: '2024-05-10T16:10:00Z', isRead: false },
+        { id: 'NOTIF-005', recipientId: 'USER-PARTNER-1', message: 'Nouvelle commande LE-2024-0007 en attente de confirmation. 3 chemises + 1 pantalon.', notificationType: NotificationType.NEW_ORDER, createdAt: '2024-06-04T09:30:00Z', isRead: false, actions: [{ label: 'Accepter', actionType: 'ACCEPT_ORDER', payload: { orderId: 'ORDER-007' } }, { label: 'Refuser', actionType: 'REJECT_ORDER', payload: { orderId: 'ORDER-007' } }], link: { page: 'partner-dashboard', params: { orderId: 'ORDER-007' } } },
+        { id: 'NOTIF-006', recipientId: 'USER-ADMIN', message: 'Nouvelle candidature partenaire : Bling Blanchisserie (Lavandier, Ngaliema).', notificationType: NotificationType.GENERAL, createdAt: '2024-05-15T10:00:00Z', isRead: false, link: { page: 'admin', params: { section: 'partners' } } },
+        { id: 'NOTIF-007', recipientId: 'USER-1', message: 'Offre speciale : 15% sur le service express avec le code EXPRESS15.', notificationType: NotificationType.PROMOTIONS, createdAt: '2024-06-01T08:00:00Z', isRead: true },
+        { id: 'NOTIF-008', recipientId: 'USER-DRIVER-1', message: 'Nouvelle mission : ramassage commande ORDER-007 au 123 Av. du 30 Juin, Gombe.', notificationType: NotificationType.NEW_ORDER, createdAt: '2024-06-04T09:30:00Z', isRead: false, link: { page: 'driver-dashboard', params: { orderId: 'ORDER-007' } } },
+        { id: 'NOTIF-009', recipientId: 'USER-PARTNER-1', message: 'John Doe vous a envoye un message : "Bonjour, pouvez-vous repasser mes chemises avec amidon ?"', notificationType: NotificationType.NEW_CHAT_MESSAGE, createdAt: '2024-05-10T09:00:00Z', isRead: false, link: { page: 'partner-dashboard', params: { orderId: 'ORDER-001' } } },
+    ],
+    notificationAnalytics: [
+        { notificationId: 'NOTIF-001', event: 'read', timestamp: '2024-05-10T08:50:00Z' },
+        { notificationId: 'NOTIF-001', event: 'click', timestamp: '2024-05-10T08:51:00Z' },
+        { notificationId: 'NOTIF-003', event: 'read', timestamp: '2024-05-11T10:00:00Z' },
+        { notificationId: 'NOTIF-007', event: 'click', timestamp: '2024-06-01T08:05:00Z' },
+    ],
     advertisements: [
         { id: 'AD-1', title: 'Offre de Bienvenue', description: 'Profitez de 20% de réduction sur votre première commande avec le code WELCOME20.', imageUrl: 'https://images.unsplash.com/photo-1521656693074-0ef32e80a5d5?w=1200&q=80', linkUrl: '/order', isActive: true, createdAt: '2023-10-01T00:00:00Z' },
         { id: 'AD-2', title: 'Devenez Partenaire', description: 'Rejoignez le réseau n°1 de blanchisserie en RDC et boostez votre chiffre d\'affaires.', imageUrl: 'https://images.unsplash.com/photo-1556740734-7f962f7e0f80?w=1200&q=80', linkUrl: '/become-partner', isActive: true, createdAt: '2023-10-02T00:00:00Z' },
@@ -176,9 +232,27 @@ const initialDBData = {
         { id: 'plan-pro', name: 'Professionnel', description: 'Pour les entreprises en pleine croissance.', priceMonthly: 79, priceYearly: 790, isMostPopular: true, features: { analytics: true, promotions: true, customSubdomain: true, teamManagement: true, advancedAutomation: true } },
         { id: 'plan-enterprise', name: 'Entreprise', description: 'Solutions sur mesure pour grands groupes.', priceMonthly: 199, priceYearly: 1990, features: { analytics: true, promotions: true, customSubdomain: true, customDomain: true, teamManagement: true, advancedAutomation: true, apiAccess: true, aiReviewAssistant: true, invoiceGenerator: true } }
     ],
-    invoices: [],
-    refundRequests: [],
-    activityLogs: [],
+    invoices: [
+        { id: 'INV-001', partnerId: 'PARTNER-1', planName: 'Professionnel', amount: 79, date: '2024-05-01T00:00:00Z', status: 'paid', billingCycle: 'monthly' },
+        { id: 'INV-002', partnerId: 'PARTNER-2', planName: 'Essentiel', amount: 29, date: '2024-05-01T00:00:00Z', status: 'paid', billingCycle: 'monthly' },
+        { id: 'INV-003', partnerId: 'PARTNER-3', planName: 'Professionnel', amount: 79, date: '2024-05-01T00:00:00Z', status: 'overdue', billingCycle: 'monthly' },
+    ],
+    refundRequests: [
+        { id: 'REFUND-001', orderId: 'ORDER-012', userId: 'USER-1', userName: 'John Doe', reason: RefundReason.LATE_DELIVERY, customerComments: 'La commande est en retard de plus de 6h. Je ne peux plus attendre.', requestedAmount: 25.0, status: RefundStatus.PENDING, createdAt: '2024-06-07T19:30:00Z' },
+        { id: 'REFUND-002', orderId: 'ORDER-002', userId: 'USER-1', userName: 'John Doe', reason: RefundReason.POOR_QUALITY, customerComments: 'Un de mes pantalons est revenu avec une tache.', requestedAmount: 3.5, status: RefundStatus.APPROVED, createdAt: '2024-05-16T10:00:00Z', resolutionNotes: 'Remboursement approuve. Toutes nos excuses.', resolvedAt: '2024-05-16T14:00:00Z', resolvedBy: 'USER-ADMIN' },
+    ],
+    activityLogs: [
+        { id: 'LOG-001', userId: 'USER-1', userName: 'John Doe', action: 'USER_LOGIN', details: 'Connexion depuis Chrome / Windows', createdAt: '2024-06-04T08:00:00Z' },
+        { id: 'LOG-002', userId: 'USER-PARTNER-1', userName: 'Patrice Manager', partnerId: 'PARTNER-1', action: 'PARTNER_PROFILE_UPDATE', details: 'Mise a jour des horaires d\'ouverture', createdAt: '2024-05-20T11:00:00Z' },
+        { id: 'LOG-003', userId: 'USER-ADMIN', userName: 'Admin User', action: 'ADMIN_LOGIN', details: 'Connexion au tableau de bord admin', createdAt: '2024-06-04T07:30:00Z' },
+        { id: 'LOG-004', userId: 'USER-ADMIN', userName: 'Admin User', action: 'PROMO_CODE_CREATE', details: 'Creation du code EXPRESS15', createdAt: '2024-05-01T09:00:00Z' },
+        { id: 'LOG-005', userId: 'USER-ADMIN', userName: 'Admin User', action: 'REFUND_REQUEST_APPROVED', details: 'Remboursement REFUND-002 approuve', createdAt: '2024-05-16T14:00:00Z' },
+        { id: 'LOG-006', userId: 'USER-DRIVER-1', userName: 'Driver Kabila', action: 'USER_LOGIN', details: 'Connexion depuis l\'app mobile', createdAt: '2024-06-04T06:00:00Z' },
+        { id: 'LOG-007', userId: 'USER-PARTNER-1', userName: 'Patrice Manager', partnerId: 'PARTNER-1', action: 'PARTNER_SERVICE_ADD', details: 'Ajout du service nettoyage cuir', createdAt: '2024-04-15T10:00:00Z' },
+        { id: 'LOG-008', userId: 'USER-ADMIN', userName: 'Admin User', action: 'PARTNER_APPLICATION_APPROVED', details: 'Candidature APP-002 approuvee', createdAt: '2024-04-22T08:00:00Z' },
+        { id: 'LOG-009', userId: 'USER-1', userName: 'John Doe', action: 'USER_LOGIN_FAILURE', details: 'Tentative de connexion echouee (mot de passe incorrect)', createdAt: '2024-06-03T19:00:00Z' },
+        { id: 'LOG-010', userId: 'USER-ADMIN', userName: 'Admin User', action: 'BULK_NOTIFICATION_SENT', details: 'Envoi de 1243 notifications promotionnelles', createdAt: '2024-06-01T08:00:00Z' },
+    ],
 };
 
 
@@ -186,7 +260,11 @@ const initialDBData = {
 // AI UTILITIES
 // ====================================================================================
 
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAI = () => {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) return null;
+    return new GoogleGenAI({ apiKey });
+};
 
 // ====================================================================================
 // API FUNCTIONS
@@ -226,8 +304,10 @@ export const apiLogin = async (payload: LoginRequest) => {
     await simulateDelay();
     const users: BackendUser[] = DB.get('users');
     const user = users.find(u => u.email === payload.email);
-    if (user) return { user: ResponseSanitizer.sanitizeUser(user), token: `TOKEN-${user.id}` };
-    throw new Error('Invalid credentials');
+    if (!user) throw new Error('Invalid credentials');
+    // NOTE: In production, compare bcrypt hashes. Here we do a simple string comparison for mock.
+    if (user.passwordHash !== payload.password) throw new Error('Invalid credentials');
+    return { user: ResponseSanitizer.sanitizeUser(user), token: `TOKEN-${user.id}` };
 };
 
 export const apiRegister = async (payload: RegisterRequest, t: any) => {
@@ -236,7 +316,7 @@ export const apiRegister = async (payload: RegisterRequest, t: any) => {
     if (users.some(u => u.email === payload.email)) throw new Error(t('notifications.emailExists'));
     const newUser: BackendUser = {
       id: `USER-${Date.now()}`,
-      name: payload.name, email: payload.email, phone: payload.phone, passwordHash: 'hashed',
+      name: payload.name, email: payload.email, phone: payload.phone, passwordHash: payload.password,
       role: 'customer', pickupAddress: payload.pickupAddress, loyaltyPoints: 0,
       referralCode: `${payload.name.toUpperCase().slice(0, 4)}-${Math.random().toString(36).substring(2, 6)}`,
       createdAt: new Date().toISOString(), is2FAEnabled: false,
@@ -250,6 +330,7 @@ export const apiRegister = async (payload: RegisterRequest, t: any) => {
 
 export const apiAnalyzeLaundryImage = async (imageData: string, articles: string[]) => {
     const ai = getAI();
+    if (!ai) return [];
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
@@ -276,6 +357,7 @@ export const apiAnalyzeLaundryImage = async (imageData: string, articles: string
 
 export const apiAnalyzeStainImage = async (imageData: string) => {
     const ai = getAI();
+    if (!ai) return { stainType: 'unavailable', confidence: 0, recommendation: 'AI not configured', serviceSuggestion: 'PRESSING' };
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
@@ -301,6 +383,7 @@ export const apiAnalyzeStainImage = async (imageData: string) => {
 
 export const apiGetChatbotResponse = async (message: string) => {
     const ai = getAI();
+    if (!ai) return "AI not configured. Please contact support.";
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: message,
@@ -313,6 +396,7 @@ export const apiGetChatbotResponse = async (message: string) => {
 
 export const apiAnalyzePartnerHealth = async (partnerId: string) => {
     const ai = getAI();
+    if (!ai) return { score: 50, summary: 'AI not configured' };
     const partners = DB.get('partners');
     const partner = partners.find((p: any) => p.id === partnerId);
     const orders = DB.get('orderHistory').filter((o: any) => o.partner?.id === partnerId);
@@ -339,6 +423,7 @@ export const apiAnalyzePartnerHealth = async (partnerId: string) => {
 
 export const apiGenerateMarketingPromo = async (prompt: string) => {
     const ai = getAI();
+    if (!ai) return { promoCode: 'PROMO10', marketingText: 'Discount available', discountType: 'percentage', discountValue: 10, bannerConcept: prompt, bannerImageUrl: '' };
     const bannerResponse = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: `A vibrant marketing banner for a Congolese laundry service: ${prompt}. Cinematic lighting, professional product photography style.`,
@@ -375,6 +460,7 @@ export const apiGenerateMarketingPromo = async (prompt: string) => {
 
 export const apiGenerateDemandForecast = async (orders: Order[]) => {
     const ai = getAI();
+    if (!ai) return [];
     const data = orders.map(o => ({ date: o.createdAt, total: o.totalPrice }));
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -400,6 +486,7 @@ export const apiGenerateDemandForecast = async (orders: Order[]) => {
 // FIX: Added missing API functions for AI analysis, review management, route optimization, and subscription handling.
 export const apiAnalyzeUserHistoryForRecommendations = async (orders: Order[]) => {
     const ai = getAI();
+    if (!ai) return 'Book a cleaning to get personalized recommendations!';
     const data = orders.map(o => ({ service: o.serviceItems.map(si => si.service.title).join(','), date: o.createdAt }));
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -410,6 +497,7 @@ export const apiAnalyzeUserHistoryForRecommendations = async (orders: Order[]) =
 
 export const apiAnalyzePartnerReviews = async (reviews: Review[]) => {
     const ai = getAI();
+    if (!ai) return { sentiment: 'unavailable', keyPoints: [] };
     const texts = reviews.map(r => r.comment).join('\n');
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -431,6 +519,7 @@ export const apiAnalyzePartnerReviews = async (reviews: Review[]) => {
 
 export const apiGenerateReviewResponse = async (review: Review, authorName: string) => {
     const ai = getAI();
+    if (!ai) return "Thank you for your feedback!";
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Generate a professional and friendly response to this customer review: "${review.comment}" (Rating: ${review.rating}/5). The customer's name is ${authorName}. Mention that this is on behalf of the laundry service.`,
@@ -445,6 +534,7 @@ export const apiSubmitReviewReply = async (reviewId: string, replyText: string) 
 
 export const apiRegeneratePromoImage = async (code: string, val: number, type: string, concept: string) => {
     const ai = getAI();
+    if (!ai) return { bannerImageUrl: '' };
     const bannerResponse = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: `A promotional banner for a laundry service with code ${code}, giving ${val}${type === 'percentage' ? '%' : '$'} off. Concept: ${concept}`,
@@ -458,6 +548,7 @@ export const apiRegeneratePromoImage = async (code: string, val: number, type: s
 
 export const apiSuggestReassignment = async (order: Order, partners: Partner[], services: Service[]) => {
     const ai = getAI();
+    if (!ai) return { suggestedPartnerId: null, justification: 'AI not configured', rankedOptions: [] };
     const orderServices = order.serviceItems.map(si => si.service.title).join(', ');
     const partnerList = partners.map(p => ({ id: p.id, name: p.name, services: p.serviceIds, rating: p.rating }));
     
@@ -482,6 +573,7 @@ export const apiSuggestReassignment = async (order: Order, partners: Partner[], 
 
 export const apiOptimizeRoutes = async (logisticsPartnerId: string) => {
     const ai = getAI();
+    if (!ai) return [];
     const orders = DB.get('orderHistory').filter((o: any) => o.status === OrderStatus.READY_FOR_PICKUP || o.status === OrderStatus.READY_FOR_DELIVERY);
     const drivers = DB.get('users').filter((u: any) => u.logisticsPartnerId === logisticsPartnerId && u.role === 'driver' && u.driverStatus === 'AVAILABLE');
     

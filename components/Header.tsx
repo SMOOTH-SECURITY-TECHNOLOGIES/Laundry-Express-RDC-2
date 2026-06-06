@@ -112,10 +112,10 @@ const NotificationBell: React.FC = () => {
   return (
     <div className="relative">
       <button onClick={handleToggle} className="relative p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-        <Icon name="bell" className="w-6 h-6 text-slate-600 dark:text-slate-300" />
+        <Icon name="bell" className={`w-6 h-6 ${unreadCount > 0 ? 'text-[#0077B6]' : 'text-slate-600 dark:text-slate-300'}`} />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-500 text-white text-xs font-medium flex items-center justify-center ring-2 ring-white">
-            {unreadCount}
+          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold ring-2 ring-white animate-pulse">
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>

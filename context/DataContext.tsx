@@ -9,11 +9,144 @@ import { useNotification } from './NotificationContext';
 import { appEvents } from '../utils/events.ts';
 import { ResponseSanitizer } from '../backend/utils/sanitize';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { realApi, CatalogPartnerSummary, SiteContentData, BackendSubscriptionPlan, BackendAdvertisement } from '../services/real-api';
 
 const emptySiteContent: SiteContent = {
   hero: { title: '', subtitle: '' },
   howItWorksSteps: [],
   faq: [],
+};
+
+const mapSiteContentDataToFrontend = (contentData: SiteContentData): SiteContent => ({
+  hero: {
+    title: contentData.hero?.title || '',
+    subtitle: contentData.hero?.subtitle || '',
+  },
+  howItWorksSteps: contentData.howItWorksSteps || [],
+  faq: contentData.faq || [],
+});
+
+const mapSubscriptionPlanToFrontend = (plan: BackendSubscriptionPlan): SubscriptionPlan => ({
+  id: plan.id,
+  name: plan.name,
+  description: plan.description,
+  priceMonthly: Number(plan.price_monthly || 0),
+  priceYearly: Number(plan.price_yearly || 0),
+  isMostPopular: !!plan.is_most_popular,
+  features: plan.features || {},
+});
+
+const mapAdvertisementToFrontend = (ad: BackendAdvertisement): Advertisement => ({
+  id: ad.id,
+  title: ad.title,
+  description: ad.description,
+  imageUrl: ad.imageUrl,
+  linkUrl: ad.linkUrl,
+  isActive: ad.isActive,
+  createdAt: ad.createdAt,
+});
+
+const defaultPartnerFeatures = {
+  promotions: true,
+  financials: true,
+  analytics: true,
+  customDomain: false,
+  customSubdomain: false,
+  teamManagement: true,
+  apiAccess: true,
+  advancedAutomation: true,
+  aiReviewAssistant: true,
+  invoiceGenerator: true,
+};
+
+const mapCatalogPartnerType = (partnerType: string): PartnerType => {
+  switch ((partnerType || '').toLowerCase()) {
+    case 'pressing':
+    case 'dry_cleaning':
+      return PartnerType.PRESSING;
+    case 'laundry':
+    case 'multi_service':
+    default:
+      return PartnerType.LAVANDIER;
+  }
+};
+
+const mapCatalogPartnerToFrontend = (partner: CatalogPartnerSummary): Partner => {
+  const addressParts = [
+    partner.address_line_1,
+    partner.address_line_2,
+    partner.commune,
+    partner.city,
+  ].filter(Boolean);
+
+  return {
+    id: partner.id,
+    name: partner.name,
+    slug: partner.business_name
+      ? partner.business_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      : partner.id,
+    type: mapCatalogPartnerType(partner.partner_type),
+    rating: Number(partner.rating || 0),
+    reviewCount: Number(partner.total_reviews || 0),
+    imageUrls: [],
+    address: addressParts.join(', '),
+    coordinates: {
+      lat: Number(partner.latitude || 0),
+      lng: Number(partner.longitude || 0),
+    },
+    serviceIds: Array.from(
+      { length: Number(partner.available_service_count || 0) },
+      (_, index) => `${partner.id}-service-${index + 1}`
+    ),
+    isFeatured: partner.is_featured,
+    createdAt: undefined,
+    enabledFeatures: defaultPartnerFeatures,
+    currency: 'USD',
+  };
+};
+
+const mergeCatalogPartnerWithLocal = (
+  catalogPartner: CatalogPartnerSummary,
+  localPartner?: Partner
+): Partner => {
+  const mappedCatalogPartner = mapCatalogPartnerToFrontend(catalogPartner);
+
+  if (!localPartner) {
+    return mappedCatalogPartner;
+  }
+
+  return {
+    ...localPartner,
+    ...mappedCatalogPartner,
+    id: mappedCatalogPartner.id,
+    name: mappedCatalogPartner.name,
+    slug: localPartner.slug || mappedCatalogPartner.slug,
+    type: mappedCatalogPartner.type,
+    rating: mappedCatalogPartner.rating,
+    reviewCount: mappedCatalogPartner.reviewCount,
+    address: mappedCatalogPartner.address || localPartner.address,
+    coordinates: mappedCatalogPartner.coordinates,
+    isFeatured: mappedCatalogPartner.isFeatured,
+    createdAt: localPartner.createdAt,
+    serviceIds:
+      localPartner.serviceIds && localPartner.serviceIds.length > 0
+        ? localPartner.serviceIds
+        : mappedCatalogPartner.serviceIds,
+    imageUrls:
+      localPartner.imageUrls && localPartner.imageUrls.length > 0
+        ? localPartner.imageUrls
+        : mappedCatalogPartner.imageUrls,
+    videoUrl: localPartner.videoUrl,
+    workingHours: localPartner.workingHours,
+    unavailability: localPartner.unavailability,
+    customDomain: localPartner.customDomain,
+    enabledFeatures: localPartner.enabledFeatures || mappedCatalogPartner.enabledFeatures,
+    currency: localPartner.currency || mappedCatalogPartner.currency,
+    commissionRate: localPartner.commissionRate,
+    inventory: localPartner.inventory,
+    deliverySettings: localPartner.deliverySettings,
+    automationSettings: localPartner.automationSettings,
+  };
 };
 
 
@@ -44,7 +177,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [chats, setChats] = useState<Chat[]>([]);
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [rawSiteContent, setRawSiteContent] = useState<SiteContent>(emptySiteContent);
-  const [loyaltySettings, setLoyaltySettings] = useState<LoyaltySettings>({ isEnabled: true, pointsPerDollar: 10, pointsToDollar: 100 });
+  const [loyaltySettings, setLoyaltySettings] = useState<LoyaltySettings>({ isEnabled: true, pointsPerDollar: 10, pointsToDollar: 100, pointsExpiryDays: null });
   const [referralSettings, setReferralSettings] = useState<ReferralSettings>({ isEnabled: true, referrerBonusPoints: 500, refereeDiscountAmount: 5 });
   const [notificationAnalytics, setNotificationAnalytics] = useState<NotificationAnalytic[]>([]);
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
@@ -71,8 +204,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const fetchData = useCallback(async () => {
     try {
-        const data = await api.fetchAllData();
-        setPartners(data.partners);
+        const [data, catalogPartners, siteContentResponse, subscriptionPlanResponse, trackingSettingsResponse, advertisementsResponse, loyaltySettingsResponse, referralSettingsResponse] = await Promise.all([
+          api.fetchAllData(),
+          realApi.getCatalogPartners().catch(() => [] as CatalogPartnerSummary[]),
+          realApi.getSiteContent().catch(() => null),
+          realApi.getSubscriptionPlans().catch(() => null),
+          realApi.getTrackingSettings().catch(() => null),
+          realApi.getAdvertisements().catch(() => null),
+          realApi.getLoyaltySettings().catch(() => null),
+          realApi.getReferralSettings().catch(() => null),
+        ]);
+
+        setPartners(
+          catalogPartners.length > 0
+            ? catalogPartners.map((catalogPartner) =>
+                mergeCatalogPartnerWithLocal(
+                  catalogPartner,
+                  data.partners.find((partner) => partner.id === catalogPartner.id)
+                )
+              )
+            : data.partners
+        );
         setServices(data.services);
         setLogisticsPartners(data.logisticsPartners);
         setReviews(data.reviews);
@@ -82,15 +234,51 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSupportTickets(data.supportTickets);
         setChats(data.chats);
         setPromoCodes(data.promoCodes);
-        setLoyaltySettings(data.loyaltySettings);
-        setReferralSettings(data.referralSettings);
-        setAdvertisements(data.advertisements);
+        setLoyaltySettings(
+          loyaltySettingsResponse
+            ? {
+                isEnabled: !!loyaltySettingsResponse.isEnabled,
+                pointsPerDollar: Number(loyaltySettingsResponse.pointsPerDollar || 0),
+                pointsToDollar: Number(loyaltySettingsResponse.pointsToDollar || 100),
+                pointsExpiryDays: loyaltySettingsResponse.pointsExpiryDays == null ? null : Number(loyaltySettingsResponse.pointsExpiryDays),
+              }
+            : data.loyaltySettings
+        );
+        setReferralSettings(
+          referralSettingsResponse
+            ? {
+                isEnabled: !!referralSettingsResponse.isEnabled,
+                referrerBonusPoints: Number(referralSettingsResponse.referrerBonusPoints || 0),
+                refereeDiscountAmount: Number(referralSettingsResponse.refereeDiscountAmount || 0),
+              }
+            : data.referralSettings
+        );
+        setAdvertisements(
+          advertisementsResponse?.advertisements?.length
+            ? advertisementsResponse.advertisements.map(mapAdvertisementToFrontend)
+            : data.advertisements
+        );
         setNotificationAnalytics(data.notificationAnalytics);
         setApplicationSettings(data.applicationSettings);
-        setTrackingSettings(data.trackingSettings);
+        setTrackingSettings(
+          trackingSettingsResponse
+            ? {
+                gtmContainerId: trackingSettingsResponse.gtmContainerId || '',
+                metaPixelId: trackingSettingsResponse.metaPixelId || '',
+              }
+            : data.trackingSettings
+        );
         setCommissionSettings(data.commissionSettings);
-        setRawSiteContent(data.siteContent);
-        setSubscriptionPlans(data.subscriptionPlans);
+        setRawSiteContent(
+          siteContentResponse?.content_data
+            ? mapSiteContentDataToFrontend(siteContentResponse.content_data)
+            : data.siteContent
+        );
+        setSubscriptionPlans(
+          subscriptionPlanResponse?.plans?.length
+            ? subscriptionPlanResponse.plans.map(mapSubscriptionPlanToFrontend)
+            : data.subscriptionPlans
+        );
         setInvoices(data.invoices);
         setRefundRequests(data.refundRequests);
     } catch (error) {
@@ -153,8 +341,43 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const updateSiteContent = useCallback(async (newContent: SiteContent) => {
-    await api.apiUpdateSiteContent(newContent);
+    const response = await realApi.updateSiteContent(newContent);
+    setRawSiteContent(mapSiteContentDataToFrontend(response.content_data));
     addNotification(t('notifications.siteContentUpdated'), 'success');
+  }, [addNotification, t]);
+
+  const addSubscriptionPlan = useCallback(async (plan: Omit<SubscriptionPlan, 'id'>) => {
+    const slug = plan.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    const created = await realApi.createSubscriptionPlan({
+      slug,
+      name: plan.name,
+      description: plan.description,
+      price_monthly: plan.priceMonthly,
+      price_yearly: plan.priceYearly,
+      is_most_popular: !!plan.isMostPopular,
+      features: plan.features || {},
+    });
+    setSubscriptionPlans((current) => [...current, mapSubscriptionPlanToFrontend(created)]);
+    addNotification(t('subscriptionManagement.planSaved', { default: 'Subscription plan saved.' }), 'success');
+  }, [addNotification, t]);
+
+  const updateSubscriptionPlan = useCallback(async (plan: SubscriptionPlan) => {
+    const updated = await realApi.updateSubscriptionPlan(plan.id, {
+      name: plan.name,
+      description: plan.description,
+      price_monthly: plan.priceMonthly,
+      price_yearly: plan.priceYearly,
+      is_most_popular: !!plan.isMostPopular,
+      features: plan.features || {},
+    });
+    setSubscriptionPlans((current) =>
+      current.map((item) => (item.id === updated.id ? mapSubscriptionPlanToFrontend(updated) : item))
+    );
+    addNotification(t('subscriptionManagement.planUpdated', { default: 'Subscription plan updated.' }), 'success');
   }, [addNotification, t]);
 
   const submitPartnerApplication = useCallback(async (application: Omit<PartnerApplication, 'id' | 'status' | 'submittedAt'>) => {
@@ -248,17 +471,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, addNotification, t]);
   
   const updateLoyaltySettings = useCallback(async (settings: LoyaltySettings) => {
-    await api.apiUpdateLoyaltySettings(settings);
+    const response = await realApi.updateLoyaltySettings(settings);
+    setLoyaltySettings({
+      isEnabled: !!response.isEnabled,
+      pointsPerDollar: Number(response.pointsPerDollar || 0),
+      pointsToDollar: Number(response.pointsToDollar || 100),
+      pointsExpiryDays: response.pointsExpiryDays == null ? null : Number(response.pointsExpiryDays),
+    });
     addNotification(t('loyaltyManagement.settingsSaved'), 'success');
   }, [addNotification, t]);
   
   const updateReferralSettings = useCallback(async (settings: ReferralSettings) => {
-    await api.apiUpdateReferralSettings(settings);
+    const response = await realApi.updateReferralSettings(settings);
+    setReferralSettings({
+      isEnabled: !!response.isEnabled,
+      referrerBonusPoints: Number(response.referrerBonusPoints || 0),
+      refereeDiscountAmount: Number(response.refereeDiscountAmount || 0),
+    });
     addNotification(t('referralManagement.settingsSaved'), 'success');
   }, [addNotification, t]);
 
   const updateTrackingSettings = useCallback(async (settings: TrackingSettings) => {
-      await api.apiUpdateTrackingSettings(settings);
+      const response = await realApi.updateTrackingSettings(settings);
+      setTrackingSettings({
+        gtmContainerId: response.gtmContainerId || '',
+        metaPixelId: response.metaPixelId || '',
+      });
       addNotification(t('trackingManagement.settingsSaved'), 'success');
   }, [addNotification, t]);
 
@@ -299,9 +537,29 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addNotification(t('adminDashboard.bulkNotifications.successMessage', { count }), 'success');
   }, [addNotification, t]);
 
-  const addAdvertisement = useCallback(async (adData: any) => { await api.apiAddAdvertisement(adData); }, []);
-  const updateAdvertisement = useCallback(async (ad: Advertisement) => { await api.apiUpdateAdvertisement(ad); }, []);
-  const deleteAdvertisement = useCallback(async (adId: string) => { await api.apiDeleteAdvertisement(adId); }, []);
+  const addAdvertisement = useCallback(async (adData: any) => {
+    const created = await realApi.createAdvertisement(adData);
+    setAdvertisements((current) => [mapAdvertisementToFrontend(created), ...current]);
+    addNotification(t('adManagement.saved', { default: 'Advertisement saved.' }), 'success');
+  }, [addNotification, t]);
+  const updateAdvertisement = useCallback(async (ad: Advertisement) => {
+    const updated = await realApi.updateAdvertisement(ad.id, {
+      title: ad.title,
+      description: ad.description,
+      imageUrl: ad.imageUrl,
+      linkUrl: ad.linkUrl,
+      isActive: ad.isActive,
+    });
+    setAdvertisements((current) =>
+      current.map((item) => (item.id === updated.id ? mapAdvertisementToFrontend(updated) : item))
+    );
+    addNotification(t('adManagement.updated', { default: 'Advertisement updated.' }), 'success');
+  }, [addNotification, t]);
+  const deleteAdvertisement = useCallback(async (adId: string) => {
+    await realApi.deleteAdvertisement(adId);
+    setAdvertisements((current) => current.filter((item) => item.id !== adId));
+    addNotification(t('adManagement.deleted', { default: 'Advertisement deleted.' }), 'success');
+  }, [addNotification, t]);
 
   const addPromoCode = useCallback(async (promo: Omit<PromoCode, 'id' | 'createdAt'>) => {
       await api.apiAddPromoCode(promo);
@@ -532,8 +790,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     apiUpdatePartnerDeliverySettings: api.apiUpdatePartnerDeliverySettings,
     apiGenerateProforma: api.apiGenerateProforma,
     apiGenerateInvoice: api.apiGenerateInvoice,
-    addSubscriptionPlan: api.apiAddSubscriptionPlan,
-    updateSubscriptionPlan: api.apiUpdateSubscriptionPlan
+    addSubscriptionPlan,
+    updateSubscriptionPlan
   }), [
     isLoading, partners, services, logisticsPartners, reviews, users, orderHistory,
     partnerApplications, supportTickets, chats, promoCodes, loyaltySettings,
@@ -558,7 +816,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     generateMarketingPromo, regeneratePromoImage, generateDemandForecast,
     suggestReassignment, optimizeRoutes, confirmOptimizedRoutes, addAdmin,
     apiUpdateUserPermissions, addService, updateService, deleteService,
-    getChatForOrder, getDriversForLogisticsPartner
+    getChatForOrder, getDriversForLogisticsPartner, addSubscriptionPlan, updateSubscriptionPlan
   ]);
 
   return (

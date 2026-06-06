@@ -437,7 +437,11 @@
     "scanNoMatches": "Hakuna vitu vinavyolingana vilivyopatikana katika usakani",
     "itemsSelected": "Vitu {{count}} vilivyochaguliwa",
     "changePartner": "Badilisha mshirika",
-    "selectedServices": "Huduma zilizochaguliwa"
+    "selectedServices": "Huduma zilizochaguliwa",
+    "loadingServices": "Inapakia huduma...",
+    "scannerServiceMissing": "Hakuna huduma iliyochaguliwa kwa ajili ya skani.",
+    "scannerSummary": "Vitu {{count}} vimeskaniwa katika aina {{matches}} za bidhaa.",
+    "scannerNoMatchesDetailed": "Hakuna bidhaa zinazolingana zilizopatikana katika skani. Tafadhali jaribu tena au uziongeze mwenyewe."
   },
   "emailService": {
     "errors": {
@@ -580,7 +584,16 @@
   },
   "orderPage": {
     "completeAllSteps": "Tafadhali kamilisha hatua zote kabla ya kuendelea na malipo.",
-    "orderCreationError": "Hitilafu wakati wa kuunda agizo. Tafadhali jaribu tena."
+    "orderCreationError": "Hitilafu wakati wa kuunda agizo. Tafadhali jaribu tena.",
+    "loginRequired": "Ni lazima uingie ili kuunda agizo halisi.",
+    "missingBackendAddress": "Hakuna anwani chaguomsingi ya backend iliyounganishwa na akaunti hii.",
+    "partnerRequired": "Hakuna mshirika aliyechaguliwa.",
+    "partnerNotFound": "Hakuna mshirika wa backend anayelingana na \"{{name}}\". Endesha bootstrap ya katalogi ya MVP.",
+    "serviceNotFound": "Hakuna huduma ya backend inayolingana na \"{{name}}\" kwa mshirika huyu.",
+    "noConvertibleItems": "Hakuna bidhaa halali zilizoweza kubadilishwa kwa agizo la backend.",
+    "cashConfirmed": "Malipo ya pesa taslimu yamethibitishwa.",
+    "cashPendingConfirmation": "Agizo limeundwa. Malipo ya pesa taslimu yatathibitishwa na timu ya usafirishaji.",
+    "paymentIntentCreated": "Nia ya malipo imeundwa kwa mafanikio."
   },
   "trackingPage": {
     "noActiveOrder": "Hakuna agizo inayofanya kazi",
@@ -728,7 +741,10 @@
     "tooLateToday": "Ni marehemu sana kwa kuchukua leo. Tafadhali chagua siku nyingine.",
     "schedulePickup": "Panga kuchukua kwako",
     "pickupDate": "Tarehe ya kuchukua",
-    "pickupTime": "Muda wa kuchukua"
+    "pickupTime": "Muda wa kuchukua",
+    "availableBetween": "Inapatikana kati ya {{min}} na {{max}}.",
+    "checkingAvailability": "Inakagua upatikanaji...",
+    "pickupScheduledFor": "Ukusanyaji umepangwa kwa {{datetime}}."
   },
   "orderSummary": {
     "title": "Muhtasari wa agizo",
@@ -790,7 +806,9 @@
     "laundryDesc": "Osha, kausha, na kunja kwa nguo zako za kila siku. Bei kwa kilo.",
     "dryCleaningAlt": "Nguo kwenye vibato",
     "dryCleaning": "Kusafisha kwa kikausi",
-    "dryCleaningDesc": "Utunzaji maalum kwa vitu vyenye urahisi kama suti, mavazi, na makoti. Bei kwa kitu."
+    "dryCleaningDesc": "Utunzaji maalum kwa vitu vyenye urahisi kama suti, mavazi, na makoti. Bei kwa kitu.",
+    "cordonnerie": "Ukarabati wa Viatu",
+    "cordonnerieDesc": "Ukarabati na matengenezo ya viatu vyako na vitu vya ngozi. Bei kwa kila kitu."
   },
   "becomePartnerPage": {
     "dryCleaning": "Kusafisha kwa kikausi",
@@ -891,6 +909,8 @@
     "orders": "Maagizo",
     "users": "Watumiaji",
     "partners": "Washirika",
+    "openDisputes": "Migogoro iliyo wazi",
+    "openTickets": "Tiketi zilizo wazi",
     "viewAnalytics": "Angalia takwimu za kina",
     "partnerApplications": "Maombi ya washirika yanayosubiri ({{count}})",
     "reject": "Kataa",
@@ -956,11 +976,13 @@
       "joined": "Alijiunga",
       "actions": "Vitendo"
     },
-    "adminBadge": "MSIMAMIZI",
-    "partnerBadge": "MSHIRIKA",
-    "linkToPartner": "Unganisha na mshirika",
-    "noUsers": "Hakuna watumiaji waliopatikana."
-  },
+      "adminBadge": "MSIMAMIZI",
+      "partnerBadge": "MSHIRIKA",
+      "logisticsBadge": "LOGISTIKI",
+      "linkToPartner": "Unganisha na mshirika",
+      "noUsers": "Hakuna watumiaji waliopatikana.",
+      "readOnly": "Soma tu"
+    },
   "orderManagement": {
     "title": "Usimamizi wa maagizo",
     "allOrders": "Maagizo yote ({{count}})",

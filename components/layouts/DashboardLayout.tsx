@@ -30,7 +30,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebar, child
           />
         )}
         <aside
-          className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-800 p-4 shadow-xl z-50 transform transition-transform md:sticky md:top-24 md:shadow-card md:rounded-2xl md:translate-x-0 md:dark:border md:dark:border-slate-700
+          className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-800 p-4 shadow-xl z-50 transform transition-transform overflow-y-auto md:sticky md:top-24 md:h-auto md:max-h-[calc(100vh-8rem)] md:shadow-card md:rounded-2xl md:translate-x-0 md:dark:border md:dark:border-slate-700
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           <div className="flex justify-between items-center md:hidden mb-4">

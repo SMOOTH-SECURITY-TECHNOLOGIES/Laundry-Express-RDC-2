@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { HomePage } from './pages/HomePage';
 import { OrderPage } from './pages/OrderPage';
@@ -18,14 +18,14 @@ import { LogisticsPartnershipPage } from './pages/LogisticsPartnershipPage';
 import { LogisticsDashboardPage } from './pages/LogisticsDashboardPage';
 // FIX: Using correct PascalCase for the implementation file import to resolve casing and export errors.
 import { DriverDashboardPage } from './pages/DriverDashboardPage';
-import { PartnerDetailPage } from './pages/PartnerDetailPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { MiniSitePage } from './pages/MiniSitePage';
 import { useAppContext } from './context/AppContext';
 import { Page } from './context/NavigationContext';
 import { Icon } from './components/Icon';
-import { LandingPage } from './pages/LandingPage';
-import { features } from './config/features';
-import { api as mockApi } from './services/api';
+const LandingPage = lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
+
+const PartnerDetailPage = lazy(() => import('./pages/PartnerDetailPage').then(module => ({ default: module.PartnerDetailPage })));
 
 const App: React.FC = () => {
   const { 
@@ -36,17 +36,6 @@ const App: React.FC = () => {
     setOpenDriverMissionForOrderId, t, user,
     setRouterPage, activePartnerId, trackingSettings
   } = useAppContext();
-
-  // Initialize based on feature flag
-  if (features.enableFirebase) {
-    console.log('Firebase is disabled for now');
-  }
-  
-  if (features.useMockApi) {
-    // This is just to satisfy the user's request to use the mockApi
-    // In a real scenario, we would swap the api calls in constants.tsx
-    console.log('Using mock API features:', !!mockApi);
-  }
 
   const initialRoutingHandled = useRef(false);
   const partnersRef = useRef(partners);
@@ -169,6 +158,15 @@ const App: React.FC = () => {
         title = 'My Profile - Laundry Express RDC';
         description = 'Manage your account, view order history, and track loyalty points with Laundry Express RDC.';
         break;
+      case 'mini-site': {
+        const partner = partners.find(p => p.id === activePartnerId);
+        if (partner) {
+          title = `${partner.name} - Mini-site | Laundry Express RDC`;
+          description = `Découvrez ${partner.name} : services, horaires, avis et commande en ligne.`;
+          imageUrl = partner.imageUrls?.[0] || imageUrl;
+        }
+        break;
+      }
     }
 
     // Construct the canonical URL
@@ -215,9 +213,16 @@ const App: React.FC = () => {
         } else {
           setRouterPage('home');
         }
+      } else if (path.startsWith('/mini-site/')) {
+        const partnerSlug = pathParts[1];
+        const partner = partnersRef.current.find(p => p.slug === partnerSlug);
+        if (partner) {
+          setActivePartnerId(partner.id);
+        }
+        setRouterPage('mini-site');
       } else {
         const page = (pathParts[0] as Page) || 'home';
-        const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications'];
+        const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
         if (validPages.includes(page)) {
           setRouterPage(page);
         } else {
@@ -279,10 +284,8 @@ const App: React.FC = () => {
           const partner = partners.find(p => p.slug === customDomainPartnerSlug);
           if (partner) {
             setActivePartnerId(partner.id);
-            setRouterPage('partner-detail');
-          } else {
-            setRouterPage('home');
           }
+          setRouterPage('mini-site');
           return;
         }
 
@@ -291,10 +294,8 @@ const App: React.FC = () => {
           const partner = partners.find(p => p.id === customDomainPartnerId);
           if (partner) {
             setActivePartnerId(partner.id);
-            setRouterPage('partner-detail');
-          } else {
-            setRouterPage('home');
           }
+          setRouterPage('mini-site');
           return;
         }
         
@@ -308,9 +309,16 @@ const App: React.FC = () => {
                 setActivePartnerId(partner.id);
                 setRouterPage('partner-detail');
             }
+        } else if (path.startsWith('/mini-site/')) {
+            const partnerSlug = pathParts[1];
+            const partner = partners.find(p => p.slug === partnerSlug);
+            if (partner) {
+                setActivePartnerId(partner.id);
+            }
+            setRouterPage('mini-site');
         } else if (pathParts[0]) {
             const pageFromPath = pathParts[0] as Page;
-            const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications'];
+            const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
             if (validPages.includes(pageFromPath)) {
                 setRouterPage(pageFromPath);
             }
@@ -353,9 +361,19 @@ const App: React.FC = () => {
       case 'driver-dashboard':
         return <DriverDashboardPage />;
       case 'partner-detail':
-        return <PartnerDetailPage />;
+        return (
+          <Suspense fallback={
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue"></div>
+            </div>
+          }>
+            <PartnerDetailPage />
+          </Suspense>
+        );
       case 'notifications':
         return <NotificationsPage />;
+      case 'mini-site':
+        return <MiniSitePage />;
       case 'home':
       default:
         // By default, we show HomePage, but if user is not logged in, special landing page logic will apply
@@ -380,21 +398,53 @@ const App: React.FC = () => {
 
   // Alternative fix: Only show LandingPage on home page, allow other pages to render normally
   if (currentPage === 'home' && !user) {
-    return <LandingPage setCurrentPage={setCurrentPage} />;
+    return (
+      <Suspense fallback={
+        <div className="flex justify-center items-center min-h-screen bg-slate-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B5FFF]"></div>
+        </div>
+      }>
+        <LandingPage setCurrentPage={setCurrentPage} />
+      </Suspense>
+    );
   }
   
+  // Mini-site: standalone page without app chrome
+  if (currentPage === 'mini-site') {
+    return (
+      <div className="min-h-screen font-sans">
+        <NotificationContainer />
+        {renderPage()}
+      </div>
+    );
+  }
+
   const dashboardPages: Page[] = ['admin', 'partner-dashboard', 'logistics-dashboard', 'driver-dashboard'];
   const isDashboardPage = dashboardPages.includes(currentPage);
 
   // Layout for Dashboard pages (no footer, full width)
   if (isDashboardPage) {
     return (
-      <div className="min-h-screen flex flex-col font-sans bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+      <div className="min-h-screen flex flex-col font-sans bg-slate-50 text-slate-800">
         <Header />
         <NotificationContainer />
         <main className="flex-grow pt-24 px-4 sm:px-6 lg:px-8">
           {renderPage()}
         </main>
+      </div>
+    );
+  }
+
+  // Partner detail: full-width marketplace layout (no container padding)
+  if (currentPage === 'partner-detail') {
+    return (
+      <div className="min-h-screen flex flex-col font-sans">
+        <Header />
+        <NotificationContainer />
+        <main className="flex-grow pt-24">
+          {renderPage()}
+        </main>
+        <Footer />
       </div>
     );
   }

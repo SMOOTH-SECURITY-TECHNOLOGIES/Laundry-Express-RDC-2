@@ -2,18 +2,42 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { SiteContent, HowItWorksStep, FAQItem } from '../../types';
 import { Icon } from '../../components/Icon';
+import { realApi } from '../../services/real-api';
 
 export const ContentManagement: React.FC = () => {
-  const { siteContent, updateSiteContent, addNotification, t } = useAppContext();
+  const { siteContent, addNotification, t } = useAppContext();
   const [content, setContent] = useState<SiteContent>(siteContent);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setContent(siteContent);
   }, [siteContent]);
 
-  const handleSave = () => {
-    updateSiteContent(content);
-    addNotification(t('notifications.siteContentUpdated'), 'success');
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const response = await realApi.updateSiteContent(content);
+      setContent({
+        hero: response.content_data.hero,
+        howItWorksSteps: response.content_data.howItWorksSteps,
+        faq: response.content_data.faq,
+      });
+      addNotification(
+        t('contentManagement.backendSaveSuccess', {
+          default: 'Content saved through the backend content API.',
+        }),
+        'success'
+      );
+    } catch {
+      addNotification(
+        t('contentManagement.backendSaveError', {
+          default: 'Failed to save content through the backend content API.',
+        }),
+        'error'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleHeroChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -50,14 +74,39 @@ export const ContentManagement: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">{t('adminPage.contentManagement')}</h1>
+        <div>
+          <h1 className="text-3xl font-bold">{t('adminPage.contentManagement')}</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-3xl">
+            {t('contentManagement.backendDescription', {
+              default:
+                'This editor now persists hero, how-it-works, and FAQ content through the backend site content API.',
+            })}
+          </p>
+        </div>
         <button
           onClick={handleSave}
+          disabled={isSaving}
           className="px-6 py-2 bg-brand-success text-white font-bold rounded-lg hover:bg-opacity-90 flex items-center space-x-2"
         >
           <Icon name="check" className="w-5 h-5" />
-          <span>{t('contentManagement.saveChanges')}</span>
+          <span>{isSaving ? t('buttons.loading') : t('contentManagement.saveBackendChanges', {
+            default: 'Save backend changes',
+          })}</span>
         </button>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-100 p-4 rounded-2xl">
+        <p className="font-semibold">
+          {t('contentManagement.backendTitle', {
+            default: 'Backend-backed site content',
+          })}
+        </p>
+        <p className="text-sm mt-1">
+          {t('contentManagement.backendNotice', {
+            default:
+              'Edits here now persist remotely for the site content contract used by hero copy, how-it-works, and FAQ. Broader CMS publishing is still out of scope.',
+          })}
+        </p>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-card">

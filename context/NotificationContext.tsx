@@ -9,6 +9,7 @@ interface NotificationContextType {
   notifications: Notification[];
   addNotification: (message: string, type: 'success' | 'info' | 'error') => void;
   removeNotification: (id: string) => void;
+  clearNotifications: () => void;
   appNotifications: AppNotification[];
   addAppNotification: (notification: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>) => Promise<void>;
   markNotificationsAsRead: () => Promise<void>;
@@ -56,6 +57,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
+
   const addAppNotification = useCallback(async (notification: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>) => {
     await api.apiAddAppNotification(notification);
   }, []);
@@ -77,6 +82,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     notifications, 
     addNotification, 
     removeNotification, 
+    clearNotifications,
     appNotifications, 
     addAppNotification, 
     markNotificationsAsRead, 
@@ -86,6 +92,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     appNotifications, 
     addNotification, 
     removeNotification, 
+    clearNotifications,
     addAppNotification, 
     markNotificationsAsRead, 
     markSingleNotificationAsRead

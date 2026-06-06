@@ -8,7 +8,7 @@ export type ID = string;
 export type Timestamp = string; // ISO 8601 string
 export type Coordinates = { lat: number; lng: number; };
 export type Page = 'home' | 'order' | 'tracking' | 'profile' | 'become-partner' | 'login' | 'register' | 'admin' | 'partner-dashboard' | 'faq' | 'support' | 'logistics-partnership' | 'logistics-dashboard' | 'driver-dashboard' | 'partner-detail' | 'notifications' | 'landing';
-export type AdminSection = 'dashboard' | 'partners' | 'services' | 'users' | 'orders' | 'drivers' | 'promotions' | 'advertisements' | 'loyalty' | 'referral' | 'content' | 'support' | 'analytics' | 'adminManagement' | 'tracking' | 'subscriptions' | 'refunds' | 'activity';
+export type AdminSection = 'dashboard' | 'partners' | 'services' | 'users' | 'orders' | 'drivers' | 'promotions' | 'advertisements' | 'loyalty' | 'referral' | 'content' | 'support' | 'analytics' | 'adminManagement' | 'tracking' | 'subscriptions' | 'refunds' | 'activity' | 'ops_dashboard' | 'ops_truth' | 'ops_anomalies' | 'ops_investigate';
 export type Currency = 'USD' | 'CDF';
 export type PartnerSection = 'dashboard' | 'orders' | 'profile' | 'promotions' | 'financials' | 'support' | 'analytics' | 'team' | 'security' | 'api-integrations' | 'automation' | 'invoicing' | 'inventory' | 'delivery' | 'subscription';
 export type TeamMemberRole = 'partner-owner' | 'partner-manager' | 'partner-staff';
@@ -129,6 +129,10 @@ export interface AdminPermissions {
   subscriptions: boolean;
   refunds: boolean;
   activity: boolean;
+  ops_dashboard: boolean;
+  ops_truth: boolean;
+  ops_anomalies: boolean;
+  ops_investigate: boolean;
 }
 
 export interface StatCard {
@@ -200,6 +204,7 @@ export interface User {
   phone: string;
   role: UserRole | TeamMemberRole;
   pickupAddress: DrcAddress;
+  backendAddressId?: ID;
   loyaltyPoints: number;
   referralCode: string;
   referredByCode?: string;
@@ -363,6 +368,9 @@ export interface Order {
   pointsDiscount?: number;
   pointsEarned?: number;
   referralDiscount?: number;
+  paymentStatus?: string;
+  amountPaid?: number;
+  backendOrderNumber?: string;
   logisticsPartnerId?: ID;
   proformaGeneratedAt?: Timestamp;
   invoiceGeneratedAt?: Timestamp;
@@ -495,6 +503,7 @@ export interface LoyaltySettings {
   isEnabled: boolean;
   pointsPerDollar: number;
   pointsToDollar: number;
+  pointsExpiryDays?: number | null;
 }
 
 export interface ReferralSettings {
@@ -780,7 +789,7 @@ export interface CreateOrderRequest {
   pickupTime: string;
   appliedPromoCode?: string;
   useLoyaltyPoints?: number;
-  paymentMethod: 'cash' | 'mobile_money';
+  paymentMethod: 'cash' | 'mobile_money' | 'card';
   mobileMoneyDetails?: MobileMoneyPayment;
   discountAmount?: number;
   pointsDiscount?: number;

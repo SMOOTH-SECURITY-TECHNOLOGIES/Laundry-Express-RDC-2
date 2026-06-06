@@ -1,13 +1,14 @@
 import React from 'react';
 
 interface IconProps {
-  name: 'logo' | 'wash' | 'iron' | 'shirt' | 'star' | 'check' | 'mapPin' | 'calendar' | 'clock' | 'user' | 'xmark' | 'search' | 'shoppingBag' | 'truck' | 'sparkles' | 'home' | 'bell' | 'pencil' | 'lifebuoy' | 'map' | 'list' | 'chatBubble' | 'bars3' | 'currencyDollar' | 'chartBar' | 'paper-plane' | 'exclamation-circle' | 'device-phone-mobile' | 'share' | 'sun' | 'moon' | 'camera' | 'magnifying-glass-plus' | 'calendar-days' | 'cloud-sun' | 'photo' | 'arrow-path' | 'arrow-down-tray' | 'users' | 'shield-check' | 'clock-history' | 'qrcode' | 'question-mark-circle' | 'code-bracket' | 'archive-box' | 'document-text' | 'document-arrow-down' | 'warning' | 'chevron-down' | 'chevron-up';
+  name: 'logo' | 'wash' | 'iron' | 'shirt' | 'star' | 'check' | 'mapPin' | 'calendar' | 'clock' | 'user' | 'xmark' | 'search' | 'shoppingBag' | 'truck' | 'sparkles' | 'home' | 'bell' | 'pencil' | 'lifebuoy' | 'map' | 'list' | 'chatBubble' | 'bars3' | 'currencyDollar' | 'chartBar' | 'paper-plane' | 'exclamation-circle' | 'device-phone-mobile' | 'share' | 'sun' | 'moon' | 'camera' | 'magnifying-glass-plus' | 'calendar-days' | 'cloud-sun' | 'photo' | 'arrow-path' | 'arrow-down-tray' | 'users' | 'shield-check' | 'clock-history' | 'qrcode' | 'question-mark-circle' | 'code-bracket' | 'archive-box' | 'document-text' | 'document-arrow-down' | 'warning' | 'chevron-down' | 'chevron-up' | 'shield' | 'circle' | 'arrowLeft' | 'arrowRight' | 'cloud' | 'computer' | 'edit' | 'document' | 'play' | 'phone' | 'envelope' | 'gift' | 'building' | 'wallet' | 'badge-check' | 'hand-thumb-up' | 'heart' | 'plus' | 'minus' | 'trophy' | 'fire';
   className?: string;
   title?: string;
+  style?: React.CSSProperties;
 }
 
 // FIX: The Icon component was not returning a ReactNode, causing a type error with React.FC. The component has been updated to return an SVG element. Additionally, many icon definitions were missing from the 'icons' object, leading to runtime errors and another type error. The missing icon paths have been added to provide the required functionality.
-export const Icon: React.FC<IconProps> = ({ name, className, title }) => {
+export const Icon: React.FC<IconProps> = ({ name, className, title, style }) => {
   const icons: { [key in IconProps['name']]: React.ReactNode } = {
     logo: <path strokeLinecap="round" strokeLinejoin="round" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22ZM15.5 15.5C14.0754 16.9246 12.1246 17.4246 10.5 16.5M8.5 8.5C9.92457 7.07543 11.8754 6.57543 13.5 7.5" />,
     wash: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v16.5h16.5V3.75H3.75zM12 18a6 6 0 100-12 6 6 0 000 12zM12 15a3 3 0 100-6 3 3 0 000 6zM16.5 6h2.25" />,
@@ -64,10 +65,31 @@ export const Icon: React.FC<IconProps> = ({ name, className, title }) => {
     warning: <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />,
     'chevron-down': <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />,
     'chevron-up': <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />,
+    shield: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008H12v-.008z" />,
+    circle: <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />,
+    arrowLeft: <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />,
+    arrowRight: <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />,
+    cloud: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5h9a3.75 3.75 0 01-1.422-7.404A4.5 4.5 0 006.75 15H2.25z" />,
+    computer: <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />,
+    edit: <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />,
+    document: <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />,
+    play: <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />,
+    phone: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.369-.966-.876-1.07L17.25 21.75l-2.25-3.75-3.75 1.5-2.25-3.75-3.75 1.5-2.25-3.75-3.75 1.5c-.516-.105-.885-.555-.885-1.07V6.75a2.25 2.25 0 012.25-2.25h2.25c8.284 0 15 6.716 15 15v0z" />,
+    envelope: <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0021.75 4.5H2.25A2.25 2.25 0 000 6.75m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L2.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />,
+    gift: <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5V11.25m19.5 0A2.25 2.25 0 0021 9h-4.5a2.25 2.25 0 00-2.25 2.25v0c0 .346.094.67.257.95.163.28.396.512.676.675a2.25 2.25 0 002.317 0 2.25 2.25 0 00.675-.675 2.25 2.25 0 00.257-.95v0a2.25 2.25 0 00-2.25-2.25H4.5a2.25 2.25 0 00-2.25 2.25v0c0 .346.094.67.257.95.163.28.396.512.676.675a2.25 2.25 0 002.317 0 2.25 2.25 0 00.675-.675 2.25 2.25 0 00.257-.95v0a2.25 2.25 0 00-2.25-2.25H3a2.25 2.25 0 00-2.25 2.25v0a2.25 2.25 0 002.25 2.25h18a2.25 2.25 0 002.25-2.25v0zM12 2.25a3 3 0 013 3v.75h-6V5.25a3 3 0 013-3z" />,
+    building: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />,
+    wallet: <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 012.25 2.25v3.75M21 9a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 9m18 0a3 3 0 10-3 3" />,
+    'badge-check': <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.745 3.745 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.745 3.745 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />,
+    'hand-thumb-up': <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 00-.75-.75A2.25 2.25 0 0013.5 0h-3a2.25 2.25 0 00-2.25 2.25v.894c0 .606.18 1.2.516 1.698a4.5 4.5 0 01-1.06 2.688 9.042 9.042 0 00-2.861 2.4 4.498 4.498 0 00-.806 2.566v2.25a2.25 2.25 0 002.25 2.25h1.5a.75.75 0 00.75-.75v-1.5a2.25 2.25 0 012.25-2.25h1.2c.475 0 .926-.188 1.26-.524l.9-.9a.75.75 0 00-.53-1.28H6.633zM18 12.75a.75.75 0 00-.75.75v1.5a2.25 2.25 0 01-2.25 2.25h-1.5a.75.75 0 00-.75.75v1.5a.75.75 0 00.75.75h1.5a2.25 2.25 0 012.25-2.25v-1.5a.75.75 0 00-.75-.75h-1.5z" />,
+    heart: <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />,
+    plus: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />,
+    minus: <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />,
+    trophy: <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3v.75H6.75V21.75a3 3 0 013-3h6.75zM6.75 18.75h9m0 0a3 3 0 00-3-3h-3a3 3 0 00-3 3m18-15a3 3 0 012.25 2.25v2.25a3 3 0 01-2.25 2.25h-2.25a3 3 0 01-2.25-2.25V5.625a3 3 0 012.25-2.25H21zm-18 0a3 3 0 012.25 2.25v2.25a3 3 0 01-2.25 2.25H2.25A3 3 0 010 8.625V5.625A3 3 0 012.25 3.375H3z" />,
+    fire: <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />,
   };
 
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className} aria-hidden={!title}>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className} style={style} aria-hidden={!title}>
       {title && <title>{title}</title>}
       {icons[name]}
     </svg>

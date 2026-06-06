@@ -6,7 +6,7 @@ interface MarketingAssistantProps {
     onUsePromo: (promoData: any) => void;
 }
 
-export const MarketingAssistant: React.FC<MarketingAssistantProps> = ({ onUsePromo }) => {
+const MarketingAssistant: React.FC<MarketingAssistantProps> = ({ onUsePromo }) => {
     const { t, generateMarketingPromo, regeneratePromoImage } = useAppContext();
     const [prompt, setPrompt] = useState('');
     const [result, setResult] = useState<any | null>(null);
@@ -193,3 +193,5 @@ export const MarketingAssistant: React.FC<MarketingAssistantProps> = ({ onUsePro
         </div>
     );
 };
+
+export default MarketingAssistant;

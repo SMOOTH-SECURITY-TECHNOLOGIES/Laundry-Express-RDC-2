@@ -108,7 +108,15 @@ export const AdManagement: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">{t('adManagement.title')}</h1>
+        <div>
+          <h1 className="text-3xl font-bold">{t('adManagement.title')}</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 max-w-3xl">
+            {t('adManagement.backendDescription', {
+              default:
+                'Advertisement management now persists through the backend ads API and feeds the real public ad surfaces.',
+            })}
+          </p>
+        </div>
         {!isFormVisible && (
             <button 
                 onClick={() => setIsFormVisible(true)}
@@ -118,6 +126,20 @@ export const AdManagement: React.FC = () => {
                 <span>{t('adManagement.createAd')}</span>
             </button>
         )}
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-100 p-4 rounded-2xl">
+        <p className="font-semibold">
+          {t('adManagement.backendTitle', {
+            default: 'Backend-backed advertisements',
+          })}
+        </p>
+        <p className="text-sm mt-1">
+          {t('adManagement.backendNotice', {
+            default:
+              'Creating, editing, activating, and deleting advertisements here now persists through the backend ads contract and feeds the real public pages.',
+          })}
+        </p>
       </div>
 
       {isFormVisible && (

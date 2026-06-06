@@ -44,7 +44,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS CDN for development only -->
+    <script src="https://cdn.tailwindcss.com" data-dev-only></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -160,7 +161,7 @@
       "logo": "https://laundry.app/favicon.svg"
     }
     </script>
-<link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="./index.css">
 </head>
   <body class="bg-brand-gray dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200">
     <div id="root"></div>

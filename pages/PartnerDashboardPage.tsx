@@ -12,7 +12,8 @@ import { useNavigation } from '../context/NavigationContext';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { PartnerSidebar } from '../components/partner/PartnerSidebar';
 import { TeamManagement } from './partner/TeamManagement';
-import { UserRole, PartnerSection } from '../types';
+import { UserRole, PartnerSection, Partner } from '../types';
+import { DB } from '../constants';
 import { ApiIntegrationsPage } from './partner/ApiIntegrationsPage';
 import { AutomationPage } from './partner/AutomationPage';
 import { SecurityPage } from './partner/SecurityPage';
@@ -38,9 +39,13 @@ export const PartnerDashboardPage: React.FC = () => {
         }
     }, [openOrderDetailsForOrderId]);
 
-    const partner = useMemo(() => {
+    const partner = useMemo<Partner | null>(() => {
         if (!user?.partnerId) return null;
-        return partners.find(p => p.id === user.partnerId);
+        const ctxPartner = partners.find(p => p.id === user.partnerId);
+        if (ctxPartner) return ctxPartner;
+        // Fallback: load from local mock DB if not yet in context
+        const dbPartners: Partner[] = DB.get('partners');
+        return dbPartners.find(p => p.id === user.partnerId) || null;
     }, [user, partners]);
 
     if (!user?.partnerId) {
@@ -83,7 +88,7 @@ export const PartnerDashboardPage: React.FC = () => {
 
         switch (section) {
             case 'orders':
-                return <OrderManagement />;
+                return <OrderManagement setSection={setSection} />;
             case 'profile':
                 if (!hasAccess(['partner-owner', 'partner-manager'])) return renderAccessDenied();
                 return <ProfileManagement />;
@@ -98,7 +103,7 @@ export const PartnerDashboardPage: React.FC = () => {
                 return <PartnerFinancials />;
             case 'analytics':
                 if (!partner?.enabledFeatures?.analytics || !hasAccess(['partner-owner', 'partner-manager'])) return renderAccessDenied();
-                return <PartnerAnalytics />;
+                return <PartnerAnalytics setSection={setSection} />;
             case 'team':
                 if (!partner?.enabledFeatures?.teamManagement || !hasAccess(['partner-owner'])) return renderAccessDenied();
                 return <TeamManagement />;

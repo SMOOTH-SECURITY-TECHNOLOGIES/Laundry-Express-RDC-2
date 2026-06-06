@@ -1,15 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { User } from '../../types';
-import { LinkUserToPartnerModal } from '../../components/LinkUserToPartnerModal';
-import { LinkUserToLogisticsPartnerModal } from '../../components/LinkUserToLogisticsPartnerModal';
+import { AdminUserSummary, realApi } from '../../services/real-api';
 import { Icon } from '../../components/Icon';
 
 export const UserManagement: React.FC = () => {
-    const { getAllUsers, t } = useAppContext();
-    const users = getAllUsers();
-    const [userToLink, setUserToLink] = useState<User | null>(null);
-    const [userToLinkLogistics, setUserToLinkLogistics] = useState<User | null>(null);
+    const { t } = useAppContext();
+    const [users, setUsers] = useState<AdminUserSummary[]>([]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        realApi.getAdminUsers()
+            .then((response) => {
+                if (isMounted) {
+                    setUsers(response || []);
+                }
+            })
+            .catch(() => {
+                if (isMounted) {
+                    setUsers([]);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     return (
         <>
@@ -34,42 +50,20 @@ export const UserManagement: React.FC = () => {
                                     <tr key={user.id} className="bg-white border-b hover:bg-gray-50">
                                         <td scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                             {user.name}
-                                            {(user.role === 'admin' || user.role === 'superadmin') && <span className="ml-2 text-xs font-bold text-red-600">{t('userManagement.adminBadge')}</span>}
-                                            {user.partnerId && <span className="ml-2 text-xs font-bold text-blue-600">{t('userManagement.partnerBadge')}</span>}
-                                            {user.logisticsPartnerId && <span className="ml-2 text-xs font-bold text-green-600">{t('userManagement.logisticsBadge')}</span>}
+                                            {(user.role === 'admin' || user.role === 'super_admin') && <span className="ml-2 text-xs font-bold text-red-600">{t('userManagement.adminBadge')}</span>}
+                                            {(user.role === 'partner_owner' || user.role === 'partner_staff' || (user.partner_ids || []).length > 0) && <span className="ml-2 text-xs font-bold text-blue-600">{t('userManagement.partnerBadge')}</span>}
+                                            {user.role === 'logistics_manager' && <span className="ml-2 text-xs font-bold text-green-600">{t('userManagement.logisticsBadge', { default: 'LOGISTICS' })}</span>}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center space-x-2">
                                                 <span>{user.email}</span>
-                                                {user.isEmailValid === false && (
-                                                    <div title={`Raison: ${user.emailInvalidReason || 'Inconnue'}`} className="cursor-help">
-                                                        <Icon name="exclamation-circle" className="w-5 h-5 text-red-500"/>
-                                                    </div>
-                                                )}
                                             </div>
                                             <p className="text-xs text-gray-500">{user.phone}</p>
                                         </td>
-                                        <td className="px-6 py-4 font-semibold text-center">{user.loyaltyPoints}</td>
-                                        <td className="px-6 py-4 font-mono text-xs">{user.referralCode}</td>
-                                        <td className="px-6 py-4">{new Date(user.createdAt).toLocaleDateString('fr-FR')}</td>
-                                        <td className="px-6 py-4">
-                                            {!(user.role === 'admin' || user.role === 'superadmin') && !user.partnerId && !user.logisticsPartnerId && (
-                                                <div className="flex space-x-2">
-                                                    <button 
-                                                        onClick={() => setUserToLink(user)}
-                                                        className="px-3 py-1.5 text-xs font-medium text-brand-blue bg-blue-100 rounded-lg hover:bg-blue-200"
-                                                    >
-                                                        {t('userManagement.linkToPartner')}
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => setUserToLinkLogistics(user)}
-                                                        className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200"
-                                                    >
-                                                        {t('userManagement.linkToLogisticsPartner')}
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-center">-</td>
+                                        <td className="px-6 py-4 font-mono text-xs">-</td>
+                                        <td className="px-6 py-4">{new Date(user.created_at).toLocaleDateString('fr-FR')}</td>
+                                        <td className="px-6 py-4 text-xs text-gray-400">{t('userManagement.readOnly', { default: 'Read-only' })}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -80,20 +74,6 @@ export const UserManagement: React.FC = () => {
                     )}
                 </div>
             </div>
-            {userToLink && (
-                <LinkUserToPartnerModal
-                    isOpen={!!userToLink}
-                    onClose={() => setUserToLink(null)}
-                    user={userToLink}
-                />
-            )}
-            {userToLinkLogistics && (
-                <LinkUserToLogisticsPartnerModal
-                    isOpen={!!userToLinkLogistics}
-                    onClose={() => setUserToLinkLogistics(null)}
-                    user={userToLinkLogistics}
-                />
-            )}
         </>
     );
 };

@@ -1,0 +1,148 @@
+services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:16
+    container_name: laundry_db
+    environment:
+      POSTGRES_DB: laundry_express
+      POSTGRES_USER: laundry_user
+      POSTGRES_PASSWORD: laundry_pass
+    ports:
+      - "5434:5432"  # Utilise le port 5434 sur l'hôte pour éviter les conflits
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U laundry_user -d laundry_express"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - laundry_network
+
+  # Cache et queue Redis
+  redis:
+    image: redis:7-alpine
+    container_name: laundry_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - laundry_network
+
+  # Backend API FastAPI
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    container_name: laundry_api
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+    ports:
+      - "18000:8000"  # Utilise le port 18000 sur l'hôte pour éviter les conflits
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app
+      - ./infra/scripts:/scripts
+    command: >
+      sh -c "
+        /scripts/wait-for-db.sh db 5432 &&
+        alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    networks:
+      - laundry_network
+
+  # Worker pour tâches asynchrones
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/worker.Dockerfile
+    container_name: laundry_worker
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app
+    command: celery -A app.workers.main.celery_app worker --loglevel=info
+    networks:
+      - laundry_network
+
+  # Frontend React
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+    container_name: laundry_web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:18000
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    networks:
+      - laundry_network
+
+  # Email catcher local
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: laundry_mailpit
+    ports:
+      - "8025:8025"  # Interface web
+      - "1025:1025"  # SMTP
+    networks:
+      - laundry_network
+
+  # Interface d'administration DB
+  adminer:
+    image: adminer:latest
+    container_name: laundry_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - laundry_network
+
+  # Reverse proxy optionnel pour production locale (désactivé pour l'instant)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: laundry_nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./infra/nginx/sites:/etc/nginx/sites
+  #   depends_on:
+  #     - api
+  #     - web
+  #   networks:
+  #     - laundry_network
+
+volumes:
+  postgres_data:
+
+networks:
+  laundry_network:
+    driver: bridge

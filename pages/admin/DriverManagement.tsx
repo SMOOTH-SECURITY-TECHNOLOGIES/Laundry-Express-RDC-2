@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
+import { LogisticsDriver, LogisticsTask, realApi } from '../../services/real-api';
 
 const DriverStatus: React.FC<{ status?: 'AVAILABLE' | 'UNAVAILABLE' | 'ON_MISSION' }> = ({ status }) => {
     const { t } = useAppContext();
@@ -20,38 +21,66 @@ const DriverStatus: React.FC<{ status?: 'AVAILABLE' | 'UNAVAILABLE' | 'ON_MISSIO
 };
 
 export const DriverManagement: React.FC = () => {
-    const { getAllUsers, getLogisticsPartnerById, getAllOrders, t } = useAppContext();
+    const { t } = useAppContext();
+    const [drivers, setDrivers] = useState<LogisticsDriver[]>([]);
+    const [tasks, setTasks] = useState<LogisticsTask[]>([]);
 
-    const allDrivers = useMemo(() => {
-        return getAllUsers().filter(user => user.role === 'driver');
-    }, [getAllUsers]);
-    
-    const allOrders = getAllOrders();
+    useEffect(() => {
+        let isMounted = true;
+
+        Promise.all([
+            realApi.getLogisticsDrivers({ page: 1, page_size: 200 }),
+            realApi.getLogisticsTasks({ page: 1, page_size: 200 }),
+        ])
+            .then(([driversResponse, tasksResponse]) => {
+                if (!isMounted) return;
+                setDrivers(driversResponse.drivers || []);
+                setTasks(tasksResponse.tasks || []);
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setDrivers([]);
+                setTasks([]);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const getDriverStatus = (driver: LogisticsDriver): 'AVAILABLE' | 'UNAVAILABLE' | 'ON_MISSION' => {
+        const activeTask = tasks.find(task => task.driver_id === driver.id && ['driver_assigned', 'accepted', 'in_progress'].includes(task.status));
+        if (activeTask) return 'ON_MISSION';
+        return driver.is_available ? 'AVAILABLE' : 'UNAVAILABLE';
+    };
+
+    const getCurrentTask = (driverId: string) => {
+        return tasks.find(task => task.driver_id === driverId && ['driver_assigned', 'accepted', 'in_progress'].includes(task.status));
+    };
 
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold">{t('driverManagement.title')}</h1>
             <div className="bg-white p-6 rounded-2xl shadow-card">
-                <h2 className="text-2xl font-bold mb-4">{t('driverManagement.allDrivers', { count: allDrivers.length })}</h2>
+                <h2 className="text-2xl font-bold mb-4">{t('driverManagement.allDrivers', { count: drivers.length })}</h2>
                 
                 {/* Mobile Card View */}
                 <div className="space-y-4 md:hidden">
-                    {allDrivers.map((driver) => {
-                        const partner = driver.logisticsPartnerId ? getLogisticsPartnerById(driver.logisticsPartnerId) : null;
-                        const currentOrder = allOrders.find(o => o.driverId === driver.id && o.status !== 'COMPLETED' && o.status !== 'REJECTED');
+                    {drivers.map((driver) => {
+                        const currentTask = getCurrentTask(driver.id);
                         return (
                             <div key={driver.id} className="p-4 bg-slate-50 border rounded-lg">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="font-bold text-slate-900">{driver.name}</p>
-                                        <p className="text-xs text-slate-500">{driver.email}</p>
+                                        <p className="font-bold text-slate-900">{driver.user_name || driver.user_email || driver.id}</p>
+                                        <p className="text-xs text-slate-500">{driver.user_email || '-'}</p>
                                     </div>
-                                    <DriverStatus status={driver.driverStatus} />
+                                    <DriverStatus status={getDriverStatus(driver)} />
                                 </div>
                                 <div className="mt-2 pt-2 border-t text-sm space-y-1">
-                                    <p><strong>{t('driverManagement.logisticsPartner')}:</strong> {partner?.name || 'N/A'}</p>
-                                    <p><strong>{t('driverManagement.vehicle')}:</strong> <span className="font-mono">{driver.vehicleInfo}</span></p>
-                                    <p><strong>{t('driverManagement.currentMission')}:</strong> <span className="font-mono">{currentOrder ? currentOrder.id : t('driverManagement.noMission')}</span></p>
+                                    <p><strong>{t('driverManagement.logisticsPartner')}:</strong> {'-'}</p>
+                                    <p><strong>{t('driverManagement.vehicle')}:</strong> <span className="font-mono">{driver.vehicle_type || driver.license_number || '-'}</span></p>
+                                    <p><strong>{t('driverManagement.currentMission')}:</strong> <span className="font-mono">{currentTask ? (currentTask.order_number || currentTask.id) : t('driverManagement.noMission')}</span></p>
                                 </div>
                             </div>
                         );
@@ -71,24 +100,23 @@ export const DriverManagement: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {allDrivers.map((driver) => {
-                                const partner = driver.logisticsPartnerId ? getLogisticsPartnerById(driver.logisticsPartnerId) : null;
-                                const currentOrder = allOrders.find(o => o.driverId === driver.id && o.status !== 'COMPLETED' && o.status !== 'REJECTED');
+                            {drivers.map((driver) => {
+                                const currentTask = getCurrentTask(driver.id);
                                 
                                 return (
                                     <tr key={driver.id} className="bg-white border-b hover:bg-slate-50">
                                         <td className="px-6 py-4 font-medium text-slate-900">
-                                            <p>{driver.name}</p>
-                                            <p className="text-xs text-slate-500">{driver.email}</p>
-                                            <p className="text-xs text-slate-500">{driver.phone}</p>
+                                            <p>{driver.user_name || driver.user_email || driver.id}</p>
+                                            <p className="text-xs text-slate-500">{driver.user_email || '-'}</p>
+                                            <p className="text-xs text-slate-500">{driver.user_phone || '-'}</p>
                                         </td>
-                                        <td className="px-6 py-4">{partner?.name || 'N/A'}</td>
-                                        <td className="px-6 py-4 font-mono text-xs">{driver.vehicleInfo}</td>
+                                        <td className="px-6 py-4">-</td>
+                                        <td className="px-6 py-4 font-mono text-xs">{driver.vehicle_type || driver.license_number || '-'}</td>
                                         <td className="px-6 py-4">
-                                            <DriverStatus status={driver.driverStatus} />
+                                            <DriverStatus status={getDriverStatus(driver)} />
                                         </td>
                                         <td className="px-6 py-4 font-mono text-xs">
-                                            {currentOrder ? currentOrder.id : t('driverManagement.noMission')}
+                                            {currentTask ? (currentTask.order_number || currentTask.id) : t('driverManagement.noMission')}
                                         </td>
                                     </tr>
                                 );
@@ -96,7 +124,7 @@ export const DriverManagement: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                {allDrivers.length === 0 && (
+                {drivers.length === 0 && (
                     <p className="text-center text-slate-500 py-8">{t('driverManagement.noDrivers')}</p>
                 )}
             </div>

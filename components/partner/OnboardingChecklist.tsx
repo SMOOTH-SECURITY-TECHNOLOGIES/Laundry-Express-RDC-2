@@ -2,10 +2,12 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Icon } from '../Icon';
 import { Partner, DayWorkingHours, WorkingHours } from '../../types';
+import { PartnerDashboardOnboardingSummary } from '../../services/real-api';
 
 interface OnboardingChecklistProps {
   partner: Partner;
   onNavigate: (section: 'profile' | 'promotions') => void;
+  summary?: PartnerDashboardOnboardingSummary | null;
 }
 
 interface Task {
@@ -15,7 +17,7 @@ interface Task {
   isComplete: boolean;
   action: () => void;
   priority: 'high' | 'medium' | 'low';
-  estimatedTime?: string;
+  estimatedMinutes?: number;
 }
 
 // Helper functions
@@ -49,15 +51,15 @@ const getTaskPriority = (key: string, isComplete: boolean): Task['priority'] => 
   return priorityMap[key] || 'medium';
 };
 
-const getEstimatedTime = (key: string): string => {
-  const timeMap: Record<string, string> = {
-    setHours: '5 min',
-    addService: '10 min',
-    addVideo: '2 min',
-    createPromo: '3 min',
+const getEstimatedMinutes = (key: string): number => {
+  const timeMap: Record<string, number> = {
+    setHours: 5,
+    addService: 10,
+    addVideo: 2,
+    createPromo: 3,
   };
   
-  return timeMap[key] || '5 min';
+  return timeMap[key] || 5;
 };
 
 const getPriorityColor = (priority: Task['priority']): string => {
@@ -87,6 +89,7 @@ interface TaskItemProps {
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onAction }) => {
+  const { t } = useAppContext();
   const [isHovered, setIsHovered] = useState(false);
   
   const handleAction = useCallback(() => {
@@ -152,14 +155,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onAction }) => {
           {/* Priority and Time */}
           {!task.isComplete && (
             <div className="flex items-center space-x-2 ml-2 shrink-0">
-              {task.estimatedTime && (
+              {typeof task.estimatedMinutes === 'number' && (
                 <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">
-                  {task.estimatedTime}
+                  {t('onboarding.estimatedMinutes', { count: task.estimatedMinutes })}
                 </span>
               )}
               <div 
                 className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}
-                title={`${task.priority} priority`}
+                title={t(`onboarding.priorityLevels.${task.priority}`)}
               />
             </div>
           )}
@@ -178,9 +181,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onAction }) => {
               : 'bg-white dark:bg-slate-800 text-brand-blue border-slate-300 dark:border-slate-600'
             }
           `}
-          aria-label={`Complete ${task.title}`}
+          aria-label={t('onboarding.openTask', { title: task.title })}
         >
-          Go
+          {t('onboarding.goAction')}
         </button>
       )}
     </div>
@@ -245,7 +248,8 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
 
 export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({ 
   partner, 
-  onNavigate 
+  onNavigate,
+  summary,
 }) => {
   const { t, promoCodes } = useAppContext();
   const [isVisible, setIsVisible] = useState(true);
@@ -253,10 +257,10 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
 
   // Memoized tasks calculation
   const tasks: Task[] = useMemo(() => {
-    const hasHours = hasValidWorkingHours(partner.workingHours);
-    const hasServices = (partner.serviceIds || []).length > 0;
-    const hasVideo = !!partner.videoUrl;
-    const hasPromo = promoCodes.some(p => p.partnerId === partner.id);
+    const hasHours = summary?.has_working_hours ?? hasValidWorkingHours(partner.workingHours);
+    const hasServices = summary?.has_services ?? (partner.serviceIds || []).length > 0;
+    const hasVideo = summary?.has_video ?? !!partner.videoUrl;
+    const hasPromo = summary?.has_promotion ?? promoCodes.some(p => p.partnerId === partner.id);
 
     const taskDefinitions = [
       {
@@ -292,9 +296,9 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
     return taskDefinitions.map(task => ({
       ...task,
       priority: getTaskPriority(task.key, task.isComplete),
-      estimatedTime: getEstimatedTime(task.key),
+      estimatedMinutes: getEstimatedMinutes(task.key),
     }));
-  }, [partner, promoCodes, t, onNavigate]);
+  }, [partner, promoCodes, summary, t, onNavigate]);
 
   // Progress calculation
   const { completedCount, totalCount, progress } = useMemo(() => {
@@ -341,7 +345,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                 {hasHighPriorityTasks && (
                   <span 
                     className="px-2 py-1 text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full"
-                    title="High priority tasks pending"
+                    title={t('onboarding.priorityBadgeTooltip')}
                   >
                     {t('onboarding.priority')}
                   </span>
@@ -363,7 +367,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                   </span>
                 ) : (
                   <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {incompleteTasks.length} {t('onboarding.tasksRemaining')}
+                    {t('onboarding.tasksRemaining', { count: incompleteTasks.length })}
                   </span>
                 )}
               </div>
@@ -375,7 +379,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
             <button 
               onClick={handleToggleCollapse}
               className="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors duration-200"
-              aria-label={isCollapsed ? 'Expand checklist' : 'Collapse checklist'}
+              aria-label={isCollapsed ? t('onboarding.expandChecklist') : t('onboarding.collapseChecklist')}
             >
               <Icon 
                 name={isCollapsed ? 'chevron-down' : 'chevron-up'} 
@@ -385,7 +389,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
             <button 
               onClick={handleClose}
               className="p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors duration-200"
-              aria-label="Close checklist"
+              aria-label={t('onboarding.closeChecklist')}
             >
               <Icon name="xmark" className="w-5 h-5"/>
             </button>

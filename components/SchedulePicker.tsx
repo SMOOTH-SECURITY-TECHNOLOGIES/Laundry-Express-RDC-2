@@ -68,13 +68,22 @@ const validateDate = (selectedDate: string): boolean => {
   return date >= today;
 };
 
-const formatPickupTime = (date: string, time: string): string => {
-  const formattedDate = new Date(date).toLocaleDateString('fr-FR', { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long' 
-  });
-  return `${formattedDate} à ${time}`;
+const languageLocaleMap = {
+  fr: 'fr-FR',
+  en: 'en-US',
+  sw: 'sw-CD',
+} as const;
+
+const formatPickupTime = (date: string, time: string, language: 'fr' | 'en' | 'sw'): string => {
+  const locale = languageLocaleMap[language] || 'fr-FR';
+  const value = new Date(`${date}T${time}:00`);
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(value);
 };
 
 // Error message helper
@@ -101,7 +110,7 @@ const getErrorMessage = (
 };
 
 export const SchedulePicker: React.FC = () => {
-  const { updateOrderDraft, orderDraft, t } = useAppContext();
+  const { updateOrderDraft, orderDraft, t, language } = useAppContext();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('10:00');
   const [availabilityError, setAvailabilityError] = useState('');
@@ -163,9 +172,10 @@ export const SchedulePicker: React.FC = () => {
     // Check unavailability
     const { isUnavailable, period } = isPartnerUnavailable(partner, selectedDate);
     if (isUnavailable && period) {
+      const locale = languageLocaleMap[language] || 'fr-FR';
       setAvailabilityError(t('schedulePicker.partnerUnavailable', { 
-        start: new Date(period.startDate).toLocaleDateString('fr-FR'), 
-        end: new Date(period.endDate).toLocaleDateString('fr-FR')
+        start: new Date(period.startDate).toLocaleDateString(locale),
+        end: new Date(period.endDate).toLocaleDateString(locale)
       }));
       setIsLoading(false);
       return;
@@ -199,16 +209,16 @@ export const SchedulePicker: React.FC = () => {
     });
     
     setIsLoading(false);
-  }, [date, orderDraft.partner, t]);
+  }, [date, language, orderDraft.partner, t]);
 
   // Update order draft effect
   useEffect(() => {
     if (availabilityError) {
       updateOrderDraft({ pickupTime: undefined });
     } else {
-      updateOrderDraft({ pickupTime: formatPickupTime(date, time) });
+      updateOrderDraft({ pickupTime: formatPickupTime(date, time, language) });
     }
-  }, [date, time, availabilityError, updateOrderDraft]);
+  }, [date, time, language, availabilityError, updateOrderDraft]);
 
   // Get minimum date for the date picker (today)
   const minDate = useMemo(() => {
@@ -322,7 +332,7 @@ export const SchedulePicker: React.FC = () => {
               <Icon name="check" className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
               <p>
                 {t('schedulePicker.pickupScheduledFor', { 
-                  datetime: formatPickupTime(date, time) 
+                  datetime: formatPickupTime(date, time, language)
                 })}
               </p>
             </div>

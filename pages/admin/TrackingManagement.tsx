@@ -22,9 +22,19 @@ export const TrackingManagement: React.FC = () => {
         setIsLoading(true);
         try {
             await updateTrackingSettings(settings);
-            addNotification(t('trackingManagement.settingsSaved'), 'success');
+            addNotification(
+                t('trackingManagement.backendSettingsSaved', {
+                    default: 'Tracking settings saved through the backend tracking API.',
+                }),
+                'success'
+            );
         } catch (error) {
-            addNotification('Error saving settings', 'error');
+            addNotification(
+                t('trackingManagement.backendSettingsError', {
+                    default: 'Error saving backend tracking settings.',
+                }),
+                'error'
+            );
         } finally {
             setIsLoading(false);
         }
@@ -35,6 +45,20 @@ export const TrackingManagement: React.FC = () => {
             <div>
                 <h1 className="text-3xl font-bold dark:text-slate-100">{t('trackingManagement.title')}</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl">{t('trackingManagement.description')}</p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-100 p-4 rounded-2xl">
+                <p className="font-semibold">
+                    {t('trackingManagement.backendTitle', {
+                        default: 'Backend-backed tracking configuration',
+                    })}
+                </p>
+                <p className="text-sm mt-1">
+                    {t('trackingManagement.backendDescription', {
+                        default:
+                            'These GTM and Meta Pixel values now persist through the backend tracking settings API and are used by the runtime app shell. Server-side analytics forwarding remains a separate concern.',
+                    })}
+                </p>
             </div>
             
             <form onSubmit={handleSave} className="space-y-8 max-w-2xl">
@@ -73,6 +97,32 @@ export const TrackingManagement: React.FC = () => {
                         />
                     </div>
                 </div>
+
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-card dark:border dark:border-slate-700">
+                    <h2 className="text-2xl font-bold mb-4 dark:text-slate-100">
+                        {t('trackingManagement.runtimePreviewTitle', {
+                            default: 'Runtime preview',
+                        })}
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50 border dark:border-slate-600">
+                            <p className="text-slate-500 dark:text-slate-400">
+                                {t('trackingManagement.runtimePreviewGtm', { default: 'Current GTM container' })}
+                            </p>
+                            <p className="font-mono mt-2 text-slate-900 dark:text-slate-100 break-all">
+                                {settings.gtmContainerId || t('trackingManagement.notConfigured', { default: 'Not configured' })}
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50 border dark:border-slate-600">
+                            <p className="text-slate-500 dark:text-slate-400">
+                                {t('trackingManagement.runtimePreviewMeta', { default: 'Current Meta pixel' })}
+                            </p>
+                            <p className="font-mono mt-2 text-slate-900 dark:text-slate-100 break-all">
+                                {settings.metaPixelId || t('trackingManagement.notConfigured', { default: 'Not configured' })}
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 
                 <div className="flex justify-end pt-4 border-t dark:border-slate-700">
                     <button type="submit" disabled={isLoading} className="px-6 py-3 bg-brand-success text-white font-bold rounded-lg hover:bg-opacity-90 flex items-center space-x-2 disabled:bg-slate-400">
@@ -84,7 +134,9 @@ export const TrackingManagement: React.FC = () => {
                         ) : (
                             <>
                                 <Icon name="check" className="w-5 h-5" />
-                                <span>{t('trackingManagement.saveButton')}</span>
+                                <span>{t('trackingManagement.saveBackendButton', {
+                                    default: 'Save backend settings',
+                                })}</span>
                             </>
                         )}
                     </button>

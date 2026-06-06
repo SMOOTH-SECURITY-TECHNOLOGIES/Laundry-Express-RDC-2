@@ -11,6 +11,26 @@ node_modules
 dist
 dist-ssr
 *.local
+coverage
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*.local
+!.env.example
+!.env.*.example
+
+# Local browser/test artifacts
+.edge-cdp-profile/
+.browser-ui-flow-artifact.html
+.edge-dom.html
+test.html
+openapi_temp.json
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
 # Editor directories and files
 .vscode/*

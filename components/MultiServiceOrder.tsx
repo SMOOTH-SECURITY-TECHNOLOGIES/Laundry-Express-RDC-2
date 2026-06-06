@@ -40,35 +40,16 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
 
 // FIX: Enhanced partner services filtering with better error handling
     const partnerServices = useMemo(() => {
-        console.log('🔍 Filtering partner services...');
-        console.log('📋 Partner service IDs:', partner.serviceIds);
-        console.log('📦 All available services:', services);
-        
         if (!partner.serviceIds || !services) {
-            console.warn('❌ Missing partner serviceIds or services array');
             return [];
         }
 
         const serviceIdSet = new Set(partner.serviceIds);
-        const filteredServices = services.filter(s => {
-            const hasService = serviceIdSet.has(s.id);
-            if (!hasService) {
-                console.log(`❌ Service ${s.id} not in partner's serviceIds`);
-            }
-            return hasService;
-        });
-
-        console.log('✅ Filtered partner services:', filteredServices);
-        return filteredServices;
+        return services.filter(s => serviceIdSet.has(s.id));
     }, [partner, services]);
 
 // FIX: Enhanced service interaction with better debugging
     const handleServiceInteraction = useCallback((service: Service, quantityOrWeight?: number, article?: Article) => {
-        console.group('🔄 Service Interaction');
-        console.log('🎯 Service:', service);
-        console.log('📊 Quantity/Weight:', quantityOrWeight);
-        console.log('🛍️ Article:', article);
-        
         if (!service || !service.id) {
             console.error('❌ Invalid service provided');
             return;
@@ -80,31 +61,25 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
         if (!serviceItem) {
             serviceItem = { service, items: [], weight: 0 };
             newServiceItems.push(serviceItem);
-            console.log('➕ Created new service item');
         }
 
         if (service.priceModel === 'per_kg') {
             serviceItem.weight = quantityOrWeight || 0;
-            console.log(`⚖️ Updated weight to: ${serviceItem.weight}kg`);
         } else if (service.priceModel === 'per_item' && article && quantityOrWeight !== undefined) {
             if (!serviceItem.items) serviceItem.items = [];
             let articleItem = serviceItem.items.find(i => i.article.id === article.id);
             const currentQuantity = articleItem?.quantity || 0;
             const newQuantity = Math.max(0, currentQuantity + quantityOrWeight);
 
-            console.log(`📦 ${article.name}: ${currentQuantity} → ${newQuantity} (change: ${quantityOrWeight})`);
-
             if (!articleItem) {
                 articleItem = { article, quantity: newQuantity };
                 serviceItem.items.push(articleItem);
-                console.log('➕ Created new article item');
             } else {
                 articleItem.quantity = newQuantity;
             }
             
             // Remove items with zero quantity
             serviceItem.items = serviceItem.items.filter(i => i.quantity > 0);
-            console.log('🛍️ Updated items:', serviceItem.items);
         }
 
         const finalServiceItems = newServiceItems.filter(si => 
@@ -112,9 +87,7 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
             (si.items && si.items.length > 0)
         );
         
-        console.log('📤 Final service items:', finalServiceItems);
         updateOrderDraft({ serviceItems: finalServiceItems });
-        console.groupEnd();
 
     }, [orderDraft.serviceItems, updateOrderDraft]);
 
@@ -131,14 +104,10 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
     
 // FIX: Enhanced scan results handler
     const handleScanResults = (scannedQuantities: { [articleName: string]: number }) => {
-        console.group('📸 MultiServiceOrder Scan Results');
-        console.log('🎯 Target service:', scannerState.service);
-        console.log('📋 Raw scan results:', scannedQuantities);
-        
         const { service } = scannerState;
         if (!service) {
             console.error('❌ No service selected for scanning');
-            addNotification('Error: No service selected for scanning', 'error');
+            addNotification(t('multiServiceOrder.scannerServiceMissing'), 'error');
             return;
         }
 
@@ -148,7 +117,6 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
         if (!serviceItem) {
             serviceItem = { service, items: [], weight: 0 };
             newServiceItems.push(serviceItem);
-            console.log('➕ Created new service item for scanned items');
         }
 
         if (!serviceItem.items) {
@@ -156,15 +124,12 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
         }
 
         const availableArticles = service.articleCategories?.flatMap(cat => cat.items) || [];
-        console.log('🛍️ Available articles:', availableArticles.map(a => a.name));
         
         let matchesFound = 0;
         let totalItemsAdded = 0;
 
         // Process each scanned item
         for (const [scannedName, scannedQuantity] of Object.entries(scannedQuantities)) {
-            console.log(`🔍 Processing scan: "${scannedName}" x ${scannedQuantity}`);
-            
             // Enhanced matching with multiple strategies
             const matchedArticle = availableArticles.find(article => {
                 const articleName = article.name.toLowerCase();
@@ -192,25 +157,17 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
                 
                 if (existingItem) {
                     existingItem.quantity = newQuantity;
-                    console.log(`✅ Updated existing: ${matchedArticle.name} from ${currentQuantity} to ${newQuantity}`);
                 } else {
                     serviceItem.items.push({ article: matchedArticle, quantity: newQuantity });
-                    console.log(`✅ Added new: ${matchedArticle.name} with ${newQuantity} items`);
                 }
                 
                 matchesFound++;
                 totalItemsAdded += Number(scannedQuantity);
-            } else {
-                console.log(`❌ No match found for: "${scannedName}"`);
-                console.log('Available articles:', availableArticles.map(a => a.name));
             }
         }
 
         // Remove zero quantity items
         serviceItem.items = serviceItem.items.filter(item => item.quantity > 0);
-
-        console.log(`📊 Scan summary: ${matchesFound} matches, ${totalItemsAdded} items added`);
-        console.log('🛍️ Final items:', serviceItem.items);
         
         updateOrderDraft({ serviceItems: newServiceItems });
         setScannerState({ isOpen: false, service: null });
@@ -218,7 +175,7 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
         // User feedback
         if (matchesFound > 0) {
             addNotification(
-                `✅ Scanned ${totalItemsAdded} items across ${matchesFound} article types`,
+                t('multiServiceOrder.scannerSummary', { count: totalItemsAdded, matches: matchesFound }),
                 'success'
             );
             
@@ -227,23 +184,18 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
         } else {
             // FIX: Changed notification type from 'warning' to 'info' as 'warning' is not a valid type.
             addNotification(
-                '❌ No matching items found in scan. Please try again or add manually.',
+                t('multiServiceOrder.scannerNoMatchesDetailed'),
                 'info'
             );
         }
-        
-        console.groupEnd();
     };
     
 // FIX: Enhanced service item summary with better null checking
     const getServiceItemSummary = (serviceId: string) => {
         const serviceItem = orderDraft.serviceItems?.find(si => si.service.id === serviceId);
         if (!serviceItem) {
-            console.log(`📊 No service item found for service: ${serviceId}`);
             return null;
         }
-
-        console.log(`🔍 Getting summary for service ${serviceId}:`, serviceItem);
 
         if (serviceItem.service.priceModel === 'per_kg') {
             return { count: serviceItem.weight || 0, unit: 'kg' };
@@ -260,29 +212,13 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
         return serviceItem.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     };
 
-    // Debug: Log current state
-    React.useEffect(() => {
-        console.group('🔍 MultiServiceOrder State');
-        console.log('🤝 Partner:', partner.name);
-        console.log('📦 Current serviceItems:', orderDraft.serviceItems);
-        console.log('🎯 Expanded service:', expandedServiceId);
-        console.log('📸 Scanner state:', scannerState);
-        console.log('🛍️ Partner services count:', partnerServices.length);
-        console.log('🛍️ Partner services:', partnerServices);
-        console.groupEnd();
-    }, [orderDraft.serviceItems, expandedServiceId, scannerState, partner, partnerServices]);
-
     // Show loading if services aren't ready
     if (partnerServices.length === 0) {
         return (
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-card dark:border dark:border-slate-700">
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-slate-300">Loading services...</p>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
-                        Partner: {partner.name}<br />
-                        Service IDs: {partner.serviceIds?.join(', ')}
-                    </p>
+                    <p className="text-gray-600 dark:text-slate-300">{t('multiServiceOrder.loadingServices')}</p>
                 </div>
             </div>
         );
@@ -291,37 +227,6 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
     return (
         <>
         <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-card dark:border dark:border-slate-700">
-            {/* Enhanced Debug Panel */}
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Debug Information</h3>
-                <div className="text-sm text-blue-700 dark:text-blue-300 grid grid-cols-2 gap-2">
-                    <div>Partner Services: <strong>{partnerServices.length}</strong></div>
-                    <div>Active Services: <strong>{orderDraft.serviceItems?.length || 0}</strong></div>
-                    <div>Expanded Service: <strong>{expandedServiceId || 'None'}</strong></div>
-                    <div>Scanner Open: <strong>{scannerState.isOpen ? 'Yes' : 'No'}</strong></div>
-                </div>
-                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                    {partnerServices.map(service => (
-                        <div key={service.id}>
-                            {service.title}: {getTotalItemsCount(service.id)} items
-                        </div>
-                    ))}
-                </div>
-                <button 
-                    onClick={() => {
-                        console.log('🔍 Full debug state:', {
-                            partnerServices: partnerServices.map(s => ({ id: s.id, title: s.title })),
-                            orderDraft: orderDraft.serviceItems,
-                            scannerState,
-                            expandedServiceId
-                        });
-                    }}
-                    className="mt-2 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs rounded hover:bg-blue-200 dark:hover:bg-blue-700"
-                >
-                    Log Full State
-                </button>
-            </div>
-
             <h2 className="text-2xl font-bold mb-1 text-center">{t('multiServiceOrder.title')}</h2>
             <p className="text-center text-slate-500 dark:text-slate-400 mb-6">{t('multiServiceOrder.subtitle', { name: partner.name })}</p>
 
@@ -376,8 +281,6 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
                     const hasSelection = summary && summary.count > 0;
                     const totalItems = getTotalItemsCount(service.id);
 
-                    console.log(`🎯 Rendering service: ${service.title}, hasSelection: ${hasSelection}, totalItems: ${totalItems}`);
-
                     if (service.priceModel === 'per_kg') {
                         return (
                             <div key={service.id} className={`p-4 border-2 rounded-lg transition-colors ${hasSelection ? 'border-brand-blue bg-blue-50 dark:bg-brand-blue/20' : 'bg-slate-50 dark:bg-slate-700/50 border-transparent'}`}>
@@ -426,8 +329,6 @@ export const MultiServiceOrder: React.FC<MultiServiceOrderProps> = ({ partner, o
                                     </button>
                                     <button
                                         onClick={() => {
-                                            console.log('📸 Opening scanner for service:', service.title);
-                                            console.log('🛍️ Available articles:', service.articleCategories?.flatMap(cat => cat.items).map(a => a.name));
                                             setScannerState({ isOpen: true, service });
                                         }}
                                         className="px-4 py-2 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-700 flex items-center space-x-2 text-sm"
