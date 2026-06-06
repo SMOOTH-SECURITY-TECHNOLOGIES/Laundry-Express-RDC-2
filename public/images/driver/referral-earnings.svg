@@ -1,0 +1,20 @@
+<svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Parrainage chauffeur Laundry Express</title>
+  <desc id="desc">Illustration d'un sac de gains et d'une flèche de croissance.</desc>
+  <rect width="320" height="220" rx="26" fill="#EEF6FF"/>
+  <path d="M56 174H264" stroke="#D7E8FF" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="119" cy="169" rx="62" ry="16" fill="#CFE4FF"/>
+  <path d="M87 91H153L176 178H64L87 91Z" fill="#0B72D9"/>
+  <path d="M99 91C100 71 110 60 123 60C136 60 146 71 147 91" stroke="#0A56B3" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="120" cy="137" r="25" fill="white"/>
+  <path d="M120 123V151M110 132C110 126 130 126 130 132C130 138 110 136 110 143C110 150 130 150 130 143" stroke="#0066CC" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="214" cy="87" r="22" fill="#FFB703"/>
+  <circle cx="245" cy="122" r="19" fill="#FFB703"/>
+  <circle cx="214" cy="87" r="11" fill="#FFE8A3"/>
+  <circle cx="245" cy="122" r="9" fill="#FFE8A3"/>
+  <path d="M188 155C223 145 248 120 263 80" stroke="#0066CC" stroke-width="12" stroke-linecap="round"/>
+  <path d="M263 80L264 117M263 80L229 93" stroke="#0066CC" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="65" cy="62" r="6" fill="#2AC769"/>
+  <circle cx="252" cy="54" r="5" fill="#8B5CF6"/>
+  <circle cx="180" cy="40" r="7" fill="#0066CC"/>
+</svg>

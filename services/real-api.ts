@@ -1805,6 +1805,13 @@ class ApiClient {
     return this.request<LogisticsDriverListResponse>(endpoint);
   }
 
+  async updateDriverAvailability(available: boolean): Promise<{ available: boolean }> {
+    return this.request<{ available: boolean }>('/driver/availability', {
+      method: 'PATCH',
+      body: JSON.stringify({ available }),
+    });
+  }
+
   async getMarketplaceCompanies(params?: {
     page?: number;
     page_size?: number;
