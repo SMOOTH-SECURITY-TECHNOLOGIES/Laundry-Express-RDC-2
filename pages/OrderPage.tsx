@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
-import { Service, ServiceType } from '../types';
+import { Service, ServiceType, formatAddress } from '../types';
 
 interface EstimatorItem {
   id: string;
@@ -115,9 +115,9 @@ const serviceTypeToServiceMap: Record<ServiceType, string> = {
   [ServiceType.CORDONNERIE]: 'cordonnerie',
 };
 
-type Step = 0 | 1 | 2;
+type Step = 0 | 1 | 2 | 3;
 
-const stepLabels = ['Service', 'Partenaire', 'Commande'];
+const stepLabels = ['Service', 'Partenaire', 'Commande', 'Adresse & paiement'];
 
 const partnerGradients = [
   'from-[#0077B6] to-[#00B4D8]',
@@ -129,14 +129,21 @@ const partnerGradients = [
 ];
 
 export const OrderPage: React.FC = () => {
-  const { partners, services: dataServices, setCurrentPage, updateOrderDraft, formatPrice, orderDraft } = useAppContext();
+  const {
+    partners, services: dataServices, setCurrentPage, updateOrderDraft, formatPrice, orderDraft,
+    user, addOrderToHistory, setActiveOrder, addNotification, isLoading,
+  } = useAppContext();
 
   const [step, setStep] = useState<Step>(0);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [estimatorItems, setEstimatorItems] = useState<EstimatorItem[]>(estimatorItemsDefault);
+  const [pickupTime, setPickupTime] = useState('Aujourd hui, 16h-18h');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mobile_money' | 'card'>('cash');
+  const [specialInstructions, setSpecialInstructions] = useState(orderDraft.clientDetails?.pickupAddress?.reference || '');
 
   useEffect(() => {
+    if (step >= 2) return;
     if (!orderDraft.partner && !orderDraft.serviceType) return;
 
     if (orderDraft.serviceType) {
@@ -150,7 +157,7 @@ export const OrderPage: React.FC = () => {
     }
 
     setStep(1);
-  }, [orderDraft.partner, orderDraft.serviceType]);
+  }, [orderDraft.partner, orderDraft.serviceType, step]);
 
   const estimatorTotal = useMemo(() => {
     return estimatorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -263,7 +270,49 @@ export const OrderPage: React.FC = () => {
   };
 
   const handleContinue = () => {
-    setCurrentPage({ name: 'order' });
+    if (estimatorTotal === 0) return;
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleConfirmOrder = async () => {
+    if (!selectedPartner || !user) {
+      setCurrentPage({ name: 'login' });
+      return;
+    }
+
+    const clientDetails = {
+      name: user.name,
+      phone: user.phone,
+      pickupAddress: {
+        ...user.pickupAddress,
+        reference: specialInstructions || user.pickupAddress.reference,
+      },
+    };
+
+    updateOrderDraft({ clientDetails, pickupTime });
+
+    try {
+      const createdOrder = await addOrderToHistory({
+        partner: selectedPartner,
+        serviceItems: orderDraft.serviceItems || [],
+        clientDetails,
+        pickupTime,
+        appliedPromoCode: orderDraft.appliedPromoCode,
+        useLoyaltyPoints: orderDraft.loyaltyPointsToRedeem,
+        paymentMethod,
+        discountAmount: orderDraft.discountAmount,
+        pointsDiscount: orderDraft.pointsDiscount,
+        referralDiscount: orderDraft.referralDiscount,
+        totalPrice: estimatorTotal,
+      });
+
+      setActiveOrder(createdOrder);
+      addNotification('Commande creee avec succes. Vous pouvez maintenant la suivre.', 'success');
+      setCurrentPage({ name: 'tracking' });
+    } catch {
+      // addOrderToHistory already shows the backend error.
+    }
   };
 
   const handleBack = () => {
@@ -273,6 +322,8 @@ export const OrderPage: React.FC = () => {
     } else if (step === 2) {
       setStep(1);
       setSelectedPartnerId(null);
+    } else if (step === 3) {
+      setStep(2);
     }
   };
 
@@ -898,6 +949,126 @@ export const OrderPage: React.FC = () => {
     </div>
   );
 
+  /* ─── Step 3: Address + Payment ─── */
+  const renderStep3 = () => (
+    <div className="space-y-8 max-w-2xl mx-auto">
+      <button
+        onClick={handleBack}
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-[#0077B6] dark:hover:text-[#00B4D8] transition-colors font-medium"
+      >
+        <Icon name="arrowLeft" className="w-5 h-5" />
+        Retour a la commande
+      </button>
+
+      <div className="text-center space-y-3">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          Adresse et <span className="text-[#0077B6]">paiement</span>
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Confirmez le ramassage et choisissez comment regler la commande.
+        </p>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 dark:border-slate-700">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#0077B6]/10 flex items-center justify-center shrink-0">
+              <Icon name="mapPin" className="w-6 h-6 text-[#0077B6]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Adresse de ramassage</p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mt-1">{user?.name || 'Client'}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {user?.pickupAddress ? formatAddress(user.pickupAddress) : 'Aucune adresse enregistree'}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user?.phone}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <div>
+            <label htmlFor="pickupTime" className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+              Creneau de ramassage
+            </label>
+            <select
+              id="pickupTime"
+              value={pickupTime}
+              onChange={(event) => setPickupTime(event.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0077B6]/30 focus:border-[#0077B6]"
+            >
+              <option>Aujourd hui, 16h-18h</option>
+              <option>Aujourd hui, 18h-20h</option>
+              <option>Demain, 08h-10h</option>
+              <option>Demain, 10h-12h</option>
+              <option>Demain, 14h-16h</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="specialInstructions" className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
+              Instructions pour le chauffeur
+            </label>
+            <textarea
+              id="specialInstructions"
+              value={specialInstructions}
+              onChange={(event) => setSpecialInstructions(event.target.value)}
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0077B6]/30 focus:border-[#0077B6]"
+              placeholder="Ex: appeler en arrivant, portail noir, 2e etage..."
+            />
+          </div>
+
+          <div>
+            <p className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Mode de paiement</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { id: 'cash', label: 'Cash', desc: 'A la livraison', icon: 'currencyDollar' },
+                { id: 'mobile_money', label: 'Mobile Money', desc: 'M-Pesa / Airtel', icon: 'phone' },
+                { id: 'card', label: 'Carte', desc: 'Visa / Mastercard', icon: 'credit-card' },
+              ].map((method) => (
+                <button
+                  key={method.id}
+                  type="button"
+                  onClick={() => setPaymentMethod(method.id as 'cash' | 'mobile_money' | 'card')}
+                  className={`p-4 rounded-xl border text-left transition ${
+                    paymentMethod === method.id
+                      ? 'border-[#0077B6] bg-[#0077B6]/5 ring-2 ring-[#0077B6]/20'
+                      : 'border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-[#0077B6]/50'
+                  }`}
+                >
+                  <Icon name={method.icon as any} className="w-5 h-5 text-[#0077B6] mb-2" />
+                  <p className="font-bold text-gray-900 dark:text-white">{method.label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{method.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-100 dark:border-slate-700">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Total a confirmer</span>
+            <span className="text-3xl font-bold text-[#0077B6]">{formatPrice(estimatorTotal)}</span>
+          </div>
+          <button
+            onClick={handleConfirmOrder}
+            disabled={isLoading || !user || !user.backendAddressId || estimatorTotal === 0}
+            className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#0077B6]/25 hover:shadow-xl hover:shadow-[#0077B6]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            <Icon name="check" className="w-5 h-5" />
+            {isLoading ? 'Creation en cours...' : 'Confirmer la commande'}
+          </button>
+          {!user?.backendAddressId && (
+            <p className="mt-3 text-xs text-red-500 text-center">
+              Votre adresse doit etre synchronisee avec le backend avant de creer la commande.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   /* ─── Main Render ─── */
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -906,6 +1077,7 @@ export const OrderPage: React.FC = () => {
         {step === 0 && renderStep0()}
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
+        {step === 3 && renderStep3()}
       </div>
     </div>
   );
