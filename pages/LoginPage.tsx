@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { LoginRequest } from '../types';
+import { Page } from '../context/NavigationContext';
 
 const GoogleIcon = () => (
     <svg className="w-5 h-5 mr-3" viewBox="0 0 48 48">
@@ -19,11 +20,30 @@ const FacebookIcon = () => (
 
 
 export const LoginPage: React.FC = () => {
-  const { login, setCurrentPage, addNotification, t, previousPage, orderDraft } = useAppContext();
+  const { login, setCurrentPage, addNotification, clearNotifications, t, previousPage, orderDraft, user } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [loginStatus, setLoginStatus] = useState<string>('');
+  const runtimeMarker = 'frontend-login-debug-2026-03-20-v1';
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'missing';
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  const hasAuthToken = typeof window !== 'undefined' ? !!window.localStorage.getItem('auth_token') : false;
+
+  const navigateAfterLogin = (targetPage: Page) => {
+    setLoginStatus(`Connexion reussie. Redirection vers ${targetPage}...`);
+    console.log('[login] navigation target', targetPage);
+    setCurrentPage({ name: targetPage });
+
+    const targetPath = targetPage === 'home' ? '/' : `/${targetPage}`;
+    window.setTimeout(() => {
+      if (window.location.pathname !== targetPath) {
+        console.log('[login] forcing browser navigation', targetPath);
+        window.location.assign(targetPath);
+      }
+    }, 150);
+  };
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -43,67 +63,69 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
     
+    clearNotifications();
+    setLoginStatus('Envoi de la demande de connexion...');
     setIsLoading(true);
     try {
       const payload: LoginRequest = { email, password };
+      console.log('[login] submit', { email });
       const { user: loggedInUser } = await login(payload);
+      console.log('[login] login response received', loggedInUser);
       
       if (loggedInUser) {
+        clearNotifications();
+        setLoginStatus('Connexion validee par le backend.');
+        addNotification('Connexion reussie. Redirection en cours...', 'success');
+
         // This is a special case to return user to order flow
         if (orderDraft.serviceType && (previousPage === 'order' || previousPage === 'partner-detail')) {
-            setCurrentPage({ name: 'order' });
+            navigateAfterLogin('order');
             return;
         }
 
         // General case: return to previous page if it makes sense
         if (previousPage && !['login', 'register', 'home'].includes(previousPage)) {
-            setCurrentPage({ name: previousPage });
+            navigateAfterLogin(previousPage);
             return;
         }
 
         // Role-based defaults
         if (loggedInUser.role === 'superadmin' || loggedInUser.role === 'admin') {
-          setCurrentPage({ name: 'admin' });
+          navigateAfterLogin('admin');
         } else if (loggedInUser.role === 'driver') {
-          setCurrentPage({ name: 'driver-dashboard' });
+          navigateAfterLogin('driver-dashboard');
         } else if (loggedInUser.role === 'logistics-manager') {
-          setCurrentPage({ name: 'logistics-dashboard' });
+          navigateAfterLogin('logistics-dashboard');
         } else if (loggedInUser.role.startsWith('partner-')) {
-          setCurrentPage({ name: 'partner-dashboard' });
+          navigateAfterLogin('partner-dashboard');
         } else {
-          setCurrentPage({ name: 'home' });
+          navigateAfterLogin('home');
         }
+      } else {
+        setLoginStatus('Connexion terminee sans utilisateur retourne.');
       }
     } catch (err) {
-      addNotification(t('loginPage.invalidCredentials'), 'error');
+      const message = err instanceof Error ? err.message : '';
+      const normalizedMessage = message.toLowerCase();
+      const isInvalidCredentials =
+        normalizedMessage.includes('email ou mot de passe incorrect') ||
+        normalizedMessage.includes('incorrect email or password') ||
+        normalizedMessage.includes('invalid credentials');
+
+      console.error('[login] failed', err);
+      setLoginStatus(isInvalidCredentials ? 'Le backend a refuse les identifiants.' : `Erreur frontend/runtime: ${message || 'inconnue'}`);
+      addNotification(
+        isInvalidCredentials ? t('loginPage.invalidCredentials') : (message || 'Une erreur est survenue pendant la connexion.'),
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }
   };
   
   const handleSocialLogin = async (email: string) => {
-    setIsLoading(true);
-    try {
-      // In a real app, you'd get data from the social provider.
-      // Here, we just use the email to log into the mock backend.
-      const payload: LoginRequest = { email, password: 'mock-password' };
-      const { user: loggedInUser } = await login(payload);
-       if (loggedInUser) {
-        if (orderDraft.serviceType && (previousPage === 'order' || previousPage === 'partner-detail')) {
-            setCurrentPage({ name: 'order' });
-            return;
-        }
-        if (previousPage && !['login', 'register', 'home'].includes(previousPage)) {
-            setCurrentPage({ name: previousPage });
-            return;
-        }
-        setCurrentPage({ name: 'home' });
-      }
-    } catch (err) {
-       addNotification(t('loginPage.invalidCredentials'), 'error');
-    } finally {
-      setIsLoading(false);
-    }
+    console.info('Social login placeholder clicked for', email);
+    addNotification('Connexion sociale non disponible pour le moment.', 'info');
   }
 
 
@@ -149,7 +171,23 @@ export const LoginPage: React.FC = () => {
               {isLoading ? t('buttons.loading') : t('loginPage.login')}
             </button>
           </div>
+          {loginStatus && (
+            <p className="text-sm text-slate-600 dark:text-slate-300" data-testid="login-status">
+              {loginStatus}
+            </p>
+          )}
         </form>
+
+        {import.meta.env.DEV && (
+          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 space-y-1" data-testid="login-dev-diagnostics">
+            <p><strong>Runtime:</strong> {runtimeMarker}</p>
+            <p><strong>Route:</strong> {currentPath}</p>
+            <p><strong>API:</strong> {apiBaseUrl}</p>
+            <p><strong>Auth token:</strong> {hasAuthToken ? 'present' : 'absent'}</p>
+            <p><strong>User state:</strong> {user ? `${user.email} / ${user.role}` : 'anonymous'}</p>
+            <p><strong>Status:</strong> {loginStatus || 'idle'}</p>
+          </div>
+        )}
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center" aria-hidden="true">

@@ -7,10 +7,10 @@ import { User } from '../types';
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirmPayment: (onComplete: () => void) => void;
+  onConfirmPayment: (selectedMethod: string, onComplete: () => void) => void;
 }
 
-export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onConfirmPayment }) => {
+const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onConfirmPayment }) => {
   const { orderDraft, user, t } = useAppContext();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -133,7 +133,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onC
     // --- End event ---
 
     setIsProcessing(true);
-    onConfirmPayment(() => {
+    onConfirmPayment(selectedMethod, () => {
         setIsProcessing(false);
         onClose();
     });
@@ -148,6 +148,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onC
   const finalTotal = Math.max(0, subtotal - promoD - pointsD - referralD);
 
   const paymentOptions = [
+    { id: 'cash', name: 'Cash a la livraison' },
     { id: 'mpesa', name: 'M-Pesa' },
     { id: 'airtel', name: 'Airtel Money' },
     { id: 'orange', name: 'Orange Money' },
@@ -207,3 +208,5 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onC
     </div>
   );
 };
+
+export default PaymentModal;

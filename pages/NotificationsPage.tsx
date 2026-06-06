@@ -5,40 +5,20 @@ import { useAppContext } from '../context/AppContext.tsx';
 import { AppNotification, Order, OrderStatus, AppNotificationAction } from '../types';
 import { Icon } from '../components/Icon.tsx';
 import * as api from '../constants';
+import { timeSince } from '../utils/timeSince';
+import { NOTIFICATION_META } from '../utils/notificationMeta';
 
 // Modals imported from other pages for reuse
 // FIX: Using correct PascalCase for the implementation file import to resolve casing and export errors.
 import { EstimateTimeModal } from './partner/Dashboard';
 import { ReassignPartnerModal } from './admin/dashboard';
 
-
-const TimeSince: React.FC<{ dateString: string }> = ({ dateString }) => {
-    const { t } = useAppContext();
-
-    const timeAgo = useMemo(() => {
-        const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
-        let interval = seconds / 31536000;
-        if (interval > 1) return t('notifications.time.years', { count: Math.floor(interval) });
-        interval = seconds / 2592000;
-        if (interval > 1) return t('notifications.time.months', { count: Math.floor(interval) });
-        interval = seconds / 86400;
-        if (interval > 1) return t('notifications.time.days', { count: Math.floor(interval) });
-        interval = seconds / 3600;
-        if (interval > 1) return t('notifications.time.hours', { count: Math.floor(interval) });
-        interval = seconds / 60;
-        if (interval > 1) return t('notifications.time.minutes', { count: Math.floor(interval) });
-        return t('notifications.time.justNow');
-    }, [dateString, t]);
-
-    return <>{timeAgo}</>;
-};
-
 const NotificationItem: React.FC<{ 
     notification: AppNotification; 
     onActionClick: (action: AppNotificationAction, notificationId: string) => void;
     onBodyClick: () => void; 
 }> = ({ notification, onActionClick, onBodyClick }) => {
-
+    const meta = NOTIFICATION_META[notification.notificationType] || NOTIFICATION_META.general;
     const actionButtonStyles = {
         ACCEPT_ORDER: 'bg-green-100 text-green-700 hover:bg-green-200',
         REJECT_ORDER: 'bg-red-100 text-red-700 hover:bg-red-200',
@@ -46,29 +26,35 @@ const NotificationItem: React.FC<{
     };
 
     return (
-        <div className="border-b last:border-b-0">
+        <div className={`border-b last:border-b-0 ${!notification.isRead ? 'bg-blue-50/40' : ''}`}>
             <button
                 onClick={onBodyClick}
-                className="w-full text-left p-4 hover:bg-slate-50 flex items-start space-x-4 transition-colors"
+                className="w-full text-left p-4 hover:bg-slate-50 flex items-start gap-3 transition-colors"
             >
-                {!notification.isRead && <div className="w-2.5 h-2.5 bg-brand-blue rounded-full mt-1.5 shrink-0 animate-pulse"></div>}
-                <div className={`flex-grow ${notification.isRead ? 'pl-[26px]' : ''}`}>
-                    <p className={`text-sm ${notification.isRead ? 'text-slate-600' : 'text-slate-800 font-semibold'}`}>
+                <div className={`p-2 rounded-lg shrink-0 ${meta.bgColor}`}>
+                    <Icon name={meta.icon as any} className={`w-4 h-4 ${meta.color}`} />
+                </div>
+                <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{meta.label}</span>
+                      {!notification.isRead && <div className="w-2 h-2 bg-[#0077B6] rounded-full animate-pulse"></div>}
+                    </div>
+                    <p className={`text-sm leading-snug ${notification.isRead ? 'text-slate-600' : 'text-slate-800 font-semibold'}`}>
                         {notification.message}
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1"><TimeSince dateString={notification.createdAt} /></p>
-                 </div>
+                    <p className="text-xs text-slate-400 mt-1">{timeSince(notification.createdAt)}</p>
+                </div>
             </button>
             {notification.actions && notification.actions.length > 0 && (
-                <div className="px-4 pb-3 flex items-center justify-end space-x-2 ml-auto" style={{paddingLeft: notification.isRead ? 'calc(1rem + 26px)' : 'calc(1rem + 26px)'}}>
+                <div className="px-4 pb-3 flex items-center justify-end gap-2" style={{paddingLeft: 'calc(1rem + 44px)'}}>
                     {notification.actions.map(action => (
                         <button 
                             key={action.actionType}
                             onClick={(e) => {
-                                e.stopPropagation(); // Prevent body click
+                                e.stopPropagation();
                                 onActionClick(action, notification.id);
                             }}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-md ${actionButtonStyles[action.actionType] || 'bg-slate-100 hover:bg-slate-200'}`}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${actionButtonStyles[action.actionType] || 'bg-slate-100 hover:bg-slate-200'}`}
                         >
                             {action.label}
                         </button>

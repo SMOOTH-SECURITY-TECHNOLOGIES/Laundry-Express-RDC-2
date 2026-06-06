@@ -412,9 +412,9 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
     try {
       const result = validatePromoCode(promoCodeInput, orderDraft);
       if (result.isValid) {
-        updateOrderDraft({ 
-          appliedPromoCode: result.codeData?.code, 
-          discountAmount: result.discountAmount 
+      updateOrderDraft({ 
+        appliedPromoCode: result.codeData?.code, 
+        discountAmount: result.discountAmount 
         });
         setPromoMessage({ type: 'success', text: result.message });
         trackEvent(TRACKING_EVENTS.PROMO_APPLIED, { code: promoCodeInput, discount: result.discountAmount });
@@ -441,7 +441,10 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
     if (!user || user.loyaltyPoints <= 0 || !loyaltySettings.isEnabled || loyaltySettings.pointsToDollar <= 0) return;
     
     if (redeemableAmount > 0) {
-      updateOrderDraft({ pointsDiscount: redeemableAmount });
+      updateOrderDraft({
+        pointsDiscount: redeemableAmount,
+        loyaltyPointsToRedeem: pointsToUse,
+      });
       trackEvent(TRACKING_EVENTS.POINTS_REDEEMED, { 
         points: redeemableAmount * loyaltySettings.pointsToDollar,
         discount: redeemableAmount 
@@ -450,7 +453,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   }, [user, loyaltySettings, redeemableAmount, updateOrderDraft]);
 
   const handleRemovePoints = useCallback(() => {
-    updateOrderDraft({ pointsDiscount: undefined });
+    updateOrderDraft({ pointsDiscount: undefined, loyaltyPointsToRedeem: undefined });
     trackEvent(TRACKING_EVENTS.POINTS_REMOVED, { points: pointsDiscount });
   }, [updateOrderDraft, pointsDiscount]);
 

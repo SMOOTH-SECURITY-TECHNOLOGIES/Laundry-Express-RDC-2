@@ -23,6 +23,10 @@ import { TrackingManagement } from './admin/TrackingManagement';
 import { SubscriptionManagement } from './admin/SubscriptionManagement';
 import { RefundManagement } from './admin/RefundManagement';
 import { ActivityLogManagement } from './admin/ActivityLogManagement';
+import { TruthDashboard } from './ops/TruthDashboard';
+import { OrderTruthPage } from './ops/OrderTruthPage';
+import { AnomalyCenterPage } from './ops/AnomalyCenterPage';
+import { InvestigatePage } from './ops/InvestigatePage';
 
 export const AdminPage: React.FC = () => {
     const { user, setCurrentPage, logout, setOpenChatForOrderId, adminSectionParams, setAdminSectionParams, t } = useAppContext();
@@ -113,6 +117,14 @@ export const AdminPage: React.FC = () => {
                 return <RefundManagement />;
             case 'activity':
                 return <ActivityLogManagement />;
+            case 'ops_dashboard':
+                return <TruthDashboard />;
+            case 'ops_truth':
+                return <OrderTruthPage />;
+            case 'ops_anomalies':
+                return <AnomalyCenterPage />;
+            case 'ops_investigate':
+                return <InvestigatePage />;
             case 'dashboard':
             default:
                 return <Dashboard setSection={setSection} />;

@@ -117,45 +117,8 @@ export const RegisterPage: React.FC = () => {
   };
   
   const handleSocialSignUp = async (email: string, method: 'Google' | 'Facebook') => {
-    setIsLoading(true);
-    try {
-      const payload: RegisterRequest = {
-        name: email.split('@')[0], // Mock name
-        email,
-        phone: '0810000000', // Mock phone
-        password: `mock-password-${Date.now()}`,
-        pickupAddress: { commune: 'Gombe', avenue: 'Social Profile', numero: 'N/A' },
-      };
-      const { user: registeredUser } = await register(payload);
-      trackEvent('CompleteRegistration', { method });
-      
-      // --- BEGIN CAPI INTEGRATION ---
-      const [firstName, ...lastNameParts] = registeredUser.name.split(' ');
-      const lastName = lastNameParts.join(' ');
-      sendServerSideEvent('CompleteRegistration', {
-          user_data: {
-              email: registeredUser.email,
-              phone_number: registeredUser.phone,
-              address: {
-                  first_name: firstName,
-                  last_name: lastName,
-                  city: registeredUser.pickupAddress.commune,
-                  country: 'CD'
-              }
-          }
-      });
-      // --- END CAPI INTEGRATION ---
-
-      if (orderDraft.serviceType && (previousPage === 'order' || previousPage === 'partner-detail')) {
-          setCurrentPage({ name: 'order' });
-      } else {
-          setCurrentPage({ name: 'home' });
-      }
-    } catch (err) {
-      addNotification(t('registerPage.error'), 'error');
-    } finally {
-      setIsLoading(false);
-    }
+    console.info('Social signup placeholder clicked for', email, method);
+    addNotification('Inscription sociale non disponible pour le moment.', 'info');
   }
 
   return (

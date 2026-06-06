@@ -4,46 +4,45 @@
 // This file is now the canonical source for the Admin Dashboard.
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { Order, OrderStatus, AdminSection, SecurityAlert, Partner, Service, StatCard as StatCardType } from '../../types';
-import { Icon } from '../../components/Icon.tsx';
+import { Order, AdminSection, Partner, StatCard as StatCardType } from '../../types';
 import { StatCard } from '../../components/StatCard.tsx';
-// FIX: Using correct PascalCase for the implementation file import to resolve casing and export errors.
-import { ChatModal } from '../../components/ChatModal';
+import { AdminOverview, realApi } from '../../services/real-api';
 
 interface DashboardProps {
     setSection: (section: AdminSection) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
-    const { partners, getAllOrders, getAllUsers, partnerApplications, supportTickets, t } = useAppContext();
+    const { partners, services, reassignPartner, addNotification, t, suggestReassignment } = useAppContext();
+    const [overview, setOverview] = useState<AdminOverview | null>(null);
 
-    const stats = useMemo(() => {
-        const allOrders = getAllOrders();
-        const allUsers = getAllUsers();
-        
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
-        const recentOrders = allOrders.filter(o => new Date(o.createdAt) > thirtyDaysAgo);
-        const revenue = recentOrders.filter(o => o.status === 'COMPLETED').reduce((sum, order) => sum + order.totalPrice, 0);
+    useEffect(() => {
+        let isMounted = true;
 
-        return {
-            totalPartners: partners.length,
-            totalUsers: allUsers.length,
-            totalOrders: recentOrders.length,
-            totalRevenue: revenue.toFixed(2),
-            pendingApplications: partnerApplications.length,
-            openTickets: supportTickets.filter(t => t.status === 'OPEN').length,
-        }
-    }, [partners, getAllOrders, getAllUsers, partnerApplications, supportTickets]);
+        realApi.getAdminOverview()
+            .then((data) => {
+                if (isMounted) {
+                    setOverview(data);
+                }
+            })
+            .catch(() => {
+                if (isMounted) {
+                    setOverview(null);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const statCards: {title: string, value: string|number, iconName: StatCardType['iconName'], section: AdminSection}[] = [
-        { title: t('adminDashboard.totalRevenue'), value: `${stats.totalRevenue} $`, iconName: 'currencyDollar', section: 'analytics' },
-        { title: t('adminDashboard.totalOrders'), value: stats.totalOrders, iconName: 'shirt', section: 'orders' },
-        { title: t('adminDashboard.totalPartners'), value: stats.totalPartners, iconName: 'wash', section: 'partners' },
-        { title: t('adminDashboard.totalUsers'), value: stats.totalUsers, iconName: 'user', section: 'users' },
-        { title: t('adminDashboard.pendingApplications'), value: stats.pendingApplications, iconName: 'pencil', section: 'partners' },
-        { title: t('adminDashboard.openTickets'), value: stats.openTickets, iconName: 'lifebuoy', section: 'support' },
+        { title: t('adminDashboard.totalRevenue'), value: `${Number(overview?.revenue_last_30_days || 0).toFixed(2)} $`, iconName: 'currencyDollar', section: 'analytics' },
+        { title: t('adminDashboard.totalOrders'), value: overview?.orders_last_30_days || 0, iconName: 'shirt', section: 'orders' },
+        { title: t('adminDashboard.totalPartners'), value: overview?.total_partners || 0, iconName: 'wash', section: 'partners' },
+        { title: t('adminDashboard.totalUsers'), value: overview?.total_users || 0, iconName: 'user', section: 'users' },
+        { title: t('adminDashboard.openDisputes', { default: 'Open disputes' }), value: overview?.open_disputes || 0, iconName: 'lifebuoy', section: 'refunds' },
+        { title: t('adminDashboard.openTickets', { default: 'Open tickets' }), value: overview?.open_tickets || 0, iconName: 'pencil', section: 'support' },
     ];
 
     return (

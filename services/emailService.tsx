@@ -1,10 +1,7 @@
-import React from 'react';
-import ReactDOMServer from 'react-dom/server';
-
 interface EmailPayload {
   to: string;
   subject: string;
-  bodyComponent: React.ReactElement;
+  bodyComponent: any;
   t: (key: string, options?: any) => string;
 }
 
@@ -13,19 +10,13 @@ interface EmailResult {
     error?: string;
 }
 
-
 /**
- * Simulates sending a transactional email using Resend.
- * In a real-world application, this function would live on a secure backend
- * or in a serverless function to protect the RESEND_API_KEY.
- *
- * It takes a React component, renders it to an HTML string (like react-email),
- * and then "sends" it by logging the details to the console.
- *
- * @param {EmailPayload} payload - The email details.
+ * Simulates sending a transactional email.
+ * This is a client-side simulation that logs email details to the console.
+ * In production, email sending should be handled by a backend service.
  */
 export const sendTransactionalEmail = async (payload: EmailPayload): Promise<EmailResult> => {
-  const { to, subject, bodyComponent, t } = payload;
+  const { to, subject, t } = payload;
 
   console.log('--- SIMULATING EMAIL DISPATCH ---');
   
@@ -44,40 +35,12 @@ export const sendTransactionalEmail = async (payload: EmailPayload): Promise<Ema
         return { success: false, error };
     }
 
-    // 1. Clone the element to inject the `t` prop, making it available for rendering.
-    const bodyWithT = React.cloneElement(bodyComponent as React.ReactElement<{ t: any }>, { t });
-
-    // 2. Render the React component to an HTML string
-    // This is the core concept of react-email
-    const htmlBody = ReactDOMServer.renderToStaticMarkup(bodyWithT);
-
-    // 3. In a real backend, you would use the Resend SDK here:
-    /*
-    import { Resend } from 'resend';
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    
-    const { data, error } = await resend.emails.send({
-      from: 'Laundry Express <noreply@yourdomain.com>',
-      to: [to],
-      subject: subject,
-      react: bodyComponent, // Resend can take the component directly
-      // or
-      // html: htmlBody
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-    */
-
-    // 4. For our simulation, we log the details to the console.
+    // Client-side simulation: log email details without rendering to HTML
+    // (react-dom/server is not available in browser bundles)
     console.log(`[Email Service] Pretending to send email via Resend.`);
     console.log(`- TO: ${to}`);
     console.log(`- SUBJECT: ${subject}`);
-    console.log('- BODY (HTML):');
-    // We log the raw HTML to show what would be sent.
-    // For a prettier view, you can copy-paste this into an HTML file.
-    console.log(htmlBody);
+    console.log('- BODY: [React Component - rendered on server in production]');
     console.log('--- EMAIL DISPATCH SIMULATION COMPLETE ---');
     return { success: true };
     

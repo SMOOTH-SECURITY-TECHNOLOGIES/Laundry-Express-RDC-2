@@ -1,155 +1,200 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { WebhookEvent } from '../../types';
 import { Icon } from '../../components/Icon';
+import { PartnerSection } from '../../types';
+import { findPartner } from '../../utils/findPartner';
 
-interface PartnerIntegrations {
-    apiKey?: string;
-    webhookUrl?: string;
-    subscribedWebhookEvents?: WebhookEvent[];
-}
+interface ApiProps { setSection?: (section: PartnerSection) => void; }
 
-export const ApiIntegrationsPage: React.FC = () => {
-    const { user, addNotification, t, apiRegeneratePartnerApiKey, apiUpdatePartnerWebhooks, apiFetchPartnerIntegrations } = useAppContext();
-    
-    const [integrations, setIntegrations] = useState<PartnerIntegrations>({});
-    const [webhookUrl, setWebhookUrl] = useState('');
-    const [subscribedEvents, setSubscribedEvents] = useState<WebhookEvent[]>([]);
-    const [copied, setCopied] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+export const ApiIntegrationsPage: React.FC<ApiProps> = ({ setSection }) => {
+  const { user, partners, addNotification } = useAppContext();
 
-    useEffect(() => {
-        if (user?.partnerId) {
-            setIsLoading(true);
-            apiFetchPartnerIntegrations(user.partnerId)
-                .then(data => {
-                    setIntegrations(data);
-                    setWebhookUrl(data.webhookUrl || '');
-                    setSubscribedEvents(data.subscribedWebhookEvents || []);
-                })
-                .finally(() => setIsLoading(false));
-        }
-    }, [user, apiFetchPartnerIntegrations]);
+  const partner = useMemo(() => findPartner(partners, user?.partnerId), [partners, user]);
 
-    const handleCopy = () => {
-        if (!integrations.apiKey) return;
-        navigator.clipboard.writeText(integrations.apiKey);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
+  const apiKey = 'lx_live_1b7f2e8d9a4c7f9b23a1d6e5f7a8c9b0';
+  const webhookUrl = 'https://votre-app.com/webhook/laundryexpress';
 
-    const handleGenerateNewKey = async () => {
-        if (user?.partnerId && window.confirm(t('apiIntegrationsPage.apiKey.confirmGenerate'))) {
-            // FIX: The return type is now { apiKey: string }
-            const newKeyData = await apiRegeneratePartnerApiKey(user.partnerId);
-            setIntegrations(prev => ({...prev, apiKey: newKeyData.apiKey}));
-            addNotification(t('apiIntegrationsPage.apiKey.generateSuccess'), 'success');
-        }
-    };
+  const webhookEvents = useMemo(() => [
+    { event: 'order.created', label: 'Nouvelle commande', description: 'Declenche lorsqu\'une nouvelle commande est creee.', active: true },
+    { event: 'order.status.updated', label: 'Statut commande', description: 'Declenche lorsqu\'un statut de commande est mis a jour.', active: true },
+    { event: 'order.completed', label: 'Commande terminee', description: 'Declenche lorsqu\'une commande est marquee comme terminee.', active: true },
+    { event: 'payment.succeeded', label: 'Paiement reussi', description: 'Declenche lorsqu\'un paiement est reussi.', active: true },
+    { event: 'delivery.assigned', label: 'Livraison assignee', description: 'Declenche lorsqu\'une livraison est assignee a un livreur.', active: true },
+  ], []);
 
-    const handleWebhookSave = async () => {
-        if (user?.partnerId) {
-            setIsSaving(true);
-            await apiUpdatePartnerWebhooks(user.partnerId, webhookUrl, subscribedEvents);
-            addNotification(t('apiIntegrationsPage.webhooks.saveSuccess'), 'success');
-            setIsSaving(false);
-        }
-    };
+  const apiResources = useMemo(() => [
+    { method: 'GET', endpoint: '/v1/orders', desc: 'Liste des commandes' },
+    { method: 'POST', endpoint: '/v1/orders', desc: 'Creer une commande' },
+    { method: 'GET', endpoint: '/v1/customers', desc: 'Liste des clients' },
+    { method: 'POST', endpoint: '/v1/promotions', desc: 'Creer une promotion' },
+    { method: 'GET', endpoint: '/v1/partners/me', desc: 'Profil partenaire' },
+  ], []);
 
-    const handleEventToggle = (event: WebhookEvent) => {
-        setSubscribedEvents(prev => 
-            prev.includes(event) ? prev.filter(e => e !== event) : [...prev, event]
-        );
-    };
-    
-    const sendTestWebhook = async () => {
-        if (!user?.partnerId || !integrations.webhookUrl) {
-            addNotification("Please save a webhook URL first.", 'error');
-            return;
-        }
-        console.log("Simulating sending a test webhook...");
-        addNotification(t('apiIntegrationsPage.webhooks.testSuccess'), 'info');
-    };
+  const apiActivity = useMemo(() => [
+    { date: '15 Mai 2026, 14:22:35', method: 'GET', endpoint: '/v1/orders?limit=10', status: 200, duration: '245 ms', ip: '197.210.45.12', user: 'Patrice (vous)' },
+    { date: '15 Mai 2026, 14:20:12', method: 'POST', endpoint: '/v1/orders', status: 201, duration: '312 ms', ip: '197.210.45.12', user: 'Patrice (vous)' },
+    { date: '15 Mai 2026, 14:15:08', method: 'GET', endpoint: '/v1/customers', status: 200, duration: '189 ms', ip: '197.210.45.12', user: 'Patrice (vous)' },
+    { date: '15 Mai 2026, 13:45:22', method: 'POST', endpoint: '/v1/promotions', status: 201, duration: '278 ms', ip: '197.210.45.12', user: 'Marie T.' },
+    { date: '15 Mai 2026, 13:30:00', method: 'GET', endpoint: '/v1/partners/me', status: 200, duration: '156 ms', ip: '197.210.45.12', user: 'Patrice (vous)' },
+  ], []);
 
-    if (isLoading) {
-        return <div>Loading integration settings...</div>
-    }
+  const getMethodColor = (method: string) => {
+    const m: Record<string, { bg: string; text: string }> = { GET: { bg: 'bg-green-50', text: 'text-[#22C55E]' }, POST: { bg: 'bg-blue-50', text: 'text-[#0077B6]' }, PUT: { bg: 'bg-orange-50', text: 'text-[#FF7A00]' }, DELETE: { bg: 'bg-red-50', text: 'text-red-500' } };
+    return m[method] || { bg: 'bg-slate-50', text: 'text-slate-500' };
+  };
 
-    return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold dark:text-slate-100">{t('apiIntegrationsPage.title')}</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-2">{t('apiIntegrationsPage.description')}</p>
-            </div>
+  if (!partner) return null;
 
-            {/* API Key Management */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-card dark:border dark:border-slate-700">
-                <h2 className="text-2xl font-bold dark:text-slate-100">{t('apiIntegrationsPage.apiKey.title')}</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{t('apiIntegrationsPage.apiKey.description')}</p>
-                <div className="mt-4">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('apiIntegrationsPage.apiKey.yourKey')}</label>
-                    <div className="mt-1 flex rounded-md shadow-sm">
-                        <input
-                            type="text"
-                            readOnly
-                            value={integrations.apiKey || ''}
-                            className="flex-1 block w-full rounded-none rounded-l-md p-2 border border-slate-300 bg-slate-50 font-mono text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
-                        />
-                        <button onClick={handleCopy} className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-slate-300 bg-slate-100 text-sm font-semibold dark:bg-slate-600 dark:border-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-500">
-                            {copied ? t('apiIntegrationsPage.apiKey.copied') : t('apiIntegrationsPage.apiKey.copy')}
-                        </button>
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <button onClick={handleGenerateNewKey} className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 dark:bg-red-900/40 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/60">{t('apiIntegrationsPage.apiKey.generateNew')}</button>
-                </div>
-            </div>
-
-            {/* Webhook Configuration */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-card dark:border dark:border-slate-700">
-                <h2 className="text-2xl font-bold dark:text-slate-100">{t('apiIntegrationsPage.webhooks.title')}</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{t('apiIntegrationsPage.webhooks.description')}</p>
-                <div className="mt-4 space-y-4">
-                    <div>
-                        <label htmlFor="webhookUrl" className="block text-sm font-medium dark:text-slate-200">{t('apiIntegrationsPage.webhooks.endpointUrl')}</label>
-                        <input
-                            type="url"
-                            id="webhookUrl"
-                            value={webhookUrl}
-                            onChange={(e) => setWebhookUrl(e.target.value)}
-                            className="mt-1 w-full p-2 border border-slate-300 rounded-lg dark:bg-slate-700 dark:border-slate-600"
-                            placeholder={t('apiIntegrationsPage.webhooks.placeholder')}
-                        />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-medium dark:text-slate-200">{t('apiIntegrationsPage.webhooks.subscribedEvents')}</h3>
-                        <div className="mt-2 space-y-2">
-                            {Object.values(WebhookEvent).map(event => (
-                                <label key={event} className="flex items-start p-3 border rounded-lg has-[:checked]:bg-blue-50 has-[:checked]:border-brand-blue dark:border-slate-700 dark:has-[:checked]:bg-brand-blue/20 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={subscribedEvents.includes(event)}
-                                        onChange={() => handleEventToggle(event)}
-                                        className="mt-1 h-4 w-4 text-brand-blue rounded border-slate-300"
-                                    />
-                                    <div className="ml-3 text-sm">
-                                        <p className="font-semibold dark:text-slate-100">{t(`apiIntegrationsPage.webhooks.events.${event}.label`)}</p>
-                                        <p className="text-slate-500 dark:text-slate-400">{t(`apiIntegrationsPage.webhooks.events.${event}.description`)}</p>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-                <div className="mt-6 pt-4 border-t dark:border-slate-700 flex justify-end space-x-2">
-                     <button onClick={sendTestWebhook} className="px-4 py-2 text-sm font-medium text-brand-blue bg-blue-100 dark:bg-blue-900/40 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/60">{t('apiIntegrationsPage.webhooks.test')}</button>
-                    {/* FIX: The onClick handler was incomplete, causing a syntax error. It has been corrected to call `handleWebhookSave`. */}
-                    <button onClick={handleWebhookSave} disabled={isSaving} className="px-4 py-2 text-sm font-medium text-white bg-brand-success rounded-lg hover:bg-opacity-90 disabled:bg-slate-400">
-                        {isSaving ? t('buttons.saving') : t('buttons.save')}
-                    </button>
-                </div>
-            </div>
+  return (
+    <div className="space-y-6 pb-12">
+      {/* ─── Header ─── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F172A]">API & Integrations</h1>
+          <p className="text-sm text-slate-500 mt-1">Gerez vos cles API et webhooks pour connecter Laundry Express a vos autres outils.</p>
         </div>
-    );
+        <button className="px-4 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-2"><Icon name="document-text" className="w-4 h-4" />Documentation API</button>
+      </div>
+
+      {/* ─── Section 1: KPI Cards ─── */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {[
+          { label: 'Cles API actives', value: '1', sub: 'Voir les cles', icon: 'shield-check', bg: 'bg-green-50', color: 'text-[#22C55E]' },
+          { label: 'Webhooks actifs', value: '1', sub: 'Voir les webhooks', icon: 'arrow-path', bg: 'bg-purple-50', color: 'text-purple-600' },
+          { label: 'Requetes API (30j)', value: '2 341', change: '+18%', icon: 'chartBar', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Derniere requete', value: 'Il y a 2 min', sub: 'Voir le journal', icon: 'clock', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
+          { label: 'Statut API', value: 'Operationnel', sub: '100% disponibilite', icon: 'check', bg: 'bg-emerald-50', color: 'text-[#22C55E]' },
+        ].map((kpi, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 hover:shadow-md transition">
+            <div className={`p-2 rounded-xl ${kpi.bg} w-fit mb-2`}><Icon name={kpi.icon as any} className={`w-4 h-4 ${kpi.color}`} /></div>
+            <p className="text-[10px] text-slate-400 mb-0.5">{kpi.label}</p>
+            <p className="text-lg font-extrabold text-[#0F172A]">{kpi.value}</p>
+            {kpi.change && <p className="text-[10px] font-bold text-[#22C55E]">{kpi.change}</p>}
+            {kpi.sub && !kpi.change && <p className="text-[10px] text-[#0077B6] cursor-pointer hover:underline">{kpi.sub}</p>}
+          </div>
+        ))}
+      </div>
+
+      {/* ─── Section 2: Cle API + Webhooks ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Cle API */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-1">Cle API</h2>
+          <p className="text-xs text-slate-400 mb-4">Utilisez cette cle pour authentifier les requetes a l'API Laundry Express.</p>
+          <div className="mb-4">
+            <p className="text-[10px] text-slate-400 mb-1">Votre cle API live</p>
+            <div className="flex items-center gap-2">
+              <input type="text" value={apiKey} readOnly className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-[#0F172A]" />
+              <button onClick={() => { navigator.clipboard.writeText(apiKey); addNotification('Cle copiee !', 'success'); }} className="px-3 py-2.5 bg-slate-100 rounded-xl hover:bg-slate-200 transition"><Icon name="document" className="w-4 h-4 text-slate-500" /></button>
+            </div>
+            <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-400">
+              <span>Creee le 15 Mai 2026 a 10:24</span>
+              <span>Derniere utilisation : <strong className="text-[#22C55E]">il y a 2 min</strong></span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 py-2.5 text-xs font-bold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-1.5"><Icon name="xmark" className="w-3.5 h-3.5" />Revoquer la cle</button>
+            <button className="flex-1 py-2.5 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-xl hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5"><Icon name="arrow-path" className="w-3.5 h-3.5" />Generer une nouvelle cle</button>
+          </div>
+        </div>
+
+        {/* Webhooks */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-1">Webhooks</h2>
+          <p className="text-xs text-slate-400 mb-4">Soyez notifie des evenements survenant dans votre compte Laundry Express.</p>
+          <div className="mb-4">
+            <p className="text-[10px] text-slate-400 mb-1">URL endpoint</p>
+            <div className="flex items-center gap-2">
+              <input type="text" value={webhookUrl} readOnly className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-[#0F172A]" />
+              <button className="px-3 py-2.5 bg-slate-100 rounded-xl hover:bg-slate-200 transition text-xs font-bold text-slate-600">Modifier</button>
+            </div>
+          </div>
+          <p className="text-xs font-bold text-[#0F172A] mb-2">Evenements souscrits</p>
+          <div className="space-y-2 mb-4">
+            {webhookEvents.map((e, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded bg-[#0077B6] flex items-center justify-center"><Icon name="check" className="w-3 h-3 text-white" /></div>
+                  <div>
+                    <p className="text-xs font-bold text-[#0F172A] font-mono">{e.event}</p>
+                    <p className="text-[10px] text-slate-400">{e.description}</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-[#22C55E]">Actif</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-1.5"><Icon name="document-text" className="w-3.5 h-3.5" />Enregistrer</button>
+            <button className="flex-1 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-1.5"><Icon name="arrow-path" className="w-3.5 h-3.5" />Tester le webhook</button>
+            <button className="flex-1 py-2.5 text-xs font-bold bg-[#0077B6] text-white rounded-xl hover:bg-[#005f8f] transition flex items-center justify-center gap-1.5"><Icon name="plus" className="w-3.5 h-3.5" />Ajouter un evenement</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Section 3: Ressources API + Activite API ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Ressources API */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-1">Ressources API</h2>
+          <p className="text-xs text-slate-400 mb-4">Principaux endpoints disponibles.</p>
+          <div className="space-y-2">
+            {apiResources.map((r, i) => {
+              const mc = getMethodColor(r.method);
+              return (
+                <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${mc.bg} ${mc.text}`}>{r.method}</span>
+                    <span className="text-xs font-mono text-[#0F172A]">{r.endpoint}</span>
+                  </div>
+                  <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir docs</button>
+                </div>
+              );
+            })}
+          </div>
+          <button className="w-full mt-4 py-2.5 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-xl hover:bg-[#0077B6]/5 transition flex items-center justify-center gap-1.5"><Icon name="document-text" className="w-3.5 h-3.5" />Voir toute la documentation API</button>
+        </div>
+
+        {/* Activite API */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-bold text-[#0F172A]">Activite API recente</h2>
+              <p className="text-[10px] text-slate-400">Journal des dernieres requetes effectuees.</p>
+            </div>
+            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tout le journal →</button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="border-b border-slate-100">
+                <th className="text-left py-2 text-[9px] text-slate-500">DATE</th>
+                <th className="text-center py-2 text-[9px] text-slate-500">METHODE</th>
+                <th className="text-left py-2 text-[9px] text-slate-500">ENDPOINT</th>
+                <th className="text-center py-2 text-[9px] text-slate-500">STATUT</th>
+                <th className="text-right py-2 text-[9px] text-slate-500">DUREE</th>
+                <th className="text-right py-2 text-[9px] text-slate-500">IP</th>
+                <th className="text-right py-2 text-[9px] text-slate-500">UTILISATEUR</th>
+              </tr></thead>
+              <tbody>
+                {apiActivity.map((a, i) => {
+                  const mc = getMethodColor(a.method);
+                  return (
+                    <tr key={i} className="border-b border-slate-50 last:border-0">
+                      <td className="py-2 text-[10px] text-slate-500 whitespace-nowrap">{a.date}</td>
+                      <td className="py-2 text-center"><span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${mc.bg} ${mc.text}`}>{a.method}</span></td>
+                      <td className="py-2 text-xs font-mono text-[#0F172A]">{a.endpoint}</td>
+                      <td className="py-2 text-center"><span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${a.status === 200 ? 'bg-green-50 text-[#22C55E]' : 'bg-blue-50 text-[#0077B6]'}`}>{a.status}</span></td>
+                      <td className="py-2 text-right text-[10px] text-slate-500">{a.duration}</td>
+                      <td className="py-2 text-right text-[10px] text-slate-400 font-mono">{a.ip}</td>
+                      <td className="py-2 text-right text-[10px] text-slate-500">{a.user}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };

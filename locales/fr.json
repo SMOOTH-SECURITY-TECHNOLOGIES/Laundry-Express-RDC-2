@@ -437,7 +437,11 @@
     "scanNoMatches": "Aucun article correspondant trouvé lors du scan",
     "itemsSelected": "{{count}} articles sélectionnés",
     "changePartner": "Changer de partenaire",
-    "selectedServices": "Services sélectionnés"
+    "selectedServices": "Services sélectionnés",
+    "loadingServices": "Chargement des services...",
+    "scannerServiceMissing": "Aucun service n'a été sélectionné pour le scan.",
+    "scannerSummary": "{{count}} articles scannés sur {{matches}} types d'articles.",
+    "scannerNoMatchesDetailed": "Aucun article correspondant n'a été trouvé dans le scan. Veuillez réessayer ou les ajouter manuellement."
   },
   "emailService": {
     "errors": {
@@ -592,7 +596,16 @@
   },
   "orderPage": {
     "completeAllSteps": "Veuillez compléter toutes les étapes avant de procéder au paiement.",
-    "orderCreationError": "Erreur lors de la création de la commande. Veuillez réessayer."
+    "orderCreationError": "Erreur lors de la création de la commande. Veuillez réessayer.",
+    "loginRequired": "Vous devez vous connecter pour créer une commande réelle.",
+    "missingBackendAddress": "Aucune adresse backend par défaut n'est associée à ce compte.",
+    "partnerRequired": "Aucun partenaire n'a été sélectionné.",
+    "partnerNotFound": "Aucun partenaire backend ne correspond à \"{{name}}\". Lancez le bootstrap MVP du catalogue.",
+    "serviceNotFound": "Aucun service backend ne correspond à \"{{name}}\" pour ce partenaire.",
+    "noConvertibleItems": "Aucun article exploitable n'a pu être converti vers le backend.",
+    "cashConfirmed": "Paiement cash confirmé.",
+    "cashPendingConfirmation": "Commande créée. Le paiement cash sera confirmé par l'équipe de livraison.",
+    "paymentIntentCreated": "Intention de paiement créée avec succès."
   },
   "trackingPage": {
     "noActiveOrder": "Aucune commande active",

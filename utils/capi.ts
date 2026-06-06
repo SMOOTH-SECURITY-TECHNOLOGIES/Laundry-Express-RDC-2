@@ -30,6 +30,10 @@ interface ServerEventData {
   action_source: 'website';
 }
 
+const serverTrackingEndpoint =
+  (import.meta.env.VITE_SERVER_TRACKING_URL as string | undefined)?.trim() || '';
+
+let hasWarnedMissingServerTrackingEndpoint = false;
 
 /**
  * Sends an event to our backend for server-side tracking (e.g., Meta CAPI).
@@ -40,6 +44,14 @@ interface ServerEventData {
  */
 export const sendServerSideEvent = async (eventName: string, clientEventData: any): Promise<void> => {
     console.log(`[CAPI] Sending event "${eventName}" to backend for server-side processing`, clientEventData);
+
+    if (!serverTrackingEndpoint) {
+        if (!hasWarnedMissingServerTrackingEndpoint) {
+            console.info('[CAPI] No VITE_SERVER_TRACKING_URL configured. Skipping server-side tracking event.');
+            hasWarnedMissingServerTrackingEndpoint = true;
+        }
+        return;
+    }
 
     // In a real app, you would get these from cookies or server-side rendering.
     const getCookie = (name: string) => {
@@ -84,10 +96,9 @@ export const sendServerSideEvent = async (eventName: string, clientEventData: an
     };
     
     try {
-        // This simulates sending the event to YOUR backend.
-        // The backend at '/api/track-server-event' is responsible for hashing user data
+        // The backend endpoint is responsible for hashing user data
         // and securely calling the Meta Conversions API with its secret token.
-        const response = await fetch('/api/track-server-event', {
+        const response = await fetch(serverTrackingEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

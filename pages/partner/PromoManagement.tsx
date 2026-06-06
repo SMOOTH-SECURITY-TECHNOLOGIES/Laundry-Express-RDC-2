@@ -1,705 +1,335 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { PromoCode, ServiceType } from '../../types';
 import { Icon } from '../../components/Icon';
-import { MarketingAssistant } from '../../components/partner/MarketingAssistant';
+import { PartnerSection } from '../../types';
+import { findPartner } from '../../utils/findPartner';
 
-const initialFormState: Omit<PromoCode, 'id' | 'createdAt' | 'partnerId'> = {
-  code: '',
-  discountType: 'percentage',
-  discountValue: 10,
-  minOrderValue: 0,
-  isForNewUsersOnly: false,
-  isActive: true,
-  maxUsage: null,
-  usageLimitPerCustomer: 1,
-  startDate: new Date().toISOString().split('T')[0],
-  endDate: null,
-  applicableServices: [],
-  description: '',
-  geographicRestrictions: [],
-};
+interface PromoProps { setSection?: (section: PartnerSection) => void; }
 
-export const PromoManagement: React.FC = () => {
-  const { user, promoCodes, addPromoCode, updatePromoCode, deletePromoCode, t, services } = useAppContext();
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [formData, setFormData] = useState(initialFormState);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [bulkOperation, setBulkOperation] = useState<'activate' | 'deactivate' | 'delete' | null>(null);
-  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'all' | 'active' | 'inactive' | 'expired'>('all');
+export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
+  const { user, partners, getOrdersForPartner, formatPrice } = useAppContext();
+  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'expired'>('all');
+  const [showCreateWizard, setShowCreateWizard] = useState(false);
 
-  const partnerPromoCodes = useMemo(() => {
-    if (!user?.partnerId) return [];
-    return promoCodes.filter(p => p.partnerId === user.partnerId);
-  }, [promoCodes, user]);
+  const partner = useMemo(() => findPartner(partners, user?.partnerId), [partners, user]);
 
-  const filteredPromoCodes = useMemo(() => {
-    const now = new Date();
-    return partnerPromoCodes.filter(promo => {
-      const isExpired = promo.endDate && new Date(promo.endDate) < now;
-      
-      switch (viewMode) {
-        case 'active': return promo.isActive && !isExpired;
-        case 'inactive': return !promo.isActive;
-        case 'expired': return isExpired;
-        default: return true;
-      }
-    });
-  }, [partnerPromoCodes, viewMode]);
+  const promos = useMemo(() => [
+    { id: 'PROMO-001', code: 'WELCOME20', type: 'Pourcentage', value: 20, views: 892, clicks: 156, orders: 45, revenue: 360, roi: '8x', margin: 84, status: 'Active', expires: '31 Dec 2026', target: 'Nouveaux', service: 'Tous' },
+    { id: 'PROMO-002', code: 'COSTUME15', type: 'Pourcentage', value: 15, views: 450, clicks: 89, orders: 28, revenue: 210, roi: '4x', margin: 78, status: 'Active', expires: '30 Juin 2026', target: 'Tous', service: 'Costumes' },
+    { id: 'PROMO-003', code: 'LIVRAISON', type: 'Livraison gratuite', value: 2, views: 1200, clicks: 234, orders: 67, revenue: 134, roi: '3x', margin: 92, status: 'Active', expires: '31 Dec 2026', target: 'Tous', service: 'Tous' },
+    { id: 'PROMO-004', code: 'EXPRESS10', type: 'Pourcentage', value: 10, views: 320, clicks: 67, orders: 12, revenue: 95, roi: '2x', margin: 88, status: 'Expiree', expires: '31 Mai 2026', target: 'Fideles', service: 'Express' },
+    { id: 'PROMO-005', code: 'NOUVEAU25', type: 'Pourcentage', value: 25, views: 670, clicks: 123, orders: 8, revenue: 180, roi: '5x', margin: 75, status: 'Active', expires: '30 Sept 2026', target: 'Nouveaux', service: 'Tous' },
+    { id: 'PROMO-006', code: 'GOMBE50', type: 'Montant fixe', value: 50, views: 210, clicks: 45, orders: 15, revenue: 270, roi: '6x', margin: 82, status: 'Active', expires: '31 Aout 2026', target: 'Zone', service: 'Tous' },
+  ], []);
 
-  const analytics = useMemo(() => {
-    const now = new Date();
-    const total = partnerPromoCodes.length;
-    const active = partnerPromoCodes.filter(p => p.isActive && (!p.endDate || new Date(p.endDate) >= now)).length;
-    const expired = partnerPromoCodes.filter(p => p.endDate && new Date(p.endDate) < now).length;
-    const totalUsage = partnerPromoCodes.reduce((sum, promo) => sum + (promo.usageCount || 0), 0);
-    
-    return { total, active, expired, totalUsage };
-  }, [partnerPromoCodes]);
+  const filteredPromos = useMemo(() => {
+    let result = promos;
+    if (activeTab === 'active') result = result.filter(p => p.status === 'Active');
+    else if (activeTab === 'expired') result = result.filter(p => p.status === 'Expiree');
+    if (search) { const q = search.toLowerCase(); result = result.filter(p => p.code.toLowerCase().includes(q)); }
+    return result;
+  }, [promos, activeTab, search]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    if (type === 'checkbox') {
-        const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: checked }));
-    } else if (type === 'number') {
-        setFormData(prev => ({
-            ...prev,
-            [name]: value === '' ? null : parseFloat(value),
-        }));
-    } else {
-        setFormData(prev => ({
-            ...prev,
-            [name]: value,
-        }));
-    }
-  };
+  /* ─── Stats ─── */
+  const stats = useMemo(() => {
+    const active = promos.filter(p => p.status === 'Active').length;
+    const totalRevenue = promos.reduce((s, p) => s + p.revenue, 0);
+    const totalOrders = promos.reduce((s, p) => s + p.orders, 0);
+    const totalViews = promos.reduce((s, p) => s + p.views, 0);
+    const totalClicks = promos.reduce((s, p) => s + p.clicks, 0);
+    const avgROI = promos.length > 0 ? (promos.reduce((s, p) => s + parseInt(p.roi) || 0, 0) / promos.length).toFixed(1) : '0';
+    const avgMargin = promos.length > 0 ? Math.round(promos.reduce((s, p) => s + p.margin, 0) / promos.length) : 0;
+    const conversionRate = totalViews > 0 ? ((totalOrders / totalViews) * 100).toFixed(1) : '0';
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const reductions = Math.round(totalRevenue * 0.12);
+    return { active, totalRevenue, totalOrders, newClients: 58, conversionRate, avgOrderValue: avgOrderValue.toFixed(2), avgROI, avgMargin, totalViews, totalClicks, reductions, profit: totalRevenue - reductions };
+  }, [promos]);
 
-  const handleServiceToggle = (serviceId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      applicableServices: prev.applicableServices.includes(serviceId)
-        ? prev.applicableServices.filter(id => id !== serviceId)
-        : [...prev.applicableServices, serviceId]
-    }));
-  };
-  
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData(prev => ({...prev, code: e.target.value.toUpperCase()}));
-  };
+  /* ─── Funnel Data ─── */
+  const funnel = useMemo(() => [
+    { step: 'Vues', value: stats.totalViews, pct: 100, icon: 'search', color: 'bg-[#0077B6]' },
+    { step: 'Clics', value: stats.totalClicks, pct: Math.round((stats.totalClicks / Math.max(stats.totalViews, 1)) * 100), icon: 'cursor-arrow-rays', color: 'bg-[#0077B6]/80' },
+    { step: 'Commandes', value: stats.totalOrders, pct: Math.round((stats.totalOrders / Math.max(stats.totalClicks, 1)) * 100), icon: 'shoppingBag', color: 'bg-[#0077B6]/60' },
+    { step: 'Revenus', value: stats.totalRevenue, pct: 100, icon: 'currencyDollar', color: 'bg-[#22C55E]', isCurrency: true },
+  ], [stats]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.code || formData.discountValue <= 0) {
-        alert(t('promoManagement.formError'));
-        return;
-    }
-    if (!user?.partnerId) {
-        alert(t('partnerPromoManagement.errorNoPartner'));
-        return;
-    }
+  /* ─── Service Performance ─── */
+  const servicePerf = useMemo(() => [
+    { name: 'Costumes', revenue: 210, orders: 28, growth: '+32%', status: 'Meilleur' },
+    { name: 'Chemises', revenue: 180, orders: 35, growth: '+18%', status: 'Bon' },
+    { name: 'Couvertures', revenue: 96, orders: 12, growth: '+5%', status: 'Stable' },
+    { name: 'Nettoyage express', revenue: 65, orders: 8, growth: '-2%', status: 'A ameliorer' },
+  ], []);
 
-    // Validate dates
-    if (formData.endDate && formData.startDate && new Date(formData.endDate) < new Date(formData.startDate)) {
-        alert(t('promoManagement.invalidDateRange'));
-        return;
-    }
+  /* ─── Marketing Score ─── */
+  const marketingScore = useMemo(() => {
+    let score = 0;
+    if (stats.active >= 3) score += 25;
+    if (parseFloat(stats.conversionRate) > 5) score += 25;
+    if (parseInt(stats.avgROI) > 3) score += 25;
+    if (stats.totalOrders > 20) score += 25;
+    return Math.min(100, score);
+  }, [stats]);
 
-    const promoDataWithPartner = { ...formData, partnerId: user.partnerId };
-
-    if(editingId) {
-        updatePromoCode({ ...promoDataWithPartner, id: editingId, createdAt: promoCodes.find(p=>p.id === editingId)!.createdAt });
-    } else {
-        addPromoCode(promoDataWithPartner);
-    }
-    
-    setFormData(initialFormState);
-    setEditingId(null);
-    setIsFormVisible(false);
-  };
-  
-  const handleEdit = (promo: PromoCode) => {
-    setFormData({
-        code: promo.code,
-        discountType: promo.discountType,
-        discountValue: promo.discountValue,
-        minOrderValue: promo.minOrderValue || 0,
-        isForNewUsersOnly: promo.isForNewUsersOnly || false,
-        isActive: promo.isActive,
-        maxUsage: promo.maxUsage,
-        usageLimitPerCustomer: promo.usageLimitPerCustomer || 1,
-        startDate: promo.startDate || new Date().toISOString().split('T')[0],
-        endDate: promo.endDate,
-        applicableServices: promo.applicableServices || [],
-        description: promo.description || '',
-        geographicRestrictions: promo.geographicRestrictions || [],
-    });
-    setEditingId(promo.id);
-    setIsFormVisible(true);
-  };
-
-  const handleCancel = () => {
-    setFormData(initialFormState);
-    setEditingId(null);
-    setIsFormVisible(false);
-  }
-
-  const handleDelete = (id: string) => {
-    if (window.confirm(t('promoManagement.confirmDelete'))) {
-        deletePromoCode(id);
-    }
-  };
-
-  const toggleStatus = (promo: PromoCode) => {
-    updatePromoCode({ ...promo, isActive: !promo.isActive });
-  };
-
-  const handleUsePromoFromAssistant = (promoData: any) => {
-    setFormData(prev => ({...initialFormState, ...promoData}));
-    setEditingId(null);
-    setIsFormVisible(true);
-  };
-
-  const handleBulkOperation = () => {
-    if (!bulkOperation || selectedCodes.length === 0) return;
-
-    switch (bulkOperation) {
-      case 'activate':
-        selectedCodes.forEach(id => {
-          const promo = promoCodes.find(p => p.id === id);
-          if (promo) updatePromoCode({ ...promo, isActive: true });
-        });
-        break;
-      case 'deactivate':
-        selectedCodes.forEach(id => {
-          const promo = promoCodes.find(p => p.id === id);
-          if (promo) updatePromoCode({ ...promo, isActive: false });
-        });
-        break;
-      case 'delete':
-        if (window.confirm(t('promoManagement.confirmBulkDelete', { count: selectedCodes.length }))) {
-          selectedCodes.forEach(id => deletePromoCode(id));
-        }
-        break;
-    }
-
-    setSelectedCodes([]);
-    setBulkOperation(null);
-  };
-
-  const toggleSelectAll = (checked: boolean) => {
-    setSelectedCodes(checked ? filteredPromoCodes.map(p => p.id) : []);
-  };
-
-  const toggleSelectCode = (id: string, checked: boolean) => {
-    setSelectedCodes(prev => 
-      checked ? [...prev, id] : prev.filter(codeId => codeId !== id)
-    );
-  };
-
-  const exportPromoCodes = () => {
-    const csv = [
-      ['Code', 'Discount', 'Type', 'Min Order', 'Usage', 'Status', 'Start Date', 'End Date', 'Description'],
-      ...filteredPromoCodes.map(promo => [
-        promo.code,
-        promo.discountValue,
-        promo.discountType,
-        promo.minOrderValue || 0,
-        promo.usageCount || 0,
-        promo.isActive ? 'Active' : 'Inactive',
-        promo.startDate || 'N/A',
-        promo.endDate || 'N/A',
-        promo.description || ''
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `promo-codes-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  if (!partner) return null;
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <h1 className="text-3xl font-bold dark:text-slate-100">{t('partnerPromoManagement.title')}</h1>
-        
-        {/* Analytics Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-card text-center">
-            <div className="text-2xl font-bold text-brand-blue">{analytics.total}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">{t('promoManagement.totalCodes')}</div>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-card text-center">
-            <div className="text-2xl font-bold text-green-600">{analytics.active}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">{t('promoManagement.activeCodes')}</div>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-card text-center">
-            <div className="text-2xl font-bold text-orange-600">{analytics.expired}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">{t('promoManagement.expiredCodes')}</div>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-card text-center">
-            <div className="text-2xl font-bold text-purple-600">{analytics.totalUsage}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">{t('promoManagement.totalUsage')}</div>
-          </div>
-        </div>
-      </div>
-      
-      <MarketingAssistant onUsePromo={handleUsePromoFromAssistant} />
-
-      {/* Bulk Operations */}
-      {selectedCodes.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-blue-800 dark:text-blue-200">
-            {t('promoManagement.selectedCount', { count: selectedCodes.length })}
-          </span>
-          <div className="flex flex-wrap gap-2">
-            <select 
-              value={bulkOperation || ''} 
-              onChange={(e) => setBulkOperation(e.target.value as any)}
-              className="px-3 py-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600"
-            >
-              <option value="">{t('promoManagement.selectAction')}</option>
-              <option value="activate">{t('promoManagement.activate')}</option>
-              <option value="deactivate">{t('promoManagement.deactivate')}</option>
-              <option value="delete">{t('promoManagement.delete')}</option>
-            </select>
-            <button 
-              onClick={handleBulkOperation}
-              disabled={!bulkOperation}
-              className="px-4 py-2 bg-brand-blue text-white rounded-lg hover:bg-opacity-90 disabled:opacity-50"
-            >
-              {t('promoManagement.apply')}
-            </button>
-            <button 
-              onClick={() => setSelectedCodes([])}
-              className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
-            >
-              {t('promoManagement.clear')}
-            </button>
-          </div>
-        </div>
-      )}
-
+    <div className="space-y-6 pb-12">
+      {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        {/* View Filters */}
-        <div className="flex flex-wrap gap-2">
-          {(['all', 'active', 'inactive', 'expired'] as const).map(view => (
-            <button
-              key={view}
-              onClick={() => setViewMode(view)}
-              className={`px-4 py-2 rounded-lg font-medium ${
-                viewMode === view 
-                  ? 'bg-brand-blue text-white' 
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-              }`}
-            >
-              {t(`promoManagement.${view}`)}
-            </button>
-          ))}
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F172A]">Promotions & Marketing</h1>
+          <p className="text-sm text-slate-500 mt-1">Moteur d'acquisition et de croissance pour votre pressing.</p>
+        </div>
+        <button onClick={() => setShowCreateWizard(true)} className="px-4 py-2 bg-[#FF7A00] text-white text-xs font-bold rounded-xl hover:bg-[#e66d00] transition flex items-center gap-2"><Icon name="plus" className="w-4 h-4" />Creer une promotion</button>
+      </div>
+
+      {/* ─── Section 1: Growth Overview ─── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Promos actives', value: String(stats.active), icon: 'sparkles', bg: 'bg-purple-50', color: 'text-purple-600' },
+          { label: 'Revenus generes', value: formatPrice(stats.totalRevenue), icon: 'currencyDollar', bg: 'bg-green-50', color: 'text-[#22C55E]' },
+          { label: 'Commandes generees', value: String(stats.totalOrders), icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'ROI global', value: `${stats.avgROI}x`, icon: 'chartBar', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
+          { label: 'Nouveaux clients', value: String(stats.newClients), icon: 'user', bg: 'bg-emerald-50', color: 'text-emerald-600' },
+          { label: 'Taux conversion', value: `${stats.conversionRate}%`, icon: 'arrow-path', bg: 'bg-cyan-50', color: 'text-cyan-600' },
+          { label: 'Valeur moy. commande', value: `$${stats.avgOrderValue}`, icon: 'shoppingBag', bg: 'bg-purple-50', color: 'text-purple-600' },
+          { label: 'Marge preservee', value: `${stats.avgMargin}%`, icon: 'shield-check', bg: 'bg-green-50', color: 'text-[#22C55E]' },
+        ].map((kpi, i) => (
+          <div key={i} className="bg-white rounded-xl border border-slate-100 p-3 hover:shadow-md transition">
+            <div className={`p-1.5 rounded-lg ${kpi.bg} w-fit mb-1.5`}><Icon name={kpi.icon as any} className={`w-3.5 h-3.5 ${kpi.color}`} /></div>
+            <p className="text-[9px] text-slate-400 mb-0.5">{kpi.label}</p>
+            <p className="text-base font-extrabold text-[#0F172A]">{kpi.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ─── Section 2: Performance Marketing + Funnel ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-[#0F172A]">Performance des promotions</h2>
+            <div className="flex gap-1">
+              {['7j', '30j', '90j', '12m'].map((p, i) => (
+                <button key={i} className={`px-2 py-1 text-[10px] font-bold rounded-lg ${i === 1 ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600'}`}>{p}</button>
+              ))}
+            </div>
+          </div>
+          <svg viewBox="0 0 500 150" className="w-full h-36">
+            {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
+              <g key={i}>
+                <line x1="40" y1={10 + (1 - pct) * 130} x2="490" y2={10 + (1 - pct) * 130} stroke="#F1F5F9" strokeWidth="1" />
+                <text x="35" y={14 + (1 - pct) * 130} textAnchor="end" className="text-[8px] fill-slate-400">${Math.round(pct * stats.totalRevenue)}</text>
+              </g>
+            ))}
+            <polyline fill="none" stroke="#0077B6" strokeWidth="2.5" strokeLinecap="round" points="60,120 120,100 180,85 240,70 300,55 360,40 420,30 480,15" />
+            <polygon fill="url(#promoGrad)" opacity="0.2" points="60,130 60,120 120,100 180,85 240,70 300,55 360,40 420,30 480,15 480,130" />
+            {['6 Mai', '13 Mai', '20 Mai', '27 Mai', '3 Juin', '10 Juin'].map((d, i) => (
+              <text key={i} x={60 + i * 84} y="145" textAnchor="middle" className="text-[8px] fill-slate-400">{d}</text>
+            ))}
+            <defs><linearGradient id="promoGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#0077B6" /><stop offset="100%" stopColor="#0077B6" stopOpacity="0" /></linearGradient></defs>
+          </svg>
         </div>
 
-        <div className="flex flex-wrap gap-4">
-          <button 
-            onClick={exportPromoCodes}
-            className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-opacity-90 flex items-center space-x-2"
-          >
-            <Icon name="document-arrow-down" className="w-5 h-5" />
-            <span>{t('promoManagement.export')}</span>
-          </button>
-          
-          {!isFormVisible && (
-            <button 
-              onClick={() => { setFormData(initialFormState); setEditingId(null); setIsFormVisible(true); }}
-              className="px-4 py-2 bg-brand-blue text-white font-semibold rounded-lg hover:bg-opacity-90 flex items-center space-x-2"
-            >
-              <Icon name="pencil" className="w-5 h-5" />
-              <span>{t('promoManagement.createCode')}</span>
-            </button>
-          )}
+        <div className="bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-3">Funnel promotion</h2>
+          <div className="space-y-3">
+            {funnel.map((f, i) => (
+              <div key={i}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Icon name={f.icon as any} className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs font-medium text-[#0F172A]">{f.step}</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#0F172A]">{f.isCurrency ? formatPrice(f.value) : f.value.toLocaleString('fr-FR')}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${f.color} transition-all duration-500`} style={{ width: `${f.pct}%` }} />
+                </div>
+                {i < funnel.length - 1 && <p className="text-[9px] text-slate-400 text-center mt-0.5">↓ {funnel[i + 1].pct}% convertis</p>}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {isFormVisible && (
-        <div className="bg-white p-6 rounded-2xl shadow-card dark:bg-slate-800 dark:border dark:border-slate-700 animate-fade-in">
-          <h2 className="text-2xl font-bold mb-4 dark:text-slate-100">
-            {editingId ? t('partnerPromoManagement.editMyCode') : t('partnerPromoManagement.newCode')}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="code" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.code')} *
-                </label>
-                <input 
-                  type="text" 
-                  name="code" 
-                  value={formData.code} 
-                  onChange={handleCodeChange} 
-                  required 
-                  className="mt-1 w-full p-2 border rounded-lg uppercase dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                  placeholder={t('partnerPromoManagement.codePlaceholder')} 
-                />
-              </div>
-              <div>
-                <label htmlFor="discountType" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.discountType')}
-                </label>
-                <select 
-                  name="discountType" 
-                  value={formData.discountType} 
-                  onChange={handleInputChange} 
-                  className="mt-1 w-full p-2 border rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
-                >
-                  <option value="percentage">{t('promoManagement.percentage')}</option>
-                  <option value="fixed">{t('promoManagement.fixedAmount')}</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Discount Values */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="discountValue" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.discountValue')} *
-                </label>
-                <input 
-                  type="number" 
-                  name="discountValue" 
-                  value={formData.discountValue} 
-                  onChange={handleInputChange} 
-                  required 
-                  min="0" 
-                  step="0.01" 
-                  className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                />
-              </div>
-              <div>
-                <label htmlFor="minOrderValue" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.minOrderValue')}
-                </label>
-                <input 
-                  type="number" 
-                  name="minOrderValue" 
-                  value={formData.minOrderValue || ''} 
-                  onChange={handleInputChange} 
-                  min="0" 
-                  step="1" 
-                  className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                />
-              </div>
-            </div>
-
-            {/* Usage Limits */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="maxUsage" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.maxUsage')}
-                </label>
-                <input 
-                  type="number" 
-                  name="maxUsage" 
-                  value={formData.maxUsage || ''} 
-                  onChange={handleInputChange} 
-                  min="0" 
-                  className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                  placeholder={t('promoManagement.unlimited')}
-                />
-              </div>
-              <div>
-                <label htmlFor="usageLimitPerCustomer" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.usagePerCustomer')}
-                </label>
-                <input 
-                  type="number" 
-                  name="usageLimitPerCustomer" 
-                  value={formData.usageLimitPerCustomer} 
-                  onChange={handleInputChange} 
-                  min="1" 
-                  className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                />
-              </div>
-            </div>
-
-            {/* Date Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.startDate')}
-                </label>
-                <input 
-                  type="date" 
-                  name="startDate" 
-                  value={formData.startDate} 
-                  onChange={handleInputChange} 
-                  className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                />
-              </div>
-              <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  {t('promoManagement.endDate')}
-                </label>
-                <input 
-                  type="date" 
-                  name="endDate" 
-                  value={formData.endDate || ''} 
-                  onChange={handleInputChange} 
-                  className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100" 
-                />
-              </div>
-            </div>
-
-            {/* Service Restrictions */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                {t('promoManagement.applicableServices')}
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {services.map(service => (
-                  <label key={service.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.applicableServices.includes(service.id)}
-                      onChange={() => handleServiceToggle(service.id)}
-                      className="h-4 w-4 text-brand-blue rounded border-gray-300"
-                    />
-                    {/* FIX: The Service type does not have a 'name' property; it uses 'title' instead. The code has been updated to access 'service.title' to correctly display the service's name. */}
-                    <span className="text-sm text-gray-700 dark:text-slate-300">{service.title}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                {t('promoManagement.description')}
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={3}
-                className="mt-1 w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
-                placeholder={t('promoManagement.descriptionPlaceholder')}
-              />
-            </div>
-
-            {/* Checkboxes */}
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="isForNewUsersOnly" 
-                  name="isForNewUsersOnly" 
-                  checked={!!formData.isForNewUsersOnly} 
-                  onChange={handleInputChange} 
-                  className="h-4 w-4 text-brand-blue rounded border-gray-300" 
-                />
-                <label htmlFor="isForNewUsersOnly" className="ml-2 block text-sm text-gray-900 dark:text-slate-200">
-                  {t('promoManagement.newUsersOnly')}
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="isActive" 
-                  name="isActive" 
-                  checked={formData.isActive} 
-                  onChange={handleInputChange} 
-                  className="h-4 w-4 text-brand-blue rounded border-gray-300" 
-                />
-                <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900 dark:text-slate-200">
-                  {t('promoManagement.active')}
-                </label>
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-2 pt-4 border-t dark:border-slate-600">
-              <button 
-                type="button" 
-                onClick={handleCancel} 
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-slate-600 dark:text-slate-100 dark:hover:bg-slate-500"
-              >
-                {t('promoManagement.cancel')}
-              </button>
-              <button 
-                type="submit" 
-                className="px-4 py-2 text-sm font-medium text-white bg-brand-success rounded-lg hover:bg-opacity-90"
-              >
-                {editingId ? t('promoManagement.saveChanges') : t('promoManagement.create')}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Promo Codes List */}
-      <div className="bg-white p-6 rounded-2xl shadow-card dark:bg-slate-800 dark:border dark:border-slate-700">
-        <h2 className="text-2xl font-bold mb-4 dark:text-slate-100">
-          {t('partnerPromoManagement.myCreatedCodes', { count: filteredPromoCodes.length })}
-        </h2>
-        
-        {/* Mobile Card View */}
-        <div className="space-y-4 md:hidden">
-          {filteredPromoCodes.map(promo => {
-            const isExpired = promo.endDate && new Date(promo.endDate) < new Date();
-            return (
-              <div key={promo.id} className="p-4 bg-slate-50 border rounded-lg dark:bg-slate-700/50 dark:border-slate-600">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-mono font-semibold text-brand-dark dark:text-slate-100">{promo.code}</p>
-                    <p className="text-sm">{promo.discountValue}{promo.discountType === 'percentage' ? '%' : ' $'}</p>
-                    {promo.description && (
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{promo.description}</p>
-                    )}
-                  </div>
-                  <span 
-                    onClick={() => toggleStatus(promo)}
-                    className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${
-                      isExpired 
-                        ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200'
-                        : promo.isActive 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                    }`}
-                  >
-                    {isExpired ? t('promoManagement.expired') : promo.isActive ? t('promoManagement.active') : t('promoManagement.inactive')}
-                  </span>
-                </div>
-                <div className="mt-2 pt-2 border-t text-xs text-slate-600 dark:text-slate-400">
-                  <strong>{t('promoManagement.conditions')}:</strong> 
-                  {promo.minOrderValue ? ` ${t('promoManagement.minAmount', { amount: promo.minOrderValue })}` : ''}
-                  {promo.minOrderValue && promo.isForNewUsersOnly ? ' &' : ''}
-                  {promo.isForNewUsersOnly ? ` ${t('promoManagement.newUsersOnly')}` : ''}
-                  {!promo.minOrderValue && !promo.isForNewUsersOnly ? ` ${t('promoManagement.noConditions')}` : ''}
-                </div>
-                <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-                  <strong>{t('partnerPromoManagement.usage')}:</strong> {promo.usageCount || 0}
-                  {promo.maxUsage && ` / ${promo.maxUsage}`}
-                </div>
-                {promo.endDate && (
-                  <div className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                    <strong>{t('promoManagement.validUntil')}:</strong> {new Date(promo.endDate).toLocaleDateString()}
-                  </div>
-                )}
-                <div className="mt-2 pt-2 border-t flex justify-end space-x-2">
-                  <button onClick={() => handleEdit(promo)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg dark:hover:bg-blue-900/40">
-                    <Icon name="pencil" className="w-5 h-5"/>
-                  </button>
-                  <button onClick={() => handleDelete(promo.id)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg dark:hover:bg-red-900/40">
-                    <Icon name="xmark" className="w-5 h-5"/>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Desktop Table View */}
-        <div className="overflow-x-auto hidden md:block">
-          <table className="w-full text-sm text-left text-slate-500 dark:text-slate-400">
-            <thead className="text-xs text-slate-700 uppercase bg-slate-100 dark:bg-slate-700 dark:text-slate-300">
-              <tr>
-                <th className="px-4 py-3 w-8">
-                  <input
-                    type="checkbox"
-                    checked={selectedCodes.length === filteredPromoCodes.length && filteredPromoCodes.length > 0}
-                    onChange={(e) => toggleSelectAll(e.target.checked)}
-                    className="h-4 w-4 text-brand-blue rounded border-gray-300"
-                  />
-                </th>
-                <th className="px-6 py-3">{t('promoManagement.code')}</th>
-                <th className="px-6 py-3">{t('promoManagement.discount')}</th>
-                <th className="px-6 py-3">{t('promoManagement.conditions')}</th>
-                <th className="px-6 py-3 text-center">{t('partnerPromoManagement.usage')}</th>
-                <th className="px-6 py-3">{t('promoManagement.validity')}</th>
-                <th className="px-6 py-3">{t('promoManagement.status')}</th>
-                <th className="px-6 py-3">{t('promoManagement.actions')}</th>
-              </tr>
-            </thead>
+      {/* ─── Section 4: Classement Promotions ─── */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <h2 className="text-sm font-bold text-[#0F172A] mb-4">Classement des promotions</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="border-b border-slate-100">
+              <th className="text-left py-2 text-[10px] text-slate-500">CODE</th>
+              <th className="text-left py-2 text-[10px] text-slate-500">TYPE</th>
+              <th className="text-right py-2 text-[10px] text-slate-500">VUES</th>
+              <th className="text-right py-2 text-[10px] text-slate-500">CLICS</th>
+              <th className="text-right py-2 text-[10px] text-slate-500">CMD</th>
+              <th className="text-right py-2 text-[10px] text-slate-500">CA</th>
+              <th className="text-center py-2 text-[10px] text-slate-500">ROI</th>
+              <th className="text-center py-2 text-[10px] text-slate-500">MARGE</th>
+              <th className="text-center py-2 text-[10px] text-slate-500">STATUT</th>
+            </tr></thead>
             <tbody>
-              {filteredPromoCodes.map(promo => {
-                const isExpired = promo.endDate && new Date(promo.endDate) < new Date();
-                return (
-                  <tr key={promo.id} className="bg-white border-b dark:bg-slate-800 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedCodes.includes(promo.id)}
-                        onChange={(e) => toggleSelectCode(promo.id, e.target.checked)}
-                        className="h-4 w-4 text-brand-blue rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="font-mono font-semibold text-brand-dark dark:text-slate-100">{promo.code}</div>
-                        {promo.description && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{promo.description}</div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">{promo.discountValue}{promo.discountType === 'percentage' ? '%' : ' $'}</td>
-                    <td className="px-6 py-4 text-xs">
-                      {promo.minOrderValue ? t('promoManagement.minAmount', { amount: promo.minOrderValue }) : ''}
-                      {promo.minOrderValue && promo.isForNewUsersOnly ? ' & ' : ''}
-                      {promo.isForNewUsersOnly ? t('promoManagement.newUsersOnly') : ''}
-                      {!promo.minOrderValue && !promo.isForNewUsersOnly ? t('promoManagement.noConditions') : ''}
-                      {promo.applicableServices && promo.applicableServices.length > 0 && (
-                        <div className="mt-1 text-slate-500">
-                          {t('promoManagement.services')}: {promo.applicableServices.length}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-center">
-                      {promo.usageCount || 0}
-                      {promo.maxUsage && ` / ${promo.maxUsage}`}
-                    </td>
-                    <td className="px-6 py-4 text-xs">
-                      {promo.startDate && (
-                        <div>{new Date(promo.startDate).toLocaleDateString()}</div>
-                      )}
-                      {promo.endDate && (
-                        <div>→ {new Date(promo.endDate).toLocaleDateString()}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span 
-                        onClick={() => toggleStatus(promo)}
-                        className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${
-                          isExpired 
-                            ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200'
-                            : promo.isActive 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                        }`}
-                      >
-                        {isExpired ? t('promoManagement.expired') : promo.isActive ? t('promoManagement.active') : t('promoManagement.inactive')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 flex space-x-2">
-                      <button onClick={() => handleEdit(promo)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg dark:hover:bg-blue-900/40">
-                        <Icon name="pencil" className="w-5 h-5"/>
-                      </button>
-                      <button onClick={() => handleDelete(promo.id)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg dark:hover:bg-red-900/40">
-                        <Icon name="xmark" className="w-5 h-5"/>
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filteredPromos.sort((a, b) => b.revenue - a.revenue).map((p, i) => (
+                <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
+                  <td className="py-2.5"><span className="px-2 py-1 bg-[#0077B6]/10 text-[#0077B6] text-xs font-bold rounded-lg">{p.code}</span></td>
+                  <td className="py-2.5 text-xs text-slate-600">{p.type}</td>
+                  <td className="py-2.5 text-xs font-medium text-right text-[#0F172A]">{p.views.toLocaleString()}</td>
+                  <td className="py-2.5 text-xs font-medium text-right text-[#0F172A]">{p.clicks}</td>
+                  <td className="py-2.5 text-xs font-bold text-right text-[#0F172A]">{p.orders}</td>
+                  <td className="py-2.5 text-xs font-extrabold text-right text-[#0F172A]">{formatPrice(p.revenue)}</td>
+                  <td className="py-2.5 text-center"><span className="text-xs font-bold text-[#22C55E]">{p.roi}</span></td>
+                  <td className="py-2.5 text-center"><span className="text-xs font-medium text-slate-600">{p.margin}%</span></td>
+                  <td className="py-2.5 text-center"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.status === 'Active' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-slate-100 text-slate-400'}`}>{p.status}</span></td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        {filteredPromoCodes.length === 0 && (
-          <p className="text-center text-slate-500 py-8">{t('partnerPromoManagement.noPromoCodes')}</p>
-        )}
+      </div>
+
+      {/* ─── Section 5: Growth Advisor + Section 6: Acquisition ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-br from-[#FF7A00] to-[#e66d00] rounded-2xl p-5 text-white">
+          <div className="flex items-center gap-2 mb-3">
+            <Icon name="sparkles" className="w-5 h-5" />
+            <h2 className="text-sm font-bold">Growth Advisor</h2>
+          </div>
+          <div className="space-y-2.5">
+            {[
+              { action: 'Les costumes performent +32%', suggestion: 'Creer une promo -15% Costumes', icon: 'trophy' },
+              { action: 'Livraisons Gombe en hausse', suggestion: 'Offrir livraison gratuite', icon: 'truck' },
+              { action: 'Clients inactifs depuis 30j', suggestion: 'Campagne reactivation -10%', icon: 'user' },
+            ].map((item, i) => (
+              <div key={i} className="p-3 bg-white/10 rounded-xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Icon name={item.icon as any} className="w-4 h-4 text-white/80" />
+                  <p className="text-xs font-bold">{item.action}</p>
+                </div>
+                <p className="text-[10px] text-white/70 ml-6">{item.suggestion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-3">Acquisition clients</h2>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {[
+              { label: 'Nouveaux', value: 58, color: 'text-[#22C55E]', bg: 'bg-green-50' },
+              { label: 'Reactives', value: 22, color: 'text-[#0077B6]', bg: 'bg-blue-50' },
+              { label: 'Fideles', value: 80, color: 'text-purple-600', bg: 'bg-purple-50' },
+            ].map((c, i) => (
+              <div key={i} className={`p-3 rounded-xl text-center ${c.bg}`}>
+                <p className={`text-xl font-extrabold ${c.color}`}>{c.value}</p>
+                <p className="text-[10px] text-slate-500">{c.label}</p>
+              </div>
+            ))}
+          </div>
+          <div className="p-3 bg-slate-50 rounded-xl">
+            <p className="text-[10px] text-slate-400 mb-1">Rentabilite promotions</p>
+            <div className="space-y-1.5">
+              {[
+                { label: 'CA genere', value: formatPrice(stats.totalRevenue) },
+                { label: 'Reductions accordees', value: `-${formatPrice(stats.reductions)}` },
+                { label: 'Profit reel', value: formatPrice(stats.profit) },
+              ].map((r, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600">{r.label}</span>
+                  <span className={`font-bold ${i === 2 ? 'text-[#22C55E]' : 'text-[#0F172A]'}`}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Section 7: Performance par Service + Gamification ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-3">Performance par service</h2>
+          <div className="space-y-3">
+            {servicePerf.map((s, i) => (
+              <div key={i} className="p-3 bg-slate-50 rounded-xl">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#0F172A]">{s.name}</span>
+                    {s.status === 'Meilleur' && <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#FF7A00]/10 text-[#FF7A00] rounded-full">Meilleur</span>}
+                  </div>
+                  <span className="text-sm font-extrabold text-[#0F172A]">{formatPrice(s.revenue)}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                  <span>{s.orders} commandes</span>
+                  <span className={`font-bold ${s.growth.startsWith('+') ? 'text-[#22C55E]' : 'text-red-500'}`}>{s.growth}</span>
+                </div>
+                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden mt-1.5">
+                  <div className="h-full bg-[#0077B6] rounded-full" style={{ width: `${(s.revenue / 210) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 p-5">
+          <h2 className="text-sm font-bold text-[#0F172A] mb-3">Score marketing</h2>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative w-20 h-20">
+              <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" strokeWidth="3" />
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke={marketingScore >= 80 ? '#22C55E' : marketingScore >= 60 ? '#FF7A00' : '#EF4444'} strokeWidth="3" strokeLinecap="round" strokeDasharray={`${marketingScore} ${100 - marketingScore}`} />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-xl font-extrabold text-[#0F172A]">{marketingScore}</span><span className="text-[9px] text-slate-400">/100</span></div>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-[#22C55E]">{marketingScore >= 80 ? 'Excellent' : marketingScore >= 60 ? 'Bon' : 'A ameliorer'}</p>
+              <p className="text-[10px] text-slate-400">Base sur : promos, ROI, conversion</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {[
+              { label: 'Promotions actives', ok: stats.active >= 3 },
+              { label: 'Taux conversion > 5%', ok: parseFloat(stats.conversionRate) > 5 },
+              { label: 'ROI > 3x', ok: parseInt(stats.avgROI) > 3 },
+              { label: 'Frequent campagnes', ok: stats.totalOrders > 20 },
+            ].map((c, i) => (
+              <div key={i} className="flex items-center gap-1.5 text-xs">
+                <Icon name={c.ok ? 'check' : 'xmark'} className={`w-3.5 h-3.5 ${c.ok ? 'text-[#22C55E]' : 'text-[#FF7A00]'}`} />
+                <span className={c.ok ? 'text-[#0F172A]' : 'text-[#FF7A00]'}>{c.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Section 8: Exports + Footer ─── */}
+      <div className="bg-white rounded-2xl border border-slate-100 p-5">
+        <h2 className="text-sm font-bold text-[#0F172A] mb-3">Exports & Rapports</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { icon: 'document-text', label: 'Rapport promotions', format: 'PDF', color: 'text-red-500' },
+            { icon: 'chartBar', label: 'ROI detaille', format: 'Excel', color: 'text-[#22C55E]' },
+            { icon: 'users', label: 'Acquisition clients', format: 'CSV', color: 'text-[#0077B6]' },
+            { icon: 'document-text', label: 'Performance marketing', format: 'PDF', color: 'text-red-500' },
+          ].map((exp, i) => (
+            <button key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
+              <Icon name={exp.icon as any} className={`w-5 h-5 ${exp.color}`} />
+              <div className="text-left"><p className="text-xs font-bold text-[#0F172A]">{exp.label}</p><p className="text-[9px] text-slate-400">{exp.format}</p></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── Footer CTA ─── */}
+      <div className="bg-gradient-to-r from-[#FF7A00] to-[#e66d00] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <span className="text-3xl">🚀</span>
+          <div>
+            <h3 className="text-base font-extrabold text-white">Boostez votre croissance</h3>
+            <p className="text-xs text-white/80">Les promos genèrent en moyenne 3x plus de commandes et 2x plus de revenus.</p>
+          </div>
+        </div>
+        <button onClick={() => setShowCreateWizard(true)} className="px-5 py-2.5 bg-white text-[#FF7A00] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Creer une promotion</button>
       </div>
     </div>
   );

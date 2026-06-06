@@ -10,15 +10,21 @@ const NavItem: React.FC<{
     label: string;
     isExternal?: boolean;
     isActive: boolean;
+    badge?: number;
     onClick: (target: PartnerSection, isExternal?: boolean) => void;
-}> = ({ target, iconName, label, isExternal = false, isActive, onClick}) => {
+}> = ({ target, iconName, label, isExternal = false, isActive, badge, onClick}) => {
     return (
         <button
             onClick={() => onClick(target, isExternal)}
-            className={`flex items-center w-full shrink-0 px-4 py-3 rounded-lg text-left transition-colors ${isActive ? 'bg-brand-blue text-white' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`}
+            className={`flex items-center w-full shrink-0 px-4 py-3 rounded-lg text-left transition-colors ${isActive ? 'bg-[#0077B6] text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
         >
-            <Icon name={iconName} className="w-6 h-6 mr-3" />
-            <span className="font-medium whitespace-nowrap">{label}</span>
+            <Icon name={iconName} className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+            <span className="font-medium whitespace-nowrap flex-1">{label}</span>
+            {badge !== undefined && badge > 0 && (
+                <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+                    {badge > 99 ? '99+' : badge}
+                </span>
+            )}
         </button>
     );
 };
@@ -30,8 +36,10 @@ interface PartnerSidebarProps {
 }
 
 export const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ partner, activeSection, onSectionClick }) => {
-    const { user, t } = useAppContext();
+    const { user, t, appNotifications } = useAppContext();
     const { role } = user || {};
+
+    const pendingOrdersBadge = appNotifications.filter(n => n.recipientId === user?.id && n.notificationType === 'newOrder' && !n.isRead).length;
 
     const navItems: {
         target: PartnerSection;
@@ -76,6 +84,7 @@ export const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ partner, activeS
                                     iconName={item.icon as any} 
                                     label={item.label} 
                                     isActive={activeSection === item.target} 
+                                    badge={item.target === 'orders' ? pendingOrdersBadge : undefined}
                                     onClick={onSectionClick}
                                     isExternal={item.isExternal}
                                 />

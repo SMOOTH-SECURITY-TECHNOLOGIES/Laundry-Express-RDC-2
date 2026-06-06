@@ -1,18 +1,10 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
-import { User, OrderStatus, Order, OptimizedRoute } from '../types';
+import { OptimizedRoute } from '../types';
 import { StatCard } from '../components/StatCard';
 import { BarChart } from '../components/BarChart';
-import { useNavigation } from '../context/NavigationContext';
-import { formatAddress } from '../types';
-
-const initialDriverState = {
-    name: '',
-    email: '',
-    phone: '',
-    vehicleInfo: ''
-};
+import { LogisticsDriver, LogisticsTask, realApi } from '../services/real-api';
 
 const RouteOptimizationModal: React.FC<{
   isOpen: boolean;
@@ -107,11 +99,11 @@ const RouteOptimizationModal: React.FC<{
 };
 
 export const LogisticsDashboardPage: React.FC = () => {
-    const { user, setCurrentPage, logout, getDriversForLogisticsPartner, addDriver, addNotification, getAllOrders, assignDriverToOrder, assignDriverForDelivery, t, openLogisticsMissionForOrderId, setOpenLogisticsMissionForOrderId, orderHistory } = useAppContext();
-
-    const [driverData, setDriverData] = useState(initialDriverState);
+    const { user, logout, addNotification, t, openLogisticsMissionForOrderId, setOpenLogisticsMissionForOrderId } = useAppContext();
     const [isLoading, setIsLoading] = useState(false);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [liveTasks, setLiveTasks] = useState<LogisticsTask[]>([]);
+    const [liveDrivers, setLiveDrivers] = useState<LogisticsDriver[]>([]);
     const missionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -123,18 +115,52 @@ export const LogisticsDashboardPage: React.FC = () => {
         }
     }, [openLogisticsMissionForOrderId, setOpenLogisticsMissionForOrderId]);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadLogisticsData = async () => {
+            if (!user || user.role !== 'logistics-manager') {
+                if (isMounted) {
+                    setLiveTasks([]);
+                    setLiveDrivers([]);
+                }
+                return;
+            }
+
+            try {
+                const [tasksResponse, driversResponse] = await Promise.all([
+                    realApi.getLogisticsTasks({ page: 1, page_size: 100 }),
+                    realApi.getLogisticsDrivers({ page: 1, page_size: 100 }),
+                ]);
+
+                if (isMounted) {
+                    setLiveTasks(tasksResponse.tasks || []);
+                    setLiveDrivers(driversResponse.drivers || []);
+                }
+            } catch {
+                if (isMounted) {
+                    setLiveTasks([]);
+                    setLiveDrivers([]);
+                }
+            }
+        };
+
+        loadLogisticsData();
+        return () => {
+            isMounted = false;
+        };
+    }, [user]);
+
     const { drivers, availableDrivers, stats, chartData, pickupMissions, deliveryMissions } = useMemo(() => {
-        if (!user?.logisticsPartnerId) return { drivers: [], availableDrivers: [], stats: {}, chartData: [], pickupMissions: [], deliveryMissions: [] };
+        if (!user || user.role !== 'logistics-manager') return { drivers: [], availableDrivers: [], stats: {}, chartData: [], pickupMissions: [], deliveryMissions: [] };
 
-        const allDrivers = getDriversForLogisticsPartner(user.logisticsPartnerId);
-        const allOrders = getAllOrders();
-
-        const completedDeliveries = allOrders.filter(o => o.status === 'COMPLETED' && o.logisticsPartnerId === user.logisticsPartnerId);
+        const completedDeliveries = liveTasks.filter(task => task.task_type === 'delivery' && task.status === 'completed');
         
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const dailyDeliveries = completedDeliveries.reduce((acc, order) => {
-            const date = new Date(order.createdAt).toISOString().split('T')[0];
+        const dailyDeliveries = completedDeliveries.reduce((acc, task) => {
+            const rawDate = task.completed_at || task.updated_at || task.created_at;
+            const date = new Date(rawDate).toISOString().split('T')[0];
             acc[date] = (acc[date] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
@@ -147,48 +173,29 @@ export const LogisticsDashboardPage: React.FC = () => {
         }).reverse();
 
         return {
-            drivers: allDrivers,
-            availableDrivers: allDrivers.filter(d => d.driverStatus === 'AVAILABLE'),
+            drivers: liveDrivers,
+            availableDrivers: liveDrivers.filter(d => d.is_available && d.status === 'active'),
             stats: {
                 completedDeliveries: completedDeliveries.length,
                 totalEarnings: completedDeliveries.length * 3, // Simulated earnings
-                activeMissions: allOrders.filter(o => o.driverId && o.status !== 'COMPLETED').length,
-                availableDrivers: allDrivers.filter(d => d.driverStatus === 'AVAILABLE').length,
-                totalDrivers: allDrivers.length
+                activeMissions: liveTasks.filter(task => ['driver_assigned', 'accepted', 'in_progress'].includes(task.status)).length,
+                availableDrivers: liveDrivers.filter(d => d.is_available && d.status === 'active').length,
+                totalDrivers: liveDrivers.length
             },
             chartData,
-            pickupMissions: allOrders.filter(o => o.status === OrderStatus.READY_FOR_PICKUP && !o.driverId),
-            deliveryMissions: allOrders.filter(o => o.status === OrderStatus.READY_FOR_DELIVERY)
+            pickupMissions: liveTasks.filter(task => task.task_type === 'pickup' && task.status === 'pending'),
+            deliveryMissions: liveTasks.filter(task => task.task_type === 'delivery' && task.status === 'pending')
         };
-    }, [user, getDriversForLogisticsPartner, getAllOrders, orderHistory]);
+    }, [user, liveDrivers, liveTasks]);
 
-    const handleAddDriver = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAssignDriver = async (taskId: string, driverId: string, type: 'pickup' | 'delivery') => {
         setIsLoading(true);
         try {
-            await addDriver(driverData);
-            setDriverData(initialDriverState);
-            addNotification(t('notifications.driverAdded', {name: driverData.name}), 'success');
-        } catch(error: any) {
-            const message = error.message === 'Email already exists' ? t('notifications.emailExists') : 'Error adding driver';
-            addNotification(message, 'error');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleAssignDriver = async (orderId: string, driverId: string, type: 'pickup' | 'delivery') => {
-        setIsLoading(true);
-        try {
-            if (type === 'pickup') {
-                await assignDriverToOrder(orderId, driverId);
-                addNotification(t('notifications.pickupMissionAssigned'), 'success');
-            } else {
-                await assignDriverForDelivery(orderId, driverId);
-                addNotification(t('notifications.deliveryMissionAssigned'), 'success');
-            }
+            const updatedTask = await realApi.assignLogisticsTask(taskId, driverId);
+            setLiveTasks(tasks => tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+            addNotification(type === 'pickup' ? t('notifications.pickupMissionAssigned') : t('notifications.deliveryMissionAssigned'), 'success');
         } catch (error) {
-            console.error("Assignment error", error);
+            addNotification(t('logisticsDashboard.optimizeRoutes.assignError'), 'error');
         } finally {
             setIsLoading(false);
         }
@@ -206,7 +213,7 @@ export const LogisticsDashboardPage: React.FC = () => {
         );
     }
     
-    const canOptimize = pickupMissions.length > 0 && availableDrivers.length > 0;
+    const canOptimize = !!user?.logisticsPartnerId && pickupMissions.length > 0 && availableDrivers.length > 0;
 
     return (
         <div className="space-y-8">
@@ -225,16 +232,13 @@ export const LogisticsDashboardPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 space-y-8">
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-card dark:border dark:border-slate-700">
-                        <h2 className="text-xl font-bold mb-4">{t('logisticsDashboard.addDriverTitle')}</h2>
-                        <form onSubmit={handleAddDriver} className="space-y-4">
-                            <input type="text" value={driverData.name} onChange={e => setDriverData({...driverData, name: e.target.value})} placeholder={t('logisticsDashboard.driverName')} required className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"/>
-                            <input type="email" value={driverData.email} onChange={e => setDriverData({...driverData, email: e.target.value})} placeholder={t('logisticsDashboard.driverEmail')} required className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"/>
-                            <input type="tel" value={driverData.phone} onChange={e => setDriverData({...driverData, phone: e.target.value})} placeholder={t('logisticsDashboard.driverPhone')} required className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"/>
-                            <input type="text" value={driverData.vehicleInfo} onChange={e => setDriverData({...driverData, vehicleInfo: e.target.value})} placeholder={t('logisticsDashboard.vehicleInfo')} required className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"/>
-                            <button type="submit" disabled={isLoading} className="w-full px-4 py-2 bg-brand-success text-white font-semibold rounded-lg hover:bg-opacity-90 disabled:bg-slate-400">
-                                {isLoading ? t('buttons.loading') : t('logisticsDashboard.submitAddDriver')}
-                            </button>
-                        </form>
+                        <h2 className="text-xl font-bold mb-4">{t('logisticsDashboard.driverListTitle')}</h2>
+                        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+                            <p>{t('logisticsDashboard.availableDrivers')}: <span className="font-semibold">{stats.availableDrivers || 0}</span></p>
+                            <p>{t('logisticsDashboard.activeMissions')}: <span className="font-semibold">{stats.activeMissions || 0}</span></p>
+                            <p>{t('logisticsDashboard.pickupMissions')}: <span className="font-semibold">{pickupMissions.length}</span></p>
+                            <p>{t('logisticsDashboard.deliveryMissions')}: <span className="font-semibold">{deliveryMissions.length}</span></p>
+                        </div>
                     </div>
                 </div>
 
@@ -244,12 +248,12 @@ export const LogisticsDashboardPage: React.FC = () => {
                         {drivers.length > 0 ? drivers.map(d => (
                             <div key={d.id} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-700 flex justify-between items-center">
                                 <div>
-                                    <p className="font-semibold text-brand-dark dark:text-slate-100">{d.name}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{d.email} / {d.phone}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">{d.vehicleInfo}</p>
+                                    <p className="font-semibold text-brand-dark dark:text-slate-100">{d.user_name || d.user_email || d.id}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{d.user_email || '-'} / {d.user_phone || '-'}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">{d.vehicle_type || d.license_number || '-'}</p>
                                 </div>
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${d.driverStatus === 'AVAILABLE' ? 'bg-green-100 text-green-800' : d.driverStatus === 'ON_MISSION' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800'}`}>
-                                    {t(`driverDashboard.${d.driverStatus?.toLowerCase()}`)}
+                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${d.is_available ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}`}>
+                                    {d.is_available ? t('driverDashboard.available') : t('driverDashboard.unavailable')}
                                 </span>
                             </div>
                         )) : <p className="text-center text-slate-500">{t('logisticsDashboard.noDrivers')}</p>}
@@ -270,14 +274,14 @@ export const LogisticsDashboardPage: React.FC = () => {
                     <div>
                         <h3 className="font-semibold mb-2">{t('logisticsDashboard.pickupMissions')} ({pickupMissions.length})</h3>
                         <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                            {pickupMissions.length > 0 ? pickupMissions.map(order => (
-                                <form key={order.id} onSubmit={(e) => { e.preventDefault(); handleAssignDriver(order.id, (e.currentTarget.elements.namedItem('driverId') as HTMLSelectElement).value, 'pickup'); }} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-700">
-                                    <p className="text-sm font-semibold">{t('logisticsDashboard.collectMissionFor')} #{order.id.split('-')[1]}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{order.clientDetails?.name} - {formatAddress(order.clientDetails?.pickupAddress)}</p>
+                            {pickupMissions.length > 0 ? pickupMissions.map(task => (
+                                <form key={task.id} onSubmit={(e) => { e.preventDefault(); handleAssignDriver(task.id, (e.currentTarget.elements.namedItem('driverId') as HTMLSelectElement).value, 'pickup'); }} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-700">
+                                    <p className="text-sm font-semibold">{t('logisticsDashboard.collectMissionFor')} {task.order_number || task.id.slice(0, 8)}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{task.customer_name || task.pickup_contact_name || '-'} - {task.pickup_address_line || task.pickup_commune || '-'}</p>
                                     <div className="flex gap-2 mt-2">
                                         <select name="driverId" required className="flex-grow p-1 text-xs border rounded-lg dark:bg-slate-700 dark:border-slate-600">
                                             <option value="">{t('logisticsDashboard.selectCollector')}</option>
-                                            {availableDrivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                            {availableDrivers.map(d => <option key={d.id} value={d.id}>{d.user_name || d.user_email || d.id}</option>)}
                                         </select>
                                         <button type="submit" disabled={isLoading} className="px-2 py-1 text-xs bg-brand-success text-white font-semibold rounded-lg disabled:bg-slate-400">{t('logisticsDashboard.confirmAssignment')}</button>
                                     </div>
@@ -289,14 +293,14 @@ export const LogisticsDashboardPage: React.FC = () => {
                     <div>
                         <h3 className="font-semibold mb-2">{t('logisticsDashboard.deliveryMissions')} ({deliveryMissions.length})</h3>
                         <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                            {deliveryMissions.length > 0 ? deliveryMissions.map(order => (
-                                <form key={order.id} onSubmit={(e) => { e.preventDefault(); handleAssignDriver(order.id, (e.currentTarget.elements.namedItem('driverId') as HTMLSelectElement).value, 'delivery'); }} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-700">
-                                    <p className="text-sm font-semibold">{t('logisticsDashboard.deliveryMissionFor')} #{order.id.split('-')[1]}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{order.clientDetails?.name} - {formatAddress(order.clientDetails?.pickupAddress)}</p>
+                            {deliveryMissions.length > 0 ? deliveryMissions.map(task => (
+                                <form key={task.id} onSubmit={(e) => { e.preventDefault(); handleAssignDriver(task.id, (e.currentTarget.elements.namedItem('driverId') as HTMLSelectElement).value, 'delivery'); }} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-700">
+                                    <p className="text-sm font-semibold">{t('logisticsDashboard.deliveryMissionFor')} {task.order_number || task.id.slice(0, 8)}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{task.customer_name || task.pickup_contact_name || '-'} - {task.delivery_address_line || task.delivery_commune || '-'}</p>
                                     <div className="flex gap-2 mt-2">
                                         <select name="driverId" required className="flex-grow p-1 text-xs border rounded-lg dark:bg-slate-700 dark:border-slate-600">
                                             <option value="">{t('logisticsDashboard.selectDeliverer')}</option>
-                                            {availableDrivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                            {availableDrivers.map(d => <option key={d.id} value={d.id}>{d.user_name || d.user_email || d.id}</option>)}
                                         </select>
                                         <button type="submit" disabled={isLoading} className="px-2 py-1 text-xs bg-brand-success text-white font-semibold rounded-lg disabled:bg-slate-400">{t('logisticsDashboard.confirmAssignment')}</button>
                                     </div>

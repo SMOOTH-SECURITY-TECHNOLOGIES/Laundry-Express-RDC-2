@@ -442,7 +442,11 @@
     "scanNoMatches": "No matching items found in scan",
     "itemsSelected": "{{count}} items selected",
     "changePartner": "Change partner",
-    "selectedServices": "Selected services"
+    "selectedServices": "Selected services",
+    "loadingServices": "Loading services...",
+    "scannerServiceMissing": "No service was selected for scanning.",
+    "scannerSummary": "Scanned {{count}} items across {{matches}} article types.",
+    "scannerNoMatchesDetailed": "No matching items were found in the scan. Please try again or add them manually."
   },
   "emailService": {
     "errors": {
@@ -597,7 +601,16 @@
   },
   "orderPage": {
     "completeAllSteps": "Please complete all steps before proceeding to payment.",
-    "orderCreationError": "Error creating order. Please try again."
+    "orderCreationError": "Error creating order. Please try again.",
+    "loginRequired": "You must sign in to create a real order.",
+    "missingBackendAddress": "No default backend address is linked to this account.",
+    "partnerRequired": "No partner was selected.",
+    "partnerNotFound": "No backend partner matches \"{{name}}\". Run the MVP catalog bootstrap.",
+    "serviceNotFound": "No backend service matches \"{{name}}\" for this partner.",
+    "noConvertibleItems": "No valid items could be converted for the backend order.",
+    "cashConfirmed": "Cash payment confirmed.",
+    "cashPendingConfirmation": "Order created. Cash payment will be confirmed by the delivery team.",
+    "paymentIntentCreated": "Payment intent created successfully."
   },
   "trackingPage": {
     "noActiveOrder": "No active order",
@@ -745,7 +758,10 @@
     "tooLateToday": "It's too late for a pickup today. Please select another day.",
     "schedulePickup": "Schedule your pickup",
     "pickupDate": "Pickup date",
-    "pickupTime": "Pickup time"
+    "pickupTime": "Pickup time",
+    "availableBetween": "Available between {{min}} and {{max}}.",
+    "checkingAvailability": "Checking availability...",
+    "pickupScheduledFor": "Pickup scheduled for {{datetime}}."
   },
   "orderSummary": {
     "title": "Order summary",
@@ -910,6 +926,8 @@
     "orders": "Orders",
     "users": "Users",
     "partners": "Partners",
+    "openDisputes": "Open disputes",
+    "openTickets": "Open tickets",
     "viewAnalytics": "View detailed analytics",
     "partnerApplications": "Pending partner applications ({{count}})",
     "reject": "Reject",
@@ -975,13 +993,15 @@
       "joined": "Joined on",
       "actions": "Actions"
     },
-    "adminBadge": "ADMIN",
-    "partnerBadge": "PARTNER",
-    "linkToPartner": "Link to partner",
-    "noUsers": "No users found.",
-    "linkToLogisticsPartner": "Link to Logistics",
-    "logisticsBadge": "LOGISTICS"
-  },
+      "adminBadge": "ADMIN",
+      "partnerBadge": "PARTNER",
+      "logisticsBadge": "LOGISTICS",
+      "linkToPartner": "Link to partner",
+      "noUsers": "No users found.",
+      "linkToLogisticsPartner": "Link to Logistics",
+      "logisticsBadge": "LOGISTICS",
+      "readOnly": "Read-only"
+    },
   "orderManagement": {
     "title": "Order management",
     "allOrders": "All orders ({{count}})",
