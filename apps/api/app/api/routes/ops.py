@@ -30,7 +30,7 @@ router = APIRouter(prefix="/ops", tags=["ops"])
 
 # Simple sync auth check for ops routes
 from app.core.config import settings
-import jwt
+from jose import ExpiredSignatureError, JWTError, jwt
 
 ADMIN_ROLES = {"admin", "superadmin"}
 
@@ -44,9 +44,9 @@ def verify_admin_token(request: Request):
         role = payload.get("role")
         if role not in ADMIN_ROLES:
             raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expiré")
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Token invalide")
     return True
 

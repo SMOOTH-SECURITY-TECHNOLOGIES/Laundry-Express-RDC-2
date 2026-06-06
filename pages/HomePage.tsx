@@ -436,44 +436,54 @@ export const HomePage: React.FC = () => {
           </div>
         ) : (
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-            {featuredPartners.map(partner => (
-              <button
-                key={partner.id}
-                onClick={() => handlePartnerSelect(partner)}
-                className="flex-shrink-0 w-44 sm:w-52 bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group hover:-translate-y-0.5 text-left"
-              >
-                <div className="relative h-28 overflow-hidden">
-                  <img
-                    src={partner.imageUrls?.[0] || ''}
-                    alt={partner.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-2 left-3 right-3">
-                    <h3 className="font-bold text-sm text-white drop-shadow-md truncate">{partner.name}</h3>
-                  </div>
-                  {partner.isFeatured && (
-                    <div className="absolute top-2 right-2 p-1 bg-[#FF7A00] rounded-lg">
-                      <Icon name="fire" className="w-3 h-3 text-white" />
+            {featuredPartners.map(partner => {
+              const partnerImageUrl = partner.imageUrls?.find(Boolean);
+
+              return (
+                <button
+                  key={partner.id}
+                  onClick={() => handlePartnerSelect(partner)}
+                  className="flex-shrink-0 w-44 sm:w-52 bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group hover:-translate-y-0.5 text-left"
+                >
+                  <div className="relative h-28 overflow-hidden bg-gradient-to-br from-cyan-100 via-white to-emerald-100">
+                    {partnerImageUrl ? (
+                      <img
+                        src={partnerImageUrl}
+                        alt={partner.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[#0077B6]">
+                        <Icon name="shirt" className="w-8 h-8" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-2 left-3 right-3">
+                      <h3 className="font-bold text-sm text-white drop-shadow-md truncate">{partner.name}</h3>
                     </div>
-                  )}
-                </div>
-                <div className="p-3">
-                  <p className="text-[10px] font-bold text-[#0077B6] uppercase tracking-wide">
-                    {partner.type}
-                  </p>
-                  <div className="flex items-center gap-1 mt-1.5">
-                    <Icon name="star" className="w-3.5 h-3.5 text-yellow-400" />
-                    <span className="text-xs font-bold text-[#0F172A]">{partner.rating}</span>
-                    <span className="text-[10px] text-slate-400">({partner.reviewCount})</span>
+                    {partner.isFeatured && (
+                      <div className="absolute top-2 right-2 p-1 bg-[#FF7A00] rounded-lg">
+                        <Icon name="fire" className="w-3 h-3 text-white" />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1 mt-1 text-slate-400">
-                    <Icon name="mapPin" className="w-3 h-3" />
-                    <span className="text-[10px] truncate">{partner.address || 'Kinshasa'}</span>
+                  <div className="p-3">
+                    <p className="text-[10px] font-bold text-[#0077B6] uppercase tracking-wide">
+                      {partner.type}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <Icon name="star" className="w-3.5 h-3.5 text-yellow-400" />
+                      <span className="text-xs font-bold text-[#0F172A]">{partner.rating}</span>
+                      <span className="text-[10px] text-slate-400">({partner.reviewCount})</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1 text-slate-400">
+                      <Icon name="mapPin" className="w-3 h-3" />
+                      <span className="text-[10px] truncate">{partner.address || 'Kinshasa'}</span>
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </section>

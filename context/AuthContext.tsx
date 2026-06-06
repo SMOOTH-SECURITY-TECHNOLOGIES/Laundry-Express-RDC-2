@@ -163,6 +163,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let backendError: any = null;
 
     try {
+      setUser(null);
+      realApi.clearToken();
+
       // 1) Try real backend first
       const response = await realApi.login(payload);
       const currentUserResponse = await realApi.getCurrentUser();
@@ -176,47 +179,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return result;
     } catch (apiError: any) {
       backendError = apiError;
-    }
+      const status = backendError?.status || 0;
+      const isNetworkError = !status;
+      const shouldUseMockFallback = import.meta.env.VITE_USE_MOCK_API === 'true';
 
-    // 2) Fallback to local mock if backend fails (any 4xx, 5xx, or network error)
-    const status = backendError?.status || 0;
-    const isNetworkError = !status;
-    const isClientError = status >= 400 && status < 500;
-    const isServerError = status >= 500 && status < 600;
-
-    if (isNetworkError || isClientError || isServerError) {
-      try {
-        const mockResult = await apiLogin(payload);
-        const mockUser: User = {
-          id: mockResult.user.id,
-          name: mockResult.user.name || '',
-          email: mockResult.user.email,
-          phone: mockResult.user.phone || '',
-          role: mockResult.user.role as User['role'],
-          pickupAddress: mockResult.user.pickupAddress || { commune: '', avenue: '', numero: '' },
-          loyaltyPoints: 0,
-          referralCode: mockResult.user.referralCode || '',
-          createdAt: mockResult.user.createdAt || new Date().toISOString(),
-          is2FAEnabled: false,
-          notificationPreferences: {
-            newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true,
-          },
-          isEmailValid: true,
-          partnerId: mockResult.user.partnerId || undefined,
-          logisticsPartnerId: mockResult.user.logisticsPartnerId || undefined,
-        };
-        setUser(mockUser);
-        localStorage.setItem('auth_token', mockResult.token);
-        localStorage.removeItem('guestOrderCount');
-        return { user: mockUser, token: mockResult.token };
-      } catch (mockError) {
-        console.warn('Mock login also failed:', mockError);
+      // Fallback mock is only allowed when explicitly enabled, or when the
+      // backend cannot be reached at all. A backend 401 must remain a real
+      // failed login; otherwise the UI stores a mock user with an invalid
+      // backend session and requires a refresh to recover.
+      if (shouldUseMockFallback || isNetworkError) {
+        try {
+          const mockResult = await apiLogin(payload);
+          const mockUser: User = {
+            id: mockResult.user.id,
+            name: mockResult.user.name || '',
+            email: mockResult.user.email,
+            phone: mockResult.user.phone || '',
+            role: mockResult.user.role as User['role'],
+            pickupAddress: mockResult.user.pickupAddress || { commune: '', avenue: '', numero: '' },
+            loyaltyPoints: 0,
+            referralCode: mockResult.user.referralCode || '',
+            createdAt: mockResult.user.createdAt || new Date().toISOString(),
+            is2FAEnabled: false,
+            notificationPreferences: {
+              newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true,
+            },
+            isEmailValid: true,
+            partnerId: mockResult.user.partnerId || undefined,
+            logisticsPartnerId: mockResult.user.logisticsPartnerId || undefined,
+          };
+          setUser(mockUser);
+          localStorage.setItem('auth_token', mockResult.token);
+          localStorage.removeItem('guestOrderCount');
+          return { user: mockUser, token: mockResult.token };
+        } catch (mockError) {
+          console.warn('Mock login also failed:', mockError);
+        }
       }
-    }
 
-    // 3) If both backend and mock failed, throw the original backend error
-    console.error('Login failed:', backendError);
-    throw backendError;
+      console.error('Login failed:', backendError);
+      throw backendError;
+    } finally {
+      setIsLoading(false);
+    }
   }, [setUser]);
 
   const register = useCallback(async (payload: RegisterRequest) => {
@@ -265,44 +270,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return result;
     } catch (apiError: any) {
       backendError = apiError;
-    }
+      const status = backendError?.status || 0;
+      const isNetworkError = !status;
+      const shouldUseMockFallback = import.meta.env.VITE_USE_MOCK_API === 'true';
 
-    // Fallback to local mock registration if backend fails
-    const status = backendError?.status || 0;
-    const isNetworkError = !status;
-    const isClientError = status >= 400 && status < 500;
-    const isServerError = status >= 500 && status < 600;
-
-    if (isNetworkError || isClientError || isServerError) {
-      try {
-        const mockResult = await apiRegister(payload, t);
-        const mockUser: User = {
-          id: mockResult.user.id,
-          name: mockResult.user.name || '',
-          email: mockResult.user.email,
-          phone: mockResult.user.phone || '',
-          role: mockResult.user.role as User['role'],
-          pickupAddress: payload.pickupAddress || { commune: '', avenue: '', numero: '' },
-          loyaltyPoints: 0,
-          referralCode: mockResult.user.referralCode || '',
-          createdAt: mockResult.user.createdAt || new Date().toISOString(),
-          is2FAEnabled: false,
-          notificationPreferences: {
-            newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true,
-          },
-          isEmailValid: true,
-        };
-        setUser(mockUser);
-        localStorage.setItem('auth_token', mockResult.token);
-        localStorage.removeItem('guestOrderCount');
-        return { user: mockUser, token: mockResult.token };
-      } catch (mockError) {
-        console.warn('Mock registration also failed:', mockError);
+      if (shouldUseMockFallback || isNetworkError) {
+        try {
+          const mockResult = await apiRegister(payload, t);
+          const mockUser: User = {
+            id: mockResult.user.id,
+            name: mockResult.user.name || '',
+            email: mockResult.user.email,
+            phone: mockResult.user.phone || '',
+            role: mockResult.user.role as User['role'],
+            pickupAddress: payload.pickupAddress || { commune: '', avenue: '', numero: '' },
+            loyaltyPoints: 0,
+            referralCode: mockResult.user.referralCode || '',
+            createdAt: mockResult.user.createdAt || new Date().toISOString(),
+            is2FAEnabled: false,
+            notificationPreferences: {
+              newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true,
+            },
+            isEmailValid: true,
+          };
+          setUser(mockUser);
+          localStorage.setItem('auth_token', mockResult.token);
+          localStorage.removeItem('guestOrderCount');
+          return { user: mockUser, token: mockResult.token };
+        } catch (mockError) {
+          console.warn('Mock registration also failed:', mockError);
+        }
       }
-    }
 
-    console.error('Registration failed:', backendError);
-    throw backendError;
+      console.error('Registration failed:', backendError);
+      throw backendError;
+    } finally {
+      setIsLoading(false);
+    }
   }, [setUser, t]);
 
   const logout = useCallback(() => {
