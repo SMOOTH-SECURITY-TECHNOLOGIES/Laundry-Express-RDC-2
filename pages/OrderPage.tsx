@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
-import { ServiceType } from '../types';
+import { Service, ServiceType } from '../types';
 
 interface EstimatorItem {
   id: string;
@@ -187,6 +187,29 @@ export const OrderPage: React.FC = () => {
     return svc ? svc.title : '';
   }, [selectedService]);
 
+  const selectedServiceDefinition = useMemo<Service | null>(() => {
+    if (!selectedService) return null;
+
+    const serviceType = serviceToTypeMap[selectedService];
+    const localService = services.find((s) => s.id === selectedService);
+    const partnerService = selectedPartner?.serviceIds
+      ? (dataServices || []).find((service) => selectedPartner.serviceIds?.includes(service.id) && service.type === serviceType)
+      : null;
+    const catalogService = partnerService || (dataServices || []).find((service) => service.type === serviceType);
+
+    return {
+      id: catalogService?.id || selectedService,
+      type: serviceType,
+      title: catalogService?.title || localService?.title || 'Service',
+      description: catalogService?.description || localService?.description || '',
+      iconName: catalogService?.iconName || localService?.icon || 'shirt',
+      imageUrl: catalogService?.imageUrl || '',
+      priceModel: 'per_item',
+      price: catalogService?.price || estimatorItemsDefault[0].price,
+      articleCategories: catalogService?.articleCategories,
+    };
+  }, [dataServices, selectedPartner, selectedService]);
+
   const estimatedTotal = useMemo(() => {
     if (!selectedService) return 0;
     if (selectedService === 'lessive') {
@@ -194,6 +217,32 @@ export const OrderPage: React.FC = () => {
     }
     return estimatorTotal;
   }, [selectedService, estimatorTotal]);
+
+  useEffect(() => {
+    if (!selectedServiceDefinition) {
+      updateOrderDraft({ serviceItems: [], totalPrice: 0 });
+      return;
+    }
+
+    const selectedItems = estimatorItems
+      .filter((item) => item.quantity > 0)
+      .map((item) => ({
+        article: {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+        },
+        quantity: item.quantity,
+      }));
+
+    updateOrderDraft({
+      serviceItems: selectedItems.length > 0 ? [{
+        service: selectedServiceDefinition,
+        items: selectedItems,
+      }] : [],
+      totalPrice: estimatorTotal,
+    });
+  }, [estimatorItems, estimatorTotal, selectedServiceDefinition, updateOrderDraft]);
 
   /* ─── Handlers ─── */
 
@@ -659,11 +708,66 @@ export const OrderPage: React.FC = () => {
       {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-          Recommandez votre <span className="text-[#0077B6]">commande</span>
+          Preparez votre <span className="text-[#0077B6]">commande</span>
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Verifiez les details avant de confirmer.
+          Ajoutez les articles, puis verifiez les details avant de continuer.
         </p>
+      </div>
+
+      {/* Article Selection */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-6">
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div>
+            <p className="text-xs font-bold text-[#0077B6] uppercase tracking-wide">Articles a traiter</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">Que doit nettoyer le partenaire ?</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Indiquez les articles et quantites pour preparer une commande claire.
+            </p>
+          </div>
+          <div className="hidden sm:flex w-11 h-11 rounded-xl bg-[#0077B6]/10 items-center justify-center">
+            <Icon name="shirt" className="w-6 h-6 text-[#0077B6]" />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {estimatorItems.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl"
+            >
+              <div className="min-w-0">
+                <h4 className="font-semibold text-gray-900 dark:text-white">{item.name}</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{formatPrice(item.price)} / article</p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => decrement(item.id)}
+                  disabled={item.quantity === 0}
+                  className="w-9 h-9 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label={`Retirer ${item.name}`}
+                >
+                  <Icon name="minus" className="w-4 h-4" />
+                </button>
+                <span className="w-8 text-center font-bold text-lg text-gray-900 dark:text-white">
+                  {item.quantity}
+                </span>
+                <button
+                  onClick={() => increment(item.id)}
+                  className="w-9 h-9 rounded-full bg-[#0077B6] flex items-center justify-center text-white hover:bg-[#005f8f] transition-colors"
+                  aria-label={`Ajouter ${item.name}`}
+                >
+                  <Icon name="plus" className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between p-4 bg-[#0077B6]/10 rounded-xl">
+          <span className="font-semibold text-gray-900 dark:text-white">Total articles</span>
+          <span className="text-2xl font-bold text-[#0077B6]">{estimatorTotal > 0 ? formatPrice(estimatorTotal) : '0 $'}</span>
+        </div>
       </div>
 
       {/* Summary Card */}
@@ -757,10 +861,11 @@ export const OrderPage: React.FC = () => {
       <div className="space-y-4">
         <button
           onClick={handleContinue}
-          className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#0077B6]/25 hover:shadow-xl hover:shadow-[#0077B6]/30"
+          disabled={estimatorTotal === 0}
+          className="w-full bg-[#0077B6] hover:bg-[#005f8f] text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#0077B6]/25 hover:shadow-xl hover:shadow-[#0077B6]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           <Icon name="shoppingBag" className="w-5 h-5" />
-          Confirmer et payer
+          {estimatorTotal > 0 ? 'Continuer vers adresse et paiement' : 'Ajoutez au moins un article'}
           <Icon name="arrowRight" className="w-5 h-5" />
         </button>
 
