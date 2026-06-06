@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useState, useContext, useCallback, useEffect, useMemo, useRef } from 'react';
 import { User, LoginRequest, RegisterRequest, DrcAddress } from '../types';
 import { realApi, ApiCurrentUserResponse, ApiAddress } from '../services/real-api';
 import { apiLogin, apiRegister } from '../constants';
@@ -98,15 +98,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguageContext();
   const { setCurrentPage } = useNavigation();
+  const skipNextSyncRef = useRef(false);
+
+  const clearExpiredSession = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('activeOrder');
+    realApi.clearToken();
+    appEvents.emit('logout');
+    setCurrentPage({ name: 'login' });
+  }, [setUser, setCurrentPage]);
 
   useEffect(() => {
     const syncCurrentUser = async () => {
         if (!user) return;
+        if (skipNextSyncRef.current) {
+            skipNextSyncRef.current = false;
+            return;
+        }
 
         // Skip backend sync for mock users (tokens starting with "TOKEN-")
         const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
         if (token && token.startsWith('TOKEN-')) {
             return; // Mock user — backend won't recognize this token
+        }
+        if (!token) {
+            clearExpiredSession();
+            return;
         }
 
         try {
@@ -115,8 +132,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (latestUserData && JSON.stringify(latestUserData) !== JSON.stringify(user)) {
                 setUser(latestUserData);
             }
-        } catch {
-            // Best effort refresh only.
+        } catch (error: any) {
+            if (error?.status === 401 || error?.status === 403) {
+                clearExpiredSession();
+            }
         }
     };
 
@@ -126,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const unsubscribe = appEvents.on('data_changed', syncCurrentUser);
     return () => unsubscribe();
-  }, [user, setUser]);
+  }, [user, setUser, clearExpiredSession]);
 
   // Effect for Advanced Matching and User ID tracking
   useEffect(() => {
@@ -318,17 +337,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [setUser, setCurrentPage]);
 
   const updateUser = useCallback(async (updatedUser: User) => {
-    setIsLoading(true);
-    try {
-      // Note: realApi doesn't have updateUser method yet
-      // For now, we'll just update the local state
-      if (user?.id === updatedUser.id) {
-        setUser(updatedUser);
-      }
-      return updatedUser;
-    } finally {
-      setIsLoading(false);
+    if (user?.id === updatedUser.id) {
+      skipNextSyncRef.current = true;
+      setUser(updatedUser);
     }
+    return updatedUser;
   }, [user, setUser]);
   
   const value = useMemo(() => ({ 
