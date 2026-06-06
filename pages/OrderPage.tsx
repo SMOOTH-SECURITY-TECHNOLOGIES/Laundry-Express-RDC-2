@@ -582,7 +582,7 @@ export const OrderPage: React.FC = () => {
                 {/* View Profile + Choose Buttons */}
                 <div className="flex gap-2 mt-2">
                   <button
-                    onClick={() => setCurrentPage({ name: 'partner-detail' } as any)}
+                    onClick={() => setCurrentPage({ name: 'partner-detail', params: { partnerId: partner.id } } as any)}
                     className="flex-1 border border-[#0077B6] text-[#0077B6] hover:bg-[#0077B6]/5 font-semibold py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
                   >
                     <Icon name="magnifying-glass-plus" className="w-4 h-4" />
