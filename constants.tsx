@@ -124,14 +124,14 @@ const defaultWorkingHours: WorkingHours = {
 
 const initialDBData = {
     users: [
-        { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'password123', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'JOHN-REF', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-ADMIN', name: 'Admin User', email: 'admin@laundry.app', phone: '0810000000', passwordHash: 'adminpass123', role: 'superadmin', pickupAddress: { commune: 'System', avenue: 'Admin', numero: '1' }, loyaltyPoints: 0, referralCode: 'ADMIN-REF', createdAt: '2023-01-01T00:00:00Z', is2FAEnabled: true, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-PARTNER-1', name: 'Patrice Manager', email: 'patrice@prestige.com', phone: '0820000001', passwordHash: 'partnerpass123', role: 'partner-owner', partnerId: 'PARTNER-1', pickupAddress: { commune: 'Gombe', avenue: 'Du 30 Juin', numero: '10' }, loyaltyPoints: 0, referralCode: 'PATRICE-REF', createdAt: '2023-01-10T09:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-DRIVER-1', name: 'Driver Kabila', email: 'driver1@kinexpress.cd', phone: '0831111111', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Lingwala', avenue: 'Des Pilotes', numero: '7' }, loyaltyPoints: 0, referralCode: 'DRIVER1-REF', createdAt: '2023-02-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
-        { id: 'USER-DRIVER-2', name: 'Driver Mfumu', email: 'driver2@kinexpress.cd', phone: '0832222222', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Kintambo', avenue: 'Makala', numero: '12' }, loyaltyPoints: 0, referralCode: 'DRIVER2-REF', createdAt: '2023-03-15T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
-        { id: 'USER-DRIVER-3', name: 'Driver Tshisekedi', email: 'driver3@kinexpress.cd', phone: '0833333333', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Universite', numero: '55' }, loyaltyPoints: 0, referralCode: 'DRIVER3-REF', createdAt: '2023-04-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
-        { id: 'USER-002', name: 'Marie Kabongo', email: 'marie.kabongo@example.com', phone: '0844444444', passwordHash: 'mariepass123', role: 'customer', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Equateur', numero: '22' }, loyaltyPoints: 340, referralCode: 'MARIE-REF', createdAt: '2023-06-10T14:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-003', name: 'Jean Mutombo', email: 'jean.mutombo@example.com', phone: '0855555555', passwordHash: 'jeanpass123', role: 'customer', pickupAddress: { commune: 'Limete', avenue: 'Kasavubu', numero: '88' }, loyaltyPoints: 780, referralCode: 'JEAN-REF', createdAt: '2023-08-20T09:30:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: false, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'password123', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'LE-X7K9M2BQ', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-ADMIN', name: 'Admin User', email: 'admin@laundry.app', phone: '0810000000', passwordHash: 'adminpass123', role: 'superadmin', pickupAddress: { commune: 'System', avenue: 'Admin', numero: '1' }, loyaltyPoints: 0, referralCode: 'LE-A3D8F1GH', createdAt: '2023-01-01T00:00:00Z', is2FAEnabled: true, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-PARTNER-1', name: 'Patrice Manager', email: 'patrice@prestige.com', phone: '0820000001', passwordHash: 'partnerpass123', role: 'partner-owner', partnerId: 'PARTNER-1', pickupAddress: { commune: 'Gombe', avenue: 'Du 30 Juin', numero: '10' }, loyaltyPoints: 0, referralCode: 'LE-P4R7T9WC', createdAt: '2023-01-10T09:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-1', name: 'Driver Kabila', email: 'driver1@kinexpress.cd', phone: '0831111111', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Lingwala', avenue: 'Des Pilotes', numero: '7' }, loyaltyPoints: 0, referralCode: 'LE-D1V3R5KM', createdAt: '2023-02-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-2', name: 'Driver Mfumu', email: 'driver2@kinexpress.cd', phone: '0832222222', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Kintambo', avenue: 'Makala', numero: '12' }, loyaltyPoints: 0, referralCode: 'LE-M2F6U8NP', createdAt: '2023-03-15T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-3', name: 'Driver Tshisekedi', email: 'driver3@kinexpress.cd', phone: '0833333333', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Universite', numero: '55' }, loyaltyPoints: 0, referralCode: 'LE-T3S5K7WD', createdAt: '2023-04-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-002', name: 'Marie Kabongo', email: 'marie.kabongo@example.com', phone: '0844444444', passwordHash: 'mariepass123', role: 'customer', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Equateur', numero: '22' }, loyaltyPoints: 340, referralCode: 'LE-M4R8E2KC', createdAt: '2023-06-10T14:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-003', name: 'Jean Mutombo', email: 'jean.mutombo@example.com', phone: '0855555555', passwordHash: 'jeanpass123', role: 'customer', pickupAddress: { commune: 'Limete', avenue: 'Kasavubu', numero: '88' }, loyaltyPoints: 780, referralCode: 'LE-J3A7N4TM', createdAt: '2023-08-20T09:30:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: false, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
     ],
     partners: [
         { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: ['https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=800&q=80'], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: { promotions: true, financials: true, analytics: true, customDomain: true, customSubdomain: true, teamManagement: true, apiAccess: true, advancedAutomation: true, aiReviewAssistant: true, invoiceGenerator: true }, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours },
@@ -318,7 +318,7 @@ export const apiRegister = async (payload: RegisterRequest, t: any) => {
       id: `USER-${Date.now()}`,
       name: payload.name, email: payload.email, phone: payload.phone, passwordHash: payload.password,
       role: 'customer', pickupAddress: payload.pickupAddress, loyaltyPoints: 0,
-      referralCode: `${payload.name.toUpperCase().slice(0, 4)}-${Math.random().toString(36).substring(2, 6)}`,
+      referralCode: `LE-${Array.from({ length: 8 }, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]).join('')}`,
       createdAt: new Date().toISOString(), is2FAEnabled: false,
       notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true },
       isEmailValid: true,
@@ -688,13 +688,101 @@ export const apiMarkNotificationsAsRead = async (uid: string) => {
 export const apiMarkSingleNotificationAsRead = async (id: string) => DB.updateItem('appNotifications', id, { isRead: true });
 export const apiUpdatePartner = async (p: Partner) => DB.updateItem('partners', p.id, p);
 export const apiUpdateSiteContent = async (c: SiteContent) => DB.set('siteContent', c);
-export const apiSubmitPartnerApplication = async (a: any) => { const n = { ...a, id: `APP-${Date.now()}`, status: ApplicationStatus.PENDING, submittedAt: new Date().toISOString() }; DB.addItem('partnerApplications', n); return n; };
+export const apiSubmitPartnerApplication = async (a: any) => {
+    const required = ['companyName', 'partnerType', 'contactName', 'phone', 'email'];
+    for (const field of required) {
+        if (!a[field]) {
+            throw new Error(`Le champ ${field} est requis.`);
+        }
+    }
+
+    const existingApps = DB.get('partnerApplications');
+    if (existingApps.some((app: any) => app.email === a.email && app.status !== ApplicationStatus.REJECTED)) {
+        throw new Error('Une candidature avec cet email existe deja.');
+    }
+
+    const n = {
+        ...a,
+        id: `APP-${Date.now()}`,
+        status: ApplicationStatus.PENDING,
+        submittedAt: new Date().toISOString(),
+        capacity: a.capacity || '',
+    };
+    DB.addItem('partnerApplications', n);
+
+    DB.addItem('appNotifications', {
+        id: `NOTIF-${Date.now()}`,
+        recipientId: 'USER-ADMIN',
+        message: `Nouvelle candidature: ${a.companyName} (${a.partnerType})`,
+        notificationType: NotificationType.GENERAL,
+        link: { page: 'admin', params: { section: 'partner-applications' } },
+        createdAt: new Date().toISOString(),
+        isRead: false,
+    });
+
+    return n;
+};
 
 export const apiApprovePartnerApplication = async (id: string, t: any) => { 
-    return { 
-        newPartner: { name: 'Approved Partner' },
-        newLogisticsPartner: { name: 'Approved Logistics' }
-    }; 
+    const apps = DB.get('partnerApplications');
+    const app = apps.find((a: any) => a.id === id);
+    if (!app) {
+        throw new Error(`Application ${id} not found`);
+    }
+
+    DB.updateItem('partnerApplications', id, { status: ApplicationStatus.APPROVED });
+
+    const newPartner: Partner = {
+        id: `PARTNER-${Date.now()}`,
+        name: app.companyName,
+        slug: app.companyName.toLowerCase().replace(/\s+/g, '-'),
+        type: app.partnerType,
+        rating: 0,
+        reviewCount: 0,
+        imageUrls: [],
+        address: app.address,
+        coordinates: { lat: -4.325, lng: 15.322 },
+        isFeatured: false,
+        enabledFeatures: { promotions: true, financials: true, analytics: true, customDomain: false, customSubdomain: false, teamManagement: true, apiAccess: false, advancedAutomation: false, aiReviewAssistant: false },
+        commissionRate: 0.15,
+        currency: 'USD',
+        workingHours: defaultWorkingHours,
+    };
+    DB.addItem('partners', newPartner);
+
+    const referralChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let referralCode = 'LE-';
+    for (let i = 0; i < 8; i++) {
+        referralCode += referralChars.charAt(Math.floor(Math.random() * referralChars.length));
+    }
+
+    const newUser: User = {
+        id: `USER-${Date.now()}`,
+        name: app.contactName,
+        email: app.email,
+        phone: app.phone,
+        role: 'partner-owner',
+        partnerId: newPartner.id,
+        pickupAddress: { commune: 'Gombe', avenue: app.address, numero: '' },
+        loyaltyPoints: 0,
+        referralCode,
+        createdAt: new Date().toISOString(),
+        is2FAEnabled: false,
+        notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true },
+        isEmailValid: true,
+    };
+    DB.addItem('users', newUser);
+
+    DB.addItem('appNotifications', {
+        id: `NOTIF-${Date.now()}-APPROVED`,
+        recipientId: 'USER-ADMIN',
+        message: `Candidature approuvee: ${app.companyName}. Partenaire et compte crees.`,
+        notificationType: NotificationType.GENERAL,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+    });
+
+    return { newPartner, newUser };
 };
 
 export const apiRejectPartnerApplication = async (id: string, r: string) => DB.updateItem('partnerApplications', id, { status: ApplicationStatus.REJECTED, rejectionReason: r });

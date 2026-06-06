@@ -27,6 +27,7 @@ import { TruthDashboard } from './ops/TruthDashboard';
 import { OrderTruthPage } from './ops/OrderTruthPage';
 import { AnomalyCenterPage } from './ops/AnomalyCenterPage';
 import { InvestigatePage } from './ops/InvestigatePage';
+import { PartnerApplicationsPage } from './admin/PartnerApplicationsPage';
 
 export const AdminPage: React.FC = () => {
     const { user, setCurrentPage, logout, setOpenChatForOrderId, adminSectionParams, setAdminSectionParams, t } = useAppContext();
@@ -85,6 +86,8 @@ export const AdminPage: React.FC = () => {
         switch (section) {
             case 'partners':
                 return <PartnerManagement />;
+            case 'partner-applications':
+                return <PartnerApplicationsPage />;
             case 'services':
                 return <ServiceManagement />;
             case 'users':

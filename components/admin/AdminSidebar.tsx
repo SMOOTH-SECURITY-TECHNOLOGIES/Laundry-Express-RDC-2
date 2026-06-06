@@ -5,7 +5,7 @@ import { useAppContext } from '../../context/AppContext';
 
 const NavItem: React.FC<{
     target: AdminSection;
-    iconName: 'logo' | 'user' | 'wash' | 'shirt' | 'sparkles' | 'pencil' | 'lifebuoy' | 'truck' | 'star' | 'chartBar' | 'device-phone-mobile' | 'list' | 'code-bracket' | 'shield-check' | 'exclamation-circle' | 'clock-history' | 'shield' | 'search' | 'warning';
+    iconName: 'logo' | 'user' | 'wash' | 'shirt' | 'sparkles' | 'pencil' | 'lifebuoy' | 'truck' | 'star' | 'chartBar' | 'device-phone-mobile' | 'list' | 'code-bracket' | 'shield-check' | 'exclamation-circle' | 'clock-history' | 'shield' | 'search' | 'warning' | 'document-text';
     label: string;
     isActive: boolean;
     onClick: (target: AdminSection) => void;
@@ -35,10 +35,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeSection, onSec
         return user.permissions?.includes(section) ?? false;
     };
 
-    const navItems: { target: AdminSection, icon: 'logo' | 'user' | 'wash' | 'shirt' | 'sparkles' | 'pencil' | 'lifebuoy' | 'truck' | 'star' | 'chartBar' | 'device-phone-mobile' | 'list' | 'code-bracket' | 'shield-check' | 'exclamation-circle' | 'clock-history' | 'shield' | 'search' | 'warning', label: string, permission: AdminSection }[] = [
+    const navItems: { target: AdminSection, icon: 'logo' | 'user' | 'wash' | 'shirt' | 'sparkles' | 'pencil' | 'lifebuoy' | 'truck' | 'star' | 'chartBar' | 'device-phone-mobile' | 'list' | 'code-bracket' | 'shield-check' | 'exclamation-circle' | 'clock-history' | 'shield' | 'search' | 'warning' | 'document-text', label: string, permission: AdminSection }[] = [
         { target: 'dashboard', icon: 'logo', label: t('adminPage.dashboard'), permission: 'dashboard' },
         { target: 'analytics', icon: 'chartBar', label: t('adminPage.analytics'), permission: 'analytics' },
         { target: 'partners', icon: 'wash', label: t('adminPage.partners'), permission: 'partners' },
+        { target: 'partner-applications', icon: 'document-text', label: 'Candidatures', permission: 'partners' },
         { target: 'services', icon: 'list', label: t('adminPage.services', { default: 'Services' }), permission: 'services' },
         { target: 'subscriptions', icon: 'shield-check', label: t('adminPage.subscriptions', { default: 'Subscriptions' }), permission: 'subscriptions' },
         { target: 'users', icon: 'user', label: t('adminPage.users'), permission: 'users' },

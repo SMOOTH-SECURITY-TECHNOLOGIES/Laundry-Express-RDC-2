@@ -8,7 +8,7 @@ export type ID = string;
 export type Timestamp = string; // ISO 8601 string
 export type Coordinates = { lat: number; lng: number; };
 export type Page = 'home' | 'order' | 'tracking' | 'profile' | 'become-partner' | 'login' | 'register' | 'admin' | 'partner-dashboard' | 'faq' | 'support' | 'logistics-partnership' | 'logistics-dashboard' | 'driver-dashboard' | 'partner-detail' | 'notifications' | 'landing';
-export type AdminSection = 'dashboard' | 'partners' | 'services' | 'users' | 'orders' | 'drivers' | 'promotions' | 'advertisements' | 'loyalty' | 'referral' | 'content' | 'support' | 'analytics' | 'adminManagement' | 'tracking' | 'subscriptions' | 'refunds' | 'activity' | 'ops_dashboard' | 'ops_truth' | 'ops_anomalies' | 'ops_investigate';
+export type AdminSection = 'dashboard' | 'partners' | 'partner-applications' | 'services' | 'users' | 'orders' | 'drivers' | 'promotions' | 'advertisements' | 'loyalty' | 'referral' | 'content' | 'support' | 'analytics' | 'adminManagement' | 'tracking' | 'subscriptions' | 'refunds' | 'activity' | 'ops_dashboard' | 'ops_truth' | 'ops_anomalies' | 'ops_investigate';
 export type Currency = 'USD' | 'CDF';
 export type PartnerSection = 'dashboard' | 'orders' | 'profile' | 'promotions' | 'financials' | 'support' | 'analytics' | 'team' | 'security' | 'api-integrations' | 'automation' | 'invoicing' | 'inventory' | 'delivery' | 'subscription';
 export type TeamMemberRole = 'partner-owner' | 'partner-manager' | 'partner-staff';
@@ -393,6 +393,13 @@ export interface Review {
   reply?: string;
 }
 
+export interface PartnerDocumentRef {
+  type: string;
+  name: string;
+  size: number;
+  dataUrl?: string;
+}
+
 export interface PartnerApplication {
   id: ID;
   companyName: string;
@@ -402,6 +409,9 @@ export interface PartnerApplication {
   email: string;
   address: string;
   message?: string;
+  capacity?: string;
+  documents?: PartnerDocumentRef[];
+  logoUrl?: string;
   status: ApplicationStatus;
   submittedAt: Timestamp;
   rejectionReason?: string;
