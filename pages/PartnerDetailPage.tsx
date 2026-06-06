@@ -12,7 +12,8 @@ const useT = () => {
   const { t } = useAppContext();
   return (key: string, fallback: string, opts?: Record<string, unknown>) => {
     try {
-      return t(key, opts) || fallback;
+      const translated = t(key, opts);
+      return translated && translated !== key ? translated : fallback;
     } catch {
       return fallback;
     }
