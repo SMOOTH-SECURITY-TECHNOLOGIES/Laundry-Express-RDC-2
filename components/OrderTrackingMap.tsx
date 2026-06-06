@@ -43,7 +43,7 @@ export const OrderTrackingMap: React.FC<{ order: Order }> = ({ order }) => {
             
             map.fitBounds([partnerLatLng, clientLatLng], { padding: [50, 50] });
 
-            L.polyline([partnerLatLng, clientLatLng], { color: '#0077B6', dashArray: '5, 5' }).addTo(map);
+            L.polyline([partnerLatLng, clientLatLng], { color: '#005bd8', dashArray: '5, 5' }).addTo(map);
 
             setTimeout(() => map.invalidateSize(), 100);
         }
