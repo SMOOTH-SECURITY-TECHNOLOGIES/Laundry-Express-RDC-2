@@ -93,9 +93,9 @@ const NotificationBell: React.FC = () => {
 
   const userNotifications = useMemo(() => {
     if (!user) return [];
-    const targetId = user.role === 'admin' || user.role === 'superadmin' ? 'admin' : user.id;
+    const adminTargets = user.role === 'admin' || user.role === 'superadmin' ? ['admin', 'USER-ADMIN', user.id] : [user.id];
     return appNotifications
-      .filter(n => n.recipientId === targetId)
+      .filter(n => adminTargets.includes(String(n.recipientId)))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [appNotifications, user]);
 

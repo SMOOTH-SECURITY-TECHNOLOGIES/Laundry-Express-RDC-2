@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useCallback, useEffect, use
 // FIX: Changed Notification to the correct simple Notification type for toasts.
 import { Notification, AppNotification } from '../types';
 import * as api from '../constants';
+import { realApi } from '../services/real-api';
 import { useAuth } from './AuthContext';
 import { appEvents } from '../utils/events';
 
@@ -30,11 +31,43 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [appNotifications, setAppNotifications] = useState<AppNotification[]>([]);
+
+  const mapBackendNotification = useCallback((notification: any): AppNotification => {
+    const metadata = notification.notification_metadata || notification.link || {};
+    return {
+      id: String(notification.id),
+      recipientId: String(notification.user_id || notification.recipientId || user?.id || ''),
+      message: notification.message || notification.title || '',
+      notificationType: notification.notification_type || notification.notificationType || 'general',
+      link: {
+        page: metadata.page || 'notifications',
+        params: {
+          ...metadata,
+          orderId: metadata.orderId,
+          taskId: metadata.taskId,
+          section: metadata.section,
+        },
+      },
+      createdAt: notification.created_at || notification.createdAt || new Date().toISOString(),
+      isRead: Boolean(notification.is_read ?? notification.isRead),
+      actions: notification.actions || [],
+    };
+  }, [user?.id]);
   
   const reloadAppNotifications = useCallback(async () => {
-    const notifications = await api.apiFetchAppNotifications();
-    setAppNotifications(notifications);
-  }, []);
+    if (!user) {
+      setAppNotifications([]);
+      return;
+    }
+
+    try {
+      const response = await realApi.getNotifications(user.id);
+      setAppNotifications((response.notifications || []).map(mapBackendNotification));
+    } catch (error) {
+      const notifications = await api.apiFetchAppNotifications();
+      setAppNotifications(notifications);
+    }
+  }, [mapBackendNotification, user]);
   
   useEffect(() => {
     reloadAppNotifications(); // Initial fetch
@@ -62,12 +95,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   const addAppNotification = useCallback(async (notification: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>) => {
-    await api.apiAddAppNotification(notification);
-  }, []);
+    try {
+      await realApi.createNotification({
+        user_id: String(notification.recipientId),
+        title: notification.message,
+        message: notification.message,
+        notification_type: String(notification.notificationType),
+        notification_metadata: notification.link ? { page: notification.link.page, ...(notification.link.params || {}) } : undefined,
+      });
+    } catch (error) {
+      await api.apiAddAppNotification(notification);
+    }
+    await reloadAppNotifications();
+  }, [reloadAppNotifications]);
 
   const markNotificationsAsRead = useCallback(async () => {
     if (!user) return;
-    await api.apiMarkNotificationsAsRead(user.id);
+    setAppNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    try {
+      await realApi.markAllNotificationsAsRead(user.id);
+    } catch (error) {
+      await api.apiMarkNotificationsAsRead(user.id);
+    }
   }, [user]);
   
   const markSingleNotificationAsRead = useCallback(async (notificationId: string) => {
@@ -75,7 +124,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setAppNotifications(prev => prev.map(n => 
         n.id === notificationId ? { ...n, isRead: true } : n
     ));
-    await api.apiMarkSingleNotificationAsRead(notificationId);
+    try {
+      await realApi.markNotificationAsRead(notificationId);
+    } catch (error) {
+      await api.apiMarkSingleNotificationAsRead(notificationId);
+    }
   }, []);
   
   const value = useMemo(() => ({

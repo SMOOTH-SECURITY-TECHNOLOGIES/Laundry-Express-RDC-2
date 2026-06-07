@@ -26,7 +26,8 @@ from app.schemas.logistics import (
     AvailableDriverResponse
 )
 from app.services.dispatch_service import DispatchService
-from app.models.logistics import DriverStatus, TaskType, DeliveryTaskStatus
+from app.services.notification_service import NotificationService
+from app.models.logistics import Driver, DriverStatus, TaskType, DeliveryTaskStatus
 
 router = APIRouter(prefix="/logistics", tags=["logistics"])
 
@@ -36,6 +37,99 @@ def _ensure_logistics_operator(current_user: User) -> None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès réservé aux administrateurs et managers logistiques"
+        )
+
+
+def _task_notification_metadata(task, page: str = "logistics-dashboard") -> dict:
+    task_type = task.task_type.value if hasattr(task.task_type, "value") else str(task.task_type)
+    return {
+        "orderId": str(task.order_id),
+        "taskId": str(task.id),
+        "taskType": task_type,
+        "page": page,
+    }
+
+
+def _notify_task_created(db: Session, task) -> None:
+    service = NotificationService(db)
+    order = OrderRepository(db).get_order_by_id(task.order_id)
+    order_number = getattr(order, "order_number", str(task.order_id))
+    task_type = task.task_type.value if hasattr(task.task_type, "value") else str(task.task_type)
+    service.create_many(
+        user_ids=service.logistics_manager_user_ids(),
+        title="Nouvelle mission logistique",
+        message=f"Mission {task_type} creee pour la commande {order_number}.",
+        notification_type="logisticsTaskCreated",
+        metadata=_task_notification_metadata(task),
+    )
+    if order:
+        service.create(
+            user_id=order.customer_id,
+            title="Logistique en preparation",
+            message=f"La mission {task_type} de votre commande {order_number} est en preparation.",
+            notification_type="deliveryUpdate",
+            metadata={**_task_notification_metadata(task, page="tracking"), "orderNumber": order_number},
+        )
+
+
+def _notify_task_assigned(db: Session, task) -> None:
+    service = NotificationService(db)
+    order = OrderRepository(db).get_order_by_id(task.order_id)
+    driver = task.driver or db.query(Driver).filter(Driver.id == task.driver_id).first()
+    order_number = getattr(order, "order_number", str(task.order_id))
+    if driver:
+        service.create(
+            user_id=driver.user_id,
+            title="Nouvelle mission assignee",
+            message=f"Une mission vous a ete assignee pour la commande {order_number}.",
+            notification_type="driverMissionAssigned",
+            metadata=_task_notification_metadata(task, page="driver-dashboard"),
+        )
+    if order:
+        service.create(
+            user_id=order.customer_id,
+            title="Chauffeur assigne",
+            message=f"Un chauffeur a ete assigne a votre commande {order_number}.",
+            notification_type="deliveryUpdate",
+            metadata={**_task_notification_metadata(task, page="tracking"), "orderNumber": order_number},
+        )
+
+
+def _notify_task_progress(db: Session, task, event: str) -> None:
+    service = NotificationService(db)
+    order = OrderRepository(db).get_order_by_id(task.order_id)
+    if not order:
+        return
+
+    messages = {
+        "accepted": "Le chauffeur a accepte la mission.",
+        "started": "Le chauffeur est en route.",
+        "completed": "La mission logistique est terminee.",
+        "failed": "Une mission logistique a rencontre un probleme.",
+        "cancelled": "Une mission logistique a ete annulee.",
+    }
+    message = messages.get(event, "Mise a jour logistique.")
+    service.create(
+        user_id=order.customer_id,
+        title="Suivi de livraison",
+        message=f"{message} Commande {order.order_number}.",
+        notification_type="deliveryUpdate",
+        metadata={**_task_notification_metadata(task, page="tracking"), "orderNumber": order.order_number},
+    )
+    service.create_many(
+        user_ids=service.logistics_manager_user_ids(),
+        title="Mise a jour mission",
+        message=f"{message} Commande {order.order_number}.",
+        notification_type="logisticsTaskUpdate",
+        metadata={**_task_notification_metadata(task), "orderNumber": order.order_number},
+    )
+    if event in {"completed", "failed"}:
+        service.create_many(
+            user_ids=service.partner_staff_user_ids(order.partner_id),
+            title="Mise a jour logistique",
+            message=f"{message} Commande {order.order_number}.",
+            notification_type="logisticsTaskUpdate",
+            metadata={**_task_notification_metadata(task, page="partner-dashboard"), "orderNumber": order.order_number},
         )
 
 
@@ -320,7 +414,9 @@ def create_pickup_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    
+    _notify_task_created(db, task)
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -347,7 +443,9 @@ def create_delivery_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    
+    _notify_task_created(db, task)
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -375,7 +473,9 @@ def assign_driver_to_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_assigned(db, task)
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -402,7 +502,9 @@ def auto_assign_driver_to_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_assigned(db, task)
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -444,7 +546,9 @@ def accept_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_progress(db, task, "accepted")
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -486,7 +590,9 @@ def start_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_progress(db, task, "started")
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -528,7 +634,9 @@ def complete_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_progress(db, task, "completed")
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -570,7 +678,9 @@ def fail_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_progress(db, task, "failed")
+    db.commit()
+    db.refresh(task)
     return _build_task_response(task, db)
 
 
@@ -598,5 +708,7 @@ def cancel_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tâche non trouvée ou statut invalide"
         )
-    
+    _notify_task_progress(db, task, "cancelled")
+    db.commit()
+    db.refresh(task)
     return task

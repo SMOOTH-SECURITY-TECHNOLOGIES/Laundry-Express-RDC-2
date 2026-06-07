@@ -24,8 +24,76 @@ from app.schemas.order import (
     OrderCancelRequest,
 )
 from app.services.order_service import OrderService
+from app.services.notification_service import NotificationService
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+
+def _order_notification_metadata(order, page: str = "tracking") -> dict:
+    return {
+        "orderId": str(order.id),
+        "orderNumber": order.order_number,
+        "partnerId": str(order.partner_id),
+        "page": page,
+    }
+
+
+def _notify_order_created(db: Session, order) -> None:
+    service = NotificationService(db)
+    metadata = _order_notification_metadata(order, page="partner-dashboard")
+    partner_recipients = service.partner_staff_user_ids(order.partner_id)
+    service.create_many(
+        user_ids=partner_recipients,
+        title="Nouvelle commande",
+        message=f"La commande {order.order_number} attend votre confirmation.",
+        notification_type="newOrder",
+        metadata=metadata,
+    )
+    service.create_many(
+        user_ids=service.admin_user_ids(),
+        title="Nouvelle commande client",
+        message=f"La commande {order.order_number} a ete creee.",
+        notification_type="orderCreated",
+        metadata={**metadata, "page": "admin", "section": "orders"},
+    )
+    service.create(
+        user_id=order.customer_id,
+        title="Commande creee",
+        message=f"Votre commande {order.order_number} a ete transmise au partenaire.",
+        notification_type="orderStatusChange",
+        metadata=_order_notification_metadata(order),
+    )
+
+
+def _notify_order_status_changed(db: Session, order, new_status: str) -> None:
+    service = NotificationService(db)
+    status_label = str(new_status).replace("_", " ")
+    metadata = _order_notification_metadata(order)
+    service.create(
+        user_id=order.customer_id,
+        title="Mise a jour de commande",
+        message=f"Votre commande {order.order_number} est maintenant: {status_label}.",
+        notification_type="orderStatusChange",
+        metadata=metadata,
+    )
+
+    if str(new_status) in {"ready_for_delivery", "pickup_scheduled", "confirmed"}:
+        service.create_many(
+            user_ids=service.logistics_manager_user_ids(),
+            title="Action logistique requise",
+            message=f"La commande {order.order_number} necessite une coordination logistique.",
+            notification_type="logisticsActionRequired",
+            metadata={**metadata, "page": "logistics-dashboard"},
+        )
+
+    if str(new_status) in {"cancelled", "failed", "disputed"}:
+        service.create_many(
+            user_ids=service.admin_user_ids(),
+            title="Commande a surveiller",
+            message=f"La commande {order.order_number} est passee au statut {status_label}.",
+            notification_type="orderException",
+            metadata={**metadata, "page": "admin", "section": "orders"},
+        )
 
 
 @router.get("/social-proof", response_model=list[PublicOrderSocialProofResponse])
@@ -85,6 +153,10 @@ def create_order(
         )
         if not created:
             response.status_code = status.HTTP_200_OK
+        else:
+            _notify_order_created(db, order)
+            db.commit()
+            db.refresh(order)
         return order
     except Exception as e:
         raise HTTPException(
@@ -283,6 +355,9 @@ def update_order_status(
                 detail="Commande non trouvée",
             )
 
+        _notify_order_status_changed(db, order, status_data.new_status.value)
+        db.commit()
+        db.refresh(order)
         return order
     except ValueError as e:
         raise HTTPException(
