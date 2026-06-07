@@ -1,9 +1,21 @@
 node_modules
 .next
 .git
+.agents
+.codex
+.venv
+venv
+env
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.vite
 .gitignore
 Dockerfile
 docker-compose.yml
+docker-compose*.yml
 *.log
 .env
 .env.*
@@ -12,3 +24,5 @@ dist
 build
 tmp
 .cache
+apps/api/.pytest_cache
+apps/api/tests/.pytest_cache

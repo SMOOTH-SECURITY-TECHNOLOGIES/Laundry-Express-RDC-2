@@ -3,7 +3,11 @@
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+from jose import jwt
+from starlette.requests import Request
 
+from app.api.routes.ops import verify_admin_token
+from app.core.config import settings
 from app.main import app
 
 
@@ -25,3 +29,20 @@ class TestOpsRoutesExist:
         ]
         for response in responses:
             assert_route_exists(response)
+
+    def test_ops_admin_auth_accepts_super_admin_role(self):
+        token = jwt.encode(
+            {"sub": str(uuid4()), "role": "super_admin", "type": "access"},
+            settings.SECRET_KEY,
+            algorithm=settings.ALGORITHM,
+        )
+        request = Request(
+            {
+                "type": "http",
+                "method": "GET",
+                "path": "/api/v1/ops/corridors/health",
+                "headers": [(b"authorization", f"Bearer {token}".encode())],
+            }
+        )
+
+        assert verify_admin_token(request) is True

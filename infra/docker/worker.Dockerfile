@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY apps/api/requirements.txt /tmp/requirements.txt
+# Copy runtime requirements and install Python dependencies
+COPY apps/api/requirements.runtime.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Copy application code

@@ -63,7 +63,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const response = await realApi.getNotifications(user.id);
       setAppNotifications((response.notifications || []).map(mapBackendNotification));
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.status === 401 || error?.status === 403) {
+        setAppNotifications([]);
+        return;
+      }
       const notifications = await api.apiFetchAppNotifications();
       setAppNotifications(notifications);
     }

@@ -30,9 +30,10 @@ router = APIRouter(prefix="/ops", tags=["ops"])
 
 # Simple sync auth check for ops routes
 from app.core.config import settings
+from app.models.user import UserRole
 from jose import ExpiredSignatureError, JWTError, jwt
 
-ADMIN_ROLES = {"admin", "superadmin"}
+ADMIN_ROLES = {UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value, "superadmin"}
 
 def verify_admin_token(request: Request):
     auth_header = request.headers.get("Authorization")

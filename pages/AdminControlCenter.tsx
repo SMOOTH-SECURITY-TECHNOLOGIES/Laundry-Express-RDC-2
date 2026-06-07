@@ -61,6 +61,7 @@ import { AnalyticsRow } from '../components/admin/AnalyticsRow';
 import { ChauffeurPerformance } from '../components/admin/ChauffeurPerformance';
 import { SupportCenter } from '../components/admin/SupportCenter';
 import { QuickActions } from '../components/admin/QuickActions';
+import { OperationsIntelligence } from '../components/admin/OperationsIntelligence';
 
 const legacySectionMap: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -171,10 +172,13 @@ export const AdminControlCenter: React.FC = () => {
               <RevenueLeakage />
             </div>
             <PartnerHealthScore />
+            <OperationsIntelligence />
             <AnalyticsRow />
             <ChauffeurPerformance />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <FinanceSummary />
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+              <div className="xl:col-span-2">
+                <FinanceSummary />
+              </div>
               <SupportCenter />
               <QuickActions onNavigate={handleNavigate} />
             </div>
