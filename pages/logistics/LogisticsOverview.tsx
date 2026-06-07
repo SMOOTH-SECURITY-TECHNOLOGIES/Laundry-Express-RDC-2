@@ -62,11 +62,21 @@ const MOCK_PERFORMANCE = {
   completionRate: 87,
 };
 
+const formatCdf = (value: number) => `${value.toLocaleString('fr-FR')} FC`;
+
+const openMissionsCount = MOCK_BACKLOG.length;
+const activeMissionsCount = MOCK_ACTIVE_MISSIONS.length;
+const totalMissionFlow = openMissionsCount + activeMissionsCount;
+const activeMissionRate = Math.round((activeMissionsCount / totalMissionFlow) * 100);
+const totalDriversCount = MOCK_READY_DRIVERS.length;
+const availableDriversCount = MOCK_READY_DRIVERS.filter((driver) => driver.status === 'Disponible').length;
+const estimatedBacklogRevenue = MOCK_BACKLOG.reduce((total, mission) => total + mission.amount, 0);
+
 const KPI_CARDS = [
-  { label: 'Missions ouvertes', value: '24', sub: 'À assigner', icon: 'shoppingBag' as const, tone: 'bg-blue-50 text-brand-blue' },
-  { label: 'Missions actives', value: '38', sub: '63% du flux', icon: 'truck' as const, tone: 'bg-violet-50 text-violet-600' },
-  { label: 'Chauffeurs dispo', value: '18/32', sub: 'Réseau actif', icon: 'users' as const, tone: 'bg-green-50 text-green-600' },
-  { label: 'Gains estimés', value: '2 450,00 $', sub: '92% à temps', icon: 'currencyDollar' as const, tone: 'bg-orange-50 text-orange-600' },
+  { label: 'Missions ouvertes', value: String(openMissionsCount), sub: 'À assigner', icon: 'shoppingBag' as const, tone: 'bg-blue-50 text-brand-blue' },
+  { label: 'Missions actives', value: String(activeMissionsCount), sub: `${activeMissionRate}% du flux`, icon: 'truck' as const, tone: 'bg-violet-50 text-violet-600' },
+  { label: 'Chauffeurs dispo', value: `${availableDriversCount}/${totalDriversCount}`, sub: 'Réseau actif', icon: 'users' as const, tone: 'bg-green-50 text-green-600' },
+  { label: 'Volume estimé', value: formatCdf(estimatedBacklogRevenue), sub: 'Backlog non assigné', icon: 'currencyDollar' as const, tone: 'bg-orange-50 text-orange-600' },
 ];
 
 const TABS: { key: DispatcherTab; label: string; icon: React.ComponentProps<typeof Icon>['name'] }[] = [
@@ -113,9 +123,10 @@ const ACTIONABLE_ALERTS = [
   { id: 'ALT-3', tone: 'green', title: 'Relais disponible', detail: '3 chauffeurs terminent une tournée dans moins de 15 min.', primary: 'Préparer relais', secondary: 'Voir chauffeurs' },
 ];
 
-const formatCdf = (value: number) => `${value.toLocaleString('fr-FR')} FC`;
-
-const SuggestedDispatchTable: React.FC<{ onAutoDispatch: () => void }> = ({ onAutoDispatch }) => (
+const SuggestedDispatchTable: React.FC<{
+  onAutoDispatch: () => void;
+  onApplySuggestion: (label: string) => void;
+}> = ({ onAutoDispatch, onApplySuggestion }) => (
   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-gray-100">
       <div>
@@ -125,7 +136,11 @@ const SuggestedDispatchTable: React.FC<{ onAutoDispatch: () => void }> = ({ onAu
         </h2>
         <p className="text-xs text-gray-500 mt-1">Score basé sur distance, charge, disponibilité et historique chauffeur.</p>
       </div>
-      <button onClick={onAutoDispatch} className="px-4 py-2 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90">
+      <button
+        type="button"
+        onClick={onAutoDispatch}
+        className="px-4 py-2 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+      >
         Appliquer les meilleures suggestions
       </button>
     </div>
@@ -161,7 +176,11 @@ const SuggestedDispatchTable: React.FC<{ onAutoDispatch: () => void }> = ({ onAu
                 </span>
               </td>
               <td className="px-5 py-4 text-right">
-                <button onClick={onAutoDispatch} className="rounded-lg border border-brand-blue px-3 py-1.5 text-xs font-bold text-brand-blue hover:bg-brand-blue hover:text-white">
+                <button
+                  type="button"
+                  onClick={() => onApplySuggestion(`${row.action} ${row.missionId} à ${row.driver}`)}
+                  className="rounded-lg border border-brand-blue px-3 py-1.5 text-xs font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                >
                   {row.action}
                 </button>
               </td>
@@ -173,7 +192,7 @@ const SuggestedDispatchTable: React.FC<{ onAutoDispatch: () => void }> = ({ onAu
   </div>
 );
 
-const ToursBoard: React.FC = () => (
+const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpenTour }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
     {ACTIVE_TOURS.map((tour) => (
       <article key={tour.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -208,12 +227,19 @@ const ToursBoard: React.FC = () => (
             <div className="h-full rounded-full bg-brand-blue" style={{ width: `${tour.progress}%` }} />
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => onOpenTour(tour.id)}
+          className="mt-5 w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+        >
+          Ouvrir la tournée
+        </button>
       </article>
     ))}
   </div>
 );
 
-const ActionableAlertsStrip: React.FC = () => (
+const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }> = ({ onAlertAction }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
     {ACTIONABLE_ALERTS.map((alert) => {
       const tone = alert.tone === 'red'
@@ -226,8 +252,20 @@ const ActionableAlertsStrip: React.FC = () => (
           <h3 className="text-sm font-extrabold">{alert.title}</h3>
           <p className="mt-1 min-h-[40px] text-sm text-gray-600">{alert.detail}</p>
           <div className="mt-3 flex gap-2">
-            <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-gray-50">{alert.primary}</button>
-            <button className="rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-white/60">{alert.secondary}</button>
+            <button
+              type="button"
+              onClick={() => onAlertAction(`${alert.primary} - ${alert.title}`)}
+              className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+            >
+              {alert.primary}
+            </button>
+            <button
+              type="button"
+              onClick={() => onAlertAction(`${alert.secondary} - ${alert.title}`)}
+              className="rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+            >
+              {alert.secondary}
+            </button>
           </div>
         </article>
       );
@@ -235,7 +273,7 @@ const ActionableAlertsStrip: React.FC = () => (
   </div>
 );
 
-const DriverLeaderboard: React.FC = () => (
+const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> = ({ onDriverAction }) => (
   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     <div className="px-5 py-4 border-b border-gray-100">
       <h2 className="text-lg font-extrabold text-brand-dark flex items-center gap-2">
@@ -271,7 +309,11 @@ const DriverLeaderboard: React.FC = () => (
                 </span>
               </td>
               <td className="px-5 py-4 text-right">
-                <button className={`rounded-lg px-3 py-1.5 text-xs font-bold ${driver.coaching ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-brand-blue'}`}>
+                <button
+                  type="button"
+                  onClick={() => onDriverAction(`${driver.coaching ? 'Coaching' : 'Statistiques'} - ${driver.name}`)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${driver.coaching ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-brand-blue'}`}
+                >
                   {driver.coaching ? 'Coaching' : 'Voir stats'}
                 </button>
               </td>
@@ -285,6 +327,7 @@ const DriverLeaderboard: React.FC = () => (
 
 export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport }) => {
   const [activeTab, setActiveTab] = useState<DispatcherTab>('operations');
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<Record<DispatcherTab, boolean>>({
     operations: false,
     dispatch: false,
@@ -300,10 +343,20 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
     return () => clearTimeout(timer);
   }, [activeTab]);
 
+  const announceAction = (message: string) => {
+    setActionMessage(message);
+  };
+
+  const handleAutoDispatch = () => {
+    onAutoDispatch();
+    announceAction('Auto-dispatch lancé. Les meilleures suggestions sont prêtes à être validées.');
+  };
+
   const handleRefresh = () => {
     setLoading((prev) => ({ ...prev, [activeTab]: true }));
     setTimeout(() => setLoading((prev) => ({ ...prev, [activeTab]: false })), 1200);
     onRefresh();
+    announceAction(`Section ${TABS.find((tab) => tab.key === activeTab)?.label || 'active'} rafraîchie.`);
   };
 
   const renderTabContent = () => {
@@ -322,7 +375,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       case 'operations':
         return (
           <div className="space-y-6">
-            <ActionableAlertsStrip />
+            <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
             <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                 <BacklogBoard missions={MOCK_BACKLOG} />
@@ -342,7 +395,12 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
           </div>
         );
       case 'dispatch':
-        return <SuggestedDispatchTable onAutoDispatch={onAutoDispatch} />;
+        return (
+          <SuggestedDispatchTable
+            onAutoDispatch={handleAutoDispatch}
+            onApplySuggestion={(label) => announceAction(`Suggestion appliquée : ${label}.`)}
+          />
+        );
       case 'tours':
         return (
           <div className="space-y-5">
@@ -352,12 +410,16 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
                   <h2 className="text-lg font-extrabold text-brand-dark">Mode tournées multi-arrêts</h2>
                   <p className="text-sm text-gray-500">Regroupez collectes et livraisons pour Laundry Express, colis, repas, pharmacie ou courses.</p>
                 </div>
-                <button className="rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90">
+                <button
+                  type="button"
+                  onClick={() => announceAction('Optimisation lancée pour les tournées multi-arrêts.')}
+                  className="rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                >
                   Optimiser les tournées
                 </button>
               </div>
             </div>
-            <ToursBoard />
+            <ToursBoard onOpenTour={(tourId) => announceAction(`Tournée ${tourId} ouverte pour supervision.`)} />
           </div>
         );
       case 'missions':
@@ -378,7 +440,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
               <PerformanceDashboard data={MOCK_PERFORMANCE} />
             </div>
-            <DriverLeaderboard />
+            <DriverLeaderboard onDriverAction={(label) => announceAction(`Action chauffeur ouverte : ${label}.`)} />
           </div>
         );
       default:
@@ -397,26 +459,38 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
           </div>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={handleRefresh}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               <Icon name="arrow-path" className="w-4 h-4" /> Rafraîchir
             </button>
             <button
-              onClick={onAutoDispatch}
-              className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 flex items-center gap-2"
+              type="button"
+              onClick={handleAutoDispatch}
+              className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
             >
               <Icon name="sparkles" className="w-4 h-4" /> Auto-dispatch
             </button>
             <button
+              type="button"
               onClick={onExport}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               <Icon name="arrow-down-tray" className="w-4 h-4" /> Exporter CSV
             </button>
           </div>
         </div>
       </div>
+
+      {actionMessage && (
+        <div
+          role="status"
+          className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-3 text-sm font-semibold text-brand-blue"
+        >
+          {actionMessage}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {KPI_CARDS.map((kpi) => (
@@ -436,12 +510,15 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       </div>
 
       <div>
-        <nav className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6" aria-label="Sections logistiques">
+        <nav className="flex gap-1 overflow-x-auto bg-gray-100 rounded-xl p-1 mb-6" role="tablist" aria-label="Sections logistiques">
           {TABS.map((tab) => (
             <button
+              type="button"
               key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${
                 activeTab === tab.key
                   ? 'bg-white shadow-sm text-brand-dark'
                   : 'text-gray-500 hover:text-gray-700'
