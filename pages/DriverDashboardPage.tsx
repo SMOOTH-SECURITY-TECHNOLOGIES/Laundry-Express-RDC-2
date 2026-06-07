@@ -516,6 +516,175 @@ const AvailableMissionsList: React.FC<{ missions: LogisticsTask[]; onAccept: (mi
   </section>
 );
 
+const downloadTextFile = (filename: string, content: string) => {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const DocumentUploadButton: React.FC<{ label: string; onUploaded: (label: string, filename: string) => void }> = ({ label, onUploaded }) => (
+  <label className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-brand-blue px-4 py-2 text-sm font-black text-brand-blue transition hover:bg-brand-blue hover:text-white focus-within:ring-4 focus-within:ring-blue-100">
+    Mettre à jour
+    <input
+      type="file"
+      className="sr-only"
+      accept="image/*,.pdf"
+      onChange={(event) => {
+        const file = event.target.files?.[0];
+        if (file) onUploaded(label, file.name);
+      }}
+    />
+  </label>
+);
+
+const DriverSectionPanel: React.FC<{
+  activeSection: DriverSection;
+  available: boolean;
+  onToggleAvailability: () => void;
+  earningsBreakdown: EarningsBreakdown;
+  completedCount: number;
+  availableCount: number;
+  isUpdating: boolean;
+  onNavigateSupport: () => void;
+  onNotify: (message: string) => void;
+}> = ({
+  activeSection,
+  available,
+  onToggleAvailability,
+  earningsBreakdown,
+  completedCount,
+  availableCount,
+  isUpdating,
+  onNavigateSupport,
+  onNotify,
+}) => {
+  if (activeSection === 'dashboard' || activeSection === 'missions') return null;
+
+  const panelBase = 'rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]';
+  const total = earningsBreakdown.base + earningsBreakdown.bonus + earningsBreakdown.tips + earningsBreakdown.other;
+
+  if (activeSection === 'earnings') {
+    return (
+      <section className={panelBase}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase text-brand-blue">Paiements chauffeur</p>
+            <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Relevé des gains</h2>
+            <p className="mt-1 text-sm text-[#52607f]">{completedCount} mission{completedCount > 1 ? 's' : ''} terminée{completedCount > 1 ? 's' : ''} enregistrée{completedCount > 1 ? 's' : ''}.</p>
+          </div>
+          <button
+            onClick={() => downloadTextFile('releve-gains-chauffeur.csv', `categorie,montant\nbase,${earningsBreakdown.base}\nbonus,${earningsBreakdown.bonus}\npourboires,${earningsBreakdown.tips}\nautres,${earningsBreakdown.other}\ntotal,${total}\n`)}
+            className="rounded-xl bg-brand-blue px-5 py-3 text-sm font-black text-white hover:bg-brand-blue-700"
+          >
+            Télécharger le relevé
+          </button>
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          {[
+            ['Base', earningsBreakdown.base],
+            ['Bonus', earningsBreakdown.bonus],
+            ['Pourboires', earningsBreakdown.tips],
+            ['Autres', earningsBreakdown.other],
+          ].map(([label, value]) => (
+            <div key={String(label)} className="rounded-xl bg-[#f8fbff] p-4">
+              <p className="text-sm text-[#52607f]">{label}</p>
+              <p className="mt-2 text-2xl font-black text-[#0A1628]">{formatMoney(Number(value))}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (activeSection === 'availability') {
+    return (
+      <section className={panelBase}>
+        <p className="text-xs font-black uppercase text-brand-blue">Disponibilité</p>
+        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Planifier votre journée</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {['Matin 08h-12h', 'Après-midi 12h-17h', 'Soir 17h-21h'].map((slot) => (
+            <button key={slot} onClick={() => onNotify(`${slot} ajouté à vos préférences.`)} className="rounded-xl border border-[#dbe7fb] p-4 text-left text-sm font-bold hover:bg-[#f8fbff]">
+              <Icon name="calendar" className="mb-3 h-5 w-5 text-brand-blue" />
+              {slot}
+            </button>
+          ))}
+        </div>
+        <button onClick={onToggleAvailability} disabled={isUpdating} className="mt-5 rounded-xl bg-brand-blue px-5 py-3 text-sm font-black text-white hover:bg-brand-blue-700 disabled:opacity-60">
+          {available ? 'Passer indisponible maintenant' : 'Me rendre disponible maintenant'}
+        </button>
+      </section>
+    );
+  }
+
+  if (activeSection === 'documents') {
+    const docs = ['Permis de conduire', 'Carte d’identité', 'Assurance véhicule', 'Photo du véhicule'];
+    return (
+      <section className={panelBase}>
+        <p className="text-xs font-black uppercase text-brand-blue">Conformité</p>
+        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Documents chauffeur</h2>
+        <div className="mt-5 space-y-3">
+          {docs.map((doc) => (
+            <div key={doc} className="flex flex-col gap-3 rounded-xl border border-[#e4edf9] p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-black text-[#0A1628]">{doc}</p>
+                <p className="text-sm text-green-700">Vérification prête à synchroniser</p>
+              </div>
+              <DocumentUploadButton label={doc} onUploaded={(label, filename) => onNotify(`${label} sélectionné : ${filename}`)} />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (activeSection === 'support') {
+    return (
+      <section className={panelBase}>
+        <p className="text-xs font-black uppercase text-brand-blue">Assistance opérationnelle</p>
+        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Support chauffeur 24/7</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <a href="tel:+243812345678" className="rounded-xl border border-[#dbe7fb] p-4 font-bold hover:bg-[#f8fbff]"><Icon name="phone" className="mb-3 h-5 w-5 text-brand-blue" />Appeler le dispatch</a>
+          <a href="mailto:support@laundryexpress.cd" className="rounded-xl border border-[#dbe7fb] p-4 font-bold hover:bg-[#f8fbff]"><Icon name="envelope" className="mb-3 h-5 w-5 text-brand-blue" />Envoyer un email</a>
+          <button onClick={onNavigateSupport} className="rounded-xl border border-[#dbe7fb] p-4 text-left font-bold hover:bg-[#f8fbff]"><Icon name="lifebuoy" className="mb-3 h-5 w-5 text-brand-blue" />Ouvrir le centre support</button>
+        </div>
+      </section>
+    );
+  }
+
+  if (activeSection === 'settings') {
+    return (
+      <section className={panelBase}>
+        <p className="text-xs font-black uppercase text-brand-blue">Préférences</p>
+        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Paramètres chauffeur</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {['Notifications mission', 'Alertes retard', 'Résumé quotidien'].map((setting) => (
+            <button key={setting} onClick={() => onNotify(`${setting} mis à jour.`)} className="rounded-xl border border-[#dbe7fb] p-4 text-left font-bold hover:bg-[#f8fbff]">
+              <Icon name="settings" className="mb-3 h-5 w-5 text-brand-blue" />
+              {setting}
+            </button>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (activeSection === 'history') {
+    return (
+      <section className={panelBase}>
+        <p className="text-xs font-black uppercase text-brand-blue">Historique</p>
+        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Résumé opérationnel</h2>
+        <p className="mt-2 text-sm text-[#52607f]">Vous avez {availableCount} mission{availableCount > 1 ? 's' : ''} disponible{availableCount > 1 ? 's' : ''} et {completedCount} mission{completedCount > 1 ? 's' : ''} terminée{completedCount > 1 ? 's' : ''} dans le suivi actuel.</p>
+      </section>
+    );
+  }
+
+  return null;
+};
+
 export const DriverDashboardPage: React.FC = () => {
   const {
     user,
@@ -761,6 +930,18 @@ export const DriverDashboardPage: React.FC = () => {
           </div>
 
           {activeSection === 'missions' && <AvailableMissionsList missions={availableTasks} onAccept={handleAcceptMission} isUpdating={isUpdating} />}
+
+          <DriverSectionPanel
+            activeSection={activeSection}
+            available={available}
+            onToggleAvailability={handleAvailabilityToggle}
+            earningsBreakdown={earningsBreakdown}
+            completedCount={completedTasks.length || localCompletedOrders.length}
+            availableCount={availableTasks.length}
+            isUpdating={isUpdating}
+            onNavigateSupport={() => setCurrentPage({ name: 'support' })}
+            onNotify={(message) => addNotification(message, 'success')}
+          />
 
           <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
             <MissionHistoryChart data={missionHistoryChartData} range={historyRange} onRangeChange={setHistoryRange} />
