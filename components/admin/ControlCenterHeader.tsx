@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Icon } from '../Icon';
 
 interface ControlCenterHeaderProps {
@@ -7,13 +8,45 @@ interface ControlCenterHeaderProps {
 }
 
 export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: ControlCenterHeaderProps) => {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const isTruthDashboard = activeItem === 'Truth Dashboard';
+  const isInvestigate = activeItem === 'Investigate';
+  const headerCopy: Record<string, { title: string; subtitle: string; placeholder: string }> = {
+    'Truth Dashboard': {
+      title: 'Operational Truth Center',
+      subtitle: 'Vue consolidée des anomalies, preuves et corridors de vérité opérationnelle.',
+      placeholder: 'Rechercher commande, client, téléphone...',
+    },
+    'Order Truth': {
+      title: 'Order Truth',
+      subtitle: "Reconstruire automatiquement la réalité d'une commande à partir des événements système et des preuves.",
+      placeholder: 'Rechercher Order ID, UUID, client...',
+    },
+    Investigate: {
+      title: 'Cross-Corridor Investigation',
+      subtitle: 'Reconstruction multi-ID entre les corridors de vérité',
+      placeholder: 'Rechercher commande, client, téléphone, partenaire...',
+    },
+  };
+  const copy = headerCopy[activeItem] || {
+    title: activeItem,
+    subtitle: 'Marketplace + Logistique + Vérité Opérationnelle en temps réel',
+    placeholder: 'Rechercher...',
+  };
+
+  useEffect(() => {
+    const focusSearch = () => searchInputRef.current?.focus();
+    window.addEventListener('admin-focus-search', focusSearch);
+    return () => window.removeEventListener('admin-focus-search', focusSearch);
+  }, []);
+
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-200 py-4 px-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{activeItem}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{copy.title}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Marketplace + Logistique + Vérité Opérationnelle en temps réel
+            {copy.subtitle}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -21,8 +54,9 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
           <div className="relative">
             <Icon name="search" className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Rechercher..."
+              placeholder={copy.placeholder}
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-56"
             />
           </div>
@@ -30,32 +64,73 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
           {/* Actualiser */}
           <button
             type="button"
-            onClick={() => onAction('Données du control center rafraîchies.')}
+            onClick={() => {
+              if (isInvestigate) {
+                window.dispatchEvent(new CustomEvent('admin-refresh-investigation'));
+                return;
+              }
+              onAction('Données du control center rafraîchies.');
+            }}
             className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <Icon name="arrow-path" className="w-4 h-4" />
             Actualiser
           </button>
 
-          {/* Exporter */}
           <button
             type="button"
-            onClick={() => onAction('Export CSV préparé pour la section active.')}
+            onClick={() => {
+              if (isInvestigate) {
+                window.dispatchEvent(new CustomEvent('admin-export-investigation'));
+                return;
+              }
+              onAction('Export CSV préparé pour la section active.');
+            }}
             className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <Icon name="arrow-down-tray" className="w-4 h-4" />
-            Exporter
+            {isInvestigate ? 'Exporter PDF' : 'Exporter'}
           </button>
 
-          {/* Créer promotion */}
-          <button
-            type="button"
-            onClick={() => onNavigate('Promotions')}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            <Icon name="gift" className="w-4 h-4" />
-            Créer promotion
-          </button>
+          {isInvestigate && (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('admin-run-investigation-audit'))}
+              className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Icon name="shield-check" className="w-4 h-4" />
+              Audit complet
+            </button>
+          )}
+
+          {isInvestigate ? (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('admin-open-investigation-modal'))}
+              className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+            >
+              <Icon name="plus" className="w-4 h-4" />
+              Créer investigation
+            </button>
+          ) : isTruthDashboard ? (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('admin-open-audit-modal'))}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <Icon name="shield" className="w-4 h-4" />
+              Lancer audit
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onNavigate('Promotions')}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <Icon name="gift" className="w-4 h-4" />
+              Créer promotion
+            </button>
+          )}
 
           {/* Ajouter partenaire */}
           <button

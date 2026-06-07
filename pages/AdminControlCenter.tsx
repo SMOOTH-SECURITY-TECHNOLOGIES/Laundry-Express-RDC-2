@@ -9,7 +9,7 @@ import { Icon } from '../components/Icon';
 // Real pages - PILOTAGE
 import { TruthDashboard } from './ops/TruthDashboard';
 import { OrderTruthPage } from './ops/OrderTruthPage';
-import { AnomalyCenterPage } from './ops/AnomalyCenterPage';
+import { AnomalyCenterPage } from './AnomalyCenterPage';
 import { InvestigatePage } from './ops/InvestigatePage';
 
 // Real pages - MARKETPLACE
