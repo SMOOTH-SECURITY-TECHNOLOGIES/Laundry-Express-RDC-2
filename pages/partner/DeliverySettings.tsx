@@ -94,7 +94,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
   ], []);
 
   const activity = useMemo(() => [
-    { time: '10:25', icon: 'shoppingBag', color: 'text-[#0077B6]', title: 'Commande DEL-001 creee', detail: 'Patrick M. — Gombe' },
+    { time: '10:25', icon: 'shoppingBag', color: 'text-brand-blue', title: 'Commande DEL-001 creee', detail: 'Patrick M. — Gombe' },
     { time: '10:32', icon: 'user', color: 'text-purple-500', title: 'Livreur assigne', detail: 'Jean L. → DEL-001' },
     { time: '10:41', icon: 'truck', color: 'text-[#FF7A00]', title: 'Ramassage effectue', detail: 'DEL-001 chez Prestige Pressing' },
     { time: '11:02', icon: 'check', color: 'text-[#22C55E]', title: 'Livraison confirmee', detail: 'DEL-001 — Patrick M.' },
@@ -104,7 +104,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
 
   const getStatusStyle = (status: string) => {
     const s: Record<string, { color: string; bg: string }> = {
-      'En livraison': { color: 'text-[#0077B6]', bg: 'bg-blue-50' },
+      'En livraison': { color: 'text-brand-blue', bg: 'bg-blue-50' },
       'En route': { color: 'text-cyan-600', bg: 'bg-cyan-50' },
       'Livre': { color: 'text-[#22C55E]', bg: 'bg-green-50' },
       'En attente': { color: 'text-[#FF7A00]', bg: 'bg-orange-50' },
@@ -123,14 +123,14 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
         </div>
         <div className="flex items-center gap-2">
           <button className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-1.5"><Icon name="arrow-down-tray" className="w-3.5 h-3.5" />Exporter</button>
-          <button className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition flex items-center gap-2"><Icon name="plus" className="w-4 h-4" />Nouvelle livraison</button>
+          <button className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition flex items-center gap-2"><Icon name="plus" className="w-4 h-4" />Nouvelle livraison</button>
         </div>
       </div>
 
       {/* ─── Section 1: 8 KPI Cards ─── */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         {[
-          { label: 'En cours', value: String(stats.inProgress), change: '+12%', icon: 'truck', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'En cours', value: String(stats.inProgress), change: '+12%', icon: 'truck', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'A livrer', value: String(stats.toDeliver), icon: 'clock', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
           { label: 'Livre aujourd.', value: String(stats.deliveredToday), icon: 'check', bg: 'bg-green-50', color: 'text-[#22C55E]' },
           { label: 'Temps moyen', value: `${stats.avgTime} min`, icon: 'clock', bg: 'bg-purple-50', color: 'text-purple-600' },
@@ -157,8 +157,8 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
             <div className="absolute inset-0">
               {[
                 { name: 'Jean L.', x: '15%', y: '20%', orders: 3, color: 'bg-[#22C55E]', pulse: true },
-                { name: 'David K.', x: '55%', y: '55%', orders: 2, color: 'bg-[#0077B6]', pulse: true },
-                { name: 'Marie T.', x: '75%', y: '30%', orders: 1, color: 'bg-[#0077B6]', pulse: false },
+                { name: 'David K.', x: '55%', y: '55%', orders: 2, color: 'bg-brand-blue', pulse: true },
+                { name: 'Marie T.', x: '75%', y: '30%', orders: 1, color: 'bg-brand-blue', pulse: false },
               ].map((d, i) => (
                 <div key={i} className="absolute" style={{ left: d.x, top: d.y }}>
                   <div className={`w-10 h-10 ${d.color} rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg ${d.pulse ? 'animate-pulse' : ''}`}>
@@ -169,7 +169,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
               ))}
               {[
                 { label: 'DEL-001', x: '25%', y: '35%', status: 'Livre', color: 'bg-[#22C55E]' },
-                { label: 'DEL-002', x: '60%', y: '20%', status: 'En cours', color: 'bg-[#0077B6]' },
+                { label: 'DEL-002', x: '60%', y: '20%', status: 'En cours', color: 'bg-brand-blue' },
                 { label: 'DEL-003', x: '40%', y: '70%', status: 'Ramassage', color: 'bg-[#FF7A00]' },
                 { label: 'DEL-004', x: '80%', y: '65%', status: 'Retard', color: 'bg-red-500' },
               ].map((l, i) => (
@@ -183,7 +183,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
             </div>
             <div className="absolute bottom-3 right-3 bg-white/90 rounded-lg px-3 py-1.5 text-[10px] font-medium text-slate-600 flex items-center gap-3">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#22C55E]" />Livre</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#0077B6]" />En cours</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-brand-blue" />En cours</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#FF7A00]" />Ramassage</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500]" />Retard</span>
             </div>
@@ -196,7 +196,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
             {drivers.filter(d => d.state === 'Actif').map((d, i) => (
               <div key={i} className="p-3 bg-slate-50 rounded-xl">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-[10px]">{d.avatar}</div>
+                  <div className="w-7 h-7 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-[10px]">{d.avatar}</div>
                   <div className="flex-1">
                     <p className="text-xs font-bold text-[#0F172A]">{d.name}</p>
                     <p className="text-[9px] text-slate-400">{d.total} livraisons • {d.remaining}</p>
@@ -241,7 +241,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: 'Temps moyen', value: '45 min', change: '-15 min', icon: 'clock', bg: 'bg-green-50', color: 'text-[#22C55E]' },
-              { label: 'Taux reussite', value: '98%', change: '+2%', icon: 'check', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+              { label: 'Taux reussite', value: '98%', change: '+2%', icon: 'check', bg: 'bg-blue-50', color: 'text-brand-blue' },
               { label: 'Litiges', value: '0.8%', change: '-0.3%', icon: 'warning', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
               { label: 'Satisfaction', value: '4.9/5', change: '+0.1', icon: 'star', bg: 'bg-yellow-50', color: 'text-yellow-500' },
             ].map((p, i) => (
@@ -264,7 +264,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
               <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${i === 0 ? 'bg-yellow-50 border border-yellow-200' : 'bg-slate-50'}`}>
                 <div className="flex items-center gap-2.5">
                   <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-[#0077B6]/10 text-[#0077B6]'}`}>{d.avatar}</div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-brand-blue/10 text-brand-blue'}`}>{d.avatar}</div>
                   <div><p className="text-xs font-bold text-[#0F172A]">{d.name}</p><p className="text-[9px] text-slate-400">{d.total} livraisons • {d.avgTime}</p></div>
                 </div>
                 <div className="text-right"><p className="text-sm font-extrabold text-[#0F172A]">{d.rating}</p><p className="text-[9px] text-[#22C55E]">{d.success}%</p></div>
@@ -290,7 +290,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
                   <span className="text-[#22C55E]">{z.profitability}% rent.</span>
                 </div>
                 <div className="h-1 bg-slate-200 rounded-full overflow-hidden mt-1.5">
-                  <div className="h-full bg-[#0077B6] rounded-full" style={{ width: `${z.profitability}%` }} />
+                  <div className="h-full bg-brand-blue rounded-full" style={{ width: `${z.profitability}%` }} />
                 </div>
               </div>
             ))}
@@ -300,7 +300,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
 
       {/* ─── Section 8: Previsions IA + Section 9: Rentabilite ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-[#0077B6] to-[#005f8f] rounded-2xl p-5 text-white">
+        <div className="bg-gradient-to-br from-brand-blue to-brand-blue-700 rounded-2xl p-5 text-white">
           <div className="flex items-center gap-2 mb-3">
             <Icon name="sparkles" className="w-5 h-5" />
             <h2 className="text-sm font-bold">Previsions IA — Demain</h2>
@@ -341,7 +341,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
           <h2 className="text-sm font-bold text-[#0F172A] mb-3">Litiges ({disputes.length})</h2>
           <div className="space-y-2">
             {disputes.map((d, i) => {
-              const st = d.status === 'Resolu' ? 'bg-green-50 text-[#22C55E]' : d.status === 'En cours' ? 'bg-orange-50 text-[#FF7A00]' : 'bg-blue-50 text-[#0077B6]';
+              const st = d.status === 'Resolu' ? 'bg-green-50 text-[#22C55E]' : d.status === 'En cours' ? 'bg-orange-50 text-[#FF7A00]' : 'bg-blue-50 text-brand-blue';
               return (
                 <div key={i} className="p-3 bg-slate-50 rounded-xl">
                   <div className="flex items-center justify-between mb-1">
@@ -380,12 +380,12 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
         </div>
         <div className="relative mb-3">
           <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input type="text" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0077B6]" />
+          <input type="text" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue" />
         </div>
         <div className="flex gap-1.5 mb-3">
           {(['all', 'active', 'delivered', 'issues'] as const).map(f => {
             const labels = { all: 'Toutes', active: 'En cours', delivered: 'Livrees', issues: 'Problemes' };
-            return <button key={f} onClick={() => setActiveTab(f)} className={`px-3 py-1 text-[10px] font-bold rounded-lg transition ${activeTab === f ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600'}`}>{labels[f]}</button>;
+            return <button key={f} onClick={() => setActiveTab(f)} className={`px-3 py-1 text-[10px] font-bold rounded-lg transition ${activeTab === f ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}>{labels[f]}</button>;
           })}
         </div>
         <div className="space-y-2">
@@ -395,7 +395,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
             return (
               <div key={i} className="p-3 bg-slate-50 rounded-xl flex items-center justify-between hover:bg-slate-100 transition">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-xs">{initials}</div>
+                  <div className="w-8 h-8 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-xs">{initials}</div>
                   <div><p className="text-xs font-bold text-[#0F172A]">{d.client}</p><p className="text-[9px] text-slate-400">{d.id} • {d.commune} • {d.driver}</p></div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -415,7 +415,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
           {[
             { icon: 'document-text', label: 'Rapport logistique', format: 'PDF', color: 'text-red-500' },
             { icon: 'arrow-down-tray', label: 'Rapport livreurs', format: 'Excel', color: 'text-[#22C55E]' },
-            { icon: 'arrow-down-tray', label: 'Rapport zones', format: 'CSV', color: 'text-[#0077B6]' },
+            { icon: 'arrow-down-tray', label: 'Rapport zones', format: 'CSV', color: 'text-brand-blue' },
             { icon: 'document-text', label: 'Rapport rentabilite', format: 'PDF', color: 'text-red-500' },
           ].map((exp, i) => (
             <button key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
@@ -427,7 +427,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
       </div>
 
       {/* ─── Footer CTA ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🚀</span>
           <div>
@@ -435,7 +435,7 @@ export const DeliverySettings: React.FC<DeliveryProps> = ({ setSection }) => {
             <p className="text-xs text-white/80">Assignez un livreur et gagnez du temps sur vos livraisons.</p>
           </div>
         </div>
-        <button className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Gerer mes livreurs</button>
+        <button className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Gerer mes livreurs</button>
       </div>
     </div>
   );

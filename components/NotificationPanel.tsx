@@ -78,7 +78,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ notificati
       <div className="p-3 border-b dark:border-slate-700 flex items-center justify-between">
         <h3 className="font-semibold text-brand-dark dark:text-slate-100">{t('notifications.title')}</h3>
         {notifications.some(n => !n.isRead) && (
-          <button onClick={() => markNotificationsAsRead()} className="text-xs font-medium text-[#0077B6] hover:underline">
+          <button onClick={() => markNotificationsAsRead()} className="text-xs font-medium text-brand-blue hover:underline">
             Tout marquer lu
           </button>
         )}
@@ -105,7 +105,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ notificati
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{timeSince(notif.createdAt)}</p>
                   </div>
                   {!notif.isRead && (
-                    <div className="w-2.5 h-2.5 bg-[#0077B6] rounded-full mt-1.5 shrink-0 animate-pulse"></div>
+                    <div className="w-2.5 h-2.5 bg-brand-blue rounded-full mt-1.5 shrink-0 animate-pulse"></div>
                   )}
                 </div>
               </button>
@@ -120,7 +120,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ notificati
       </div>
       {notifications.length > 0 && (
         <div className="p-2 border-t bg-slate-50 dark:bg-slate-900/50 dark:border-slate-700 flex justify-center">
-          <button onClick={() => { setCurrentPage({ name: 'notifications' }); onClose(); }} className="font-medium text-sm text-[#0077B6] hover:underline p-1">
+          <button onClick={() => { setCurrentPage({ name: 'notifications' }); onClose(); }} className="font-medium text-sm text-brand-blue hover:underline p-1">
             {t('notificationPanel.viewAll')}
           </button>
         </div>

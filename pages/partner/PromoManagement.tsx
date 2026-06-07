@@ -48,9 +48,9 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
 
   /* ─── Funnel Data ─── */
   const funnel = useMemo(() => [
-    { step: 'Vues', value: stats.totalViews, pct: 100, icon: 'search', color: 'bg-[#0077B6]' },
-    { step: 'Clics', value: stats.totalClicks, pct: Math.round((stats.totalClicks / Math.max(stats.totalViews, 1)) * 100), icon: 'cursor-arrow-rays', color: 'bg-[#0077B6]/80' },
-    { step: 'Commandes', value: stats.totalOrders, pct: Math.round((stats.totalOrders / Math.max(stats.totalClicks, 1)) * 100), icon: 'shoppingBag', color: 'bg-[#0077B6]/60' },
+    { step: 'Vues', value: stats.totalViews, pct: 100, icon: 'search', color: 'bg-brand-blue' },
+    { step: 'Clics', value: stats.totalClicks, pct: Math.round((stats.totalClicks / Math.max(stats.totalViews, 1)) * 100), icon: 'cursor-arrow-rays', color: 'bg-brand-blue/80' },
+    { step: 'Commandes', value: stats.totalOrders, pct: Math.round((stats.totalOrders / Math.max(stats.totalClicks, 1)) * 100), icon: 'shoppingBag', color: 'bg-brand-blue/60' },
     { step: 'Revenus', value: stats.totalRevenue, pct: 100, icon: 'currencyDollar', color: 'bg-[#22C55E]', isCurrency: true },
   ], [stats]);
 
@@ -90,7 +90,7 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
         {[
           { label: 'Promos actives', value: String(stats.active), icon: 'sparkles', bg: 'bg-purple-50', color: 'text-purple-600' },
           { label: 'Revenus generes', value: formatPrice(stats.totalRevenue), icon: 'currencyDollar', bg: 'bg-green-50', color: 'text-[#22C55E]' },
-          { label: 'Commandes generees', value: String(stats.totalOrders), icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Commandes generees', value: String(stats.totalOrders), icon: 'shoppingBag', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'ROI global', value: `${stats.avgROI}x`, icon: 'chartBar', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
           { label: 'Nouveaux clients', value: String(stats.newClients), icon: 'user', bg: 'bg-emerald-50', color: 'text-emerald-600' },
           { label: 'Taux conversion', value: `${stats.conversionRate}%`, icon: 'arrow-path', bg: 'bg-cyan-50', color: 'text-cyan-600' },
@@ -112,7 +112,7 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
             <h2 className="text-sm font-bold text-[#0F172A]">Performance des promotions</h2>
             <div className="flex gap-1">
               {['7j', '30j', '90j', '12m'].map((p, i) => (
-                <button key={i} className={`px-2 py-1 text-[10px] font-bold rounded-lg ${i === 1 ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600'}`}>{p}</button>
+                <button key={i} className={`px-2 py-1 text-[10px] font-bold rounded-lg ${i === 1 ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}>{p}</button>
               ))}
             </div>
           </div>
@@ -123,12 +123,12 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
                 <text x="35" y={14 + (1 - pct) * 130} textAnchor="end" className="text-[8px] fill-slate-400">${Math.round(pct * stats.totalRevenue)}</text>
               </g>
             ))}
-            <polyline fill="none" stroke="#0077B6" strokeWidth="2.5" strokeLinecap="round" points="60,120 120,100 180,85 240,70 300,55 360,40 420,30 480,15" />
+            <polyline fill="none" stroke="#005bd8" strokeWidth="2.5" strokeLinecap="round" points="60,120 120,100 180,85 240,70 300,55 360,40 420,30 480,15" />
             <polygon fill="url(#promoGrad)" opacity="0.2" points="60,130 60,120 120,100 180,85 240,70 300,55 360,40 420,30 480,15 480,130" />
             {['6 Mai', '13 Mai', '20 Mai', '27 Mai', '3 Juin', '10 Juin'].map((d, i) => (
               <text key={i} x={60 + i * 84} y="145" textAnchor="middle" className="text-[8px] fill-slate-400">{d}</text>
             ))}
-            <defs><linearGradient id="promoGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#0077B6" /><stop offset="100%" stopColor="#0077B6" stopOpacity="0" /></linearGradient></defs>
+            <defs><linearGradient id="promoGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#005bd8" /><stop offset="100%" stopColor="#005bd8" stopOpacity="0" /></linearGradient></defs>
           </svg>
         </div>
 
@@ -173,7 +173,7 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
             <tbody>
               {filteredPromos.sort((a, b) => b.revenue - a.revenue).map((p, i) => (
                 <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
-                  <td className="py-2.5"><span className="px-2 py-1 bg-[#0077B6]/10 text-[#0077B6] text-xs font-bold rounded-lg">{p.code}</span></td>
+                  <td className="py-2.5"><span className="px-2 py-1 bg-brand-blue/10 text-brand-blue text-xs font-bold rounded-lg">{p.code}</span></td>
                   <td className="py-2.5 text-xs text-slate-600">{p.type}</td>
                   <td className="py-2.5 text-xs font-medium text-right text-[#0F172A]">{p.views.toLocaleString()}</td>
                   <td className="py-2.5 text-xs font-medium text-right text-[#0F172A]">{p.clicks}</td>
@@ -218,7 +218,7 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
           <div className="grid grid-cols-3 gap-3 mb-4">
             {[
               { label: 'Nouveaux', value: 58, color: 'text-[#22C55E]', bg: 'bg-green-50' },
-              { label: 'Reactives', value: 22, color: 'text-[#0077B6]', bg: 'bg-blue-50' },
+              { label: 'Reactives', value: 22, color: 'text-brand-blue', bg: 'bg-blue-50' },
               { label: 'Fideles', value: 80, color: 'text-purple-600', bg: 'bg-purple-50' },
             ].map((c, i) => (
               <div key={i} className={`p-3 rounded-xl text-center ${c.bg}`}>
@@ -264,7 +264,7 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
                   <span className={`font-bold ${s.growth.startsWith('+') ? 'text-[#22C55E]' : 'text-red-500'}`}>{s.growth}</span>
                 </div>
                 <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden mt-1.5">
-                  <div className="h-full bg-[#0077B6] rounded-full" style={{ width: `${(s.revenue / 210) * 100}%` }} />
+                  <div className="h-full bg-brand-blue rounded-full" style={{ width: `${(s.revenue / 210) * 100}%` }} />
                 </div>
               </div>
             ))}
@@ -309,7 +309,7 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
           {[
             { icon: 'document-text', label: 'Rapport promotions', format: 'PDF', color: 'text-red-500' },
             { icon: 'chartBar', label: 'ROI detaille', format: 'Excel', color: 'text-[#22C55E]' },
-            { icon: 'users', label: 'Acquisition clients', format: 'CSV', color: 'text-[#0077B6]' },
+            { icon: 'users', label: 'Acquisition clients', format: 'CSV', color: 'text-brand-blue' },
             { icon: 'document-text', label: 'Performance marketing', format: 'PDF', color: 'text-red-500' },
           ].map((exp, i) => (
             <button key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">

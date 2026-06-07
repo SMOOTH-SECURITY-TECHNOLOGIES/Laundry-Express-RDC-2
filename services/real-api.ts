@@ -1805,6 +1805,13 @@ class ApiClient {
     return this.request<LogisticsDriverListResponse>(endpoint);
   }
 
+  async updateDriverAvailability(available: boolean): Promise<{ available: boolean }> {
+    return this.request<{ available: boolean }>('/driver/availability', {
+      method: 'PATCH',
+      body: JSON.stringify({ available }),
+    });
+  }
+
   async getMarketplaceCompanies(params?: {
     page?: number;
     page_size?: number;
@@ -2056,6 +2063,49 @@ class ApiClient {
       return;
     }
     return this.request(`/notifications/${notificationId}`, { method: 'DELETE' });
+  }
+
+  // ─── Partner Application endpoints ─────────────────────────────────────
+
+  async submitPartnerApplication(data: {
+    company_name: string;
+    partner_type: string;
+    contact_name: string;
+    phone: string;
+    email: string;
+    address?: string;
+    message?: string;
+    capacity?: string;
+  }): Promise<{ id: string; status: string }> {
+    return this.request<{ id: string; status: string }>('/partner-applications', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPartnerApplications(params?: {
+    status?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ applications: any[]; total: number }> {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) query.set('page_size', String(params.page_size));
+    return this.request<{ applications: any[]; total: number }>(`/partner-applications?${query.toString()}`);
+  }
+
+  async approvePartnerApplication(id: string): Promise<{ partner: any; user: any }> {
+    return this.request<{ partner: any; user: any }>(`/partner-applications/${id}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectPartnerApplication(id: string, reason: string): Promise<{ status: string }> {
+    return this.request<{ status: string }>(`/partner-applications/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
   }
 }
 

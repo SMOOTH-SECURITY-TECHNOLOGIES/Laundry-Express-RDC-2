@@ -65,7 +65,7 @@ export const SupportCenterPage: React.FC = () => {
         <Icon name="lifebuoy" className="w-16 h-16 text-slate-300 mx-auto mb-4" />
         <h2 className="text-2xl font-bold mb-4">Acces reserve</h2>
         <p className="text-slate-600 mb-6">Connectez-vous pour acceder au centre de support.</p>
-        <button onClick={() => setCurrentPage({ name: 'login' })} className="px-8 py-3 bg-[#0077B6] text-white font-bold rounded-xl hover:bg-[#005f8f] transition">Se connecter</button>
+        <button onClick={() => setCurrentPage({ name: 'login' })} className="px-8 py-3 bg-brand-blue text-white font-bold rounded-xl hover:bg-brand-blue-700 transition">Se connecter</button>
       </div>
     );
   }
@@ -79,7 +79,7 @@ export const SupportCenterPage: React.FC = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: 'chatBubble', label: 'Chat en direct', desc: 'Reponse immediate', bg: 'bg-[#0077B6]/10', color: 'text-[#0077B6]', tab: 'chat' as const },
+          { icon: 'chatBubble', label: 'Chat en direct', desc: 'Reponse immediate', bg: 'bg-brand-blue/10', color: 'text-brand-blue', tab: 'chat' as const },
           { icon: 'document-text', label: 'Voir la FAQ', desc: '58 articles', bg: 'bg-green-50', color: 'text-[#22C55E]', tab: 'faq' as const },
           { icon: 'envelope', label: 'Creer un ticket', desc: 'Reponse sous 24h', bg: 'bg-purple-50', color: 'text-purple-600', tab: 'tickets' as const },
           { icon: 'pencil', label: 'Guides & tutos', desc: '12 videos', bg: 'bg-orange-50', color: 'text-[#FF7A00]', tab: 'help' as const },
@@ -106,7 +106,7 @@ export const SupportCenterPage: React.FC = () => {
                   { title: 'Configurer les livraisons', desc: 'Zones, livreurs et tarification', icon: 'truck', time: '7 min' },
                 ].map((g, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition cursor-pointer">
-                    <Icon name={g.icon as any} className="w-5 h-5 text-[#0077B6]" />
+                    <Icon name={g.icon as any} className="w-5 h-5 text-brand-blue" />
                     <div className="flex-1"><p className="text-xs font-bold text-[#0F172A]">{g.title}</p><p className="text-[10px] text-slate-400">{g.desc}</p></div>
                     <span className="text-[10px] text-slate-400">{g.time}</span>
                   </div>
@@ -119,12 +119,12 @@ export const SupportCenterPage: React.FC = () => {
             <div className="bg-white rounded-2xl border border-slate-100 p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-bold text-[#0F172A]">Mes tickets ({tickets.length})</h2>
-                <button className="px-3 py-1.5 text-[10px] font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Nouveau ticket</button>
+                <button className="px-3 py-1.5 text-[10px] font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Nouveau ticket</button>
               </div>
               <div className="space-y-2">
                 {tickets.map((ticket, i) => {
                   const st = ticket.status === 'Ouvert' ? 'bg-orange-50 text-[#FF7A00]' : 'bg-green-50 text-[#22C55E]';
-                  const pr = ticket.priority === 'Haute' ? 'bg-red-50 text-red-500' : ticket.priority === 'Normale' ? 'bg-blue-50 text-[#0077B6]' : 'bg-slate-100 text-slate-500';
+                  const pr = ticket.priority === 'Haute' ? 'bg-red-50 text-red-500' : ticket.priority === 'Normale' ? 'bg-blue-50 text-brand-blue' : 'bg-slate-100 text-slate-500';
                   return (
                     <div key={i} className="p-3 bg-slate-50 rounded-xl">
                       <div className="flex items-center justify-between mb-1">
@@ -163,19 +163,19 @@ export const SupportCenterPage: React.FC = () => {
           {activeTab === 'chat' && (
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
               <div className="p-4 border-b border-slate-100 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#0077B6] flex items-center justify-center"><Icon name="logo" className="w-5 h-5 text-white" /></div>
+                <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center"><Icon name="logo" className="w-5 h-5 text-white" /></div>
                 <div><p className="text-sm font-bold text-[#0F172A]">Assistant Laundry Express</p><p className="text-[10px] text-[#22C55E]">En ligne</p></div>
               </div>
               <div className="h-80 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
                 {messages.map(msg => (
                   <div key={msg.id} className={`flex items-end gap-2 ${msg.author === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {msg.author === 'bot' && <div className="w-8 h-8 rounded-full bg-[#0077B6] flex items-center justify-center shrink-0"><Icon name="logo" className="w-5 h-5 text-white" /></div>}
-                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.author === 'user' ? 'bg-[#0077B6] text-white rounded-br-none' : 'bg-white text-[#0F172A] rounded-bl-none border border-slate-200'}`}>{msg.text}</div>
+                    {msg.author === 'bot' && <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center shrink-0"><Icon name="logo" className="w-5 h-5 text-white" /></div>}
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.author === 'user' ? 'bg-brand-blue text-white rounded-br-none' : 'bg-white text-[#0F172A] rounded-bl-none border border-slate-200'}`}>{msg.text}</div>
                   </div>
                 ))}
                 {isBotTyping && (
                   <div className="flex items-end gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#0077B6] flex items-center justify-center shrink-0"><Icon name="logo" className="w-5 h-5 text-white" /></div>
+                    <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center shrink-0"><Icon name="logo" className="w-5 h-5 text-white" /></div>
                     <div className="p-2 rounded-2xl bg-white border border-slate-200"><TypingIndicator /></div>
                   </div>
                 )}
@@ -183,8 +183,8 @@ export const SupportCenterPage: React.FC = () => {
               </div>
               <div className="p-4 border-t border-slate-100">
                 <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(userInput); }} className="flex gap-2">
-                  <textarea ref={inputRef} value={userInput} onChange={e => setUserInput(e.target.value)} rows={1} placeholder="Votre message..." className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0077B6]" disabled={isBotTyping} />
-                  <button type="submit" disabled={isBotTyping || !userInput.trim()} className="px-4 py-2.5 bg-[#0077B6] text-white rounded-xl hover:bg-[#005f8f] disabled:bg-slate-300 transition"><Icon name="paper-plane" className="w-4 h-4" /></button>
+                  <textarea ref={inputRef} value={userInput} onChange={e => setUserInput(e.target.value)} rows={1} placeholder="Votre message..." className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-blue" disabled={isBotTyping} />
+                  <button type="submit" disabled={isBotTyping || !userInput.trim()} className="px-4 py-2.5 bg-brand-blue text-white rounded-xl hover:bg-brand-blue-700 disabled:bg-slate-300 transition"><Icon name="paper-plane" className="w-4 h-4" /></button>
                 </form>
               </div>
             </div>
@@ -195,7 +195,7 @@ export const SupportCenterPage: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-100 p-5">
             <h2 className="text-sm font-bold text-[#0F172A] mb-3">Besoin d'aide pour analyser ?</h2>
             <p className="text-xs text-slate-400 mb-3">Notre equipe est la pour vous aider a booster vos resultats.</p>
-            <button className="w-full py-2.5 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition">Contacter le support</button>
+            <button className="w-full py-2.5 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition">Contacter le support</button>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-100 p-5">
@@ -224,7 +224,7 @@ export const SupportCenterPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🎧</span>
           <div>
@@ -232,8 +232,9 @@ export const SupportCenterPage: React.FC = () => {
             <p className="text-xs text-white/80">Reponse moyenne : 5 min par chat. 24h par ticket.</p>
           </div>
         </div>
-        <button className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0" onClick={() => setActiveTab('chat')}>Demarrer un chat</button>
+        <button className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0" onClick={() => setActiveTab('chat')}>Demarrer un chat</button>
       </div>
     </div>
   );
 };
+

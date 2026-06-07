@@ -1,0 +1,28 @@
+<svg width="520" height="300" viewBox="0 0 520 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Chauffeur Laundry Express en scooter</title>
+  <desc id="desc">Illustration bleue d'un chauffeur transportant un sac de livraison.</desc>
+  <rect width="520" height="300" rx="28" fill="#F3F8FF"/>
+  <path d="M76 228H444" stroke="#D7E8FF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M73 205C104 170 141 151 184 150C231 149 256 119 292 94C335 64 385 79 423 115" stroke="#DDEBFA" stroke-width="26" stroke-linecap="round"/>
+  <rect x="307" y="86" width="92" height="98" rx="22" fill="#0B72D9"/>
+  <path d="M321 114H386M321 136H379M321 158H366" stroke="white" stroke-width="9" stroke-linecap="round" opacity=".9"/>
+  <circle cx="179" cy="229" r="35" fill="#071A3D"/>
+  <circle cx="179" cy="229" r="17" fill="#D7E8FF"/>
+  <circle cx="338" cy="229" r="35" fill="#071A3D"/>
+  <circle cx="338" cy="229" r="17" fill="#D7E8FF"/>
+  <path d="M151 210H276C296 210 313 196 318 177L327 142H360C374 142 385 153 385 167V198H407" stroke="#0066CC" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M218 210L250 165H310" stroke="#0066CC" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="116" y="160" width="87" height="54" rx="18" fill="#1688F0"/>
+  <path d="M134 178H185M134 195H170" stroke="white" stroke-width="7" stroke-linecap="round" opacity=".9"/>
+  <path d="M258 86C258 67 273 52 292 52C311 52 326 67 326 86V112H258V86Z" fill="#0A1628"/>
+  <circle cx="292" cy="87" r="27" fill="#B87345"/>
+  <path d="M258 86C272 79 290 77 325 82C322 62 309 48 289 49C269 50 256 64 258 86Z" fill="#0A1628"/>
+  <path d="M281 114H303L313 174H263L281 114Z" fill="#0B72D9"/>
+  <path d="M266 129L224 162" stroke="#B87345" stroke-width="15" stroke-linecap="round"/>
+  <path d="M306 127L339 166" stroke="#B87345" stroke-width="15" stroke-linecap="round"/>
+  <path d="M272 173L248 214" stroke="#0A1628" stroke-width="18" stroke-linecap="round"/>
+  <path d="M303 173L322 214" stroke="#0A1628" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="235" cy="70" r="7" fill="#FFB703"/>
+  <circle cx="423" cy="78" r="5" fill="#2AC769"/>
+  <circle cx="101" cy="92" r="6" fill="#0066CC"/>
+</svg>

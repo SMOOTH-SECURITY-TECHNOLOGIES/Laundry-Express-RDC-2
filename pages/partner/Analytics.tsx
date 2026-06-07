@@ -15,7 +15,7 @@ const EmptyState: React.FC<{ icon: string; title: string; description: string; c
     <Icon name={icon as any} className="w-12 h-12 mx-auto text-slate-300 mb-3" />
     <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
     <p className="text-xs text-slate-400 mb-3">{description}</p>
-    {cta && onCta && <button onClick={onCta} className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-lg hover:bg-[#005f8f] transition">{cta}</button>}
+    {cta && onCta && <button onClick={onCta} className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition">{cta}</button>}
   </div>
 );
 
@@ -107,10 +107,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
     const orders = kpis.totalOrders || 46;
     const delivered = Math.round(orders * 0.95);
     return [
-      { step: 'Impressions recherche', value: impressions, pct: 100, icon: 'search', color: '#0077B6' },
-      { step: 'Visites profil', value: visits, pct: Math.round((visits / impressions) * 100), icon: 'user', color: '#0077B6' },
-      { step: 'Demandes recues', value: requests, pct: Math.round((requests / visits) * 100), icon: 'chatBubble', color: '#0077B6' },
-      { step: 'Commandes', value: orders, pct: Math.round((orders / requests) * 100), icon: 'shoppingBag', color: '#0077B6' },
+      { step: 'Impressions recherche', value: impressions, pct: 100, icon: 'search', color: '#005bd8' },
+      { step: 'Visites profil', value: visits, pct: Math.round((visits / impressions) * 100), icon: 'user', color: '#005bd8' },
+      { step: 'Demandes recues', value: requests, pct: Math.round((requests / visits) * 100), icon: 'chatBubble', color: '#005bd8' },
+      { step: 'Commandes', value: orders, pct: Math.round((orders / requests) * 100), icon: 'shoppingBag', color: '#005bd8' },
       { step: 'Commandes livrees', value: delivered, pct: Math.round((delivered / orders) * 100), icon: 'check', color: '#22C55E' },
     ];
   }, [kpis]);
@@ -159,7 +159,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
       result.push({
         label: `${d.getDate()}/${d.getMonth() + 1}`,
         values: [
-          { name: 'Revenus bruts', value: gross, color: '#0077B6' },
+          { name: 'Revenus bruts', value: gross, color: '#005bd8' },
           { name: 'Revenus nets', value: Math.round(gross * 0.85), color: '#22C55E' },
           { name: 'Commandes', value: dayOrders.length, color: '#FF7A00' },
         ],
@@ -205,13 +205,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
           <p className="text-sm text-slate-500 mt-1">Comprenez ce qui genere vos commandes et vos revenus.</p>
         </div>
         <div className="flex items-center gap-3">
-          <select value={timeRange} onChange={e => setTimeRange(e.target.value as TimeRange)} className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0077B6]">
+          <select value={timeRange} onChange={e => setTimeRange(e.target.value as TimeRange)} className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-brand-blue">
             <option value="7d">7 jours</option>
             <option value="30d">30 jours</option>
             <option value="90d">90 jours</option>
             <option value="12m">12 mois</option>
           </select>
-          <button onClick={() => handleExport('csv')} className="px-4 py-2 bg-[#0077B6] text-white text-sm font-bold rounded-xl hover:bg-[#005f8f] transition flex items-center gap-2">
+          <button onClick={() => handleExport('csv')} className="px-4 py-2 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-brand-blue-700 transition flex items-center gap-2">
             <Icon name="arrow-down-tray" className="w-4 h-4" />Exporter
           </button>
         </div>
@@ -221,7 +221,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: 'Revenus total', value: formatPrice(kpis.grossRevenue), change: 18, icon: 'currencyDollar', bg: 'bg-green-50', color: 'text-[#22C55E]' },
-          { label: 'Revenus net', value: formatPrice(kpis.netRevenue), change: 15, icon: 'wallet', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Revenus net', value: formatPrice(kpis.netRevenue), change: 15, icon: 'wallet', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'Commandes', value: String(kpis.totalOrders), change: 12, icon: 'shoppingBag', bg: 'bg-purple-50', color: 'text-purple-600' },
           { label: 'Panier moyen', value: formatPrice(kpis.avgBasket), change: 3, icon: 'chartBar', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
           { label: 'Taux conversion', value: `${kpis.conversionRate}%`, change: 0.8, icon: 'arrow-path', bg: 'bg-teal-50', color: 'text-teal-600' },
@@ -246,7 +246,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
             <div className="flex items-center gap-3">
               {['Revenus bruts', 'Revenus nets', 'Commandes'].map((name, i) => (
                 <span key={name} className="flex items-center gap-1 text-[10px] text-slate-500">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#0077B6', '#22C55E', '#FF7A00'][i] }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#005bd8', '#22C55E', '#FF7A00'][i] }} />
                   {name}
                 </span>
               ))}
@@ -259,7 +259,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
               <Icon name="currencyDollar" className="w-12 h-12 text-slate-300 mb-3" />
               <p className="text-sm font-medium text-slate-500 mb-1">Aucune donnee de revenu disponible</p>
               <p className="text-xs text-slate-400 mb-4 max-w-xs">Recevez votre premiere commande ou creez une promotion pour commencer a suivre vos revenus.</p>
-              {setSection && <button onClick={() => setSection('promotions')} className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-lg hover:bg-[#005f8f] transition">Creer une promotion</button>}
+              {setSection && <button onClick={() => setSection('promotions')} className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition">Creer une promotion</button>}
             </div>
           )}
         </div>
@@ -319,7 +319,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
           <table className="w-full text-sm">
             <thead><tr className="border-b border-slate-100">
               <th className="text-left py-2 text-slate-500 font-medium">KPI</th>
-              <th className="text-center py-2 text-[#0077B6] font-bold">Vous</th>
+              <th className="text-center py-2 text-brand-blue font-bold">Vous</th>
               <th className="text-center py-2 text-slate-500 font-medium">Moyenne</th>
             </tr></thead>
             <tbody>
@@ -332,15 +332,15 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
               ].map((r, i) => (
                 <tr key={i} className="border-b border-slate-50 last:border-0">
                   <td className="py-2 text-slate-600">{r.metric}</td>
-                  <td className="py-2 text-center font-bold text-[#0077B6]">{r.you}</td>
+                  <td className="py-2 text-center font-bold text-brand-blue">{r.you}</td>
                   <td className="py-2 text-center text-slate-500">{r.avg}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div className="mt-3 p-3 bg-blue-50 rounded-xl flex items-center gap-2">
-            <Icon name="chartBar" className="w-4 h-4 text-[#0077B6]" />
-            <p className="text-xs text-[#0077B6] font-medium">Vous etes au-dessus de la moyenne sur tous les KPI cles.</p>
+            <Icon name="chartBar" className="w-4 h-4 text-brand-blue" />
+            <p className="text-xs text-brand-blue font-medium">Vous etes au-dessus de la moyenne sur tous les KPI cles.</p>
           </div>
         </div>
       </div>
@@ -356,7 +356,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
                   <p className="text-sm font-bold text-[#0F172A]">{s.name}</p>
                   <p className="text-[10px] text-slate-400">{s.count} commandes</p>
                 </div>
-                <span className="text-sm font-extrabold text-[#0077B6]">{formatPrice(s.revenue)}</span>
+                <span className="text-sm font-extrabold text-brand-blue">{formatPrice(s.revenue)}</span>
               </div>
             )) : <EmptyState icon="sparkles" title="Ajoutez vos services et tarifs" description="Pour commencer a recevoir des analyses de performance" cta="Configurer mes services" onCta={() => setSection?.('profile')} />}
           </div>
@@ -378,7 +378,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
                   <span className="text-xs font-bold text-slate-600">{g.count} commandes ({g.pct}%)</span>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#0077B6] rounded-full" style={{ width: `${g.pct}%` }} />
+                  <div className="h-full bg-brand-blue rounded-full" style={{ width: `${g.pct}%` }} />
                 </div>
               </div>
             )) : <EmptyState icon="mapPin" title="Aucune donnee geographique" description="Les statistiques geographiques seront disponibles apres vos premieres commandes livrees." cta="Creer une promotion" onCta={() => setSection?.('promotions')} />}
@@ -407,7 +407,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
               </div>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xs text-slate-500">ROI</span>
-                <span className="text-sm font-extrabold text-[#0077B6]">4.2x</span>
+                <span className="text-sm font-extrabold text-brand-blue">4.2x</span>
               </div>
             </div>
           </div>
@@ -419,12 +419,12 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
             <div className="relative w-24 h-24">
               <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
                 <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" strokeWidth="3" />
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0077B6" strokeWidth="3" strokeDasharray="58 42" strokeLinecap="round" />
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#005bd8" strokeWidth="3" strokeDasharray="58 42" strokeLinecap="round" />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center"><span className="text-sm font-extrabold text-[#0F172A]">58%</span></div>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#0077B6]" /><span className="text-sm text-slate-600">Nouveaux : 58%</span></div>
+              <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-brand-blue" /><span className="text-sm text-slate-600">Nouveaux : 58%</span></div>
               <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-200" /><span className="text-sm text-slate-600">Fideles : 42%</span></div>
               <p className="text-[10px] text-slate-400">Taux fidélisation : 42%</p>
             </div>
@@ -483,7 +483,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
                 <text key={i} x="35" y={10 + (1 - (v - 3.5) / 1.5) * 80 + 4} textAnchor="end" className="text-[9px] fill-slate-400">{v}</text>
               ))}
               {/* Line */}
-              <polyline fill="none" stroke="#0077B6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points="60,68 120,60 180,48 240,36 300,24 360,10" />
+              <polyline fill="none" stroke="#005bd8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points="60,68 120,60 180,48 240,36 300,24 360,10" />
               {/* Area fill */}
               <polygon fill="url(#ratingGradient)" opacity="0.2" points="60,88 60,68 120,60 180,48 240,36 300,24 360,10 360,88" />
               {/* Points */}
@@ -496,8 +496,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
                 { x: 360, y: 10, label: '5.0' },
               ].map((p, i) => (
                 <g key={i}>
-                  <circle cx={p.x} cy={p.y} r="4" fill="#0077B6" stroke="white" strokeWidth="2" />
-                  <text x={p.x} y={p.y - 8} textAnchor="middle" className="text-[9px] fill-[#0077B6] font-bold">{p.label}</text>
+                  <circle cx={p.x} cy={p.y} r="4" fill="#005bd8" stroke="white" strokeWidth="2" />
+                  <text x={p.x} y={p.y - 8} textAnchor="middle" className="text-[9px] fill-brand-blue font-bold">{p.label}</text>
                 </g>
               ))}
               {/* X-axis labels */}
@@ -506,8 +506,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
               ))}
               <defs>
                 <linearGradient id="ratingGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#0077B6" />
-                  <stop offset="100%" stopColor="#0077B6" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#005bd8" />
+                  <stop offset="100%" stopColor="#005bd8" stopOpacity="0" />
                 </linearGradient>
               </defs>
             </svg>
@@ -520,7 +520,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
 
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 bg-gradient-to-br from-[#0077B6] to-[#005f8f] rounded-xl"><Icon name="sparkles" className="w-5 h-5 text-white" /></div>
+            <div className="p-2 bg-gradient-to-br from-brand-blue to-brand-blue-700 rounded-xl"><Icon name="sparkles" className="w-5 h-5 text-white" /></div>
             <div><h2 className="text-lg font-bold text-[#0F172A]">Growth Advisor</h2><p className="text-xs text-slate-400">Conseils pour devenir #1</p></div>
           </div>
           <div className="space-y-2">
@@ -535,19 +535,19 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
                   <div className={`p-1.5 rounded-lg bg-gradient-to-br ${item.color}`}><Icon name={item.icon as any} className="w-3.5 h-3.5 text-white" /></div>
                   <div><p className="text-sm font-medium text-[#0F172A]">{item.action}</p><p className="text-[10px] text-slate-400">Impact estime : {item.gain} visibilite</p></div>
                 </div>
-                <button className="px-3 py-1 text-[10px] font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Ajouter</button>
+                <button className="px-3 py-1 text-[10px] font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Ajouter</button>
               </div>
             ))}
           </div>
           <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl flex items-center justify-between">
             <p className="text-xs font-bold text-[#0F172A]">Impact potentiel total</p>
-            <span className="text-sm font-extrabold text-[#0077B6]">+15% a +20% visibilite</span>
+            <span className="text-sm font-extrabold text-brand-blue">+15% a +20% visibilite</span>
           </div>
         </div>
       </div>
 
       {/* ─── Section 13: Monthly Executive Summary ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-4xl">🚀</span>
           <div>
@@ -562,7 +562,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
           <div className="text-center"><p className="text-xl font-extrabold text-white">#3→#2</p><p className="text-[10px] text-white/70">Classement</p></div>
           <div className="text-center"><p className="text-xl font-extrabold text-white">72→81</p><p className="text-[10px] text-white/70">Score</p></div>
         </div>
-        {setSection && <button onClick={() => setSection('dashboard')} className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir le tableau de bord</button>}
+        {setSection && <button onClick={() => setSection('dashboard')} className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir le tableau de bord</button>}
       </div>
     </div>
   );

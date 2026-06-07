@@ -128,11 +128,11 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <h2 className="text-lg font-bold text-[#0F172A] mb-1">Completion du profil</h2>
           <div className="flex items-end gap-3 mb-4">
-            <span className="text-5xl font-extrabold text-[#0077B6]">{profileScore}%</span>
+            <span className="text-5xl font-extrabold text-brand-blue">{profileScore}%</span>
             <span className="text-sm text-slate-500 mb-1">{profileScore >= 80 ? 'Votre profil est bien rempli !' : 'Completez votre profil pour plus de visibilite'}</span>
           </div>
           <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-5">
-            <div className="h-full bg-gradient-to-r from-[#0077B6] to-[#22C55E] rounded-full transition-all duration-700" style={{ width: `${profileScore}%` }} />
+            <div className="h-full bg-gradient-to-r from-brand-blue to-[#22C55E] rounded-full transition-all duration-700" style={{ width: `${profileScore}%` }} />
           </div>
           <div className="space-y-2 mb-5">
             {scoreChecklist.map((item, i) => (
@@ -143,7 +143,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button onClick={() => setSection?.('profile')} className="w-full py-2.5 bg-[#0077B6] text-white text-sm font-bold rounded-xl hover:bg-[#005f8f] transition">Completer mon profil →</button>
+          <button onClick={() => setSection?.('profile')} className="w-full py-2.5 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-brand-blue-700 transition">Completer mon profil →</button>
         </div>
 
         {/* Apercu profil public */}
@@ -152,11 +152,11 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
             <img src={partner.imageUrls?.[0] || 'https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=800&q=80'} alt={partner.name} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute top-3 right-3 flex gap-1.5">
-              <span className="px-2 py-1 bg-white/90 text-[10px] font-bold text-[#0077B6] rounded-lg">Apercu reel</span>
+              <span className="px-2 py-1 bg-white/90 text-[10px] font-bold text-brand-blue rounded-lg">Apercu reel</span>
             </div>
             <div className="absolute bottom-3 left-3 right-3">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-12 h-12 rounded-xl bg-white/90 flex items-center justify-center text-[#0077B6] font-extrabold text-lg overflow-hidden">
+                <div className="w-12 h-12 rounded-xl bg-white/90 flex items-center justify-center text-brand-blue font-extrabold text-lg overflow-hidden">
                   {partner.imageUrls?.[0] ? <img src={partner.imageUrls[0]} alt="" className="w-full h-full object-cover" /> : partner.name.charAt(0)}
                 </div>
                 <div>
@@ -185,7 +185,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
               <span className="flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Ouvert maintenant</span>
             </div>
             <div className="flex gap-2">
-              <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition text-center">Voir mon profil public</a>
+              <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition text-center">Voir mon profil public</a>
               <button onClick={handleShare} className="px-3 py-2 bg-slate-100 rounded-xl hover:bg-slate-200 transition"><Icon name="share" className="w-4 h-4 text-slate-600" /></button>
               <button onClick={handleCopyLink} className="px-3 py-2 bg-slate-100 rounded-xl hover:bg-slate-200 transition"><Icon name="document" className="w-4 h-4 text-slate-600" /></button>
             </div>
@@ -232,7 +232,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#0077B6] to-[#005f8f] rounded-2xl p-6 text-white">
+        <div className="bg-gradient-to-br from-brand-blue to-brand-blue-700 rounded-2xl p-6 text-white">
           <h2 className="text-lg font-bold mb-1">Conseils pour recevoir plus de commandes</h2>
           <p className="text-xs text-white/70 mb-4">Recommandations personnalisees pour ameliorer votre profil</p>
           <div className="space-y-2.5">
@@ -266,7 +266,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Informations de l'etablissement</h2>
-            <button onClick={() => setIsEditModalOpen(true)} className="px-3 py-1.5 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition flex items-center gap-1.5"><Icon name="pencil" className="w-3 h-3" />Modifier</button>
+            <button onClick={() => setIsEditModalOpen(true)} className="px-3 py-1.5 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center gap-1.5"><Icon name="pencil" className="w-3 h-3" />Modifier</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
@@ -292,14 +292,14 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Reseaux sociaux</h2>
-            <button className="px-3 py-1.5 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition flex items-center gap-1.5"><Icon name="pencil" className="w-3 h-3" />Modifier</button>
+            <button className="px-3 py-1.5 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center gap-1.5"><Icon name="pencil" className="w-3 h-3" />Modifier</button>
           </div>
           <div className="space-y-2">
             {[
               { icon: 'facebook', label: 'Facebook', value: 'Prestige Pressing', connected: true, color: 'text-blue-600' },
               { icon: 'logo', label: 'Instagram', value: '@prestige_pressing', connected: true, color: 'text-pink-500' },
               { icon: 'logo', label: 'TikTok', value: '@prestige_pressing', connected: false, color: 'text-[#0F172A]' },
-              { icon: 'globe', label: 'Site web', value: 'www.prestige-pressing.cd', connected: true, color: 'text-[#0077B6]' },
+              { icon: 'globe', label: 'Site web', value: 'www.prestige-pressing.cd', connected: true, color: 'text-brand-blue' },
             ].map((social, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition cursor-pointer">
                 <div className="flex items-center gap-3">
@@ -320,11 +320,11 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Photos & videos</h2>
-            <button className="text-xs font-bold text-[#0077B6] hover:underline">Gerer</button>
+            <button className="text-xs font-bold text-brand-blue hover:underline">Gerer</button>
           </div>
           <div className="flex gap-1.5 overflow-x-auto mb-3">
             {['Couverture', 'Boutique', 'Machines', 'Equipe', 'Livraison', 'Avant/Apres'].map(tab => (
-              <button key={tab} onClick={() => setActivePhotoTab(tab)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${activePhotoTab === tab ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600'}`}>{tab}</button>
+              <button key={tab} onClick={() => setActivePhotoTab(tab)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${activePhotoTab === tab ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}>{tab}</button>
             ))}
           </div>
           {/* Pinterest-style gallery */}
@@ -339,9 +339,9 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
             ))}
           </div>
           <div className="p-3 bg-slate-50 rounded-xl flex items-center gap-3 mt-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0077B6]/10 flex items-center justify-center"><Icon name="play" className="w-4 h-4 text-[#0077B6]" /></div>
+            <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><Icon name="play" className="w-4 h-4 text-brand-blue" /></div>
             <div className="flex-1"><p className="text-xs font-bold text-[#0F172A]">Video de presentation</p><p className="text-[10px] text-slate-400">Ajoutez une video pour presenter votre pressing</p></div>
-            <button className="px-3 py-1.5 text-[10px] font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Ajouter</button>
+            <button className="px-3 py-1.5 text-[10px] font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Ajouter</button>
           </div>
         </div>
 
@@ -350,7 +350,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
             <h2 className="text-lg font-bold text-[#0F172A]">Horaires d'ouverture</h2>
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-bold rounded-full">Ouvert maintenant</span>
-              <button className="text-xs font-bold text-[#0077B6] hover:underline">Enregistrer</button>
+              <button className="text-xs font-bold text-brand-blue hover:underline">Enregistrer</button>
             </div>
           </div>
           <div className="space-y-2">
@@ -358,10 +358,10 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
               const hours = workingHours?.[day];
               const isToday = day === dayOrder[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
               return (
-                <div key={day} className={`flex items-center justify-between py-2 px-3 rounded-xl ${isToday ? 'bg-[#0077B6]/5 border border-[#0077B6]/20' : ''}`}>
+                <div key={day} className={`flex items-center justify-between py-2 px-3 rounded-xl ${isToday ? 'bg-brand-blue/5 border border-brand-blue/20' : ''}`}>
                   <div className="flex items-center gap-2">
                     <Icon name={hours?.isClosed ? 'xmark' : 'check'} className={`w-4 h-4 ${hours?.isClosed ? 'text-slate-300' : 'text-[#22C55E]'}`} />
-                    <span className={`text-sm font-medium ${isToday ? 'text-[#0077B6]' : 'text-[#0F172A]'}`}>{dayNames[day]}{isToday ? " (aujourd'hui)" : ''}</span>
+                    <span className={`text-sm font-medium ${isToday ? 'text-brand-blue' : 'text-[#0F172A]'}`}>{dayNames[day]}{isToday ? " (aujourd'hui)" : ''}</span>
                   </div>
                   <span className="text-sm font-bold text-[#0F172A]">{hours?.isClosed ? 'Ferme' : `${hours?.open} – ${hours?.close}`}</span>
                 </div>
@@ -376,11 +376,11 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Zones de livraison</h2>
-            <button className="text-xs font-bold text-[#0077B6] hover:underline">Gerer</button>
+            <button className="text-xs font-bold text-brand-blue hover:underline">Gerer</button>
           </div>
           <div className="h-32 bg-slate-100 rounded-xl mb-3 relative overflow-hidden">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #cbd5e1 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #cbd5e1 20px)', backgroundSize: '20px 20px' }} />
-            <div className="absolute inset-0 flex items-center justify-center"><Icon name="mapPin" className="w-8 h-8 text-[#0077B6]" /></div>
+            <div className="absolute inset-0 flex items-center justify-center"><Icon name="mapPin" className="w-8 h-8 text-brand-blue" /></div>
           </div>
           <div className="space-y-1.5">
             {[
@@ -401,7 +401,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Mes services & tarifs</h2>
-            <button onClick={() => { setServiceToEdit(null); setIsServiceModalOpen(true); }} className="px-3 py-1.5 text-xs font-bold text-white bg-[#0077B6] rounded-lg hover:bg-[#005f8f] transition flex items-center gap-1.5"><Icon name="plus" className="w-3 h-3" />Ajouter</button>
+            <button onClick={() => { setServiceToEdit(null); setIsServiceModalOpen(true); }} className="px-3 py-1.5 text-xs font-bold text-white bg-brand-blue rounded-lg hover:bg-brand-blue-700 transition flex items-center gap-1.5"><Icon name="plus" className="w-3 h-3" />Ajouter</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -415,7 +415,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
                 {partnerServices.map(s => (
                   <tr key={s.id} className="border-b border-slate-50 last:border-0">
                     <td className="py-2.5 font-medium text-[#0F172A] text-xs">{s.title}</td>
-                    <td className="py-2.5 text-xs font-bold text-[#0077B6]">{s.priceModel === 'per_kg' ? `${s.price}$/kg` : `${s.price}$/item`}</td>
+                    <td className="py-2.5 text-xs font-bold text-brand-blue">{s.priceModel === 'per_kg' ? `${s.price}$/kg` : `${s.price}$/item`}</td>
                     <td className="py-2.5 text-xs text-slate-500">24h</td>
                     <td className="py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -436,7 +436,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Questions frequentes</h2>
-            <button className="text-xs font-bold text-[#0077B6] hover:underline">Gerer</button>
+            <button className="text-xs font-bold text-brand-blue hover:underline">Gerer</button>
           </div>
           <div className="space-y-2">
             {['Nettoyez-vous les costumes ?', 'Faites-vous du nettoyage express ?', 'Lavez-vous le dimanche ?', 'Comment se passe le ramassage ?'].map((q, i) => (
@@ -446,13 +446,13 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Ajouter une question</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Ajouter une question</button>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Reputation</h2>
-            <button onClick={() => setSection?.('orders')} className="text-xs font-bold text-[#0077B6] hover:underline">Voir tous les avis</button>
+            <button onClick={() => setSection?.('orders')} className="text-xs font-bold text-brand-blue hover:underline">Voir tous les avis</button>
           </div>
           <div className="text-center mb-4">
             <p className="text-4xl font-extrabold text-[#0F172A]">{avgRating.toFixed(1)}</p>
@@ -497,14 +497,14 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
               <div key={i} className="flex items-center justify-between py-1.5 text-xs">
                 <span className="font-medium text-[#0F172A]">{row.kw}</span>
                 <div className="flex items-center gap-3 text-slate-500">
-                  <span>{row.imp}</span><span>{row.clicks}</span><span className="font-bold text-[#0077B6]">#{row.pos}</span>
+                  <span>{row.imp}</span><span>{row.clicks}</span><span className="font-bold text-brand-blue">#{row.pos}</span>
                 </div>
               </div>
             ))}
           </div>
           <div className="mt-3 p-3 bg-blue-50 rounded-xl flex items-center gap-2">
-            <Icon name="sparkles" className="w-4 h-4 text-[#0077B6]" />
-            <p className="text-[10px] text-[#0077B6] font-medium">Conseil SEO : Ajoutez plus de photos et repondez aux avis.</p>
+            <Icon name="sparkles" className="w-4 h-4 text-brand-blue" />
+            <p className="text-[10px] text-brand-blue font-medium">Conseil SEO : Ajoutez plus de photos et repondez aux avis.</p>
           </div>
         </div>
 
@@ -516,11 +516,11 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
             </div>
             <p className="text-xl font-extrabold text-[#0F172A] mb-0.5">{partner.slug}</p>
             <p className="text-xs text-slate-400">laundry.app</p>
-            <p className="text-sm font-bold text-[#0077B6] mt-1">https://{partner.slug}.laundry.app</p>
+            <p className="text-sm font-bold text-brand-blue mt-1">https://{partner.slug}.laundry.app</p>
           </div>
           <div className="flex gap-2">
             <button onClick={handleCopyLink} className="flex-1 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition">Copier URL</button>
-            <button className="flex-1 py-2 text-xs font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Tester</button>
+            <button className="flex-1 py-2 text-xs font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Tester</button>
           </div>
         </div>
 
@@ -540,12 +540,12 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          {setSection && <button onClick={() => setSection('analytics')} className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] border border-[#0077B6]/20 rounded-lg hover:bg-[#0077B6]/5 transition">Voir statistiques detaillees</button>}
+          {setSection && <button onClick={() => setSection('analytics')} className="w-full mt-3 py-2 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Voir statistiques detaillees</button>}
         </div>
       </div>
 
       {/* ─── CTA Final sticky ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🚀</span>
           <div>
@@ -555,7 +555,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-bold text-white/80">Profil complete a <strong className="text-white">{profileScore}%</strong></span>
-          {setSection && <button onClick={() => setSection('profile')} className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition">Completer mon profil</button>}
+          {setSection && <button onClick={() => setSection('profile')} className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition">Completer mon profil</button>}
         </div>
       </div>
 

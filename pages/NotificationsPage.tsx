@@ -37,7 +37,7 @@ const NotificationItem: React.FC<{
                 <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{meta.label}</span>
-                      {!notification.isRead && <div className="w-2 h-2 bg-[#0077B6] rounded-full animate-pulse"></div>}
+                      {!notification.isRead && <div className="w-2 h-2 bg-brand-blue rounded-full animate-pulse"></div>}
                     </div>
                     <p className={`text-sm leading-snug ${notification.isRead ? 'text-slate-600' : 'text-slate-800 font-semibold'}`}>
                         {notification.message}
@@ -209,3 +209,4 @@ export const NotificationsPage: React.FC = () => {
         </>
     );
 };
+

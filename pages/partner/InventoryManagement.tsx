@@ -67,9 +67,9 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
 
   const movements = useMemo(() => [
     { date: '25 Mai', article: 'Lessive', action: 'Entrée', qty: '+20 L', user: 'Patrice', color: 'text-[#22C55E]' },
-    { date: '26 Mai', article: 'Lessive', action: 'Consommation', qty: '-3 L', user: 'Système', color: 'text-[#0077B6]' },
+    { date: '26 Mai', article: 'Lessive', action: 'Consommation', qty: '-3 L', user: 'Système', color: 'text-brand-blue' },
     { date: '27 Mai', article: 'Sacs', action: 'Entrée', qty: '+50', user: 'Patrice', color: 'text-[#22C55E]' },
-    { date: '28 Mai', article: 'Assouplissant', action: 'Consommation', qty: '-1.5 L', user: 'Système', color: 'text-[#0077B6]' },
+    { date: '28 Mai', article: 'Assouplissant', action: 'Consommation', qty: '-1.5 L', user: 'Système', color: 'text-brand-blue' },
     { date: '28 Mai', article: 'Détachant', action: 'Ajustement', qty: '-0.2 L', user: 'Patrice', color: 'text-[#FF7A00]' },
   ], []);
 
@@ -97,7 +97,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
       result.push({
         label: `${d.getDate()}/${d.getMonth() + 1}`,
         values: [
-          { name: 'Lessive', value: 20 + Math.random() * 30, color: '#0077B6' },
+          { name: 'Lessive', value: 20 + Math.random() * 30, color: '#005bd8' },
           { name: 'Détachant', value: 10 + Math.random() * 15, color: '#22C55E' },
           { name: 'Assouplissant', value: 8 + Math.random() * 10, color: '#8B5CF6' },
           { name: 'Sacs', value: 5 + Math.random() * 8, color: '#FF7A00' },
@@ -119,7 +119,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F172A]">Inventaire & Fournitures</h1>
           <p className="text-sm text-slate-500 mt-1">Suivez vos consommables, machines et anticipez les ruptures de stock.</p>
         </div>
-        <button className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition flex items-center gap-2">
+        <button className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition flex items-center gap-2">
           <Icon name="plus" className="w-4 h-4" />Ajouter un article
         </button>
       </div>
@@ -127,7 +127,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
       {/* ─── 6 KPI Cards ─── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { label: 'Consommables actifs', value: String(stats.totalItems), change: '+3 ce mois', icon: 'archive-box', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Consommables actifs', value: String(stats.totalItems), change: '+3 ce mois', icon: 'archive-box', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: 'Alertes stock', value: String(stats.alerts), sub: 'Voir les alertes', icon: 'warning', bg: 'bg-orange-50', color: 'text-[#FF7A00]', alert: stats.alerts > 0 },
           { label: 'Valeur stock', value: formatPrice(stats.stockValue), change: '+12% ce mois', icon: 'currencyDollar', bg: 'bg-green-50', color: 'text-[#22C55E]' },
           { label: 'Consommation mois', value: formatPrice(stats.monthlyConsumption), change: '+8% ce mois', icon: 'chartBar', bg: 'bg-purple-50', color: 'text-purple-600' },
@@ -139,7 +139,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
             <p className="text-[10px] text-slate-400 mb-0.5">{kpi.label}</p>
             <p className="text-lg font-extrabold text-[#0F172A]">{kpi.value}</p>
             {kpi.change && <p className="text-[10px] font-bold text-[#22C55E] mt-0.5">{kpi.change}</p>}
-            {kpi.sub && <p className="text-[10px] text-slate-400 mt-0.5 cursor-pointer hover:text-[#0077B6]">{kpi.sub}</p>}
+            {kpi.sub && <p className="text-[10px] text-slate-400 mt-0.5 cursor-pointer hover:text-brand-blue">{kpi.sub}</p>}
           </div>
         ))}
       </div>
@@ -151,7 +151,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
             <h2 className="text-lg font-bold text-[#0F172A]">Alertes de stock</h2>
             <span className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-bold rounded-full">{stats.alerts}</span>
           </div>
-          <button className="text-xs font-bold text-[#0077B6] hover:underline">Voir toutes les alertes →</button>
+          <button className="text-xs font-bold text-brand-blue hover:underline">Voir toutes les alertes →</button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {consumables.filter(c => c.stock < c.threshold * 0.5).map((item, i) => {
@@ -184,7 +184,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Consommables</h2>
-            <button className="text-xs font-bold text-[#0077B6] hover:underline">Voir tout →</button>
+            <button className="text-xs font-bold text-brand-blue hover:underline">Voir tout →</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -222,7 +222,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Machines & Équipements</h2>
-            <button className="text-xs font-bold text-[#0077B6] hover:underline">Gérer les maintenances →</button>
+            <button className="text-xs font-bold text-brand-blue hover:underline">Gérer les maintenances →</button>
           </div>
           <div className="space-y-2.5">
             {equipment.map((eq, i) => {
@@ -231,7 +231,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
               return (
                 <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><Icon name="truck" className="w-4 h-4 text-[#0077B6]" /></div>
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><Icon name="truck" className="w-4 h-4 text-brand-blue" /></div>
                     <div>
                       <p className="text-xs font-bold text-[#0F172A]">{eq.name}</p>
                       <p className="text-[10px] text-slate-400">Maint. : {eq.lastMaint}</p>
@@ -258,7 +258,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
           <div className="flex items-center gap-3 mb-3">
             {['Lessive', 'Détachant', 'Assouplissant', 'Sacs'].map((n, i) => (
               <span key={n} className="flex items-center gap-1 text-[10px] text-slate-500">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#0077B6', '#22C55E', '#8B5CF6', '#FF7A00'][i] }} />{n}
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#005bd8', '#22C55E', '#8B5CF6', '#FF7A00'][i] }} />{n}
               </span>
             ))}
           </div>
@@ -270,7 +270,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
               </g>
             ))}
             {['Lessive', 'Détachant', 'Assouplissant', 'Sacs'].map((name, si) => {
-              const color = ['#0077B6', '#22C55E', '#8B5CF6', '#FF7A00'][si];
+              const color = ['#005bd8', '#22C55E', '#8B5CF6', '#FF7A00'][si];
               const max = 50;
               const pts = consumptionData.map((d, i) => `${40 + (i / (consumptionData.length - 1)) * 350},${10 + (1 - (d.values[si]?.value || 0) / max) * 130}`).join(' ');
               return <polyline key={si} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" points={pts} />;
@@ -285,7 +285,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
           <h2 className="text-lg font-bold text-[#0F172A] mb-4">Coût opérationnel ce mois</h2>
           <div className="flex items-center gap-6">
             <Donut segments={[
-              { value: 85, color: '#0077B6', label: 'Consommables' },
+              { value: 85, color: '#005bd8', label: 'Consommables' },
               { value: 60, color: '#22C55E', label: 'Eau' },
               { value: 80, color: '#8B5CF6', label: 'Electricité' },
               { value: 50, color: '#FF7A00', label: 'Maintenance' },
@@ -294,7 +294,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
             <div className="flex-1">
               <div className="space-y-2">
                 {[
-                  { label: 'Consommables', value: 85, color: 'bg-[#0077B6]' },
+                  { label: 'Consommables', value: 85, color: 'bg-brand-blue' },
                   { label: 'Eau', value: 60, color: 'bg-[#22C55E]' },
                   { label: 'Electricité', value: 80, color: 'bg-[#8B5CF6]' },
                   { label: 'Maintenance', value: 50, color: 'bg-[#FF7A00]' },
@@ -320,7 +320,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Fournisseurs</h2>
-            <button className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#0077B6] rounded-lg hover:bg-[#005f8f] transition flex items-center gap-1"><Icon name="plus" className="w-3 h-3" />Ajouter</button>
+            <button className="px-3 py-1.5 text-[10px] font-bold text-white bg-brand-blue rounded-lg hover:bg-brand-blue-700 transition flex items-center gap-1"><Icon name="plus" className="w-3 h-3" />Ajouter</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -349,7 +349,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Automatisation & Alertes</h2>
-            <button className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#0077B6] rounded-lg hover:bg-[#005f8f] transition flex items-center gap-1"><Icon name="plus" className="w-3 h-3" />Nouvelle règle</button>
+            <button className="px-3 py-1.5 text-[10px] font-bold text-white bg-brand-blue rounded-lg hover:bg-brand-blue-700 transition flex items-center gap-1"><Icon name="plus" className="w-3 h-3" />Nouvelle règle</button>
           </div>
           <div className="space-y-3">
             {automations.map((a, i) => (
@@ -361,7 +361,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
                   </div>
                 </div>
                 <p className="text-[10px] text-slate-500 mb-1">Si {a.condition}</p>
-                <p className="text-[10px] text-[#0077B6]">Action : {a.action}</p>
+                <p className="text-[10px] text-brand-blue">Action : {a.action}</p>
               </div>
             ))}
           </div>
@@ -374,7 +374,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
           <h2 className="text-lg font-bold text-[#0F172A] mb-4">Mouvements de stock</h2>
           <div className="flex gap-1.5 mb-3">
             {['Tous', 'Entrées', 'Sorties', 'Ajustements'].map((f, i) => (
-              <button key={i} className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${i === 0 ? 'bg-[#0077B6] text-white' : 'bg-slate-100 text-slate-600'}`}>{f}</button>
+              <button key={i} className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${i === 0 ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}>{f}</button>
             ))}
           </div>
           <div className="space-y-2">
@@ -399,7 +399,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
             {[
               { icon: 'document-text', label: 'Rapport inventaire', format: 'PDF', color: 'text-red-500' },
               { icon: 'arrow-down-tray', label: 'Consommation', format: 'Excel', color: 'text-[#22C55E]' },
-              { icon: 'arrow-down-tray', label: 'Mouvements stock', format: 'CSV', color: 'text-[#0077B6]' },
+              { icon: 'arrow-down-tray', label: 'Mouvements stock', format: 'CSV', color: 'text-brand-blue' },
               { icon: 'document-text', label: 'Évaluation stock', format: 'PDF', color: 'text-red-500' },
             ].map((exp, i) => (
               <button key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
@@ -442,7 +442,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
       </div>
 
       {/* ─── Footer CTA ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">📦</span>
           <div>
@@ -450,7 +450,7 @@ export const InventoryManagement: React.FC<InventoryProps> = ({ setSection }) =>
             <p className="text-xs text-white/80">Maintenez toujours un niveau optimal pour ne jamais manquer de produits.</p>
           </div>
         </div>
-        <button className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Commander maintenant</button>
+        <button className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Commander maintenant</button>
       </div>
     </div>
   );

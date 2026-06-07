@@ -76,7 +76,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
       result.push({
         label: `${d.getDate()}/${d.getMonth() + 1}`,
         values: [
-          { name: 'Revenus bruts', value: gross, color: '#0077B6' },
+          { name: 'Revenus bruts', value: gross, color: '#005bd8' },
           { name: 'Revenus nets', value: Math.round(gross * 0.94), color: '#22C55E' },
           { name: 'En attente', value: Math.round(gross * 0.12), color: '#FF7A00' },
         ],
@@ -113,7 +113,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
 
   /* ─── Payment Methods ─── */
   const paymentMethods = useMemo(() => [
-    { value: 45, color: '#0077B6', label: 'Airtel Money' },
+    { value: 45, color: '#005bd8', label: 'Airtel Money' },
     { value: 30, color: '#FF7A00', label: 'Orange Money' },
     { value: 15, color: '#22C55E', label: 'M-Pesa' },
     { value: 8, color: '#8B5CF6', label: 'Cash' },
@@ -142,7 +142,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
         <div className="flex items-center gap-2">
           <button className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-1.5"><Icon name="arrow-down-tray" className="w-3.5 h-3.5" />Exporter</button>
           <button className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center gap-1.5"><Icon name="document-text" className="w-3.5 h-3.5" />PDF</button>
-          <button className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition">Demander un retrait</button>
+          <button className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition">Demander un retrait</button>
         </div>
       </div>
 
@@ -175,7 +175,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
         {/* KPI Cards */}
         <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-4">
           {[
-            { label: 'Revenus bruts', value: formatPrice(stats.grossRevenue), change: '+18%', icon: 'currencyDollar', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+            { label: 'Revenus bruts', value: formatPrice(stats.grossRevenue), change: '+18%', icon: 'currencyDollar', bg: 'bg-blue-50', color: 'text-brand-blue' },
             { label: 'Revenus nets', value: formatPrice(stats.netRevenue), change: '+15%', icon: 'wallet', bg: 'bg-green-50', color: 'text-[#22C55E]' },
             { label: 'En attente', value: formatPrice(stats.pending), sub: 'En attente de versement', icon: 'clock', bg: 'bg-orange-50', color: 'text-[#FF7A00]' },
             { label: 'Commissions', value: formatPrice(stats.commission), sub: '6% de commission', icon: 'chartBar', bg: 'bg-purple-50', color: 'text-purple-600' },
@@ -203,7 +203,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
             <div className="flex items-center gap-3">
               {['Revenus bruts', 'Revenus nets', 'En attente'].map((n, i) => (
                 <span key={n} className="flex items-center gap-1 text-[10px] text-slate-500">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#0077B6', '#22C55E', '#FF7A00'][i] }} />{n}
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#005bd8', '#22C55E', '#FF7A00'][i] }} />{n}
                 </span>
               ))}
             </div>
@@ -217,7 +217,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
                 </g>
               ))}
               {['Revenus bruts', 'Revenus nets', 'En attente'].map((name, si) => {
-                const color = ['#0077B6', '#22C55E', '#FF7A00'][si];
+                const color = ['#005bd8', '#22C55E', '#FF7A00'][si];
                 const max = Math.max(...revenueData.flatMap(d => d.values.map(v => v.value)), 1);
                 const pts = revenueData.map((d, i) => `${50 + (i / (revenueData.length - 1)) * 540},${20 + (1 - (d.values[si]?.value || 0) / max) * 160}`).join(' ');
                 return <polyline key={si} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" points={pts} />;
@@ -250,7 +250,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#0F172A]">Historique des versements</h3>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tout →</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tout →</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -300,7 +300,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
               <span className="text-lg font-extrabold text-[#22C55E]">{formatPrice(stats.netRevenue)}</span>
             </div>
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline">Voir le detail des commissions →</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline">Voir le detail des commissions →</button>
         </div>
       </div>
 
@@ -326,7 +326,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#0F172A]">Top clients</h3>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tout →</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tout →</button>
           </div>
           <div className="space-y-2">
             {topClients.map((c, i) => {
@@ -336,7 +336,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
                 <div key={i} className={`flex items-center justify-between p-2 rounded-lg ${isTop ? 'bg-yellow-50 border border-yellow-200' : ''}`}>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-400 w-4">{i + 1}</span>
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${isTop ? 'bg-yellow-100 text-yellow-700' : 'bg-[#0077B6]/10 text-[#0077B6]'}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${isTop ? 'bg-yellow-100 text-yellow-700' : 'bg-brand-blue/10 text-brand-blue'}`}>
                       {isTop ? '🏆' : initials}
                     </div>
                     <div><p className="text-xs font-bold text-[#0F172A]">{c.name}</p><p className="text-[10px] text-slate-400">{c.count} commandes</p></div>
@@ -354,7 +354,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#0F172A]">Top services</h3>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir tout →</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir tout →</button>
           </div>
           <div className="space-y-2">
             {topServices.map((s, i) => {
@@ -371,7 +371,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
                     {isTop && <span className="px-1.5 py-0.5 bg-[#FF7A00]/10 text-[#FF7A00] rounded-full font-bold">Meilleur service</span>}
                   </div>
                   <div className="h-1 bg-slate-100 rounded-full overflow-hidden mt-1.5">
-                    <div className="h-full bg-[#0077B6] rounded-full" style={{ width: `${(s.revenue / maxRev) * 100}%` }} />
+                    <div className="h-full bg-brand-blue rounded-full" style={{ width: `${(s.revenue / maxRev) * 100}%` }} />
                   </div>
                 </div>
               );
@@ -416,7 +416,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[#0F172A]">Alertes</h3>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Voir toutes →</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Voir toutes →</button>
           </div>
           <div className="space-y-2">
             <div className="p-3 bg-orange-50 rounded-xl border border-orange-100 flex items-center justify-between">
@@ -435,10 +435,10 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
             </div>
             <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Icon name="arrow-down-tray" className="w-4 h-4 text-[#0077B6]" />
+                <Icon name="arrow-down-tray" className="w-4 h-4 text-brand-blue" />
                 <div><p className="text-xs font-bold text-[#0F172A]">2 retraits a valider</p><p className="text-[10px] text-slate-400">Total : {formatPrice(180)}</p></div>
               </div>
-              <button className="px-2 py-1 text-[10px] font-bold bg-[#0077B6] text-white rounded-lg">Voir</button>
+              <button className="px-2 py-1 text-[10px] font-bold bg-brand-blue text-white rounded-lg">Voir</button>
             </div>
           </div>
         </div>
@@ -448,10 +448,10 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
           <div className="flex items-center justify-between mb-4">
             {[
               { icon: 'check', label: 'Commande', sub: 'Livree', color: 'bg-[#22C55E]', active: true },
-              { icon: 'currencyDollar', label: 'Paiement', sub: 'Client', color: 'bg-[#0077B6]', active: true },
-              { icon: 'chartBar', label: 'Commission', sub: 'Calculee', color: 'bg-[#0077B6]', active: true },
-              { icon: 'wallet', label: 'Disponible', sub: 'Montant', color: 'bg-[#0077B6]', active: true },
-              { icon: 'arrow-down-tray', label: 'Retrait', sub: 'Demande', color: 'bg-[#0077B6]', active: false },
+              { icon: 'currencyDollar', label: 'Paiement', sub: 'Client', color: 'bg-brand-blue', active: true },
+              { icon: 'chartBar', label: 'Commission', sub: 'Calculee', color: 'bg-brand-blue', active: true },
+              { icon: 'wallet', label: 'Disponible', sub: 'Montant', color: 'bg-brand-blue', active: true },
+              { icon: 'arrow-down-tray', label: 'Retrait', sub: 'Demande', color: 'bg-brand-blue', active: false },
               { icon: 'check', label: 'Versement', sub: 'Effectue', color: 'bg-slate-300', active: false },
             ].map((step, i) => (
               <div key={i} className="flex flex-col items-center text-center flex-1">
@@ -468,7 +468,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
       </div>
 
       {/* ─── Resume mensuel ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">💰</span>
           <div>
@@ -482,7 +482,7 @@ export const Financials: React.FC<FinancialsProps> = ({ setSection }) => {
           <div className="text-center"><p className="text-xl font-extrabold text-white">+12%</p><p className="text-[10px] text-white/70">Profit net</p></div>
           <div className="text-center"><p className="text-xl font-extrabold text-white">98%</p><p className="text-[10px] text-white/70">Paiements reussis</p></div>
         </div>
-        <button className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir rapport complet</button>
+        <button className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir rapport complet</button>
       </div>
 
       {/* ─── Footer CTA ─── */}

@@ -21,7 +21,7 @@ export const HomePage: React.FC = () => {
 
   const totalOrders = orderHistory.length;
   const points = user?.loyaltyPoints ?? 350;
-  const referralCode = user?.referralCode || 'EXPRESS-REF';
+  const referralCode = user?.referralCode || 'LE-DEMO2026';
   const totalSaved = 25;
   const loyaltyProgress = Math.min((points / 200) * 100, 100);
   const clientSince = useMemo(() => {
@@ -77,10 +77,10 @@ export const HomePage: React.FC = () => {
   const getStatusColor = (status: OrderStatus): { text: string; bg: string; dot: string } => {
     const map: Record<string, { text: string; bg: string; dot: string }> = {
       [OrderStatus.AWAITING_CONFIRMATION]: { text: 'text-[#FF7A00]', bg: 'bg-orange-50', dot: 'bg-[#FF7A00]' },
-      [OrderStatus.CONFIRMED]: { text: 'text-[#0077B6]', bg: 'bg-blue-50', dot: 'bg-[#0077B6]' },
-      [OrderStatus.READY_FOR_PICKUP]: { text: 'text-[#0077B6]', bg: 'bg-blue-50', dot: 'bg-[#0077B6]' },
-      [OrderStatus.PICKUP]: { text: 'text-[#0077B6]', bg: 'bg-blue-50', dot: 'bg-[#0077B6]' },
-      [OrderStatus.PROCESSING]: { text: 'text-[#0077B6]', bg: 'bg-blue-50', dot: 'bg-[#0077B6]' },
+      [OrderStatus.CONFIRMED]: { text: 'text-brand-blue', bg: 'bg-blue-50', dot: 'bg-brand-blue' },
+      [OrderStatus.READY_FOR_PICKUP]: { text: 'text-brand-blue', bg: 'bg-blue-50', dot: 'bg-brand-blue' },
+      [OrderStatus.PICKUP]: { text: 'text-brand-blue', bg: 'bg-blue-50', dot: 'bg-brand-blue' },
+      [OrderStatus.PROCESSING]: { text: 'text-brand-blue', bg: 'bg-blue-50', dot: 'bg-brand-blue' },
       [OrderStatus.READY_FOR_DELIVERY]: { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500' },
       [OrderStatus.DELIVERY]: { text: 'text-purple-600', bg: 'bg-purple-50', dot: 'bg-purple-500' },
       [OrderStatus.COMPLETED]: { text: 'text-[#22C55E]', bg: 'bg-green-50', dot: 'bg-[#22C55E]' },
@@ -126,7 +126,7 @@ export const HomePage: React.FC = () => {
       {/* ═══════════════════════════════════════════
           SECTION 1 — Hero Personalise
       ═══════════════════════════════════════════ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077B6] via-[#0077B6] to-[#005f8f] text-white px-6 py-8 sm:px-10 sm:py-10">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-blue via-brand-blue to-brand-blue-700 text-white px-6 py-8 sm:px-10 sm:py-10">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative z-10">
@@ -158,7 +158,7 @@ export const HomePage: React.FC = () => {
           {/* CTA */}
           <button
             onClick={handleNewOrder}
-            className="mt-6 px-8 py-3 bg-white text-[#0077B6] font-bold rounded-full text-sm hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg"
+            className="mt-6 px-8 py-3 bg-white text-brand-blue font-bold rounded-full text-sm hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg"
           >
             <Icon name="shoppingBag" className="w-5 h-5" />
             <span>Commander maintenant</span>
@@ -174,7 +174,7 @@ export const HomePage: React.FC = () => {
         <h2 className="text-lg font-bold text-[#0F172A] mb-3">Actions rapides</h2>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
           {[
-            { icon: 'shoppingBag', label: 'Commander', desc: 'Nouvelle commande', bg: 'bg-[#0077B6]/10', color: 'text-[#0077B6]', action: handleNewOrder },
+            { icon: 'shoppingBag', label: 'Commander', desc: 'Nouvelle commande', bg: 'bg-brand-blue/10', color: 'text-brand-blue', action: handleNewOrder },
             { icon: 'search', label: 'Suivre', desc: 'Suivi de commande', bg: 'bg-[#22C55E]/10', color: 'text-[#22C55E]', action: () => setCurrentPage({ name: 'tracking' }) },
             { icon: 'document-text', label: 'Historique', desc: 'Mes commandes', bg: 'bg-purple-500/10', color: 'text-purple-600', action: () => setCurrentPage({ name: 'profile' }) },
             { icon: 'star', label: 'Points', desc: 'Fidelite', bg: 'bg-[#FF7A00]/10', color: 'text-[#FF7A00]', action: () => setCurrentPage({ name: 'profile' }) },
@@ -201,7 +201,7 @@ export const HomePage: React.FC = () => {
       <section>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { icon: 'shoppingBag', label: 'Commandes totales', value: totalOrders, color: 'text-[#0077B6]', bg: 'bg-[#0077B6]/10' },
+            { icon: 'shoppingBag', label: 'Commandes totales', value: totalOrders, color: 'text-brand-blue', bg: 'bg-brand-blue/10' },
             { icon: 'star', label: 'Points fidelite', value: points, color: 'text-[#FF7A00]', bg: 'bg-[#FF7A00]/10' },
             { icon: 'users', label: 'Parrainages', value: 4, color: 'text-purple-600', bg: 'bg-purple-500/10' },
             { icon: 'currencyDollar', label: 'Economies', value: `$${totalSaved}`, color: 'text-[#22C55E]', bg: 'bg-[#22C55E]/10' },
@@ -225,7 +225,7 @@ export const HomePage: React.FC = () => {
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-bold text-[#0F172A]">Commandes actives</h2>
           {activeOrders.length > 0 && (
-            <button onClick={() => setCurrentPage({ name: 'tracking' })} className="text-xs font-semibold text-[#0077B6] hover:underline flex items-center gap-1">
+            <button onClick={() => setCurrentPage({ name: 'tracking' })} className="text-xs font-semibold text-brand-blue hover:underline flex items-center gap-1">
               Tout voir <Icon name="arrowRight" className="w-3 h-3" />
             </button>
           )}
@@ -238,7 +238,7 @@ export const HomePage: React.FC = () => {
             </div>
             <p className="text-sm font-bold text-[#0F172A]">Aucune commande en cours</p>
             <p className="text-xs text-slate-400 mt-1">Passez votre premiere commande pour commencer !</p>
-            <button onClick={handleNewOrder} className="mt-4 px-6 py-2.5 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition inline-flex items-center gap-2">
+            <button onClick={handleNewOrder} className="mt-4 px-6 py-2.5 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition inline-flex items-center gap-2">
               <Icon name="shoppingBag" className="w-4 h-4" />
               Commander
             </button>
@@ -282,7 +282,7 @@ export const HomePage: React.FC = () => {
                               si < progressIdx
                                 ? 'bg-[#22C55E] text-white'
                                 : si === progressIdx
-                                ? 'bg-[#0077B6] text-white ring-2 ring-[#0077B6]/20'
+                                ? 'bg-brand-blue text-white ring-2 ring-brand-blue/20'
                                 : 'bg-slate-100 text-slate-400'
                             }`}
                           >
@@ -376,7 +376,7 @@ export const HomePage: React.FC = () => {
           <div className="bg-slate-50 rounded-xl p-4 mb-4">
             <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Votre code parrain</p>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-extrabold text-[#0077B6] tracking-wider">{referralCode}</span>
+              <span className="text-xl font-extrabold text-brand-blue tracking-wider">{referralCode}</span>
             </div>
           </div>
 
@@ -399,7 +399,7 @@ export const HomePage: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={handleCopyCode}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition"
             >
               <Icon name="document-text" className="w-4 h-4" />
               Copier le code
@@ -421,7 +421,7 @@ export const HomePage: React.FC = () => {
       <section>
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-bold text-[#0F172A]">Partenaires populaires</h2>
-          <button onClick={handleNewOrder} className="text-xs font-semibold text-[#0077B6] hover:underline flex items-center gap-1">
+          <button onClick={handleNewOrder} className="text-xs font-semibold text-brand-blue hover:underline flex items-center gap-1">
             Voir tout <Icon name="arrowRight" className="w-3 h-3" />
           </button>
         </div>
@@ -453,7 +453,7 @@ export const HomePage: React.FC = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[#0077B6]">
+                      <div className="flex h-full w-full items-center justify-center text-brand-blue">
                         <Icon name="shirt" className="w-8 h-8" />
                       </div>
                     )}
@@ -468,7 +468,7 @@ export const HomePage: React.FC = () => {
                     )}
                   </div>
                   <div className="p-3">
-                    <p className="text-[10px] font-bold text-[#0077B6] uppercase tracking-wide">
+                    <p className="text-[10px] font-bold text-brand-blue uppercase tracking-wide">
                       {partner.type}
                     </p>
                     <div className="flex items-center gap-1 mt-1.5">
@@ -495,7 +495,7 @@ export const HomePage: React.FC = () => {
         <h2 className="text-lg font-bold text-[#0F172A] mb-3">Pourquoi nous choisir</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { icon: 'shield-check', title: 'Paiement securise', desc: 'Transactions protegees', color: 'text-[#0077B6]', bg: 'bg-[#0077B6]/10' },
+            { icon: 'shield-check', title: 'Paiement securise', desc: 'Transactions protegees', color: 'text-brand-blue', bg: 'bg-brand-blue/10' },
             { icon: 'truck', title: 'Livraison rapide', desc: 'Partout a Kinshasa', color: 'text-[#22C55E]', bg: 'bg-[#22C55E]/10' },
             { icon: 'check', title: 'Qualite garantie', desc: 'Satisfait ou rembourse', color: 'text-[#FF7A00]', bg: 'bg-[#FF7A00]/10' },
             { icon: 'phone', title: 'Support 24/7', desc: 'Disponible a tout moment', color: 'text-purple-600', bg: 'bg-purple-500/10' },
@@ -513,3 +513,4 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
+

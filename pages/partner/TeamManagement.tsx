@@ -44,7 +44,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
 
   const activity = useMemo(() => [
     { user: 'Marie T.', action: 'a accepte la commande', detail: 'CMD-203', time: 'Il y a 5 min', icon: 'check', color: 'text-[#22C55E]' },
-    { user: 'Jean L.', action: 'a livre la commande', detail: 'CMD-198', time: 'Il y a 12 min', icon: 'truck', color: 'text-[#0077B6]' },
+    { user: 'Jean L.', action: 'a livre la commande', detail: 'CMD-198', time: 'Il y a 12 min', icon: 'truck', color: 'text-brand-blue' },
     { user: 'David K.', action: 'a mis a jour le statut', detail: 'CMD-201', time: 'Il y a 20 min', icon: 'pencil', color: 'text-[#FF7A00]' },
     { user: 'Sarah M.', action: 'a ajoute un nouveau client', detail: 'Patrick M.', time: 'Il y a 35 min', icon: 'user', color: 'text-purple-600' },
     { user: 'Patrice', action: 'a cree une promotion', detail: 'COSTUME15', time: 'Il y a 1h', icon: 'sparkles', color: 'text-[#FF7A00]' },
@@ -60,7 +60,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
   const getRoleBadge = (role: string) => {
     const r: Record<string, { color: string; bg: string }> = {
       'Proprietaire': { color: 'text-yellow-700', bg: 'bg-yellow-50' },
-      'Manager': { color: 'text-[#0077B6]', bg: 'bg-blue-50' },
+      'Manager': { color: 'text-brand-blue', bg: 'bg-blue-50' },
       'Livreur': { color: 'text-[#22C55E]', bg: 'bg-green-50' },
       'Agent': { color: 'text-purple-600', bg: 'bg-purple-50' },
     };
@@ -70,7 +70,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
   const getStatusBadge = (status: string) => {
     const s: Record<string, { color: string; bg: string }> = {
       'Actif': { color: 'text-[#22C55E]', bg: 'bg-green-50' },
-      'En tournee': { color: 'text-[#0077B6]', bg: 'bg-blue-50' },
+      'En tournee': { color: 'text-brand-blue', bg: 'bg-blue-50' },
       'Absent': { color: 'text-red-500', bg: 'bg-red-50' },
       'Conge': { color: 'text-purple-600', bg: 'bg-purple-50' },
     };
@@ -85,13 +85,13 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F172A]">Gestion d'equipe</h1>
           <p className="text-sm text-slate-500 mt-1">Gerez vos employs, roles, acces et performances.</p>
         </div>
-        <button className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-xl hover:bg-[#005f8f] transition flex items-center gap-2"><Icon name="plus" className="w-4 h-4" />Inviter un membre</button>
+        <button className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-xl hover:bg-brand-blue-700 transition flex items-center gap-2"><Icon name="plus" className="w-4 h-4" />Inviter un membre</button>
       </div>
 
       {/* ─── Section 1: 6 KPI Cards ─── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { label: 'Total employes', value: String(stats.total), change: '+2 ce mois', icon: 'users', bg: 'bg-blue-50', color: 'text-[#0077B6]' },
+          { label: 'Total employes', value: String(stats.total), change: '+2 ce mois', icon: 'users', bg: 'bg-blue-50', color: 'text-brand-blue' },
           { label: "Presents aujourd'hui", value: String(stats.present), sub: `${Math.round((stats.present / stats.total) * 100)}% de l'equipe`, icon: 'user', bg: 'bg-green-50', color: 'text-[#22C55E]' },
           { label: 'Livreurs actifs', value: String(stats.drivers), sub: 'En tournee', icon: 'truck', bg: 'bg-purple-50', color: 'text-purple-600' },
           { label: 'Managers', value: String(stats.managers), sub: `${Math.round((stats.managers / stats.total) * 100)}% de l'equipe`, icon: 'shield-check', bg: 'bg-cyan-50', color: 'text-cyan-600' },
@@ -115,7 +115,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
           <h2 className="text-sm font-bold text-[#0F172A] mb-4">Structure de l'equipe</h2>
           <div className="flex flex-col items-center">
             {/* Proprietaire */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#0077B6] to-[#005f8f] flex items-center justify-center text-white text-lg font-bold mb-1">PM</div>
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-700 flex items-center justify-center text-white text-lg font-bold mb-1">PM</div>
             <p className="text-xs font-bold text-[#0F172A]">Patrice</p>
             <p className="text-[10px] text-slate-400">Proprietaire</p>
             <div className="w-0.5 h-4 bg-slate-200 my-1" />
@@ -123,7 +123,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
             <div className="flex gap-8">
               {['Marie T.', 'Alain B.'].map((name, i) => (
                 <div key={i} className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] text-xs font-bold">{name.split(' ').map(n => n[0]).join('')}</div>
+                  <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue text-xs font-bold">{name.split(' ').map(n => n[0]).join('')}</div>
                   <p className="text-[10px] font-bold text-[#0F172A]">{name}</p>
                   <p className="text-[9px] text-slate-400">{i === 0 ? 'Manager operations' : 'Manager support'}</p>
                 </div>
@@ -151,7 +151,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
           </div>
           <div className="relative mb-3">
             <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="Rechercher un membre..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0077B6]" />
+            <input type="text" placeholder="Rechercher un membre..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue" />
           </div>
           <div className="space-y-2">
             {filteredMembers.slice(0, 6).map((m, i) => {
@@ -161,7 +161,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
                 <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
                   <div className="flex items-center gap-2.5">
                     <div className="relative">
-                      <div className="w-9 h-9 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-[10px]">{m.avatar}</div>
+                      <div className="w-9 h-9 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-[10px]">{m.avatar}</div>
                       {m.online && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#22C55E] rounded-full border-2 border-white" />}
                     </div>
                     <div>
@@ -177,7 +177,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
               );
             })}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline text-center">Voir tous les membres →</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline text-center">Voir tous les membres →</button>
         </div>
       </div>
 
@@ -246,7 +246,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline text-center">Gerer les plannings →</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline text-center">Gerer les plannings →</button>
         </div>
 
         {/* Presence */}
@@ -292,7 +292,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
               <div key={i} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl">
                 <div className="flex items-center gap-2.5">
                   <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-[#0077B6]/10 text-[#0077B6]'}`}>{m.avatar}</div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold ${i === 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-brand-blue/10 text-brand-blue'}`}>{m.avatar}</div>
                   <div>
                     <p className="text-xs font-bold text-[#0F172A]">{m.name}</p>
                     <p className="text-[9px] text-slate-400">{m.role} • {m.commands > 0 ? `${m.commands} commandes` : `${m.deliveries} livraisons`}</p>
@@ -305,7 +305,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline text-center">Voir le rapport complet →</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline text-center">Voir le rapport complet →</button>
         </div>
 
         {/* Activite */}
@@ -322,14 +322,14 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline text-center">Voir toute l'activite →</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline text-center">Voir toute l'activite →</button>
         </div>
 
         {/* Invitations */}
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-[#0F172A]">Invitations en attente</h2>
-            <button className="text-[10px] font-bold text-[#0077B6] hover:underline">Envoyer une invitation</button>
+            <button className="text-[10px] font-bold text-brand-blue hover:underline">Envoyer une invitation</button>
           </div>
           <div className="space-y-2.5">
             {pendingInvites.map((inv, i) => (
@@ -340,7 +340,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
                 </div>
                 <p className="text-[10px] text-slate-400 mb-2">Envoyee {inv.sent}</p>
                 <div className="flex gap-2">
-                  <button className="flex-1 py-1.5 text-[10px] font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Relancer</button>
+                  <button className="flex-1 py-1.5 text-[10px] font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Relancer</button>
                   <button className="flex-1 py-1.5 text-[10px] font-bold bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">Annuler</button>
                 </div>
               </div>
@@ -387,13 +387,13 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
                     <span className="text-xs font-bold text-[#0F172A]">{l.used.toLocaleString('fr-FR')}{(l as any).unit || ''} / {l.max.toLocaleString('fr-FR')}{(l as any).unit || ''}</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : pct > 60 ? 'bg-[#FF7A00]' : 'bg-[#0077B6]'}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : pct > 60 ? 'bg-[#FF7A00]' : 'bg-brand-blue'}`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
             })}
           </div>
-          <button className="w-full mt-3 py-2 text-xs font-bold text-[#0077B6] hover:underline text-center">Voir toutes les limites</button>
+          <button className="w-full mt-3 py-2 text-xs font-bold text-brand-blue hover:underline text-center">Voir toutes les limites</button>
         </div>
 
         {/* Actions rapides */}
@@ -401,7 +401,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
           <h2 className="text-sm font-bold text-[#0F172A] mb-3">Actions rapides</h2>
           <div className="space-y-2">
             {[
-              { icon: 'plus', label: 'Ajouter un membre', color: 'text-[#0077B6]' },
+              { icon: 'plus', label: 'Ajouter un membre', color: 'text-brand-blue' },
               { icon: 'shield-check', label: 'Creer un role personnalise', color: 'text-purple-600' },
               { icon: 'pencil', label: 'Gerer les permissions', color: 'text-[#FF7A00]' },
               { icon: 'arrow-down-tray', label: 'Exporter la liste de l\'equipe', color: 'text-[#22C55E]' },
@@ -417,7 +417,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
       </div>
 
       {/* ─── Footer CTA ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">👥</span>
           <div>
@@ -425,7 +425,7 @@ export const TeamManagement: React.FC<TeamProps> = ({ setSection }) => {
             <p className="text-xs text-white/80">92% satisfaction clients • 98% livraisons reussies • 5 min temps moyen de reponse</p>
           </div>
         </div>
-        {setSection && <button onClick={() => setSection('analytics')} className="px-5 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir le rapport d'equipe</button>}
+        {setSection && <button onClick={() => setSection('analytics')} className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir le rapport d'equipe</button>}
       </div>
     </div>
   );

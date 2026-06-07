@@ -27,7 +27,7 @@ export const EstimateTimeModal: React.FC<{
         </select>
         <div className="flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuler</button>
-          <button onClick={() => { const h = parseInt(selectedOption); const d = new Date(); d.setHours(d.getHours() + h); onConfirm(d.toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })); }} disabled={isLoading} className="px-6 py-2 bg-[#0077B6] text-white text-sm font-bold rounded-lg hover:bg-[#005f8f] transition">
+          <button onClick={() => { const h = parseInt(selectedOption); const d = new Date(); d.setHours(d.getHours() + h); onConfirm(d.toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })); }} disabled={isLoading} className="px-6 py-2 bg-brand-blue text-white text-sm font-bold rounded-lg hover:bg-brand-blue-700 transition">
             {isLoading ? '...' : 'Confirmer'}
           </button>
         </div>
@@ -93,7 +93,7 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[]; onCreat
       <Icon name="currencyDollar" className="w-10 h-10 text-slate-300 mb-3" />
       <p className="text-sm font-medium text-slate-500 mb-1">Aucun revenu enregistre</p>
       <p className="text-xs text-slate-400 mb-3">Recevez votre premiere commande pour commencer a suivre vos revenus.</p>
-      {onCreatePromo && <button onClick={onCreatePromo} className="px-4 py-1.5 bg-[#0077B6] text-white text-xs font-bold rounded-lg hover:bg-[#005f8f] transition">Creer une promotion</button>}
+      {onCreatePromo && <button onClick={onCreatePromo} className="px-4 py-1.5 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition">Creer une promotion</button>}
     </div>
   );
   const max = Math.max(...data.map(d => d.amount), 1);
@@ -124,17 +124,17 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[]; onCreat
         </g>
       ))}
       <polygon points={areaPoints} fill="url(#gradient)" opacity="0.3" />
-      <polyline fill="none" stroke="#0077B6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={linePoints} />
+      <polyline fill="none" stroke="#005bd8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={linePoints} />
       {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="3" fill="#0077B6" stroke="white" strokeWidth="2" />
+        <circle key={i} cx={p.x} cy={p.y} r="3" fill="#005bd8" stroke="white" strokeWidth="2" />
       ))}
       {data.length <= 10 && data.map((d, i) => (
         <text key={i} x={points[i].x} y={h - 8} textAnchor="middle" className="text-[9px] fill-slate-400">{d.date.slice(-2)}/{d.date.slice(5, 7)}</text>
       ))}
       <defs>
         <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#0077B6" />
-          <stop offset="100%" stopColor="#0077B6" stopOpacity="0" />
+          <stop offset="0%" stopColor="#005bd8" />
+          <stop offset="100%" stopColor="#005bd8" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>
@@ -246,7 +246,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
   const recentActivity = useMemo(() => [
     { icon: 'star', color: 'text-yellow-500', bg: 'bg-yellow-50', title: 'Nouvel avis 5 etoiles', detail: 'Client satisfait du pressing', time: 'Il y a 25 min' },
     { icon: 'check', color: 'text-[#22C55E]', bg: 'bg-green-50', title: `Commande ${completedOrders[0]?.backendOrderNumber || 'LE-2024-0001'} livree`, detail: 'Paiement recu', time: 'Il y a 1h' },
-    { icon: 'user', color: 'text-[#0077B6]', bg: 'bg-blue-50', title: 'Nouveau client', detail: 'Marie K. a passe sa 1ere commande', time: 'Il y a 2h' },
+    { icon: 'user', color: 'text-brand-blue', bg: 'bg-blue-50', title: 'Nouveau client', detail: 'Marie K. a passe sa 1ere commande', time: 'Il y a 2h' },
     { icon: 'currencyDollar', color: 'text-purple-600', bg: 'bg-purple-50', title: `Paiement recu : ${formatPrice(stats.revenue > 0 ? 18 : 0)}`, detail: 'Mobile Money', time: 'Il y a 3h' },
     { icon: 'search', color: 'text-slate-500', bg: 'bg-slate-100', title: 'Nouveau visiteur profil', detail: 'Depuis Gombe', time: 'Il y a 4h' },
     { icon: 'sparkles', color: 'text-[#FF7A00]', bg: 'bg-orange-50', title: 'Promotion consultee', detail: '-20% Costumes', time: 'Il y a 5h' },
@@ -292,7 +292,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
         </div>
 
         {/* Top Local */}
-        <div className="bg-gradient-to-br from-[#0077B6] to-[#005f8f] rounded-2xl p-6 text-white flex flex-col">
+        <div className="bg-gradient-to-br from-brand-blue to-brand-blue-700 rounded-2xl p-6 text-white flex flex-col">
           <p className="text-sm font-medium text-white/80 mb-1">Vous etes dans le</p>
           <h2 className="text-2xl font-extrabold mb-1">Top 3 a Gombe</h2>
           <div className="flex items-center gap-2 mb-4">
@@ -315,7 +315,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             ))}
           </div>
           <div className="space-y-2">
-            <button onClick={() => setSection('promotions')} className="w-full py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition">Creer une promotion</button>
+            <button onClick={() => setSection('promotions')} className="w-full py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition">Creer une promotion</button>
             <button onClick={() => setSection('profile')} className="w-full py-2.5 bg-white/20 text-white font-bold rounded-xl text-sm hover:bg-white/30 transition">Voir mon profil public</button>
           </div>
         </div>
@@ -325,7 +325,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: 'Revenus ce mois', value: formatPrice(stats.revenue), change: stats.revenueChange, icon: 'currencyDollar', iconBg: 'bg-green-50', iconColor: 'text-[#22C55E]', sparkData: revenueData.slice(-7).map(d => d.amount), sparkColor: '#22C55E' },
-          { label: 'Commandes ce mois', value: String(stats.ordersThisMonth), change: stats.ordersChange, icon: 'shoppingBag', iconBg: 'bg-blue-50', iconColor: 'text-[#0077B6]', sparkData: [3, 5, 2, 8, 6, 4, 7], sparkColor: '#0077B6' },
+          { label: 'Commandes ce mois', value: String(stats.ordersThisMonth), change: stats.ordersChange, icon: 'shoppingBag', iconBg: 'bg-blue-50', iconColor: 'text-brand-blue', sparkData: [3, 5, 2, 8, 6, 4, 7], sparkColor: '#005bd8' },
           { label: 'Note moyenne', value: `${stats.avgRating} / 5`, change: 0, icon: 'star', iconBg: 'bg-yellow-50', iconColor: 'text-yellow-500', stars: true, reviewCount: stats.reviewCount },
           { label: 'Visiteurs ce mois', value: stats.visitors.toLocaleString('fr-FR'), change: stats.visitorsChange, icon: 'search', iconBg: 'bg-purple-50', iconColor: 'text-purple-600', sparkData: [80, 120, 95, 150, 180, 160, 200], sparkColor: '#9333EA' },
           { label: 'Conversion profil', value: '6.4%', change: 0.8, icon: 'chartBar', iconBg: 'bg-orange-50', iconColor: 'text-[#FF7A00]', sparkData: [4.2, 4.8, 5.1, 5.5, 5.9, 6.1, 6.4], sparkColor: '#FF7A00' },
@@ -406,7 +406,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="text-left py-2 text-slate-500 font-medium">Metrique</th>
-                  <th className="text-center py-2 text-[#0077B6] font-bold">Vous</th>
+                  <th className="text-center py-2 text-brand-blue font-bold">Vous</th>
                   <th className="text-center py-2 text-slate-500 font-medium">Moy. Gombe</th>
                   <th className="text-center py-2 text-slate-500 font-medium">Statut</th>
                 </tr>
@@ -420,7 +420,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-50 last:border-0">
                     <td className="py-2.5 text-slate-600 font-medium">{row.metric}</td>
-                    <td className="py-2.5 text-center font-bold text-[#0077B6]">{row.you}</td>
+                    <td className="py-2.5 text-center font-bold text-brand-blue">{row.you}</td>
                     <td className="py-2.5 text-center text-slate-500">{row.avg}</td>
                     <td className="py-2.5 text-center">
                       {row.better ? (
@@ -446,9 +446,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
           <p className="text-xs text-slate-400 mb-4">Ou vous perdez des clients</p>
           <div className="space-y-3">
             {[
-              { step: 'Recherches', value: '8 524', pct: 100, color: 'bg-[#0077B6]', icon: 'search' },
-              { step: 'Visites profil', value: '2 341', pct: 27, color: 'bg-[#0077B6]/80', icon: 'user' },
-              { step: 'Demandes', value: '150', pct: 6.4, color: 'bg-[#0077B6]/60', icon: 'shoppingBag' },
+              { step: 'Recherches', value: '8 524', pct: 100, color: 'bg-brand-blue', icon: 'search' },
+              { step: 'Visites profil', value: '2 341', pct: 27, color: 'bg-brand-blue/80', icon: 'user' },
+              { step: 'Demandes', value: '150', pct: 6.4, color: 'bg-brand-blue/60', icon: 'shoppingBag' },
               { step: 'Commandes', value: String(stats.ordersThisMonth), pct: stats.ordersThisMonth > 0 ? Math.round((stats.ordersThisMonth / 8524) * 1000) / 10 : 0, color: 'bg-[#22C55E]', icon: 'check' },
             ].map((f, i) => (
               <div key={i}>
@@ -494,7 +494,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                   <div key={order.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-[#0077B6]/10 flex items-center justify-center text-[#0077B6] font-bold text-xs">{initials}</div>
+                        <div className="w-9 h-9 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-xs">{initials}</div>
                         <div>
                           <p className="text-sm font-bold text-[#0F172A]">{clientName}</p>
                           <p className="text-[10px] text-slate-400">#{order.backendOrderNumber || order.id}</p>
@@ -507,18 +507,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                       <span className="text-slate-300">|</span>
                       <span className="flex items-center gap-1"><Icon name="mapPin" className="w-3 h-3 text-slate-400" />{commune}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] text-[#0077B6] font-medium mb-3">
+                    <div className="flex items-center gap-1 text-[11px] text-brand-blue font-medium mb-3">
                       <Icon name="clock" className="w-3 h-3" />
                       <span>Ramassage aujourd'hui</span>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="flex-1 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-100 transition">Voir details</button>
-                      <button onClick={() => handleAcceptOrder(order)} className="flex-1 py-2 text-xs font-bold bg-[#0077B6] text-white rounded-lg hover:bg-[#005f8f] transition">Accepter</button>
+                      <button onClick={() => handleAcceptOrder(order)} className="flex-1 py-2 text-xs font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Accepter</button>
                     </div>
                   </div>
                 );
               })}
-              <button onClick={() => setSection('orders')} className="w-full py-2 text-sm font-bold text-[#0077B6] hover:underline">Voir toutes les commandes</button>
+              <button onClick={() => setSection('orders')} className="w-full py-2 text-sm font-bold text-brand-blue hover:underline">Voir toutes les commandes</button>
             </div>
           ) : (
             <div className="text-center py-6">
@@ -568,7 +568,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
               </div>
             ))}
           </div>
-          <button onClick={() => setSection('orders')} className="w-full mt-4 py-2 text-sm font-bold text-[#0077B6] hover:underline">Voir tous les avis</button>
+          <button onClick={() => setSection('orders')} className="w-full mt-4 py-2 text-sm font-bold text-brand-blue hover:underline">Voir tous les avis</button>
         </div>
 
         {/* Promotions */}
@@ -590,7 +590,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             </div>
             <p className="text-[10px] text-slate-400 mt-1">Expire le 30/06/2026</p>
           </div>
-          <button onClick={() => setSection('promotions')} className="w-full py-2 text-sm font-bold text-[#0077B6] hover:underline">Voir mes promotions</button>
+          <button onClick={() => setSection('promotions')} className="w-full py-2 text-sm font-bold text-brand-blue hover:underline">Voir mes promotions</button>
         </div>
       </div>
 
@@ -609,8 +609,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             ].map((r, i) => (
               <div key={i} className={`flex items-center justify-between p-2.5 rounded-lg ${r.isYou ? 'bg-blue-50 border border-blue-100' : ''}`}>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold w-5 ${r.isYou ? 'text-[#0077B6]' : 'text-slate-400'}`}>{r.rank}</span>
-                  <span className={`text-sm ${r.isYou ? 'font-bold text-[#0077B6]' : 'text-[#0F172A]'}`}>{r.name}</span>
+                  <span className={`text-xs font-bold w-5 ${r.isYou ? 'text-brand-blue' : 'text-slate-400'}`}>{r.rank}</span>
+                  <span className={`text-sm ${r.isYou ? 'font-bold text-brand-blue' : 'text-[#0F172A]'}`}>{r.name}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   <span className="font-bold text-[#0F172A]">{r.rating}</span>
@@ -658,7 +658,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       {/* ─── AI Growth Advisor ─── */}
       <div className="bg-white rounded-2xl border border-slate-100 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 bg-gradient-to-br from-[#0077B6] to-[#005f8f] rounded-xl">
+          <div className="p-2 bg-gradient-to-br from-brand-blue to-brand-blue-700 rounded-xl">
             <Icon name="sparkles" className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -680,7 +680,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                 {item.done ? (
                   <span className="text-[10px] font-bold text-[#22C55E] bg-green-100 px-2 py-0.5 rounded-full">Fait</span>
                 ) : (
-                  <span className="text-[10px] font-bold text-[#0077B6] bg-blue-50 px-2 py-0.5 rounded-full">{item.gain} visibilite</span>
+                  <span className="text-[10px] font-bold text-brand-blue bg-blue-50 px-2 py-0.5 rounded-full">{item.gain} visibilite</span>
                 )}
               </div>
               <p className="text-sm font-medium text-[#0F172A] mb-1">{item.action}</p>
@@ -691,14 +691,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
           <div>
             <p className="text-sm font-bold text-[#0F172A]">Impact estime</p>
-            <p className="text-xs text-slate-500">En completant ces 3 actions, vous gagnerez <span className="font-bold text-[#0077B6]">+18% de visibilite</span></p>
+            <p className="text-xs text-slate-500">En completant ces 3 actions, vous gagnerez <span className="font-bold text-brand-blue">+18% de visibilite</span></p>
           </div>
-          <button onClick={() => setSection('profile')} className="px-4 py-2 bg-[#0077B6] text-white text-xs font-bold rounded-lg hover:bg-[#005f8f] transition shrink-0">Ameliorer mon profil</button>
+          <button onClick={() => setSection('profile')} className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition shrink-0">Ameliorer mon profil</button>
         </div>
       </div>
 
       {/* ─── Growth Banner ─── */}
-      <div className="bg-gradient-to-r from-[#0077B6] to-[#005f8f] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue-700 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="text-4xl">🚀</span>
           <div>
@@ -711,7 +711,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
           <div className="text-center"><p className="text-xl font-extrabold text-white">+{stats.revenueChange}%</p><p className="text-[10px] text-white/70">Revenus</p></div>
           <div className="text-center"><p className="text-xl font-extrabold text-white">+{stats.visitorsChange}%</p><p className="text-[10px] text-white/70">Visibilite</p></div>
         </div>
-        <button onClick={() => setSection('analytics')} className="px-6 py-2.5 bg-white text-[#0077B6] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir mes statistiques detaillees</button>
+        <button onClick={() => setSection('analytics')} className="px-6 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Voir mes statistiques detaillees</button>
       </div>
 
       {/* ─── Modals ─── */}
