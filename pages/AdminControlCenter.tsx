@@ -148,9 +148,25 @@ export const AdminControlCenter: React.FC = () => {
       const detail = (event as CustomEvent<string>).detail;
       if (detail) setActionMessage(detail);
     };
+    const handleAdminNavigate = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (!detail) return;
+      setActiveItem(detail);
+      setActionMessage(null);
+    };
+    const handleAdminActionMessage = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (detail) setActionMessage(detail);
+    };
 
     window.addEventListener('admin-action', handleAdminAction);
-    return () => window.removeEventListener('admin-action', handleAdminAction);
+    window.addEventListener('admin-navigate', handleAdminNavigate);
+    window.addEventListener('admin-action-message', handleAdminActionMessage);
+    return () => {
+      window.removeEventListener('admin-action', handleAdminAction);
+      window.removeEventListener('admin-navigate', handleAdminNavigate);
+      window.removeEventListener('admin-action-message', handleAdminActionMessage);
+    };
   }, []);
 
   const renderContent = () => {

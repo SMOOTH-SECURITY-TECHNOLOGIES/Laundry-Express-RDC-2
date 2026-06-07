@@ -32,6 +32,11 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
       subtitle: 'Marketplace + Logistique + Vérité Opérationnelle',
       placeholder: 'Rechercher commande, partenaire, chauffeur...',
     },
+    'Activity Log': {
+      title: 'Activity Center',
+      subtitle: 'Journal vivant de la plateforme, corrélé au Truth System.',
+      placeholder: 'Recherche universelle : ORD-7845, PAY-442, Jean K...',
+    },
   };
   const copy = headerCopy[activeItem] || {
     title: activeItem,
