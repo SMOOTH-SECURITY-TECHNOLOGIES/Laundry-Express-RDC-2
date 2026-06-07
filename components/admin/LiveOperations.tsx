@@ -26,51 +26,42 @@ const notifyAdminAction = (message: string) => {
 
 export const LiveOperations: React.FC = () => {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div className="sticky top-24 bg-white rounded-2xl border border-gray-100 shadow-sm">
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">Activité en temps réel</h3>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">Activity Feed</h3>
+          <p className="text-xs text-gray-500">Flux live des paiements, assignations et opérations.</p>
+        </div>
         <button type="button" onClick={() => notifyAdminAction('Journal complet des opérations ouvert.')} className="text-xs font-medium text-blue-600 hover:text-blue-700">
           Voir tout
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-50">
-              <th className="px-6 py-3 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Heure</th>
-              <th className="px-6 py-3 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Action</th>
-              <th className="px-6 py-3 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Référence</th>
-              <th className="px-6 py-3 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Détails</th>
-              <th className="px-6 py-3 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Statut</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {activities.map((item, idx) => (
-              <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className="text-xs text-gray-500">{item.time}</span>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Icon name={item.icon} className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs font-medium text-gray-900">{item.action}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className="text-xs font-mono text-gray-600">{item.ref}</span>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className="text-xs text-gray-500">{item.details}</span>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.statusColor}`}>
-                    {item.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="max-h-[390px] space-y-1 overflow-y-auto p-3">
+        {activities.map((item, idx) => (
+          <button
+            type="button"
+            key={`${item.time}-${item.action}`}
+            onClick={() => notifyAdminAction(`${item.action} ouvert : ${item.ref}`)}
+            className="flex w-full items-start gap-3 rounded-xl p-3 text-left transition hover:bg-gray-50"
+          >
+            <span className="mt-0.5 w-10 shrink-0 text-xs font-bold text-gray-500">{item.time}</span>
+            <span className="relative flex flex-col items-center">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <Icon name={item.icon} className="h-4 w-4" />
+              </span>
+              {idx < activities.length - 1 && <span className="mt-1 h-8 w-px bg-gray-100" />}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-bold text-gray-900">{item.action}</span>
+                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.statusColor}`}>
+                  {item.status}
+                </span>
+              </span>
+              <span className="mt-0.5 block text-xs text-gray-500">{item.ref} · {item.details}</span>
+            </span>
+          </button>
+        ))}
       </div>
       <div className="px-6 py-3 border-t border-gray-100">
         <button type="button" onClick={() => notifyAdminAction('Toutes les activités temps réel sont prêtes.')} className="text-xs font-medium text-blue-600 hover:text-blue-700">

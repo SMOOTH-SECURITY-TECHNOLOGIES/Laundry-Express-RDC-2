@@ -70,12 +70,12 @@ const KpiCard: React.FC<{ kpi: KpiData }> = ({ kpi }) => {
 export const KpiRow: React.FC = () => {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.slice(0, 4).map((kpi) => (
           <KpiCard key={kpi.label} kpi={kpi} />
         ))}
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.slice(4, 8).map((kpi) => (
           <KpiCard key={kpi.label} kpi={kpi} />
         ))}

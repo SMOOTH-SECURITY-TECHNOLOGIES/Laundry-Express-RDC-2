@@ -27,6 +27,12 @@ const incidentDots = [
   { cx: 220, cy: 180 },
 ];
 
+const clusters = [
+  { label: '18', x: 176, y: 98, color: '#0B5FFF', ring: '#dbeafe' },
+  { label: '11', x: 270, y: 126, color: '#22c55e', ring: '#dcfce7' },
+  { label: '7', x: 145, y: 162, color: '#f97316', ring: '#ffedd5' },
+];
+
 const cityLabels = [
   { name: 'Gombe', x: 170, y: 60 },
   { name: 'Ngaliema', x: 100, y: 130 },
@@ -35,6 +41,12 @@ const cityLabels = [
   { name: 'Bandalungwa', x: 150, y: 170 },
   { name: 'Kalamu', x: 220, y: 200 },
   { name: 'Kintambo', x: 130, y: 180 },
+];
+
+const zoneStats = [
+  { name: 'Gombe', revenue: '4 850 $', eta: '38 min', tone: 'bg-blue-50 text-blue-700' },
+  { name: 'Limete', revenue: '3 120 $', eta: '44 min', tone: 'bg-green-50 text-green-700' },
+  { name: 'Ngaliema', revenue: '2 740 $', eta: '52 min', tone: 'bg-orange-50 text-orange-700' },
 ];
 
 const notifyAdminAction = (message: string) => {
@@ -66,6 +78,13 @@ export const KinshasaMap: React.FC = () => {
       <div className="p-4">
         <svg viewBox="0 0 400 300" className="w-full h-auto">
           <rect x="0" y="0" width="400" height="300" fill="#f9f7f3" rx="12" />
+          <defs>
+            <radialGradient id="fleetHeat" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#0B5FFF" stopOpacity="0.28" />
+              <stop offset="55%" stopColor="#22C55E" stopOpacity="0.14" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+            </radialGradient>
+          </defs>
 
           <polygon
             points="60,50 180,30 320,50 370,100 380,180 350,240 280,260 200,270 120,260 60,220 30,160 40,90"
@@ -73,6 +92,9 @@ export const KinshasaMap: React.FC = () => {
             stroke="#d4cfc4"
             strokeWidth="1.5"
           />
+
+          <ellipse cx="175" cy="110" rx="85" ry="58" fill="url(#fleetHeat)" />
+          <ellipse cx="288" cy="135" rx="64" ry="48" fill="url(#fleetHeat)" />
 
           <path
             d="M30,250 Q120,230 200,245 Q280,260 380,240"
@@ -106,6 +128,15 @@ export const KinshasaMap: React.FC = () => {
             <circle key={`incident-${i}`} cx={dot.cx} cy={dot.cy} r="5" fill="#ef4444" opacity="0.85" />
           ))}
 
+          {clusters.map((cluster) => (
+            <g key={cluster.label}>
+              <circle cx={cluster.x} cy={cluster.y} r="17" fill={cluster.ring} stroke={cluster.color} strokeWidth="2" opacity="0.94" />
+              <text x={cluster.x} y={cluster.y + 4} textAnchor="middle" fill={cluster.color} style={{ fontSize: '11px', fontWeight: 800 }}>
+                {cluster.label}
+              </text>
+            </g>
+          ))}
+
           {cityLabels.map((city) => (
             <text
               key={city.name}
@@ -120,23 +151,37 @@ export const KinshasaMap: React.FC = () => {
           ))}
         </svg>
 
-        <div className="flex items-center justify-center gap-5 mt-3">
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-            <span className="text-[10px] text-gray-500">Chauffeurs</span>
+            <span className="text-[10px] text-gray-500">Chauffeurs · 8</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-            <span className="text-[10px] text-gray-500">Collectes</span>
+            <span className="text-[10px] text-gray-500">Collectes · 3</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-            <span className="text-[10px] text-gray-500">Livraisons</span>
+            <span className="text-[10px] text-gray-500">Livraisons · 3</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <span className="text-[10px] text-gray-500">Incidents</span>
+            <span className="text-[10px] text-gray-500">Incidents · 1</span>
           </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {zoneStats.map((zone) => (
+            <button
+              key={zone.name}
+              type="button"
+              onClick={() => notifyAdminAction(`Zone ${zone.name} ouverte avec rentabilité et SLA.`)}
+              className={`rounded-xl px-3 py-2 text-left ${zone.tone}`}
+            >
+              <p className="text-xs font-extrabold">{zone.name}</p>
+              <p className="text-[10px] opacity-80">{zone.revenue} · ETA {zone.eta}</p>
+            </button>
+          ))}
         </div>
       </div>
     </div>
