@@ -1751,7 +1751,8 @@ class ApiClient {
   }
 
   async getPublicOrderSocialProof(limit = 10): Promise<PublicOrderSocialProof[]> {
-    return this.request<PublicOrderSocialProof[]>(`/orders/social-proof?limit=${limit}`);
+    const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 20);
+    return this.request<PublicOrderSocialProof[]>(`/orders/social-proof?limit=${safeLimit}`);
   }
 
   async getOrder(id: string): Promise<Order> {

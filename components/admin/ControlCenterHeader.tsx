@@ -27,6 +27,11 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
       subtitle: 'Reconstruction multi-ID entre les corridors de vérité',
       placeholder: 'Rechercher commande, client, téléphone, partenaire...',
     },
+    Analytics: {
+      title: 'Analytics',
+      subtitle: 'Marketplace + Logistique + Vérité Opérationnelle',
+      placeholder: 'Rechercher commande, partenaire, chauffeur...',
+    },
   };
   const copy = headerCopy[activeItem] || {
     title: activeItem,

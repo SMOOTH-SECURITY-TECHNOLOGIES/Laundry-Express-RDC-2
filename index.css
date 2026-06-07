@@ -1,4 +1,7 @@
-/* Minimal CSS file to satisfy Vite's html-inline-proxy plugin */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   padding: 0;
@@ -7,4 +10,41 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+input[type="radio"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  vertical-align: -2px;
+}
+
+.dark input[type="radio"] {
+  border-color: #475569;
+  background-color: #1e293b;
+}
+
+input[type="radio"]:checked {
+  border-color: #0077b6;
+  background-color: #0077b6;
+}
+
+input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+}
+
+input[type="radio"]:focus-visible {
+  outline: 2px solid #ade8f4;
+  outline-offset: 2px;
 }

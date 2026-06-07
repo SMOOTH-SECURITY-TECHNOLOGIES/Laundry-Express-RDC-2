@@ -14,6 +14,7 @@
     <meta name="theme-color" content="#0077B6" />
 
     <!-- iOS PWA Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Laundry Express" />
@@ -44,112 +45,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <!-- Tailwind CSS CDN for development only -->
-    <script src="https://cdn.tailwindcss.com" data-dev-only></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-            colors: {
-              'brand-blue': '#0066CC',
-              'brand-dark': '#0A1628',
-              'brand-navy': '#0F2140',
-              'brand-lightblue': '#E8F4FD',
-              'brand-cyan': '#00B4D8',
-              'brand-gray': '#F7F9FC',
-              'brand-success': '#2A9D8F',
-              'brand-orange': '#FF6B35',
-              'brand-orange-light': '#FFF3ED',
-              'brand-blue-50': '#EFF6FF',
-              'brand-blue-100': '#DBEAFE',
-              'brand-blue-500': '#0066CC',
-              'brand-blue-600': '#0052A3',
-              'brand-blue-700': '#003D7A',
-              'brand-blue-800': '#002952',
-              'brand-blue-900': '#0A1628',
-               slate: {
-                50: '#f8fafc',
-                100: '#f1f5f9',
-                200: '#e2e8f0',
-                300: '#cbd5e1',
-                400: '#94a3b8',
-                500: '#64748b',
-                600: '#475569',
-                700: '#334152',
-                800: '#1e293b',
-                900: '#0f172a'
-              },
-            },
-            boxShadow: {
-              'card': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07)',
-              'card-hover': '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08)',
-            },
-            borderRadius: {
-              'xl': '1rem',
-              '2xl': '1.5rem',
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.5s ease-in-out',
-              'slide-up': 'slideUp 0.5s ease-out forwards',
-            },
-            keyframes: {
-              fadeIn: {
-                '0%': { opacity: 0, transform: 'translateY(-10px)' },
-                '100%': { opacity: 1, transform: 'translateY(0)' },
-              },
-              slideUp: {
-                '0%': { opacity: 0, transform: 'translateY(20px)' },
-                '100%': { opacity: 1, transform: 'translateY(0)' },
-              }
-            },
-          },
-        },
-      }
-    </script>
-    <style>
-      /* Custom radio button styles */
-      input[type="radio"] {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        width: 1rem; /* 16px */
-        height: 1rem; /* 16px */
-        border: 2px solid #cbd5e1; /* slate-300 */
-        border-radius: 50%;
-        position: relative;
-        cursor: pointer;
-        vertical-align: -2px; /* To align with text */
-      }
-      .dark input[type="radio"] {
-        border-color: #475569; /* dark:slate-600 */
-        background-color: #1e293b; /* dark:slate-800 */
-      }
-
-      input[type="radio"]:checked {
-        border-color: #0077B6; /* brand-blue */
-        background-color: #0077B6; /* brand-blue */
-      }
-
-      input[type="radio"]:checked::after {
-        content: '';
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 8px;
-        height: 8px;
-        background: white;
-        border-radius: 50%;
-      }
-      
-      input[type="radio"]:focus-visible {
-        outline: 2px solid #ADE8F4; /* brand-lightblue */
-        outline-offset: 2px;
-      }
-    </style>
   <script type="importmap">
 {
   "imports": {
@@ -171,7 +66,6 @@
       "logo": "https://laundry.app/favicon.svg"
     }
     </script>
-<link rel="stylesheet" href="./index.css">
 </head>
   <body class="bg-brand-gray dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200">
     <div id="root"></div>
