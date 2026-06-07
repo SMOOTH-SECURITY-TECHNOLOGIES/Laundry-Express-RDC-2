@@ -188,13 +188,6 @@ const App: React.FC = () => {
 
   }, [currentPage, activePartnerId, partners, t]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('🔍 APP DEBUG - Current Page:', currentPage);
-    console.log('🔍 APP DEBUG - User:', user);
-    console.log('🔍 APP DEBUG - Is Loading:', isLoading);
-  }, [currentPage, user, isLoading]);
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
@@ -349,7 +342,6 @@ const App: React.FC = () => {
     ]);
 
   const renderPage = () => {
-    console.log('🔍 RENDERING PAGE:', currentPage);
     switch (currentPage) {
       case 'order':
         return <OrderPage />;
