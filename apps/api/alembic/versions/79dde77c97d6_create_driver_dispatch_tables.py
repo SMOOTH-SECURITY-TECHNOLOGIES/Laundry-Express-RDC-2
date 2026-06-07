@@ -66,7 +66,10 @@ def upgrade() -> None:
     op.add_column('drivers', sa.Column('rating_count', sa.Integer(), nullable=False))
     op.drop_column('drivers', 'is_active')
     op.drop_column('drivers', 'vehicle_plate')
-    op.create_foreign_key(None, 'notification_deliveries', 'notifications', ['notification_id'], ['id'])
+    inspector = sa.inspect(op.get_bind())
+    table_names = set(inspector.get_table_names())
+    if {'notification_deliveries', 'notifications'}.issubset(table_names):
+        op.create_foreign_key(None, 'notification_deliveries', 'notifications', ['notification_id'], ['id'])
     op.create_foreign_key(None, 'payment_provider_events', 'payment_intents', ['payment_intent_id'], ['id'])
     op.create_foreign_key(None, 'payment_transactions', 'payment_intents', ['payment_intent_id'], ['id'])
     op.create_foreign_key(None, 'refunds', 'payment_intents', ['payment_intent_id'], ['id'])
@@ -80,7 +83,9 @@ def downgrade() -> None:
     op.drop_constraint(None, 'refunds', type_='foreignkey')
     op.drop_constraint(None, 'payment_transactions', type_='foreignkey')
     op.drop_constraint(None, 'payment_provider_events', type_='foreignkey')
-    op.drop_constraint(None, 'notification_deliveries', type_='foreignkey')
+    inspector = sa.inspect(op.get_bind())
+    if 'notification_deliveries' in set(inspector.get_table_names()):
+        op.drop_constraint(None, 'notification_deliveries', type_='foreignkey')
     op.add_column('drivers', sa.Column('vehicle_plate', sa.VARCHAR(length=50), autoincrement=False, nullable=True))
     op.add_column('drivers', sa.Column('is_active', sa.BOOLEAN(), autoincrement=False, nullable=False))
     op.drop_column('drivers', 'rating_count')

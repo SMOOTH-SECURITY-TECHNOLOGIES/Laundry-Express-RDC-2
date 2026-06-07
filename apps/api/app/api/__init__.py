@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import auth, users, orders, catalog, pricing, logistics, marketplace, dispatch_settings, payments, refunds, disputes, commissions, admin, support, promotions, content, subscriptions, tracking, advertisements, loyalty, referral, dashboard, ops
+from app.api.routes import auth, users, orders, catalog, pricing, logistics, marketplace, dispatch_settings, payments, refunds, disputes, commissions, admin, support, promotions, content, subscriptions, tracking, notifications, advertisements, loyalty, referral, dashboard, ops
 
 # Crée le router principal de l'API
 api_router = APIRouter()
@@ -24,6 +24,7 @@ api_router.include_router(promotions.router, tags=["promotions"])
 api_router.include_router(content.router, tags=["content"])
 api_router.include_router(subscriptions.router, tags=["subscriptions"])
 api_router.include_router(tracking.router, tags=["tracking"])
+api_router.include_router(notifications.router, tags=["notifications"])
 api_router.include_router(advertisements.router, tags=["advertisements"])
 api_router.include_router(loyalty.router, tags=["loyalty"])
 api_router.include_router(referral.router, tags=["referral"])

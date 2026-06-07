@@ -2019,13 +2019,45 @@ class ApiClient {
 
   // ─── Notification Methods ────────────────────────────────────────────
 
-  async getNotifications(userId: string): Promise<{ notifications: any[]; total: number }> {
+  async getNotifications(userId?: string): Promise<{ notifications: any[]; total: number; unread_count?: number }> {
     if (this.isMockToken()) {
       const allNotifs: any[] = DB.get('appNotifications');
       const userNotifs = allNotifs.filter((n: any) => n.recipientId === userId);
-      return { notifications: userNotifs, total: userNotifs.length };
+      return {
+        notifications: userNotifs,
+        total: userNotifs.length,
+        unread_count: userNotifs.filter((n: any) => !n.isRead).length,
+      };
     }
-    return this.request(`/notifications?user_id=${encodeURIComponent(userId)}`);
+    return this.request('/notifications/me');
+  }
+
+  async createNotification(data: {
+    user_id: string;
+    title: string;
+    message: string;
+    notification_type: string;
+    notification_metadata?: Record<string, unknown>;
+  }): Promise<any> {
+    if (this.isMockToken()) {
+      const notification = {
+        recipientId: data.user_id,
+        message: data.message,
+        notificationType: data.notification_type,
+        link: data.notification_metadata,
+      };
+      DB.addItem('appNotifications', {
+        ...notification,
+        id: `N-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+      });
+      return notification;
+    }
+    return this.request('/notifications', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 
   async markNotificationAsRead(notificationId: string): Promise<void> {
@@ -2052,7 +2084,7 @@ class ApiClient {
     }
     return this.request('/notifications/read-all', {
       method: 'POST',
-      body: JSON.stringify({ user_id: userId }),
+      body: JSON.stringify(userId ? { user_id: userId } : {}),
     });
   }
 

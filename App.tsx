@@ -9,7 +9,7 @@ import { BecomePartnerPage } from './pages/BecomePartnerPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { Footer } from './components/Footer';
-import { AdminPage } from './pages/AdminPage';
+import { AdminControlCenter } from './pages/AdminControlCenter';
 import { PartnerDashboardPage } from './pages/PartnerDashboardPage';
 import { NotificationContainer } from './components/Notification';
 import { FAQPage } from './pages/FAQPage';
@@ -364,7 +364,7 @@ const App: React.FC = () => {
       case 'register':
         return <RegisterPage />;
       case 'admin':
-        return <AdminPage />;
+        return <AdminControlCenter />;
       case 'partner-dashboard':
         return <PartnerDashboardPage />;
       case 'faq':
@@ -438,6 +438,15 @@ const App: React.FC = () => {
 
   const dashboardPages: Page[] = ['admin', 'partner-dashboard', 'logistics-dashboard', 'driver-dashboard'];
   const isDashboardPage = dashboardPages.includes(currentPage);
+
+  if (currentPage === 'admin') {
+    return (
+      <div className="min-h-screen font-sans bg-slate-50 text-slate-800">
+        <NotificationContainer />
+        {renderPage()}
+      </div>
+    );
+  }
 
   // Layout for Dashboard pages (no footer, full width)
   if (isDashboardPage) {

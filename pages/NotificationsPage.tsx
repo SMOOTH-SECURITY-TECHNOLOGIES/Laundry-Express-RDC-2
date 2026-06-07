@@ -74,10 +74,9 @@ export const NotificationsPage: React.FC = () => {
 
     const userNotifications = useMemo(() => {
         if (!user) return [];
-        // FIX: isAdmin does not exist on type User. Use role check instead.
-        const targetId = (user.role === 'admin' || user.role === 'superadmin') ? 'admin' : user.id;
+        const targetIds = (user.role === 'admin' || user.role === 'superadmin') ? ['admin', 'USER-ADMIN', user.id] : [user.id];
         return appNotifications
-            .filter(n => n.recipientId === targetId)
+            .filter(n => targetIds.includes(String(n.recipientId)))
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [appNotifications, user]);
     
