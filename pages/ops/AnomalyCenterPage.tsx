@@ -40,18 +40,37 @@ export const AnomalyCenterPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [corridor, setCorridor] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
   const pageSize = 20;
+
+  const MOCK_ANOMALIES: Anomaly[] = [
+    { id: 'ANO-001', anomaly_type: 'status_mismatch', corridor: 'order', order_id: 'ORD-1790', detected_at: new Date(Date.now() - 7200000).toISOString(), severity: 'low', description: 'Statut incohérent', payload: {} },
+    { id: 'ANO-002', anomaly_type: 'payment_orphan', corridor: 'payment', order_id: 'ORD-1781', detected_at: new Date(Date.now() - 3600000).toISOString(), severity: 'medium', description: 'Paiement sans collecte', payload: {} },
+    { id: 'ANO-003', anomaly_type: 'duplicate_delivery_task', corridor: 'payment', order_id: 'ORD-1779', detected_at: new Date(Date.now() - 1800000).toISOString(), severity: 'high', description: 'Double paiement détecté', payload: {} },
+    { id: 'ANO-004', anomaly_type: 'race_blocked', corridor: 'logistics', order_id: 'ORD-1775', detected_at: new Date(Date.now() - 900000).toISOString(), severity: 'high', description: 'Collecte sans chauffeur', payload: {} },
+    { id: 'ANO-005', anomaly_type: 'delivery_outside_sla', corridor: 'logistics', order_id: 'ORD-1770', detected_at: new Date(Date.now() - 600000).toISOString(), severity: 'medium', description: 'Livraison hors SLA', payload: {} },
+    { id: 'ANO-006', anomaly_type: 'webhook_duplicate', corridor: 'order', order_id: 'ORD-1765', detected_at: new Date(Date.now() - 5400000).toISOString(), severity: 'low', description: 'Webhook dupliqué', resolved_at: new Date(Date.now() - 5000000).toISOString(), payload: {} },
+    { id: 'ANO-007', anomaly_type: 'commission_duplicate', corridor: 'logistics', order_id: 'ORD-1760', detected_at: new Date(Date.now() - 4800000).toISOString(), severity: 'medium', description: 'Commission en double', payload: {} },
+  ];
 
   useEffect(() => {
     setLoading(true);
+    setIsUsingFallback(false);
     realApi.getAnomalies({ corridor: corridor === 'all' ? undefined : corridor, page, page_size: pageSize })
       .then(data => {
         setAnomalies(data.anomalies as Anomaly[]);
         setTotal(data.total);
         setLoading(false);
       })
-      .catch(() => { setError('Impossible de charger les anomalies'); setLoading(false); });
+      .catch(() => {
+        const filteredFallback = corridor && corridor !== 'all'
+          ? MOCK_ANOMALIES.filter((anomaly) => anomaly.corridor === corridor)
+          : MOCK_ANOMALIES;
+        setAnomalies(filteredFallback);
+        setTotal(filteredFallback.length);
+        setIsUsingFallback(true);
+        setLoading(false);
+      });
   }, [corridor, page]);
 
   const formatDate = (dateStr: string) => {
@@ -69,6 +88,12 @@ export const AnomalyCenterPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl">
+      {isUsingFallback && (
+        <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">
+          Mode dégradé : l'API des anomalies est indisponible, affichage de données de secours.
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <button onClick={() => setAdminSectionParams({ section: 'ops_dashboard' })} className="p-2 hover:bg-gray-100 rounded-lg transition">
@@ -135,11 +160,6 @@ export const AnomalyCenterPage: React.FC = () => {
           {[1,2,3].map(i => (
             <div key={i} className="h-20 bg-gray-200 rounded-lg animate-pulse"></div>
           ))}
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-center gap-3">
-          <Icon name="warning" className="w-5 h-5 text-red-600" />
-          <span className="text-red-700">{error}</span>
         </div>
       ) : anomalies.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">

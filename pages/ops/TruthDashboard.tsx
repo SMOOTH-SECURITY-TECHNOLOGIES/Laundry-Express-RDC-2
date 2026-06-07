@@ -43,12 +43,58 @@ export const TruthDashboard: React.FC = () => {
   const { setAdminSectionParams } = useNavigation();
   const [health, setHealth] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+
+  const MOCK_HEALTH = {
+    corridors: [
+      {
+        corridor: 'order',
+        status: 'healthy',
+        open_anomalies: 3,
+        last_event_at: new Date(Date.now() - 3600000).toISOString(),
+        risk_level: 'low',
+        recent_anomalies: [
+          { id: 'ANO-001', type: 'status_mismatch', severity: 'low', detected_at: new Date(Date.now() - 7200000).toISOString() },
+        ],
+      },
+      {
+        corridor: 'payment',
+        status: 'warning',
+        open_anomalies: 7,
+        last_event_at: new Date(Date.now() - 1800000).toISOString(),
+        risk_level: 'medium',
+        recent_anomalies: [
+          { id: 'ANO-002', type: 'payment_orphan', severity: 'medium', detected_at: new Date(Date.now() - 1800000).toISOString() },
+          { id: 'ANO-003', type: 'double_payment', severity: 'high', detected_at: new Date(Date.now() - 3600000).toISOString() },
+        ],
+      },
+      {
+        corridor: 'logistics',
+        status: 'critical',
+        open_anomalies: 12,
+        last_event_at: new Date(Date.now() - 600000).toISOString(),
+        risk_level: 'high',
+        recent_anomalies: [
+          { id: 'ANO-004', type: 'pickup_without_driver', severity: 'high', detected_at: new Date(Date.now() - 600000).toISOString() },
+          { id: 'ANO-005', type: 'delivery_outside_sla', severity: 'medium', detected_at: new Date(Date.now() - 1200000).toISOString() },
+        ],
+      },
+    ],
+    summary: {
+      total_anomalies: 22,
+      open_investigations: 5,
+      avg_resolution_time_minutes: 45,
+      health_score: 78,
+    },
+    checked_at: new Date().toISOString(),
+  };
 
   useEffect(() => {
+    setLoading(true);
+    setIsUsingFallback(false);
     realApi.getCorridorsHealth()
       .then(data => { setHealth(data); setLoading(false); })
-      .catch(() => { setError('Impossible de charger la santé des corridors'); setLoading(false); });
+      .catch(() => { setHealth(MOCK_HEALTH); setIsUsingFallback(true); setLoading(false); });
   }, []);
 
   const formatTimeAgo = (dateStr?: string | null) => {
@@ -73,21 +119,27 @@ export const TruthDashboard: React.FC = () => {
     );
   }
 
-  if (error || !health) {
+  if (!health) {
     return (
       <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
         <div className="flex items-center gap-2">
           <Icon name="warning" className="w-5 h-5 text-red-600" />
-          <span className="text-red-700 font-medium">{error || 'Erreur inconnue'}</span>
+          <span className="text-red-700 font-medium">Erreur inconnue</span>
         </div>
       </div>
     );
   }
 
-  const totalAnomalies = health.corridors.reduce((sum: number, c: any) => sum + c.open_anomalies, 0);
+  const totalAnomalies = health.corridors.reduce((sum: number, c: any) => sum + (c.open_anomalies ?? c.anomalies_count ?? 0), 0);
 
   return (
     <div className="space-y-6">
+      {isUsingFallback && (
+        <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">
+          Mode dégradé : l'API de santé des corridors est indisponible, affichage de données de secours.
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -114,7 +166,7 @@ export const TruthDashboard: React.FC = () => {
               key={c.corridor}
               className={`bg-white rounded-xl shadow-sm border-2 ${status.border} p-5 hover:shadow-md transition cursor-pointer`}
               onClick={() => {
-                if (c.open_anomalies > 0) {
+                if ((c.open_anomalies ?? c.anomalies_count ?? 0) > 0) {
                   setAdminSectionParams({ section: 'ops_anomalies' });
                 }
               }}
@@ -137,8 +189,8 @@ export const TruthDashboard: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3 mt-4">
                 <div className="text-center">
-                  <div className={`text-xl font-bold ${c.open_anomalies > 0 ? 'text-red-600' : 'text-gray-700'}`}>
-                    {c.open_anomalies}
+                  <div className={`text-xl font-bold ${(c.open_anomalies ?? c.anomalies_count ?? 0) > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                    {c.open_anomalies ?? c.anomalies_count ?? 0}
                   </div>
                   <div className="text-xs text-gray-500">Anomalies</div>
                 </div>
@@ -147,7 +199,7 @@ export const TruthDashboard: React.FC = () => {
                   <div className="text-xs text-gray-500">Risque</div>
                 </div>
                 <div className="text-center border-l border-gray-100">
-                  <div className="text-xl font-bold text-gray-700">{formatTimeAgo(c.last_event_at)}</div>
+                  <div className="text-xl font-bold text-gray-700">{formatTimeAgo(c.last_event_at ?? c.last_anomaly_at)}</div>
                   <div className="text-xs text-gray-500">Dernier evt</div>
                 </div>
               </div>

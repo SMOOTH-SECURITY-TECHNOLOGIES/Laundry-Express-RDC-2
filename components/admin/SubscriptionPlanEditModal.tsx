@@ -62,7 +62,7 @@ export const SubscriptionPlanEditModal: React.FC<SubscriptionPlanEditModalProps>
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-lg w-full relative">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-slate-300 dark:hover:text-slate-100">
+                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-slate-300 dark:hover:text-slate-100">
                     <Icon name="xmark" className="w-6 h-6" />
                 </button>
                 <div className="p-8">

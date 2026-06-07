@@ -12,6 +12,7 @@ const NavItem: React.FC<{
 }> = ({ target, iconName, label, isActive, onClick }) => {
     return (
         <button
+            type="button"
             onClick={() => onClick(target)}
             className={`flex items-center w-full shrink-0 px-4 py-3 rounded-lg text-left transition-colors ${isActive ? 'bg-brand-blue text-white' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`}
         >
