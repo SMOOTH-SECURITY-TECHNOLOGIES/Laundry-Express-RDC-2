@@ -15,7 +15,7 @@ import { InvestigatePage } from './ops/InvestigatePage';
 // Real pages - MARKETPLACE
 import { PartnerManagement } from './admin/PartnerManagement';
 import { PartnerApplicationsPage } from './admin/PartnerApplicationsPage';
-import { ServiceManagement } from './admin/ServiceManagement';
+import { ServicesControlCenter } from './ServicesControlCenter';
 import { SubscriptionManagement } from './admin/SubscriptionManagement';
 
 // Real pages - COMMANDES
@@ -219,7 +219,7 @@ export const AdminControlCenter: React.FC = () => {
       case 'Candidatures':
         return <PartnerApplicationsPage />;
       case 'Services':
-        return <ServiceManagement />;
+        return <ServicesControlCenter />;
       case 'Abonnements':
         return <SubscriptionManagement />;
 

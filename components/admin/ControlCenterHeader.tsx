@@ -37,6 +37,21 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
       subtitle: 'Journal vivant de la plateforme, corrélé au Truth System.',
       placeholder: 'Recherche universelle : ORD-7845, PAY-442, Jean K...',
     },
+    Partenaires: {
+      title: 'Gestion des partenaires',
+      subtitle: 'Marketplace + conformité + revenus partenaires',
+      placeholder: 'Rechercher partenaire, service, ville, téléphone...',
+    },
+    Candidatures: {
+      title: 'Candidatures partenaires',
+      subtitle: 'Pipeline d’acquisition et d’onboarding partenaires',
+      placeholder: 'Rechercher un partenaire, email, téléphone, ville...',
+    },
+    Services: {
+      title: 'Gestion des services',
+      subtitle: 'Catalogue • Revenus • Marketplace • Truth Monitoring',
+      placeholder: 'Rechercher service, catégorie, partenaire...',
+    },
   };
   const copy = headerCopy[activeItem] || {
     title: activeItem,
@@ -79,6 +94,10 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
                 window.dispatchEvent(new CustomEvent('admin-refresh-investigation'));
                 return;
               }
+              if (activeItem === 'Services') {
+                window.dispatchEvent(new CustomEvent('admin-services-refresh'));
+                return;
+              }
               onAction('Données du control center rafraîchies.');
             }}
             className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -92,6 +111,10 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
             onClick={() => {
               if (isInvestigate) {
                 window.dispatchEvent(new CustomEvent('admin-export-investigation'));
+                return;
+              }
+              if (activeItem === 'Services') {
+                window.dispatchEvent(new CustomEvent('admin-services-export'));
                 return;
               }
               onAction('Export CSV préparé pour la section active.');
@@ -131,6 +154,24 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
               <Icon name="shield" className="w-4 h-4" />
               Lancer audit
             </button>
+          ) : activeItem === 'Services' ? (
+            <button
+              type="button"
+              onClick={() => onNavigate('Promotions')}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <Icon name="gift" className="w-4 h-4" />
+              Créer promotion
+            </button>
+          ) : activeItem === 'Partenaires' ? (
+            <button
+              type="button"
+              onClick={() => onNavigate('Candidatures')}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <Icon name="users" className="w-4 h-4" />
+              Inviter partenaire
+            </button>
           ) : (
             <button
               type="button"
@@ -142,25 +183,45 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
             </button>
           )}
 
-          {/* Ajouter partenaire */}
-          <button
-            type="button"
-            onClick={() => onNavigate('Candidatures')}
-            className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            Ajouter partenaire
-          </button>
-
-          {/* Ajouter chauffeur */}
-          <button
-            type="button"
-            onClick={() => onNavigate('Chauffeurs')}
-            className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            Ajouter chauffeur
-          </button>
+          {activeItem === 'Services' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('admin-services-create'))}
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                <Icon name="plus" className="w-4 h-4" />
+                Ajouter service
+              </button>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('admin-services-category'))}
+                className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+              >
+                <Icon name="plus" className="w-4 h-4" />
+                Ajouter catégorie
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => onNavigate('Candidatures')}
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                <Icon name="plus" className="w-4 h-4" />
+                Ajouter partenaire
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('Chauffeurs')}
+                className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+              >
+                <Icon name="plus" className="w-4 h-4" />
+                Ajouter chauffeur
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
