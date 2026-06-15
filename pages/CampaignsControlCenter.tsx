@@ -44,6 +44,23 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+function GrowthHeader({ onRefresh }: { onRefresh: () => void }) {
+  return (
+    <header className="sticky top-0 z-10 -mx-6 -mt-6 rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Growth Engine</h1>
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">Acquisition • Rétention • Automations • ROI • Anti-fraude</p>
+        </div>
+        <button type="button" onClick={onRefresh} className="flex w-fit items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50">
+          <Icon name="arrow-path" className="h-4 w-4" />
+          Actualiser
+        </button>
+      </div>
+    </header>
+  );
+}
+
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="bg-white rounded-2xl border border-dashed p-12 text-center">
@@ -55,7 +72,11 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-export const CampaignsControlCenter: React.FC = () => {
+interface CampaignsControlCenterProps {
+  mode?: 'campaigns' | 'growth';
+}
+
+export const CampaignsControlCenter: React.FC<CampaignsControlCenterProps> = ({ mode = 'campaigns' }) => {
   const {
     kpis, campaigns, channels, funnel, trends, topCampaigns, segments, automations,
     calendar, roi, watchlist, growth, loading, error, source, days, refresh,
@@ -80,6 +101,7 @@ export const CampaignsControlCenter: React.FC = () => {
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 4000); return () => clearTimeout(t); }, [toast]);
 
   const isEmpty = useMemo(() => campaigns.length === 0, [campaigns]);
+  const growthOnly = mode === 'growth';
 
   const onFilter = useCallback((type: string, value: string | number) => {
     trackCampaignEvent('campaign_filter_changed', { type, value });
@@ -105,6 +127,20 @@ export const CampaignsControlCenter: React.FC = () => {
       trackCampaignEvent('campaign_analytics_opened', { id: c.id });
     } catch { setToast('Analytics indisponibles'); }
   }, [handleAnalytics]);
+
+  if (growthOnly) {
+    if (loading && !growth) return <LoadingSkeleton />;
+    if (error) return <ErrorState onRetry={() => refresh()} />;
+    if (!growth) return null;
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col">
+        <div className="flex-1 p-6 space-y-6">
+          <GrowthHeader onRefresh={() => refresh()} />
+          <GrowthEnginePanel growth={growth} />
+        </div>
+      </div>
+    );
+  }
 
   if (loading && !kpis) return <LoadingSkeleton />;
   if (error) return <ErrorState onRetry={() => refresh()} />;

@@ -297,7 +297,7 @@ export const AdminControlCenter: React.FC = () => {
       case 'Parrainage':
         return <ReferralsControlCenter />;
       case 'Growth Engine':
-        return <CampaignsControlCenter />;
+        return <CampaignsControlCenter mode="growth" />;
       case 'Campagnes':
         return <CampaignsControlCenter />;
 

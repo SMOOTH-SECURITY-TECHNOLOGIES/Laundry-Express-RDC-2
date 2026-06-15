@@ -55,4 +55,16 @@ describe('CampaignsPage', () => {
     root.unmount();
     container.remove();
   });
+
+  it('renders Growth Engine mode without campaign center header', async () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => { root.render(<CampaignsControlCenter mode="growth" />); });
+    expect(container.textContent).toContain('Growth Engine');
+    expect(container.textContent).toContain('Segments RFM');
+    expect(container.textContent).not.toContain('Nouvelle campagne');
+    root.unmount();
+    container.remove();
+  });
 });

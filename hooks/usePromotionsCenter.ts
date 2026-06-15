@@ -88,7 +88,7 @@ export default function usePromotionsCenter(): UsePromotionsCenterReturn {
       const bundle = await fetchPromotionsBundle();
       applyBundle(bundle);
     } catch {
-      setError('Impossible de charger le Growth & Promotions Center.');
+      setError('Impossible de charger le Promotions Center.');
     } finally {
       setLoading(false);
     }
