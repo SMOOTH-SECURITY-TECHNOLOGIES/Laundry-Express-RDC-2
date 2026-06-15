@@ -18,7 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 API_BASE_URL = os.getenv("API_SMOKE_BASE_URL", "http://localhost:18000/api/v1")
 DATABASE_URL = os.getenv(
     "API_SMOKE_DATABASE_URL",
-    "postgresql://laundry_user:laundry_pass@localhost:5433/laundry_express",
+    os.getenv(
+        "DATABASE_URL_SYNC",
+        "postgresql://laundry_user:laundry_pass@localhost:5434/laundry_express",
+    ),
 )
 JWT_SECRET = os.getenv("API_SMOKE_SECRET_KEY", "development-secret-key-change-in-production")
 JWT_ALGORITHM = "HS256"
@@ -154,6 +157,7 @@ def main() -> int:
             raise RuntimeError("me failed")
         results.append(ok("me", status, body["user"]["id"]))
 
+        current_step = "bootstrap_data"
         customer_address = CustomerAddress(
             user_id=created_ids["customer_id"],
             label="home",

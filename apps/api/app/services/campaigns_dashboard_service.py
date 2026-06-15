@@ -7,12 +7,15 @@ from sqlalchemy.orm import Session
 from app.models.marketing_campaign import MarketingAutomation, MarketingCampaign
 from app.models.notification import NotificationDelivery
 from app.models.order import Order
+from app.models.promotion import PromoCode, PromoCodeUsage
 from app.models.user import User
 from app.schemas.campaign_dashboard import (
     AutomationResponse, CalendarEventResponse, CampaignAnalyticsResponse,
     CampaignDashboardResponse, CampaignItemResponse, CampaignKpiResponse,
     ChannelPerformanceResponse, FunnelStepResponse, RoiResponse,
     SegmentResponse, TopCampaignResponse, TrendPointResponse, WatchlistItemResponse,
+    GrowthAutomationRuleResponse, GrowthDashboardResponse, GrowthRoiResponse,
+    PromoFraudRiskResponse, RfmSegmentResponse, TrendingOfferResponse,
 )
 
 CHANNEL_COLORS = {
@@ -246,6 +249,209 @@ class CampaignsDashboardService:
             revenue=item.revenue, roi=item.roi, open_rate=item.open_rate,
             click_rate=item.click_rate, conversion_rate=item.conversion_rate,
         )
+
+    def get_growth_dashboard(self) -> GrowthDashboardResponse:
+        campaigns = self._campaigns()
+        paid_orders = self._paid_orders()
+        rfm_segments = self.get_rfm_segments()
+        automations = self.get_growth_automations()
+        risks = self.get_promo_fraud_risks()
+        offers = self.get_trending_offers()
+        roi = self.get_growth_roi()
+        conversions = sum(int(c.conversions or 0) for c in campaigns)
+        revenue = sum(float(c.revenue or 0) for c in campaigns) + sum(float(o.total_amount or 0) for o in paid_orders)
+        active_customers = len({str(o.customer_id) for o in paid_orders})
+        return GrowthDashboardResponse(
+            acquisition=max(sum(int(c.messages_sent or 0) for c in campaigns), active_customers),
+            activation=sum(int(c.clicks or 0) for c in campaigns),
+            conversion=conversions or len(paid_orders),
+            retention=sum(s.audience_size for s in rfm_segments if s.segment_key in {"champions", "loyal"}),
+            referral=self._referral_count(),
+            revenue=round(revenue, 2),
+            rfm_segments=rfm_segments,
+            automations=automations,
+            promo_fraud_risks=risks,
+            trending_offers=offers,
+            roi=roi,
+            source="backend",
+        )
+
+    def get_rfm_segments(self) -> list[RfmSegmentResponse]:
+        orders = self._paid_orders()
+        now = datetime.now(timezone.utc)
+        by_customer: dict[str, dict[str, float]] = {}
+        for order in orders:
+            cid = str(order.customer_id)
+            completed = self._as_aware_datetime(order.completed_at or order.created_at, now)
+            days = max((now - completed).days, 0)
+            row = by_customer.setdefault(cid, {"recency": 9999, "frequency": 0, "monetary": 0})
+            row["recency"] = min(row["recency"], days)
+            row["frequency"] += 1
+            row["monetary"] += float(order.total_amount or 0)
+
+        if not by_customer:
+            return [
+                RfmSegmentResponse(segment="Champions", segment_key="champions", audience_size=0, recency_score=5, frequency_score=5, monetary_score=5, recommended_action="Maintenir avec avantages VIP"),
+                RfmSegmentResponse(segment="Dormants", segment_key="dormant", audience_size=0, recency_score=1, frequency_score=1, monetary_score=1, recommended_action="Lancer réactivation 30/60/90 jours"),
+            ]
+
+        buckets = {
+            "champions": ["Champions", 0, 5, 5, 5, "Offre VIP + parrainage"],
+            "loyal": ["Loyaux", 0, 4, 4, 4, "Points bonus et pack récurrent"],
+            "occasional": ["Occasionnels", 0, 3, 2, 2, "Coupon panier moyen"],
+            "dormant": ["Dormants", 0, 1, 1, 1, "Réactivation personnalisée"],
+            "lost": ["Perdus", 0, 1, 1, 1, "Dernière chance + enquête satisfaction"],
+        }
+        for row in by_customer.values():
+            recency = row["recency"]
+            frequency = row["frequency"]
+            monetary = row["monetary"]
+            if recency <= 15 and frequency >= 3 and monetary >= 75:
+                key = "champions"
+            elif recency <= 30 and frequency >= 2:
+                key = "loyal"
+            elif recency <= 60:
+                key = "occasional"
+            elif recency <= 90:
+                key = "dormant"
+            else:
+                key = "lost"
+            buckets[key][1] += 1
+        return [
+            RfmSegmentResponse(
+                segment=data[0], segment_key=key, audience_size=int(data[1]),
+                recency_score=int(data[2]), frequency_score=int(data[3]), monetary_score=int(data[4]),
+                recommended_action=str(data[5]),
+            )
+            for key, data in buckets.items()
+        ]
+
+    def get_growth_automations(self) -> list[GrowthAutomationRuleResponse]:
+        orders = self._orders()
+        paid_orders = [o for o in orders if str(o.payment_status) in {"paid", "PaymentStatus.PAID"}]
+        unpaid = [o for o in orders if str(o.payment_status) not in {"paid", "PaymentStatus.PAID"}]
+        now = datetime.now(timezone.utc)
+        inactive_30 = {
+            str(o.customer_id) for o in paid_orders
+            if (now - self._as_aware_datetime(o.completed_at or o.created_at, now)).days >= 30
+        }
+        inactive_60 = {
+            str(o.customer_id) for o in paid_orders
+            if (now - self._as_aware_datetime(o.completed_at or o.created_at, now)).days >= 60
+        }
+        expiring_points = self._customers_with_points()
+        return [
+            GrowthAutomationRuleResponse(key="abandoned_cart", name="Abandon panier", trigger="commande créée non payée X heures", channels=["whatsapp", "email", "push", "sms"], eligible_customers=len(unpaid), status="ready", next_action="Séquence 1h / 24h / 72h"),
+            GrowthAutomationRuleResponse(key="reactivation_30", name="Réactivation 30 jours", trigger="30 jours sans commande", channels=["whatsapp", "email", "push"], eligible_customers=len(inactive_30), status="ready", next_action="Coupon automatique"),
+            GrowthAutomationRuleResponse(key="reactivation_60", name="Réactivation 60 jours", trigger="60 jours sans commande", channels=["whatsapp", "sms"], eligible_customers=len(inactive_60), status="ready", next_action="Offre personnalisée"),
+            GrowthAutomationRuleResponse(key="birthday", name="Anniversaire", trigger="date anniversaire client", channels=["email", "push"], eligible_customers=0, status="needs_profile_dates", next_action="Collecter date de naissance"),
+            GrowthAutomationRuleResponse(key="loyalty_expiry", name="Points fidélité proches expiration", trigger="points bientôt expirés", channels=["whatsapp", "email", "push"], eligible_customers=expiring_points, status="ready", next_action="Alerte + promotion personnalisée"),
+        ]
+
+    def get_promo_fraud_risks(self) -> list[PromoFraudRiskResponse]:
+        promos = self._promos()
+        usages = self._promo_usages()
+        by_promo: dict[str, list[PromoCodeUsage]] = {}
+        for usage in usages:
+            by_promo.setdefault(str(usage.promo_code_id), []).append(usage)
+        risks: list[PromoFraudRiskResponse] = []
+        for promo in promos:
+            promo_usages = by_promo.get(str(promo.id), [])
+            customers = {str(u.customer_id) for u in promo_usages}
+            total_discount = sum(float(u.discount_applied or 0) for u in promo_usages)
+            usage_count = len(promo_usages) or int(promo.usage_count or 0)
+            score = 0
+            signals = []
+            if promo.max_usage and usage_count >= int(promo.max_usage):
+                score += 30
+                signals.append("limite_utilisation_atteinte")
+            if usage_count > max(len(customers), 1) * max(int(promo.usage_limit_per_customer or 1), 1):
+                score += 25
+                signals.append("utilisations_multiples_par_client")
+            if total_discount > 0 and float(promo.discount_value or 0) >= 50:
+                score += 20
+                signals.append("remise_elevee")
+            if not promo.is_active and usage_count > 0:
+                score += 15
+                signals.append("promo_inactive_avec_usage")
+            severity = "high" if score >= 70 else "medium" if score >= 35 else "low"
+            action = "envoyer revue admin" if severity == "medium" else "suspendre promo" if severity == "high" else "surveiller"
+            risks.append(PromoFraudRiskResponse(
+                promo_code=promo.code, risk_score=min(score, 100), severity=severity,
+                signals=signals or ["aucun_signal_majeur"], recommended_action=action,
+            ))
+        return sorted(risks, key=lambda r: r.risk_score, reverse=True)[:10]
+
+    def get_trending_offers(self) -> list[TrendingOfferResponse]:
+        campaigns = self._campaigns()
+        offers = []
+        for c in campaigns:
+            impressions = max(int(c.messages_sent or 0), 1)
+            clicks = int(c.clicks or 0)
+            conversions = int(c.conversions or 0)
+            ctr = clicks / impressions * 100
+            conv_rate = conversions / max(clicks, 1) * 100
+            score = round((ctr * 0.35) + (conv_rate * 0.35) + (float(c.roi or 0) * 10) + min(conversions, 100) * 0.1, 2)
+            offers.append(TrendingOfferResponse(
+                id=str(c.id), title=c.name, offer_type="campaign", score=score,
+                ctr=round(ctr, 2), conversion_rate=round(conv_rate, 2), revenue=float(c.revenue or 0),
+                placements=["homepage", "search_results", "partner_profile"][: 1 + int(score > 25) + int(score > 50)],
+            ))
+        return sorted(offers, key=lambda o: o.score, reverse=True)[:3]
+
+    def get_growth_roi(self) -> GrowthRoiResponse:
+        campaigns = self._campaigns()
+        paid_orders = self._paid_orders()
+        promo_revenue = sum(float(o.total_amount or 0) for o in paid_orders if float(o.discount_amount or 0) > 0)
+        referral_revenue = sum(float(o.total_amount or 0) for o in paid_orders if getattr(getattr(o, "customer", None), "referred_by_user_id", None))
+        remarketing_revenue = sum(float(c.revenue or 0) for c in campaigns if (c.segment or "").lower() in {"dormant", "inactive", "clients inactifs"})
+        reactivation_revenue = sum(float(c.revenue or 0) for c in campaigns if "réactivation" in c.name.lower() or "reactivation" in c.name.lower())
+        loyalty_revenue = sum(float(o.total_amount or 0) for o in paid_orders if getattr(getattr(o, "customer", None), "loyalty_points", 0))
+        budget = sum(float(c.budget or 0) for c in campaigns) or 1
+        revenue = promo_revenue + loyalty_revenue + referral_revenue + remarketing_revenue + reactivation_revenue
+        conversions = sum(int(c.conversions or 0) for c in campaigns) or max(len(paid_orders), 1)
+        return GrowthRoiResponse(
+            promo_revenue=round(promo_revenue, 2),
+            loyalty_revenue=round(loyalty_revenue, 2),
+            referral_revenue=round(referral_revenue, 2),
+            remarketing_revenue=round(remarketing_revenue, 2),
+            reactivation_revenue=round(reactivation_revenue, 2),
+            estimated_cac=round(budget / conversions, 2),
+            estimated_ltv=round(sum(float(o.total_amount or 0) for o in paid_orders) / max(self._active_customer_count(), 1) * 2.4, 2),
+            estimated_roi=round(revenue / budget, 2),
+        )
+
+    def _campaigns(self) -> list[MarketingCampaign]:
+        self._ensure_seed_data()
+        return self.db.query(MarketingCampaign).all()
+
+    def _orders(self) -> list[Order]:
+        return self.db.query(Order).all()
+
+    def _paid_orders(self) -> list[Order]:
+        return [o for o in self._orders() if str(o.payment_status) in {"paid", "PaymentStatus.PAID"}]
+
+    def _promos(self) -> list[PromoCode]:
+        return self.db.query(PromoCode).all()
+
+    def _promo_usages(self) -> list[PromoCodeUsage]:
+        return self.db.query(PromoCodeUsage).all()
+
+    def _customers_with_points(self) -> int:
+        return int(self.db.query(func.count(User.id)).filter(User.loyalty_points > 0).scalar() or 0)
+
+    def _active_customer_count(self) -> int:
+        return len({str(o.customer_id) for o in self._paid_orders()})
+
+    def _referral_count(self) -> int:
+        return int(self.db.query(func.count(User.id)).filter(User.referred_by_user_id.isnot(None)).scalar() or 0)
+
+    def _as_aware_datetime(self, value: datetime | None, fallback: datetime) -> datetime:
+        if value is None:
+            return fallback
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
 
     def _sparkline_int(self, end: int, days: int) -> list[int]:
         return [int(end * (0.7 + i * 0.3 / max(days - 1, 1))) for i in range(min(days, 7))]

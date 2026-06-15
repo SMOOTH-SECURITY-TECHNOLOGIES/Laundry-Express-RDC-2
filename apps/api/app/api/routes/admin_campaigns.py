@@ -8,7 +8,9 @@ from app.models.marketing_campaign import MarketingAutomation, MarketingCampaign
 from app.models.user import User
 from app.schemas.campaign_dashboard import (
     CampaignAnalyticsResponse, CampaignCreateRequest, CampaignDashboardResponse,
-    CampaignExportRequest, CampaignUpdateRequest,
+    CampaignExportRequest, CampaignUpdateRequest, GrowthDashboardResponse,
+    GrowthAutomationRuleResponse, GrowthRoiResponse, PromoFraudRiskResponse,
+    RfmSegmentResponse, TrendingOfferResponse,
 )
 from app.services.audit_service import AuditService
 from app.services.campaigns_dashboard_service import CampaignsDashboardService
@@ -71,6 +73,42 @@ def calendar(current_user: User = Depends(get_current_user), db: Session = Depen
 def automations(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
     _require_admin(current_user)
     return CampaignsDashboardService(db).get_dashboard().automations
+
+
+@router.get("/growth/dashboard", response_model=GrowthDashboardResponse)
+def growth_dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
+    _require_admin(current_user)
+    return CampaignsDashboardService(db).get_growth_dashboard()
+
+
+@router.get("/growth/segments", response_model=list[RfmSegmentResponse])
+def growth_segments(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
+    _require_admin(current_user)
+    return CampaignsDashboardService(db).get_rfm_segments()
+
+
+@router.get("/growth/automations", response_model=list[GrowthAutomationRuleResponse])
+def growth_automations(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
+    _require_admin(current_user)
+    return CampaignsDashboardService(db).get_growth_automations()
+
+
+@router.get("/growth/promo-fraud", response_model=list[PromoFraudRiskResponse])
+def growth_promo_fraud(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
+    _require_admin(current_user)
+    return CampaignsDashboardService(db).get_promo_fraud_risks()
+
+
+@router.get("/growth/trending-offers", response_model=list[TrendingOfferResponse])
+def growth_trending_offers(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
+    _require_admin(current_user)
+    return CampaignsDashboardService(db).get_trending_offers()
+
+
+@router.get("/growth/roi", response_model=GrowthRoiResponse)
+def growth_roi(current_user: User = Depends(get_current_user), db: Session = Depends(get_sync_db)):
+    _require_admin(current_user)
+    return CampaignsDashboardService(db).get_growth_roi()
 
 
 @router.post("/export")
