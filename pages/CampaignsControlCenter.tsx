@@ -15,6 +15,7 @@ import { AudienceBuilderCard } from '../components/admin/campaigns/AudienceBuild
 import { CampaignCalendar } from '../components/admin/campaigns/CampaignCalendar';
 import { CampaignROIWidget } from '../components/admin/campaigns/CampaignROIWidget';
 import { CampaignWatchlistCard } from '../components/admin/campaigns/CampaignWatchlistCard';
+import { GrowthEnginePanel } from '../components/admin/campaigns/GrowthEnginePanel';
 import { CampaignCreateModal } from '../components/admin/campaigns/CampaignCreateModal';
 import { CampaignAnalyticsDrawer } from '../components/admin/campaigns/CampaignAnalyticsDrawer';
 import { AudienceBuilderModal } from '../components/admin/campaigns/AudienceBuilderModal';
@@ -57,7 +58,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 export const CampaignsControlCenter: React.FC = () => {
   const {
     kpis, campaigns, channels, funnel, trends, topCampaigns, segments, automations,
-    calendar, roi, watchlist, loading, error, source, days, refresh,
+    calendar, roi, watchlist, growth, loading, error, source, days, refresh,
     handleCreate, handleUpdate, handleDelete, handlePause, handleDuplicate, handleAnalytics, handleExport,
   } = useCampaignsCenter();
 
@@ -118,6 +119,7 @@ export const CampaignsControlCenter: React.FC = () => {
         <CampaignHeader search={search} onSearchChange={setSearch} onRefresh={() => refresh()} onExport={async () => { const r = await handleExport('csv', 'campaigns'); trackCampaignEvent('campaign_exported'); setToast(`Export ${r.filename}`); }} onCreate={() => { setEditCampaign(null); setShowCreate(true); }} />
         <CampaignFilters days={days} status={statusFilter} channel={channelFilter} partner={partnerFilter} zone={zoneFilter} segment={segmentFilter} onDaysChange={(d) => onFilter('days', d)} onStatusChange={(v) => onFilter('status', v)} onChannelChange={(v) => onFilter('channel', v)} onPartnerChange={(v) => onFilter('partner', v)} onZoneChange={(v) => onFilter('zone', v)} onSegmentChange={(v) => onFilter('segment', v)} />
         <CampaignKpiCards kpis={kpis} />
+        {growth && <GrowthEnginePanel growth={growth} />}
 
         {isEmpty ? <EmptyState onCreate={() => setShowCreate(true)} /> : (
           <>

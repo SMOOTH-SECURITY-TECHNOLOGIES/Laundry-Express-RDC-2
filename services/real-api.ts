@@ -1529,6 +1529,38 @@ export interface BackendCampaignDashboardResponse {
   source: string;
 }
 
+export interface BackendGrowthDashboardResponse {
+  acquisition: number;
+  activation: number;
+  conversion: number;
+  retention: number;
+  referral: number;
+  revenue: number;
+  rfm_segments: Array<{
+    segment: string; segment_key: string; audience_size: number;
+    recency_score: number; frequency_score: number; monetary_score: number;
+    recommended_action: string;
+  }>;
+  automations: Array<{
+    key: string; name: string; trigger: string; channels: string[];
+    eligible_customers: number; status: string; next_action: string;
+  }>;
+  promo_fraud_risks: Array<{
+    promo_code: string; risk_score: number; severity: string;
+    signals: string[]; recommended_action: string;
+  }>;
+  trending_offers: Array<{
+    id: string; title: string; offer_type: string; score: number; ctr: number;
+    conversion_rate: number; revenue: number; placements: string[];
+  }>;
+  roi: {
+    promo_revenue: number; loyalty_revenue: number; referral_revenue: number;
+    remarketing_revenue: number; reactivation_revenue: number;
+    estimated_cac: number; estimated_ltv: number; estimated_roi: number;
+  };
+  source: string;
+}
+
 export interface ReferralAdminOverview {
   total_users_with_referral_codes: number;
   total_referred_users: number;
@@ -3207,6 +3239,10 @@ class ApiClient {
 
   async getCampaignDashboard(days = 7): Promise<BackendCampaignDashboardResponse> {
     return this.request<BackendCampaignDashboardResponse>(`/admin/campaigns/dashboard?days=${days}`);
+  }
+
+  async getGrowthDashboard(): Promise<BackendGrowthDashboardResponse> {
+    return this.request<BackendGrowthDashboardResponse>('/admin/campaigns/growth/dashboard');
   }
 
   async createCampaign(data: { name: string; channel: string; audience: string; content: string; budget: number; scheduledAt?: string }): Promise<{ id: string; name: string }> {

@@ -133,3 +133,68 @@ export interface CampaignDashboardSummary {
   watchlist: CampaignWatchlistItem[];
   source: string;
 }
+
+export interface GrowthRfmSegment {
+  segment: string;
+  segmentKey: string;
+  audienceSize: number;
+  recencyScore: number;
+  frequencyScore: number;
+  monetaryScore: number;
+  recommendedAction: string;
+}
+
+export interface GrowthAutomationRule {
+  key: string;
+  name: string;
+  trigger: string;
+  channels: string[];
+  eligibleCustomers: number;
+  status: string;
+  nextAction: string;
+}
+
+export interface GrowthPromoFraudRisk {
+  promoCode: string;
+  riskScore: number;
+  severity: string;
+  signals: string[];
+  recommendedAction: string;
+}
+
+export interface GrowthTrendingOffer {
+  id: string;
+  title: string;
+  offerType: string;
+  score: number;
+  ctr: number;
+  conversionRate: number;
+  revenue: number;
+  placements: string[];
+}
+
+export interface GrowthRoi {
+  promoRevenue: number;
+  loyaltyRevenue: number;
+  referralRevenue: number;
+  remarketingRevenue: number;
+  reactivationRevenue: number;
+  estimatedCac: number;
+  estimatedLtv: number;
+  estimatedRoi: number;
+}
+
+export interface GrowthDashboardSummary {
+  acquisition: number;
+  activation: number;
+  conversion: number;
+  retention: number;
+  referral: number;
+  revenue: number;
+  rfmSegments: GrowthRfmSegment[];
+  automations: GrowthAutomationRule[];
+  promoFraudRisks: GrowthPromoFraudRisk[];
+  trendingOffers: GrowthTrendingOffer[];
+  roi: GrowthRoi;
+  source: string;
+}
