@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useCallback, useEffect, useMemo } from 'react';
 // FIX: Add missing ID type import
-import { Partner, LogisticsPartner, SiteContent, Review, User, PartnerApplication, SupportTicket, Chat, Service, PromoCode, ApplicationStatus, TicketStatus, TicketMessage, ChatMessage, LoyaltySettings, ReferralSettings, Order, AppNotification, Advertisement, ApplicationSettings, PartnerType, Article, OptimizedRoute, AdminSection, AdminPermissions, NotificationAnalytic, BulkNotificationTarget, WebhookEvent, ActivityLog, ActivityLogAction, DataContextType, TeamMemberRole, AutomationSettings, TrackingSettings, SubscriptionPlan, Invoice, CommissionSettings, RefundRequest, ID, Currency, InventoryItem, DeliverySettings, SecurityAlert, NotificationType } from '../types';
+import { Partner, LogisticsPartner, SiteContent, Review, User, PartnerApplication, SupportTicket, Chat, Service, ServiceType, PromoCode, ApplicationStatus, TicketStatus, TicketMessage, ChatMessage, LoyaltySettings, ReferralSettings, Order, AppNotification, Advertisement, ApplicationSettings, PartnerType, Article, OptimizedRoute, AdminSection, AdminPermissions, NotificationAnalytic, BulkNotificationTarget, WebhookEvent, ActivityLog, ActivityLogAction, DataContextType, TeamMemberRole, AutomationSettings, TrackingSettings, SubscriptionPlan, Invoice, CommissionSettings, RefundRequest, ID, Currency, InventoryItem, DeliverySettings, SecurityAlert, NotificationType } from '../types';
 import * as api from '../constants';
 import { useLanguageContext } from './LanguageContext';
 import { useAuth } from './AuthContext';
@@ -20,6 +20,42 @@ import {
   mergePromoExtras,
   savePromoExtras,
 } from '../utils/promoApiMapper';
+
+const catalogServiceTypeBySlug: Record<string, ServiceType> = {
+  pressing: ServiceType.PRESSING,
+  blanchisserie: ServiceType.BLANCHISSERIE,
+  cordonnerie: ServiceType.CORDONNERIE,
+};
+
+const catalogServiceIconBySlug: Record<string, string> = {
+  pressing: 'shirt',
+  blanchisserie: 'wash',
+  cordonnerie: 'sparkles',
+};
+
+const catalogServiceImageBySlug: Record<string, string> = {
+  pressing: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&q=80',
+  blanchisserie: 'https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=400&q=80',
+  cordonnerie: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80',
+};
+
+const catalogServicePriceBySlug: Record<string, number> = {
+  pressing: 2.5,
+  blanchisserie: 1.5,
+  cordonnerie: 5,
+};
+
+const catalogServicePriceModelBySlug: Record<string, Service['priceModel']> = {
+  pressing: 'per_item',
+  blanchisserie: 'per_kg',
+  cordonnerie: 'per_item',
+};
+
+const catalogServiceArticlesBySlug: Record<string, { name: string; price: number }[]> = {
+  pressing: [{ name: 'Chemise', price: 2.5 }, { name: 'Pantalon', price: 3.5 }],
+  blanchisserie: [],
+  cordonnerie: [{ name: 'Reparation Talon', price: 10 }, { name: 'Cirage Complet', price: 5 }],
+};
 
 const emptySiteContent: SiteContent = {
   hero: { title: '', subtitle: '' },
@@ -216,9 +252,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const fetchData = useCallback(async () => {
     try {
-        const [data, catalogPartners, siteContentResponse, subscriptionPlanResponse, trackingSettingsResponse, advertisementsResponse, loyaltySettingsResponse, referralSettingsResponse, publicReviewsResponse] = await Promise.all([
+        const [data, catalogPartners, catalogData, siteContentResponse, subscriptionPlanResponse, trackingSettingsResponse, advertisementsResponse, loyaltySettingsResponse, referralSettingsResponse, publicReviewsResponse] = await Promise.all([
           features.useMockApi ? api.fetchAllData() : Promise.resolve(EMPTY_LOCAL_DATA),
           realApi.getCatalogPartners().catch(() => [] as CatalogPartnerSummary[]),
+          realApi.getCatalog().catch(() => null),
           realApi.getSiteContent().catch(() => null),
           realApi.getSubscriptionPlans().catch(() => null),
           realApi.getTrackingSettings().catch(() => null),
@@ -243,7 +280,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               : data.partners;
 
         setPartners(resolvedPartners);
-        setServices(data.services);
+
+        const mappedCatalogServices: Service[] = catalogData?.service_types?.length
+          ? catalogData.service_types
+              .filter((st) => ['pressing', 'blanchisserie', 'cordonnerie'].includes(st.slug))
+              .map((st) => {
+                const slug = st.slug || st.name.toLowerCase().replace(/\s+/g, '-');
+                const articles = catalogServiceArticlesBySlug[slug] || [];
+                return {
+                  id: st.id,
+                  type: catalogServiceTypeBySlug[slug] || ServiceType.PRESSING,
+                  title: st.name,
+                  description: st.description || '',
+                  iconName: catalogServiceIconBySlug[slug] || 'wash',
+                  imageUrl: catalogServiceImageBySlug[slug] || '',
+                  priceModel: catalogServicePriceModelBySlug[slug] || 'per_item',
+                  price: catalogServicePriceBySlug[slug] || 2,
+                  articleCategories: articles.length > 0
+                    ? [{
+                        name: 'General',
+                        items: articles.map((article, index) => ({
+                          id: `${st.id}-art-${index}`,
+                          name: article.name,
+                          price: article.price,
+                          description: article.name,
+                          imageUrl: '',
+                        })),
+                      }]
+                    : undefined,
+                };
+              })
+          : data.services;
+
+        setServices(mappedCatalogServices);
         setLogisticsPartners(data.logisticsPartners);
         setReviews(
           !features.useMockApi && publicReviewsResponse.length > 0

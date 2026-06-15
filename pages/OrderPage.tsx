@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
 import { Service, ServiceType, formatAddress } from '../types';
@@ -194,6 +194,7 @@ export const OrderPage: React.FC = () => {
   const [laundryWeightKg, setLaundryWeightKg] = useState(5);
 
   const isPartnerShopCheckout = orderDraft.checkoutSource === 'partner_shop';
+  const manualNavRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -214,6 +215,7 @@ export const OrderPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (manualNavRef.current) return;
     if (!orderDraft.partner && !orderDraft.serviceType) return;
 
     if (orderDraft.serviceType) {
@@ -487,7 +489,10 @@ export const OrderPage: React.FC = () => {
     setSelectedService(serviceId);
     const serviceType = serviceToTypeMap[serviceId];
     updateOrderDraft({ serviceType, checkoutSource: 'marketplace' });
+    manualNavRef.current = true;
     setStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const handleSelectPartner = (partnerId: string) => {
@@ -496,13 +501,18 @@ export const OrderPage: React.FC = () => {
       updateOrderDraft({ partner });
     }
     setSelectedPartnerId(partnerId);
+    manualNavRef.current = true;
     setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const handleContinue = () => {
     if (orderSubtotal === 0) return;
+    manualNavRef.current = true;
     setStep(3);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const handleConfirmOrder = async () => {
@@ -546,9 +556,12 @@ export const OrderPage: React.FC = () => {
   };
 
   const handleBack = () => {
+    manualNavRef.current = true;
     if (step === 1) {
       setStep(0);
       setSelectedService(null);
+      updateOrderDraft({ serviceType: undefined, partner: undefined, checkoutSource: undefined });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (step === 2) {
       if (isPartnerShopCheckout && orderDraft.partner) {
         setCurrentPage({ name: 'partner-detail', params: { partnerId: orderDraft.partner.id } } as any);
@@ -556,9 +569,13 @@ export const OrderPage: React.FC = () => {
       }
       setStep(1);
       setSelectedPartnerId(null);
+      updateOrderDraft({ partner: undefined });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (step === 3) {
       setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const increment = (itemId: string) => {
@@ -1719,10 +1736,12 @@ export const OrderPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {step !== 3 && renderStepIndicator()}
-        {step === 0 && renderMarketplaceStep0()}
-        {step === 1 && renderStep1()}
-        {step === 2 && renderStep2()}
-        {step === 3 && renderStep3()}
+        <div>
+          {step === 0 && renderMarketplaceStep0()}
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+        </div>
       </div>
     </div>
   );
