@@ -52,4 +52,6 @@ This script validates the Growth dashboard contract, admin-only access, RFM priv
 - [x] Growth E2E checks run against Docker local API and Postgres.
 - [x] No E2E check depends on business mock data.
 - [x] No E2E check uses localStorage as source of truth.
-- [ ] PR checklist is updated with Growth V1.1 results.
+- [x] PR checklist is updated with Growth V1.1 results.
+
+See `docs/pr-growth-v1-contract-audit.md` for the merge checklist, API contract mini-audit, E2E evidence, and commit grouping.
