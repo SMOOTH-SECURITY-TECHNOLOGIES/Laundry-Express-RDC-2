@@ -1,11 +1,77 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatModal } from '../components/ChatModal';
 import { Icon } from '../components/Icon';
+import { NotificationBell } from '../components/NotificationBell';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { useAppContext } from '../context/AppContext';
+import { useMyReferralStats } from '../hooks/useMyReferralStats';
 import { LogisticsDriver, LogisticsTask, realApi } from '../services/real-api';
-import { Order, OrderStatus } from '../types';
+import { NotificationPreferences, Order, OrderStatus, User } from '../types';
 
-type DriverSection = 'dashboard' | 'missions' | 'history' | 'earnings' | 'availability' | 'documents' | 'support' | 'settings';
+type DriverSection =
+  | 'dashboard'
+  | 'missions'
+  | 'history'
+  | 'earnings'
+  | 'availability'
+  | 'documents'
+  | 'support'
+  | 'settings'
+  | 'referral';
+
+const DRIVER_SECTIONS: DriverSection[] = [
+  'dashboard',
+  'missions',
+  'history',
+  'earnings',
+  'availability',
+  'documents',
+  'support',
+  'settings',
+  'referral',
+];
+
+const isDriverSection = (value: string): value is DriverSection =>
+  DRIVER_SECTIONS.includes(value as DriverSection);
+
+const SECTION_LABELS: Record<DriverSection, { title: string; subtitle: string }> = {
+  dashboard: {
+    title: 'Tableau de bord chauffeur',
+    subtitle: 'Aperçu de votre activité et missions du jour.',
+  },
+  missions: {
+    title: 'Missions',
+    subtitle: 'Mission active, propositions et actions opérationnelles.',
+  },
+  history: {
+    title: 'Historique',
+    subtitle: 'Toutes vos missions terminées, annulées ou échouées.',
+  },
+  earnings: {
+    title: 'Gains',
+    subtitle: 'Relevé détaillé et export de vos revenus estimés.',
+  },
+  availability: {
+    title: 'Disponibilité',
+    subtitle: 'Statut en ligne et créneaux préférés.',
+  },
+  documents: {
+    title: 'Documents',
+    subtitle: 'Pièces d’identité et conformité chauffeur.',
+  },
+  support: {
+    title: 'Support',
+    subtitle: 'Contactez le dispatch ou le centre d’aide.',
+  },
+  settings: {
+    title: 'Paramètres',
+    subtitle: 'Notifications et préférences du compte.',
+  },
+  referral: {
+    title: 'Parrainage chauffeur',
+    subtitle: 'Invitez un collègue et gagnez 5 % sur ses missions.',
+  },
+};
 
 type EarningsBreakdown = {
   base: number;
@@ -34,6 +100,7 @@ type MissionChartPoint = {
 const DRIVER_IMAGE = '/images/driver/driver-scooter.svg';
 const REFERRAL_IMAGE = '/images/driver/referral-earnings.svg';
 const MONEY_PER_MISSION = 2;
+const driverCard = 'rounded-2xl border border-surface-border-subtle bg-surface-card shadow-card';
 
 const safeNumber = (value: unknown, fallback = 0) => {
   const num = Number(value);
@@ -97,8 +164,9 @@ const DriverSidebar: React.FC<{
   activeSection: DriverSection;
   onSectionChange: (section: DriverSection) => void;
   onNavigate: (page: { name: 'home' }) => void;
+  onLogout: () => void;
   mobile?: boolean;
-}> = ({ activeSection, onSectionChange, onNavigate, mobile = false }) => {
+}> = ({ activeSection, onSectionChange, onNavigate, onLogout, mobile = false }) => {
   const items: { section: DriverSection; label: string; icon: React.ComponentProps<typeof Icon>['name'] }[] = [
     { section: 'dashboard', label: 'Tableau de bord', icon: 'home' },
     { section: 'missions', label: 'Missions', icon: 'shoppingBag' },
@@ -111,21 +179,32 @@ const DriverSidebar: React.FC<{
   ];
 
   return (
-    <aside className={`${mobile ? 'flex h-full w-full' : 'hidden lg:flex fixed inset-y-0 left-0 z-30 w-[260px]'} flex-col border-r border-[#e4edf9] bg-white px-4 py-5`}>
-      <button onClick={() => onNavigate({ name: 'home' })} className="mb-8 flex items-center gap-3 px-2 text-left" aria-label="Retour à l’accueil">
+    <aside
+      className={`${
+        mobile ? 'flex h-full w-full' : 'hidden md:flex fixed inset-y-0 left-0 z-50 w-[260px]'
+      } flex-col border-r border-surface-border bg-surface-card px-4 py-5`}
+    >
+      <button
+        type="button"
+        onClick={() => onNavigate({ name: 'home' })}
+        className="mb-6 flex shrink-0 items-center gap-3 px-2 text-left"
+        aria-label="Retour à l’accueil"
+      >
         <Icon name="logo" className="h-9 w-9 text-brand-blue" />
-        <span className="text-xl font-black text-[#0A1628]">Laundry Express</span>
+        <span className="text-xl font-black text-content-primary">Laundry Express</span>
       </button>
 
-      <nav className="space-y-2" aria-label="Navigation chauffeur">
+      <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1" aria-label="Navigation chauffeur">
         {items.map((item) => {
           const active = activeSection === item.section;
           return (
             <button
               key={item.section}
+              type="button"
               onClick={() => onSectionChange(item.section)}
-              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                active ? 'bg-[#eef6ff] text-brand-blue' : 'text-[#20314d] hover:bg-[#f7faff]'
+              aria-current={active ? 'page' : undefined}
+              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-500/30 ${
+                active ? 'bg-brand-blue/10 text-brand-blue ring-1 ring-brand-blue/20' : 'text-content-muted hover:bg-surface-muted'
               }`}
             >
               <Icon name={item.icon} className="h-5 w-5" />
@@ -135,56 +214,60 @@ const DriverSidebar: React.FC<{
         })}
       </nav>
 
-      <DriverReferralCard className="mt-auto" />
+      <div className="mt-4 shrink-0 space-y-3">
+        <div className={`flex items-center justify-between rounded-xl border border-surface-border-subtle px-4 py-3 ${mobile ? '' : 'hidden md:flex'}`}>
+          <span className="text-xs font-bold text-content-muted">Thème</span>
+          <ThemeSwitcher />
+        </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex w-full items-center gap-3 rounded-xl border border-surface-border-subtle px-4 py-3 text-left text-sm font-bold text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950/30"
+        >
+          <Icon name="arrowRight" className="h-5 w-5" />
+          Déconnexion
+        </button>
+        <DriverReferralCard onOpen={() => onSectionChange('referral')} />
+      </div>
     </aside>
   );
 };
 
-const DriverReferralCard: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const { addNotification } = useAppContext();
-  return (
-    <section className={`rounded-2xl bg-gradient-to-br from-[#eef6ff] to-white p-4 shadow-sm ${className}`}>
-      <h3 className="text-sm font-black text-brand-blue">Parrainez un chauffeur</h3>
-      <p className="mt-2 text-xs text-[#52607f]">Gagnez 5% de chaque mission</p>
-      <img src={REFERRAL_IMAGE} alt="Sac de pièces et progression de gains Laundry Express" className="mx-auto my-4 h-24 w-full object-contain" />
-      <button
-        onClick={() => {
-          addNotification('Lien de parrainage prêt à partager.', 'success');
-          window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_referral_clicked' } }));
-        }}
-        className="w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-black text-brand-blue transition hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-4 focus:ring-blue-100"
-      >
-        Inviter maintenant
-      </button>
-    </section>
-  );
-};
+const DriverReferralCard: React.FC<{ className?: string; onOpen: () => void }> = ({ className = '', onOpen }) => (
+  <section className={`rounded-2xl border border-surface-border-subtle bg-gradient-to-br from-blue-500/10 to-surface-card p-4 shadow-sm ${className}`}>
+    <h3 className="text-sm font-black text-brand-blue">Parrainez un chauffeur</h3>
+    <p className="mt-2 text-xs text-content-muted">Gagnez 5% de chaque mission</p>
+    <img src={REFERRAL_IMAGE} alt="Sac de pièces et progression de gains Laundry Express" className="mx-auto my-4 h-24 w-full object-contain" />
+    <button
+      type="button"
+      onClick={() => {
+        onOpen();
+        window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_referral_clicked' } }));
+      }}
+      className="w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-black text-brand-blue transition hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+    >
+      Inviter maintenant
+    </button>
+  </section>
+);
 
 const DriverTopbar: React.FC<{
   driverName: string;
   avatarUrl?: string;
   onMenuClick: () => void;
 }> = ({ driverName, avatarUrl, onMenuClick }) => (
-  <header className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b border-[#e4edf9] bg-white/95 px-4 backdrop-blur lg:hidden">
-    <button onClick={onMenuClick} className="rounded-xl p-2 text-[#52607f] hover:bg-[#f1f7ff] lg:hidden" aria-label="Ouvrir le menu chauffeur">
+  <header className="fixed inset-x-0 top-0 z-40 flex h-[72px] items-center justify-between border-b border-surface-border bg-surface-card/95 px-4 backdrop-blur md:hidden">
+    <button
+      type="button"
+      onClick={onMenuClick}
+      className="rounded-xl p-2 text-content-muted hover:bg-surface-muted"
+      aria-label="Ouvrir le menu chauffeur"
+    >
       <Icon name="bars3" className="h-6 w-6" />
     </button>
-    <div className="flex items-center gap-3 sm:gap-5">
-      <button className="hidden rounded-lg bg-brand-blue px-4 py-2 text-sm font-black text-white shadow-lg shadow-blue-100 sm:flex sm:items-center sm:gap-2">
-        <Icon name="logo" className="h-4 w-4" />
-        Tableau de bord
-      </button>
-      <button className="hidden rounded-xl border border-[#dbe7fb] bg-white px-4 py-2 text-sm font-bold text-[#20314d] sm:flex sm:items-center sm:gap-2">
-        Français
-        <Icon name="chevron-down" className="h-4 w-4" />
-      </button>
-      <button className="rounded-full p-2 text-[#20314d] hover:bg-[#f1f7ff]" aria-label="Changer le thème">
-        <Icon name="moon" className="h-5 w-5" />
-      </button>
-      <button className="relative rounded-full p-2 text-[#20314d] hover:bg-[#f1f7ff]" aria-label="Notifications">
-        <Icon name="bell" className="h-5 w-5" />
-        <span className="absolute right-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white">3</span>
-      </button>
+    <div className="flex items-center gap-2 sm:gap-3">
+      <ThemeSwitcher />
+      <NotificationBell />
       <div className="flex items-center gap-2">
         {avatarUrl ? (
           <img src={avatarUrl} alt={`Avatar de ${driverName}`} className="h-10 w-10 rounded-full object-cover" />
@@ -193,11 +276,19 @@ const DriverTopbar: React.FC<{
             {driverName.charAt(0).toUpperCase()}
           </span>
         )}
-        <span className="hidden text-sm text-[#20314d] sm:inline">Bonjour, {driverName}</span>
-        <Icon name="chevron-down" className="hidden h-4 w-4 text-[#52607f] sm:block" />
+        <span className="hidden text-sm text-content-primary sm:inline">Bonjour, {driverName}</span>
       </div>
     </div>
   </header>
+);
+
+const DriverDesktopBar: React.FC<{ driverName: string }> = ({ driverName }) => (
+  <div className="sticky top-0 z-30 mb-4 hidden items-center justify-between gap-3 rounded-2xl border border-surface-border-subtle bg-surface-card/95 px-4 py-3 backdrop-blur md:flex">
+    <p className="text-sm text-content-muted">
+      Bonjour, <span className="font-black text-content-primary">{driverName}</span>
+    </p>
+    <NotificationBell />
+  </div>
 );
 
 const DriverKpiCards: React.FC<{ stats: DriverStats; rating: number; reviewCount: number }> = ({ stats, rating, reviewCount }) => {
@@ -211,18 +302,18 @@ const DriverKpiCards: React.FC<{ stats: DriverStats; rating: number; reviewCount
   return (
     <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicateurs chauffeur">
       {cards.map((card) => (
-        <article key={card.label} className="rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]">
+        <article key={card.label} className={`${driverCard} p-6`}>
           <div className="flex items-center gap-5">
             <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${card.tone}`}>
               <Icon name={card.icon} className="h-7 w-7" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm text-[#52607f]">{card.label}</p>
+              <p className="text-sm text-content-muted">{card.label}</p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <p className="text-3xl font-black text-[#0A1628]">{card.value}</p>
+                <p className="text-3xl font-black text-content-primary">{card.value}</p>
                 {card.stars && <span className="text-sm text-[#ffb703]">★★★★★</span>}
               </div>
-              <p className="mt-2 text-sm text-[#6c7894]">{card.sub}</p>
+              <p className="mt-2 text-sm text-content-muted">{card.sub}</p>
             </div>
           </div>
         </article>
@@ -236,17 +327,17 @@ export const DriverStatusCard: React.FC<{
   isUpdating: boolean;
   onToggle: () => void;
 }> = ({ available, isUpdating, onToggle }) => (
-  <section className="relative overflow-hidden rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]">
+  <section className={`${driverCard} relative overflow-hidden p-6`}>
     <div className="grid gap-6 md:grid-cols-[1fr_260px] md:items-center">
       <div>
-        <h2 className="text-base font-black text-[#0A1628]">Mon statut</h2>
+        <h2 className="text-base font-black text-content-primary">Mon statut</h2>
         <div className="mt-6 flex items-center gap-3">
           <span className={`h-4 w-4 rounded-full ${available ? 'bg-green-500' : 'bg-slate-300'} ring-4 ${available ? 'ring-green-100' : 'ring-slate-100'}`} />
           <p className={`text-2xl font-black ${available ? 'text-green-600' : 'text-slate-500'}`}>
             {available ? 'Disponible' : 'Indisponible'}
           </p>
         </div>
-        <p className="mt-3 max-w-xl text-sm text-[#52607f]">
+        <p className="mt-3 max-w-xl text-sm text-content-muted">
           {available ? 'Vous êtes disponible pour recevoir de nouvelles missions.' : "Vous n’êtes pas disponible pour recevoir des missions."}
         </p>
         <button
@@ -271,14 +362,14 @@ const DriverTipsCard: React.FC<{ acceptanceRate: number; accepted: number; offer
   const circumference = 2 * Math.PI * 44;
   const offset = circumference - (pct / 100) * circumference;
   return (
-    <section className="rounded-2xl border border-[#cfe2fb] bg-[#eef6ff] p-6 shadow-[0_16px_40px_rgba(0,102,204,0.08)]">
+    <section className={`${driverCard} border-blue-500/20 bg-blue-500/10 p-6`}>
       <div className="grid gap-6 md:grid-cols-[1fr_180px] md:items-center">
         <div>
           <div className="flex items-center gap-3">
             <Icon name="sparkles" className="h-6 w-6 text-brand-blue" />
             <h2 className="font-black text-brand-blue">Astuces pour recevoir plus de missions</h2>
           </div>
-          <ul className="mt-5 space-y-3 text-sm text-[#20314d]">
+          <ul className="mt-5 space-y-3 text-sm text-content-primary">
             {[
               'Rendez-vous disponible pendant les heures de pointe',
               'Maintenez un taux d’acceptation élevé',
@@ -286,7 +377,7 @@ const DriverTipsCard: React.FC<{ acceptanceRate: number; accepted: number; offer
               'Gardez votre note au-dessus de 4.5',
             ].map((tip) => (
               <li key={tip} className="flex items-start gap-3">
-                <Icon name="check" className="mt-0.5 h-4 w-4 rounded-full bg-white text-brand-blue" />
+                <Icon name="check" className="mt-0.5 h-4 w-4 rounded-full bg-surface-card text-brand-blue" />
                 <span>{tip}</span>
               </li>
             ))}
@@ -298,8 +389,8 @@ const DriverTipsCard: React.FC<{ acceptanceRate: number; accepted: number; offer
             <circle cx="55" cy="55" r="44" fill="none" stroke="#0066CC" strokeWidth="10" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} transform="rotate(-90 55 55)" />
             <text x="55" y="61" textAnchor="middle" className="fill-brand-blue text-2xl font-black">{pct}%</text>
           </svg>
-          <p className="mt-2 text-sm font-black text-[#20314d]">Taux d’acceptation</p>
-          <p className="text-sm text-[#52607f]">{accepted} / {offered} missions</p>
+          <p className="mt-2 text-sm font-black text-content-primary">Taux d’acceptation</p>
+          <p className="text-sm text-content-muted">{accepted} / {offered} missions</p>
         </div>
       </div>
     </section>
@@ -316,15 +407,15 @@ export const ActiveMissionCard: React.FC<{
 }> = ({ mission, available, onOpenMissions, onChat, onAction, isUpdating }) => {
   if (!mission) {
     return (
-      <section className="rounded-2xl border border-dashed border-[#b8cce6] bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-dashed border-surface-border bg-surface-card p-6 shadow-sm">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef6ff] text-brand-blue">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-muted text-brand-blue">
               <Icon name="truck" className="h-8 w-8" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-[#0A1628]">Aucune mission active</h2>
-              <p className="mt-2 max-w-xl text-sm text-[#52607f]">
+              <h2 className="text-xl font-black text-content-primary">Aucune mission active</h2>
+              <p className="mt-2 max-w-xl text-sm text-content-muted">
                 Vous êtes actuellement libre. Vous serez notifié quand une nouvelle mission sera disponible.
               </p>
             </div>
@@ -341,12 +432,12 @@ export const ActiveMissionCard: React.FC<{
 
   const actionLabel = mission.status === 'driver_assigned' ? 'Accepter' : mission.status === 'accepted' ? 'Démarrer' : 'Marquer terminée';
   return (
-    <section className="rounded-2xl border border-[#dbe7fb] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]">
+    <section className={`${driverCard} p-6`}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-wide text-brand-blue">Mission active</p>
-          <h2 className="mt-2 text-2xl font-black text-[#0A1628]">#{mission.order_number || mission.order_id?.slice(0, 8) || mission.id.slice(0, 8)}</h2>
-          <p className="mt-1 text-sm text-[#52607f]">{mission.task_type === 'pickup' ? 'Collecte' : 'Livraison'} · {getTaskStatusLabel(mission.status)}</p>
+          <h2 className="mt-2 text-2xl font-black text-content-primary">#{mission.order_number || mission.order_id?.slice(0, 8) || mission.id.slice(0, 8)}</h2>
+          <p className="mt-1 text-sm text-content-muted">{mission.task_type === 'pickup' ? 'Collecte' : 'Livraison'} · {getTaskStatusLabel(mission.status)}</p>
         </div>
         <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">Gain estimé {formatMoney(MONEY_PER_MISSION)}</span>
       </div>
@@ -359,24 +450,24 @@ export const ActiveMissionCard: React.FC<{
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <button onClick={onChat} className="flex-1 rounded-xl border border-[#dbe7fb] px-4 py-3 text-sm font-black text-[#20314d] hover:bg-[#f7faff]">Voir détails</button>
+        <button onClick={onChat} className="flex-1 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">Voir détails</button>
         <button onClick={onAction} disabled={isUpdating} className="flex-1 rounded-xl bg-brand-blue px-4 py-3 text-sm font-black text-white hover:bg-brand-blue-700 disabled:cursor-wait disabled:opacity-60">
           {isUpdating ? 'Traitement...' : actionLabel}
         </button>
-        <a href={`tel:${getTaskPhone(mission)}`} className="flex-1 rounded-xl border border-[#dbe7fb] px-4 py-3 text-center text-sm font-black text-[#20314d] hover:bg-[#f7faff]">Appeler client</a>
-        <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getTaskDeliveryAddress(mission))}`, '_blank')} className="flex-1 rounded-xl border border-[#dbe7fb] px-4 py-3 text-sm font-black text-[#20314d] hover:bg-[#f7faff]">Ouvrir carte</button>
+        <a href={`tel:${getTaskPhone(mission)}`} className="flex-1 rounded-xl border border-surface-border-subtle px-4 py-3 text-center text-sm font-black text-content-primary hover:bg-surface-muted">Appeler client</a>
+        <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getTaskDeliveryAddress(mission))}`, '_blank')} className="flex-1 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">Ouvrir carte</button>
       </div>
     </section>
   );
 };
 
 const MissionInfo: React.FC<{ icon: React.ComponentProps<typeof Icon>['name']; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="rounded-xl bg-[#f8fbff] p-4">
-    <div className="flex items-center gap-2 text-xs font-black uppercase text-[#6c7894]">
+  <div className="rounded-xl bg-surface-muted p-4">
+    <div className="flex items-center gap-2 text-xs font-black uppercase text-content-muted">
       <Icon name={icon} className="h-4 w-4" />
       {label}
     </div>
-    <p className="mt-2 text-sm font-bold text-[#20314d]">{value || 'Bientôt disponible'}</p>
+    <p className="mt-2 text-sm font-bold text-content-primary">{value || 'Bientôt disponible'}</p>
   </div>
 );
 
@@ -395,19 +486,19 @@ const MissionHistoryChart: React.FC<{ data: MissionChartPoint[]; range: string; 
     }).join(' ');
 
   return (
-    <section className="rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]">
+    <section className={`${driverCard} p-6`}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-black text-[#0A1628]">Historique des missions</h2>
-          <p className="mt-4 text-sm font-bold text-[#20314d]">Missions quotidiennes ({range === '7' ? '7' : range === '90' ? '90' : '30'} derniers jours)</p>
+          <h2 className="text-lg font-black text-content-primary">Historique des missions</h2>
+          <p className="mt-4 text-sm font-bold text-content-primary">Missions quotidiennes ({range === '7' ? '7' : range === '90' ? '90' : '30'} derniers jours)</p>
         </div>
-        <select value={range} onChange={(event) => onRangeChange(event.target.value)} className="rounded-xl border border-[#dbe7fb] bg-white px-4 py-2 text-sm font-bold text-[#20314d] focus:outline-none focus:ring-4 focus:ring-blue-100">
+        <select value={range} onChange={(event) => onRangeChange(event.target.value)} className="rounded-xl border border-surface-border-subtle bg-surface-card px-4 py-2 text-sm font-bold text-content-primary focus:outline-none focus:ring-4 focus:ring-blue-100">
           <option value="7">7 derniers jours</option>
           <option value="30">30 derniers jours</option>
           <option value="90">90 derniers jours</option>
         </select>
       </div>
-      <div className="mt-5 flex items-center justify-end gap-5 text-xs text-[#52607f]">
+      <div className="mt-5 flex items-center justify-end gap-5 text-xs text-content-muted">
         <Legend color="#22C55E" label="Terminées" />
         <Legend color="#EF4444" label="Annulées" />
         <Legend color="#64748B" label="Rejetées" />
@@ -434,7 +525,7 @@ const MissionHistoryChart: React.FC<{ data: MissionChartPoint[]; range: string; 
         </svg>
       </div>
       {data.every((item) => item.completed + item.cancelled + item.rejected === 0) && (
-        <div className="mt-4 rounded-xl border border-[#cfe2fb] bg-[#f8fbff] px-4 py-3 text-sm text-[#52607f]">
+        <div className="mt-4 rounded-xl border border-surface-border-subtle bg-surface-muted px-4 py-3 text-sm text-content-muted">
           <Icon name="exclamation-circle" className="mr-2 inline h-5 w-5 text-brand-blue" />
           Aucune mission sur cette période.
         </div>
@@ -456,10 +547,10 @@ export const DriverEarningsSummary: React.FC<{ breakdown: EarningsBreakdown; onO
     ['Autres', breakdown.other, 'list', 'bg-slate-100 text-slate-500'],
   ] as const;
   return (
-    <section className="rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]">
+    <section className={`${driverCard} p-6`}>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black text-[#0A1628]">Résumé des gains</h2>
-        <select className="rounded-xl border border-[#dbe7fb] bg-white px-3 py-2 text-xs font-bold text-[#20314d]">
+        <h2 className="text-lg font-black text-content-primary">Résumé des gains</h2>
+        <select className="rounded-xl border border-surface-border-subtle bg-surface-card px-3 py-2 text-xs font-bold text-content-primary">
           <option>Cette semaine</option>
           <option>Ce mois</option>
         </select>
@@ -471,15 +562,15 @@ export const DriverEarningsSummary: React.FC<{ breakdown: EarningsBreakdown; onO
               <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tone}`}>
                 <Icon name={icon as any} className="h-4 w-4" />
               </span>
-              <span className="text-sm text-[#20314d]">{label}</span>
+              <span className="text-sm text-content-primary">{label}</span>
             </div>
-            <span className="font-black text-[#0A1628]">{formatMoney(value)}</span>
+            <span className="font-black text-content-primary">{formatMoney(value)}</span>
           </div>
         ))}
       </div>
-      <div className="mt-6 border-t border-[#e4edf9] pt-5">
+      <div className="mt-6 border-t border-surface-border-subtle pt-5">
         <div className="flex items-center justify-between">
-          <span className="font-black text-[#0A1628]">Total estimé</span>
+          <span className="font-black text-content-primary">Total estimé</span>
           <span className="text-3xl font-black text-brand-blue">{formatMoney(total)}</span>
         </div>
       </div>
@@ -493,24 +584,24 @@ export const DriverEarningsSummary: React.FC<{ breakdown: EarningsBreakdown; onO
 };
 
 const AvailableMissionsList: React.FC<{ missions: LogisticsTask[]; onAccept: (mission: LogisticsTask) => void; isUpdating: boolean }> = ({ missions, onAccept, isUpdating }) => (
-  <section className="rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]">
+  <section className="rounded-2xl border border-surface-border-subtle bg-surface-card p-6 shadow-card">
     <div className="flex items-center justify-between">
-      <h2 className="text-lg font-black text-[#0A1628]">Missions disponibles</h2>
-      <span className="rounded-full bg-[#eef6ff] px-3 py-1 text-xs font-black text-brand-blue">{missions.length}</span>
+      <h2 className="text-lg font-black text-content-primary">Missions disponibles</h2>
+      <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-black text-brand-blue">{missions.length}</span>
     </div>
     <div className="mt-5 space-y-3">
       {missions.length ? missions.map((mission) => (
-        <div key={mission.id} className="grid gap-3 rounded-xl border border-[#e4edf9] p-4 md:grid-cols-[1fr_auto] md:items-center">
+        <div key={mission.id} className="grid gap-3 rounded-xl border border-surface-border-subtle p-4 md:grid-cols-[1fr_auto] md:items-center">
           <div>
-            <p className="font-black text-[#0A1628]">#{mission.order_number || mission.order_id.slice(0, 8)}</p>
-            <p className="text-sm text-[#52607f]">{mission.task_type === 'pickup' ? 'Collecte' : 'Livraison'} · {mission.pickup_commune || mission.delivery_commune || 'Kinshasa'} · {formatMoney(MONEY_PER_MISSION)}</p>
+            <p className="font-black text-content-primary">#{mission.order_number || mission.order_id.slice(0, 8)}</p>
+            <p className="text-sm text-content-muted">{mission.task_type === 'pickup' ? 'Collecte' : 'Livraison'} · {mission.pickup_commune || mission.delivery_commune || 'Kinshasa'} · {formatMoney(MONEY_PER_MISSION)}</p>
           </div>
           <button onClick={() => onAccept(mission)} disabled={isUpdating} className="rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700 disabled:cursor-wait disabled:opacity-60">
             Accepter
           </button>
         </div>
       )) : (
-        <p className="rounded-xl bg-[#f8fbff] p-4 text-sm text-[#52607f]">Aucune mission disponible pour le moment.</p>
+        <p className="rounded-xl bg-surface-muted p-4 text-sm text-content-muted">Aucune mission disponible pour le moment.</p>
       )}
     </div>
   </section>
@@ -524,6 +615,148 @@ const downloadTextFile = (filename: string, content: string) => {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+};
+
+const AVAILABILITY_SLOTS = ['Matin 08h-12h', 'Après-midi 12h-17h', 'Soir 17h-21h'] as const;
+
+const loadAvailabilitySlots = (userId: string) => {
+  try {
+    const raw = localStorage.getItem(`driver-availability-slots-${userId}`);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((slot): slot is string => typeof slot === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+const MissionHistoryTable: React.FC<{
+  completed: LogisticsTask[];
+  cancelled: LogisticsTask[];
+  failed: LogisticsTask[];
+  localOrders: Order[];
+}> = ({ completed, cancelled, failed, localOrders }) => {
+  const rows = useMemo(() => {
+    const taskRows = [...completed, ...cancelled, ...failed].map((task) => ({
+      id: task.id,
+      reference: task.order_number || task.order_id?.slice(0, 8) || task.id.slice(0, 8),
+      type: task.task_type === 'pickup' ? 'Collecte' : 'Livraison',
+      status: getTaskStatusLabel(task.status),
+      commune: task.pickup_commune || task.delivery_commune || 'Kinshasa',
+      date: new Date(task.completed_at || task.updated_at || task.created_at).toLocaleString('fr-FR'),
+      amount: task.status === 'completed' ? MONEY_PER_MISSION : 0,
+    }));
+    const orderRows = localOrders.map((order) => ({
+      id: order.id,
+      reference: order.id.slice(0, 8),
+      type: 'Commande',
+      status: 'Terminée',
+      commune: order.clientDetails?.pickupAddress?.commune || 'Kinshasa',
+      date: new Date(order.createdAt).toLocaleString('fr-FR'),
+      amount: MONEY_PER_MISSION,
+    }));
+    return [...taskRows, ...orderRows].sort((a, b) => b.date.localeCompare(a.date));
+  }, [completed, cancelled, failed, localOrders]);
+
+  return (
+    <section className={`${driverCard} overflow-hidden`}>
+      <div className="border-b border-surface-border-subtle px-6 py-4">
+        <h2 className="text-lg font-black text-content-primary">Détail des missions</h2>
+        <p className="mt-1 text-sm text-content-muted">{rows.length} entrée{rows.length > 1 ? 's' : ''} dans l’historique.</p>
+      </div>
+      {rows.length ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-surface-muted text-xs font-black uppercase text-content-muted">
+              <tr>
+                <th className="px-6 py-3">Réf.</th>
+                <th className="px-6 py-3">Type</th>
+                <th className="px-6 py-3">Statut</th>
+                <th className="px-6 py-3">Zone</th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3 text-right">Gain</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id} className="border-t border-surface-border-subtle">
+                  <td className="px-6 py-4 font-bold text-content-primary">#{row.reference}</td>
+                  <td className="px-6 py-4 text-content-muted">{row.type}</td>
+                  <td className="px-6 py-4 text-content-primary">{row.status}</td>
+                  <td className="px-6 py-4 text-content-muted">{row.commune}</td>
+                  <td className="px-6 py-4 text-content-muted">{row.date}</td>
+                  <td className="px-6 py-4 text-right font-black text-brand-blue">{row.amount ? formatMoney(row.amount) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="px-6 py-8 text-sm text-content-muted">Aucune mission dans l’historique pour le moment.</p>
+      )}
+    </section>
+  );
+};
+
+const DriverReferralPanel: React.FC<{
+  referralCode: string;
+  referredCount: number;
+  conversions: number;
+  bonusPoints: number;
+  isLoading: boolean;
+  onNotify: (message: string) => void;
+}> = ({ referralCode, referredCount, conversions, bonusPoints, isLoading, onNotify }) => {
+  const shareText = `Rejoignez Laundry Express comme chauffeur avec mon code ${referralCode}. Gagnez 5 % sur chaque mission parrainée !`;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(referralCode);
+    onNotify('Code de parrainage copié.');
+  };
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: 'Parrainage chauffeur Laundry Express', text: shareText, url: 'https://laundry.app/register' });
+    } else {
+      handleCopy();
+    }
+  };
+
+  return (
+    <section className={`${driverCard} p-6`}>
+      <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-center">
+        <div>
+          <p className="text-xs font-black uppercase text-brand-blue">Programme chauffeur</p>
+          <h2 className="mt-2 text-2xl font-black text-content-primary">Parrainez un chauffeur</h2>
+          <p className="mt-2 text-sm text-content-muted">
+            Partagez votre code : vous gagnez <strong className="text-content-primary">5 %</strong> sur chaque mission réalisée par vos filleuls.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <span className="rounded-xl border border-dashed border-brand-blue bg-brand-blue/5 px-4 py-3 font-mono text-lg font-black tracking-widest text-brand-blue">
+              {isLoading ? '…' : referralCode || '—'}
+            </span>
+            <button type="button" onClick={handleCopy} disabled={!referralCode} className="rounded-xl border border-brand-blue px-4 py-2 text-sm font-black text-brand-blue hover:bg-brand-blue hover:text-white disabled:opacity-50">
+              Copier le code
+            </button>
+            <button type="button" onClick={handleShare} disabled={!referralCode} className="rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700 disabled:opacity-50">
+              Partager
+            </button>
+          </div>
+        </div>
+        <img src={REFERRAL_IMAGE} alt="Gains de parrainage chauffeur" className="mx-auto h-40 w-full max-w-xs object-contain" />
+      </div>
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl bg-surface-muted p-4">
+          <p className="text-sm text-content-muted">Chauffeurs invités</p>
+          <p className="mt-2 text-3xl font-black text-content-primary">{referredCount}</p>
+        </div>
+        <div className="rounded-xl bg-surface-muted p-4">
+          <p className="text-sm text-content-muted">Conversions</p>
+          <p className="mt-2 text-3xl font-black text-content-primary">{conversions}</p>
+        </div>
+        <div className="rounded-xl bg-surface-muted p-4">
+          <p className="text-sm text-content-muted">Bonus cumulés</p>
+          <p className="mt-2 text-3xl font-black text-brand-blue">{bonusPoints} pts</p>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 const DocumentUploadButton: React.FC<{ label: string; onUploaded: (label: string, filename: string) => void }> = ({ label, onUploaded }) => (
@@ -542,30 +775,47 @@ const DocumentUploadButton: React.FC<{ label: string; onUploaded: (label: string
 );
 
 const DriverSectionPanel: React.FC<{
-  activeSection: DriverSection;
+  activeSection: Exclude<DriverSection, 'dashboard' | 'missions' | 'history'>;
   available: boolean;
   onToggleAvailability: () => void;
   earningsBreakdown: EarningsBreakdown;
   completedCount: number;
-  availableCount: number;
   isUpdating: boolean;
   onNavigateSupport: () => void;
   onNotify: (message: string) => void;
+  selectedSlots: string[];
+  onToggleSlot: (slot: string) => void;
+  user: User;
+  onUpdateNotificationPref: (key: keyof NotificationPreferences, value: boolean) => void;
+  referralCode: string;
+  referralStats: { referredUsersCount: number; completedConversions: number; totalBonusPoints: number };
+  referralLoading: boolean;
 }> = ({
   activeSection,
   available,
   onToggleAvailability,
   earningsBreakdown,
   completedCount,
-  availableCount,
   isUpdating,
   onNavigateSupport,
   onNotify,
+  selectedSlots,
+  onToggleSlot,
+  user,
+  onUpdateNotificationPref,
+  referralCode,
+  referralStats,
+  referralLoading,
 }) => {
-  if (activeSection === 'dashboard' || activeSection === 'missions') return null;
-
-  const panelBase = 'rounded-2xl border border-[#e4edf9] bg-white p-6 shadow-[0_16px_40px_rgba(10,22,40,0.06)]';
+  const panelBase = `${driverCard} p-6`;
   const total = earningsBreakdown.base + earningsBreakdown.bonus + earningsBreakdown.tips + earningsBreakdown.other;
+  const notifPrefs = user.notificationPreferences || {
+    newOrder: true,
+    orderStatusChange: true,
+    newChatMessage: true,
+    promotions: false,
+    general: true,
+  };
 
   if (activeSection === 'earnings') {
     return (
@@ -573,8 +823,8 @@ const DriverSectionPanel: React.FC<{
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase text-brand-blue">Paiements chauffeur</p>
-            <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Relevé des gains</h2>
-            <p className="mt-1 text-sm text-[#52607f]">{completedCount} mission{completedCount > 1 ? 's' : ''} terminée{completedCount > 1 ? 's' : ''} enregistrée{completedCount > 1 ? 's' : ''}.</p>
+            <h2 className="mt-2 text-2xl font-black text-content-primary">Relevé des gains</h2>
+            <p className="mt-1 text-sm text-content-muted">{completedCount} mission{completedCount > 1 ? 's' : ''} terminée{completedCount > 1 ? 's' : ''} enregistrée{completedCount > 1 ? 's' : ''}.</p>
           </div>
           <button
             onClick={() => downloadTextFile('releve-gains-chauffeur.csv', `categorie,montant\nbase,${earningsBreakdown.base}\nbonus,${earningsBreakdown.bonus}\npourboires,${earningsBreakdown.tips}\nautres,${earningsBreakdown.other}\ntotal,${total}\n`)}
@@ -590,9 +840,9 @@ const DriverSectionPanel: React.FC<{
             ['Pourboires', earningsBreakdown.tips],
             ['Autres', earningsBreakdown.other],
           ].map(([label, value]) => (
-            <div key={String(label)} className="rounded-xl bg-[#f8fbff] p-4">
-              <p className="text-sm text-[#52607f]">{label}</p>
-              <p className="mt-2 text-2xl font-black text-[#0A1628]">{formatMoney(Number(value))}</p>
+            <div key={String(label)} className="rounded-xl bg-surface-muted p-4">
+              <p className="text-sm text-content-muted">{label}</p>
+              <p className="mt-2 text-2xl font-black text-content-primary">{formatMoney(Number(value))}</p>
             </div>
           ))}
         </div>
@@ -602,20 +852,40 @@ const DriverSectionPanel: React.FC<{
 
   if (activeSection === 'availability') {
     return (
-      <section className={panelBase}>
-        <p className="text-xs font-black uppercase text-brand-blue">Disponibilité</p>
-        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Planifier votre journée</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {['Matin 08h-12h', 'Après-midi 12h-17h', 'Soir 17h-21h'].map((slot) => (
-            <button key={slot} onClick={() => onNotify(`${slot} ajouté à vos préférences.`)} className="rounded-xl border border-[#dbe7fb] p-4 text-left text-sm font-bold hover:bg-[#f8fbff]">
-              <Icon name="calendar" className="mb-3 h-5 w-5 text-brand-blue" />
-              {slot}
-            </button>
-          ))}
+      <section className="space-y-6">
+        <div className={`${panelBase} flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between`}>
+          <div>
+            <p className="text-xs font-black uppercase text-brand-blue">Statut actuel</p>
+            <h2 className="mt-2 text-2xl font-black text-content-primary">{available ? 'Vous êtes disponible' : 'Vous êtes indisponible'}</h2>
+            <p className="mt-1 text-sm text-content-muted">Les missions vous sont proposées uniquement lorsque vous êtes en ligne.</p>
+          </div>
+          <button type="button" onClick={onToggleAvailability} disabled={isUpdating} className="rounded-xl bg-brand-blue px-5 py-3 text-sm font-black text-white hover:bg-brand-blue-700 disabled:opacity-60">
+            {available ? 'Passer indisponible' : 'Me rendre disponible'}
+          </button>
         </div>
-        <button onClick={onToggleAvailability} disabled={isUpdating} className="mt-5 rounded-xl bg-brand-blue px-5 py-3 text-sm font-black text-white hover:bg-brand-blue-700 disabled:opacity-60">
-          {available ? 'Passer indisponible maintenant' : 'Me rendre disponible maintenant'}
-        </button>
+        <section className={panelBase}>
+          <p className="text-xs font-black uppercase text-brand-blue">Créneaux préférés</p>
+          <h2 className="mt-2 text-2xl font-black text-content-primary">Planifier votre journée</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {AVAILABILITY_SLOTS.map((slot) => {
+              const active = selectedSlots.includes(slot);
+              return (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={() => onToggleSlot(slot)}
+                  className={`rounded-xl border p-4 text-left text-sm font-bold transition ${
+                    active ? 'border-brand-blue bg-brand-blue/10 text-brand-blue' : 'border-surface-border-subtle hover:bg-surface-muted'
+                  }`}
+                >
+                  <Icon name="calendar" className="mb-3 h-5 w-5 text-brand-blue" />
+                  {slot}
+                  {active && <span className="mt-2 block text-xs font-black uppercase">Sélectionné</span>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
       </section>
     );
   }
@@ -625,12 +895,12 @@ const DriverSectionPanel: React.FC<{
     return (
       <section className={panelBase}>
         <p className="text-xs font-black uppercase text-brand-blue">Conformité</p>
-        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Documents chauffeur</h2>
+        <h2 className="mt-2 text-2xl font-black text-content-primary">Documents chauffeur</h2>
         <div className="mt-5 space-y-3">
           {docs.map((doc) => (
-            <div key={doc} className="flex flex-col gap-3 rounded-xl border border-[#e4edf9] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div key={doc} className="flex flex-col gap-3 rounded-xl border border-surface-border-subtle p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-black text-[#0A1628]">{doc}</p>
+                <p className="font-black text-content-primary">{doc}</p>
                 <p className="text-sm text-green-700">Vérification prête à synchroniser</p>
               </div>
               <DocumentUploadButton label={doc} onUploaded={(label, filename) => onNotify(`${label} sélectionné : ${filename}`)} />
@@ -645,40 +915,64 @@ const DriverSectionPanel: React.FC<{
     return (
       <section className={panelBase}>
         <p className="text-xs font-black uppercase text-brand-blue">Assistance opérationnelle</p>
-        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Support chauffeur 24/7</h2>
+        <h2 className="mt-2 text-2xl font-black text-content-primary">Support chauffeur 24/7</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <a href="tel:+243812345678" className="rounded-xl border border-[#dbe7fb] p-4 font-bold hover:bg-[#f8fbff]"><Icon name="phone" className="mb-3 h-5 w-5 text-brand-blue" />Appeler le dispatch</a>
-          <a href="mailto:support@laundryexpress.cd" className="rounded-xl border border-[#dbe7fb] p-4 font-bold hover:bg-[#f8fbff]"><Icon name="envelope" className="mb-3 h-5 w-5 text-brand-blue" />Envoyer un email</a>
-          <button onClick={onNavigateSupport} className="rounded-xl border border-[#dbe7fb] p-4 text-left font-bold hover:bg-[#f8fbff]"><Icon name="lifebuoy" className="mb-3 h-5 w-5 text-brand-blue" />Ouvrir le centre support</button>
+          <a href="tel:+243812345678" className="rounded-xl border border-surface-border-subtle p-4 font-bold hover:bg-surface-muted"><Icon name="phone" className="mb-3 h-5 w-5 text-brand-blue" />Appeler le dispatch</a>
+          <a href="mailto:support@laundryexpress.cd" className="rounded-xl border border-surface-border-subtle p-4 font-bold hover:bg-surface-muted"><Icon name="envelope" className="mb-3 h-5 w-5 text-brand-blue" />Envoyer un email</a>
+          <button onClick={onNavigateSupport} className="rounded-xl border border-surface-border-subtle p-4 text-left font-bold hover:bg-surface-muted"><Icon name="lifebuoy" className="mb-3 h-5 w-5 text-brand-blue" />Ouvrir le centre support</button>
         </div>
       </section>
     );
   }
 
   if (activeSection === 'settings') {
+    const settings: { key: keyof NotificationPreferences; label: string; description: string }[] = [
+      { key: 'newOrder', label: 'Notifications mission', description: 'Alertes pour les nouvelles missions disponibles.' },
+      { key: 'orderStatusChange', label: 'Alertes retard', description: 'Rappels si une mission prend du retard.' },
+      { key: 'general', label: 'Résumé quotidien', description: 'Récapitulatif de votre activité chaque soir.' },
+      { key: 'newChatMessage', label: 'Messages client', description: 'Notifications des messages dans le chat mission.' },
+      { key: 'promotions', label: 'Bonus et campagnes', description: 'Offres spéciales et primes chauffeur.' },
+    ];
     return (
       <section className={panelBase}>
         <p className="text-xs font-black uppercase text-brand-blue">Préférences</p>
-        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Paramètres chauffeur</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {['Notifications mission', 'Alertes retard', 'Résumé quotidien'].map((setting) => (
-            <button key={setting} onClick={() => onNotify(`${setting} mis à jour.`)} className="rounded-xl border border-[#dbe7fb] p-4 text-left font-bold hover:bg-[#f8fbff]">
-              <Icon name="settings" className="mb-3 h-5 w-5 text-brand-blue" />
-              {setting}
-            </button>
-          ))}
+        <h2 className="mt-2 text-2xl font-black text-content-primary">Paramètres chauffeur</h2>
+        <div className="mt-5 space-y-3">
+          {settings.map((setting) => {
+            const enabled = Boolean(notifPrefs[setting.key]);
+            return (
+              <div key={setting.key} className="flex flex-col gap-3 rounded-xl border border-surface-border-subtle p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-black text-content-primary">{setting.label}</p>
+                  <p className="text-sm text-content-muted">{setting.description}</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enabled}
+                  onClick={() => onUpdateNotificationPref(setting.key, !enabled)}
+                  className={`rounded-full px-4 py-2 text-xs font-black transition ${enabled ? 'bg-brand-blue text-white' : 'bg-surface-muted text-content-muted'}`}
+                >
+                  {enabled ? 'Activé' : 'Désactivé'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
     );
   }
 
-  if (activeSection === 'history') {
+  if (activeSection === 'referral') {
     return (
-      <section className={panelBase}>
-        <p className="text-xs font-black uppercase text-brand-blue">Historique</p>
-        <h2 className="mt-2 text-2xl font-black text-[#0A1628]">Résumé opérationnel</h2>
-        <p className="mt-2 text-sm text-[#52607f]">Vous avez {availableCount} mission{availableCount > 1 ? 's' : ''} disponible{availableCount > 1 ? 's' : ''} et {completedCount} mission{completedCount > 1 ? 's' : ''} terminée{completedCount > 1 ? 's' : ''} dans le suivi actuel.</p>
-      </section>
+      <DriverReferralPanel
+        referralCode={referralCode}
+        referredCount={referralStats.referredUsersCount}
+        conversions={referralStats.completedConversions}
+        bonusPoints={referralStats.totalBonusPoints}
+        isLoading={referralLoading}
+        onNotify={onNotify}
+      />
     );
   }
 
@@ -694,17 +988,48 @@ export const DriverDashboardPage: React.FC = () => {
     updateOrderStatus,
     addNotification,
     setCurrentPage,
+    logout,
     openDriverMissionForOrderId,
     setOpenDriverMissionForOrderId,
   } = useAppContext();
-  const [activeSection, setActiveSection] = useState<DriverSection>('dashboard');
+  const [activeSection, setActiveSection] = useState<DriverSection>(() => {
+    const hash = window.location.hash.replace('#', '');
+    return isDriverSection(hash) ? hash : 'dashboard';
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [chattingOrder, setChattingOrder] = useState<Order | null>(null);
   const [liveTasks, setLiveTasks] = useState<LogisticsTask[]>([]);
   const [liveDriver, setLiveDriver] = useState<LogisticsDriver | null>(null);
   const [historyRange, setHistoryRange] = useState('30');
+  const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const missionRef = useRef<HTMLDivElement>(null);
+  const { stats: referralStats, isLoading: referralLoading } = useMyReferralStats(!!user && user.role === 'driver');
+
+  const handleSectionChange = useCallback((section: DriverSection) => {
+    setActiveSection(section);
+    const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
+    window.history.replaceState(null, '', nextUrl);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (isDriverSection(hash)) setActiveSection(hash);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) setSelectedSlots(loadAvailabilitySlots(user.id));
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    localStorage.setItem(`driver-availability-slots-${user.id}`, JSON.stringify(selectedSlots));
+  }, [selectedSlots, user?.id]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_dashboard_viewed' } }));
@@ -748,7 +1073,7 @@ export const DriverDashboardPage: React.FC = () => {
   const localCurrentOrder = useMemo(() => (user ? getOrdersForDriver(user.id) : null), [user, getOrdersForDriver]);
 
   const activeTask = useMemo(() => liveTasks.find((task) => ['driver_assigned', 'accepted', 'in_progress'].includes(task.status)) || null, [liveTasks]);
-  const availableTasks = useMemo(() => liveTasks.filter((task) => ['pending', 'open_market', 'claimed'].includes(task.status)).slice(0, 5), [liveTasks]);
+  const allAvailableTasks = useMemo(() => liveTasks.filter((task) => ['pending', 'open_market', 'claimed'].includes(task.status)), [liveTasks]);
   const completedTasks = useMemo(() => liveTasks.filter((task) => task.status === 'completed'), [liveTasks]);
   const cancelledTasks = useMemo(() => liveTasks.filter((task) => task.status === 'cancelled' || task.status === 'expired'), [liveTasks]);
   const rejectedTasks = useMemo(() => liveTasks.filter((task) => task.status === 'failed'), [liveTasks]);
@@ -870,13 +1195,40 @@ export const DriverDashboardPage: React.FC = () => {
     }
   };
 
+  const handleToggleSlot = (slot: string) => {
+    setSelectedSlots((current) => {
+      const next = current.includes(slot) ? current.filter((item) => item !== slot) : [...current, slot];
+      addNotification(
+        next.includes(slot) ? `${slot} ajouté à vos préférences.` : `${slot} retiré de vos préférences.`,
+        'success',
+      );
+      return next;
+    });
+  };
+
+  const handleUpdateNotificationPref = async (key: keyof NotificationPreferences, value: boolean) => {
+    if (!user) return;
+    const nextPrefs = { ...user.notificationPreferences, [key]: value };
+    try {
+      await updateUser({ ...user, notificationPreferences: nextPrefs });
+      addNotification('Préférences mises à jour.', 'success');
+    } catch {
+      addNotification('Impossible de sauvegarder les préférences.', 'error');
+    }
+  };
+
+  const referralCode = referralStats.referralCode || user?.referralCode || '';
+  const sectionMeta = SECTION_LABELS[activeSection];
+  const completedCount = completedTasks.length || localCompletedOrders.length;
+  const isDashboard = activeSection === 'dashboard';
+
   if (!user || user.role !== 'driver') {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-[#f8fbff] p-6">
-        <div className="rounded-2xl border border-[#e4edf9] bg-white p-8 text-center shadow-sm">
+      <div className="flex min-h-[60vh] items-center justify-center bg-surface-page p-6">
+        <div className="rounded-2xl border border-surface-border-subtle bg-surface-card p-8 text-center shadow-sm">
           <Icon name="truck" className="mx-auto h-12 w-12 text-brand-blue" />
-          <h1 className="mt-4 text-2xl font-black text-[#0A1628]">Accès chauffeur uniquement</h1>
-          <p className="mt-2 text-[#52607f]">Connectez-vous avec un compte chauffeur pour ouvrir ce tableau de bord.</p>
+          <h1 className="mt-4 text-2xl font-black text-content-primary">Accès chauffeur uniquement</h1>
+          <p className="mt-2 text-content-muted">Connectez-vous avec un compte chauffeur pour ouvrir ce tableau de bord.</p>
         </div>
       </div>
     );
@@ -885,100 +1237,178 @@ export const DriverDashboardPage: React.FC = () => {
   const driverName = user.name?.split(' ')[0] || 'Driver';
 
   return (
-    <div className="min-h-screen bg-[#f8fbff] text-[#0A1628]">
-      <DriverSidebar activeSection={activeSection} onSectionChange={setActiveSection} onNavigate={setCurrentPage} />
+    <div className="driver-shell min-h-screen bg-surface-page text-content-primary">
+      <DriverSidebar
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onNavigate={setCurrentPage}
+        onLogout={logout}
+      />
       {isSidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" onClick={() => setIsSidebarOpen(false)}>
-          <div className="h-full w-[280px] bg-white p-4" onClick={(event) => event.stopPropagation()}>
-            <DriverSidebar mobile activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setIsSidebarOpen(false); }} onNavigate={setCurrentPage} />
+        <div className="fixed inset-0 z-[60] bg-slate-900/50 md:hidden" onClick={() => setIsSidebarOpen(false)}>
+          <div className="h-full w-[min(280px,88vw)] bg-surface-card p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <DriverSidebar
+              mobile
+              activeSection={activeSection}
+              onSectionChange={(section) => {
+                handleSectionChange(section);
+                setIsSidebarOpen(false);
+              }}
+              onNavigate={setCurrentPage}
+              onLogout={logout}
+            />
           </div>
         </div>
       )}
       <DriverTopbar driverName={driverName} avatarUrl={(user as { avatarUrl?: string }).avatarUrl} onMenuClick={() => setIsSidebarOpen(true)} />
 
-      <main className="px-4 py-6 lg:ml-[260px] lg:px-8">
-        <div className="mx-auto max-w-[1500px] space-y-6">
+      <main className="relative z-0 px-4 pb-24 pt-[88px] md:ml-[260px] md:px-8 md:pb-8 md:pt-6">
+        <div key={activeSection} className="mx-auto max-w-[1500px] space-y-6">
+          <DriverDesktopBar driverName={driverName} />
           <section>
-            <h1 className="text-3xl font-black tracking-normal text-[#0A1628]">Tableau de bord chauffeur 👋</h1>
-            <p className="mt-2 text-[#52607f]">Bienvenue, {driverName} ! Voici un aperçu de votre activité.</p>
+            {!isDashboard && (
+              <button
+                type="button"
+                onClick={() => handleSectionChange('dashboard')}
+                className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-brand-blue hover:underline"
+              >
+                <Icon name="arrowRight" className="h-4 w-4 rotate-180" />
+                Retour au tableau de bord
+              </button>
+            )}
+            <h1 className="text-3xl font-black tracking-normal text-content-primary">
+              {isDashboard ? `Tableau de bord chauffeur 👋` : sectionMeta.title}
+            </h1>
+            <p className="mt-2 text-content-muted">
+              {isDashboard ? `Bienvenue, ${driverName} ! Voici un aperçu de votre activité.` : sectionMeta.subtitle}
+            </p>
           </section>
 
-          <DriverKpiCards stats={stats} rating={rating} reviewCount={reviewCount} />
+          {isDashboard && (
+            <>
+              <DriverKpiCards stats={stats} rating={rating} reviewCount={reviewCount} />
 
-          <div className="grid gap-6 xl:grid-cols-[1fr_0.98fr]">
-            <DriverStatusCard available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
-            <DriverTipsCard acceptanceRate={stats.acceptanceRate} accepted={stats.acceptedMissions} offered={stats.offeredMissions} />
-          </div>
+              <div className="grid gap-6 xl:grid-cols-[1fr_0.98fr]">
+                <DriverStatusCard available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
+                <DriverTipsCard acceptanceRate={stats.acceptanceRate} accepted={stats.acceptedMissions} offered={stats.offeredMissions} />
+              </div>
 
-          <div ref={missionRef}>
-            <ActiveMissionCard
-              mission={activeTask}
+              <div ref={missionRef}>
+                <ActiveMissionCard
+                  mission={activeTask}
+                  available={available}
+                  onOpenMissions={() => {
+                    handleSectionChange('missions');
+                    window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_available_missions_clicked' } }));
+                  }}
+                  onChat={() => {
+                    if (activeMissionOrder) {
+                      setChattingOrder(activeMissionOrder);
+                      window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_active_mission_viewed' } }));
+                    }
+                  }}
+                  onAction={handleMissionAction}
+                  isUpdating={isUpdating}
+                />
+              </div>
+
+              <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
+                <MissionHistoryChart data={missionHistoryChartData} range={historyRange} onRangeChange={setHistoryRange} />
+                <DriverEarningsSummary
+                  breakdown={earningsBreakdown}
+                  onOpen={() => {
+                    handleSectionChange('earnings');
+                    window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_earnings_clicked' } }));
+                  }}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {[
+                  ['missions', 'Missions', 'Voir toutes les missions disponibles.', 'shoppingBag'],
+                  ['history', 'Historique', 'Consultez vos missions passées.', 'clock'],
+                  ['documents', 'Documents', 'Permis, assurance et pièces vérifiées.', 'document-text'],
+                  ['support', 'Support', 'Assistance disponible à tout moment.', 'lifebuoy'],
+                  ['availability', 'Disponibilité', 'Planifiez vos créneaux de travail.', 'calendar'],
+                  ['settings', 'Paramètres', 'Préférences du compte chauffeur.', 'pencil'],
+                  ['referral', 'Parrainage', 'Gagnez 5 % sur chaque filleul.', 'gift'],
+                ].map(([section, title, description, icon]) => (
+                  <button
+                    key={section}
+                    type="button"
+                    onClick={() => handleSectionChange(section as DriverSection)}
+                    className="rounded-2xl border border-surface-border-subtle bg-surface-card p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+                  >
+                    <Icon name={icon as any} className="h-6 w-6 text-brand-blue" />
+                    <h3 className="mt-4 font-black text-content-primary">{title}</h3>
+                    <p className="mt-2 text-sm text-content-muted">{description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="lg:hidden">
+                <DriverReferralCard onOpen={() => handleSectionChange('referral')} />
+              </div>
+            </>
+          )}
+
+          {activeSection === 'missions' && (
+            <div className="space-y-6">
+              <DriverStatusCard available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
+              <div ref={missionRef}>
+                <ActiveMissionCard
+                  mission={activeTask}
+                  available={available}
+                  onOpenMissions={() => missionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  onChat={() => {
+                    if (activeMissionOrder) setChattingOrder(activeMissionOrder);
+                  }}
+                  onAction={handleMissionAction}
+                  isUpdating={isUpdating}
+                />
+              </div>
+              <AvailableMissionsList missions={allAvailableTasks} onAccept={handleAcceptMission} isUpdating={isUpdating} />
+            </div>
+          )}
+
+          {activeSection === 'history' && (
+            <div className="space-y-6">
+              <MissionHistoryChart data={missionHistoryChartData} range={historyRange} onRangeChange={setHistoryRange} />
+              <MissionHistoryTable
+                completed={completedTasks}
+                cancelled={cancelledTasks}
+                failed={rejectedTasks}
+                localOrders={localCompletedOrders}
+              />
+            </div>
+          )}
+
+          {activeSection !== 'dashboard' && activeSection !== 'missions' && activeSection !== 'history' && (
+            <DriverSectionPanel
+              activeSection={activeSection}
               available={available}
-              onOpenMissions={() => {
-                setActiveSection('missions');
-                window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_available_missions_clicked' } }));
-              }}
-              onChat={() => {
-                if (activeMissionOrder) {
-                  setChattingOrder(activeMissionOrder);
-                  window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_active_mission_viewed' } }));
-                }
-              }}
-              onAction={handleMissionAction}
+              onToggleAvailability={handleAvailabilityToggle}
+              earningsBreakdown={earningsBreakdown}
+              completedCount={completedCount}
               isUpdating={isUpdating}
+              onNavigateSupport={() => setCurrentPage({ name: 'support' })}
+              onNotify={(message) => addNotification(message, 'success')}
+              selectedSlots={selectedSlots}
+              onToggleSlot={handleToggleSlot}
+              user={user}
+              onUpdateNotificationPref={handleUpdateNotificationPref}
+              referralCode={referralCode}
+              referralStats={referralStats}
+              referralLoading={referralLoading}
             />
-          </div>
-
-          {activeSection === 'missions' && <AvailableMissionsList missions={availableTasks} onAccept={handleAcceptMission} isUpdating={isUpdating} />}
-
-          <DriverSectionPanel
-            activeSection={activeSection}
-            available={available}
-            onToggleAvailability={handleAvailabilityToggle}
-            earningsBreakdown={earningsBreakdown}
-            completedCount={completedTasks.length || localCompletedOrders.length}
-            availableCount={availableTasks.length}
-            isUpdating={isUpdating}
-            onNavigateSupport={() => setCurrentPage({ name: 'support' })}
-            onNotify={(message) => addNotification(message, 'success')}
-          />
-
-          <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
-            <MissionHistoryChart data={missionHistoryChartData} range={historyRange} onRangeChange={setHistoryRange} />
-            <DriverEarningsSummary
-              breakdown={earningsBreakdown}
-              onOpen={() => {
-                setActiveSection('earnings');
-                window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_earnings_clicked' } }));
-              }}
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {[
-              ['documents', 'Documents', 'Permis, assurance et pièces vérifiées.', 'document-text'],
-              ['support', 'Support', 'Assistance disponible à tout moment.', 'lifebuoy'],
-              ['availability', 'Disponibilité', 'Planifiez vos créneaux de travail.', 'calendar'],
-              ['settings', 'Paramètres', 'Préférences du compte chauffeur.', 'pencil'],
-            ].map(([section, title, description, icon]) => (
-              <button key={section} onClick={() => setActiveSection(section as DriverSection)} className="rounded-2xl border border-[#e4edf9] bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-100">
-                <Icon name={icon as any} className="h-6 w-6 text-brand-blue" />
-                <h3 className="mt-4 font-black text-[#0A1628]">{title}</h3>
-                <p className="mt-2 text-sm text-[#52607f]">{description}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="lg:hidden">
-            <DriverReferralCard />
-          </div>
+          )}
         </div>
       </main>
 
       <button
         onClick={handleAvailabilityToggle}
         disabled={isUpdating}
-        className="fixed bottom-4 left-4 right-4 z-30 rounded-2xl bg-brand-blue py-4 text-sm font-black text-white shadow-2xl shadow-blue-200 disabled:opacity-60 lg:hidden"
+        className="fixed bottom-4 left-4 right-4 z-40 rounded-2xl bg-brand-blue py-4 text-sm font-black text-white shadow-2xl shadow-blue-200 disabled:opacity-60 md:hidden"
       >
         {available ? 'Passer indisponible' : 'Devenir disponible'}
       </button>

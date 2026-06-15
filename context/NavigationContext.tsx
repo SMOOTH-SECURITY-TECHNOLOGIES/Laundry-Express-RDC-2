@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useCallback, useMemo } from 'react';
 
-export type Page = 'home' | 'order' | 'tracking' | 'profile' | 'become-partner' | 'login' | 'register' | 'admin' | 'partner-dashboard' | 'faq' | 'support' | 'logistics-partnership' | 'logistics-dashboard' | 'driver-dashboard' | 'partner-detail' | 'notifications' | 'mini-site';
+export type Page = 'home' | 'order' | 'tracking' | 'profile' | 'become-partner' | 'login' | 'register' | 'admin' | 'partner-dashboard' | 'faq' | 'blog' | 'support' | 'logistics-partnership' | 'logistics-dashboard' | 'driver-dashboard' | 'partner-detail' | 'notifications' | 'mini-site';
 
 export interface PageParams {
   [key: string]: any;
@@ -20,6 +20,8 @@ interface NavigationContextType {
     previousPage: Page | null;
     activePartnerId: string | null;
     setActivePartnerId: (id: string | null) => void;
+    activeBlogSlug: string | null;
+    setActiveBlogSlug: (slug: string | null) => void;
     openChatForOrderId: string | null;
     setOpenChatForOrderId: (id: string | null) => void;
     openOrderDetailsForOrderId: string | null;
@@ -46,6 +48,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const [currentPage, _setCurrentPage] = useState<Page>('home');
     const [previousPage, setPreviousPage] = useState<Page | null>(null);
     const [activePartnerId, setActivePartnerId] = useState<string | null>(null);
+    const [activeBlogSlug, setActiveBlogSlug] = useState<string | null>(null);
     const [openChatForOrderId, setOpenChatForOrderId] = useState<string | null>(null);
     const [openOrderDetailsForOrderId, setOpenOrderDetailsForOrderId] = useState<string | null>(null);
     const [openLogisticsMissionForOrderId, setOpenLogisticsMissionForOrderId] = useState<string | null>(null);
@@ -69,7 +72,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             window.dispatchEvent(new PopStateEvent('popstate'));
         } catch (error) {
             const pageFromPath = path === '/' ? 'home' : path.split('?')[0].replace('/', '') as Page;
-            const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications'];
+            const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'blog', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications'];
             
             if (validPages.includes(pageFromPath)) {
                 setRouterPage(pageFromPath);
@@ -101,7 +104,9 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         navigate, 
         previousPage, 
         activePartnerId, 
-        setActivePartnerId, 
+        setActivePartnerId,
+        activeBlogSlug,
+        setActiveBlogSlug,
         openChatForOrderId, 
         setOpenChatForOrderId,
         openOrderDetailsForOrderId,
@@ -118,7 +123,8 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setRouterPage,
         navigate,
         previousPage, 
-        activePartnerId, 
+        activePartnerId,
+        activeBlogSlug,
         openChatForOrderId, 
         openOrderDetailsForOrderId,
         openLogisticsMissionForOrderId,

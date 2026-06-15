@@ -10,8 +10,24 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Theme Color for browsers -->
+    <!-- Theme Color for browsers (updated by theme.ts / ThemeContext) -->
     <meta name="theme-color" content="#0077B6" />
+
+    <script>
+      (function () {
+        var pref = localStorage.getItem('themePreference');
+        if (pref !== 'light' && pref !== 'dark' && pref !== 'system') {
+          var legacy = localStorage.getItem('theme');
+          pref = legacy === 'light' || legacy === 'dark' ? legacy : 'system';
+        }
+        var dark =
+          pref === 'dark' ||
+          (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.add(dark ? 'dark' : 'light');
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#0f172a' : '#0077B6');
+      })();
+    </script>
 
     <!-- iOS PWA Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -67,7 +83,7 @@
     }
     </script>
 </head>
-  <body class="bg-brand-gray dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200">
+  <body class="font-sans text-content-primary">
     <div id="root"></div>
     <script>
       // Initialize GTM dataLayer

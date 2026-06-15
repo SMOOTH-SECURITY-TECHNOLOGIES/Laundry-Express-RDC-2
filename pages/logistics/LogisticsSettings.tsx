@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { logisticsCard } from './logistics-ui';
 
 interface ToggleProps {
   label: string;
@@ -53,7 +54,7 @@ export const LogisticsSettings: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className={`${logisticsCard} p-6`}>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
               <Icon name="bell" className="h-5 w-5 text-brand-blue" />
@@ -100,7 +101,7 @@ export const LogisticsSettings: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className={`${logisticsCard} p-6`}>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50">
               <Icon name="clock" className="h-5 w-5 text-green-600" />
@@ -130,7 +131,7 @@ export const LogisticsSettings: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className={`${logisticsCard} p-6`}>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-50">
               <Icon name="mapPin" className="h-5 w-5 text-orange-600" />
@@ -162,7 +163,7 @@ export const LogisticsSettings: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className={`${logisticsCard} p-6`}>
           <div className="flex items-center gap-3 mb-5">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
               <Icon name="warning" className="h-5 w-5 text-red-500" />

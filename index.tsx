@@ -9,6 +9,7 @@ import { DataProvider } from './context/DataContext';
 import { OrderProvider } from './context/OrderContext';
 import { NavigationProvider } from './context/NavigationContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ThemeSync } from './components/ThemeSync';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -46,6 +47,7 @@ root.render(
       <LanguageProvider>
         <NavigationProvider>
           <AuthProvider>
+            <ThemeSync />
             <NotificationProvider>
               <DataProvider>
                 <OrderProvider>

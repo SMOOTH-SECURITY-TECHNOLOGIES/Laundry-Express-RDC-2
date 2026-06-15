@@ -1,8 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
-import { Review, WorkingHours, DayWorkingHours, Partner } from '../types';
-import { realApi, CatalogPartnerService } from '../services/real-api';
+import { PartnerPresentationVideo } from '../components/PartnerPresentationVideo';
+import { PartnerServiceShopSection } from '../components/partner-shop/PartnerServiceShopSection';
+import { usePartnerServiceCart } from '../hooks/usePartnerServiceCart';
+import { Review, Service, WorkingHours, DayWorkingHours, Partner } from '../types';
+import { realApi } from '../services/real-api';
+import { pickFirstNonEmpty } from './partner/profile/partnerMedia';
+import { mapCatalogPartnerServiceToService } from '../utils/partner-catalog-mappers';
 
 /* ─── Helpers ─── */
 const dayNames: Record<string, string> = {
@@ -67,14 +72,19 @@ const ReviewCard: React.FC<{ review: Review; getUserById: (id: string) => any }>
 
 /* ─── Main Page ─── */
 export const MiniSitePage: React.FC = () => {
-  const { partners, getReviewsForPartner, getUserById, activePartnerId } = useAppContext();
+  const {
+    partners, getReviewsForPartner, getUserById, activePartnerId,
+    setCurrentPage, updateOrderDraft, resetOrderDraft, formatPrice, addNotification,
+  } = useAppContext();
+  const shopCart = usePartnerServiceCart();
   const [activeImage, setActiveImage] = useState(0);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
-  const [displayServices, setDisplayServices] = useState<CatalogPartnerService[]>([]);
+  const [displayServices, setDisplayServices] = useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
   const [servicesError, setServicesError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [publicVideoUrl, setPublicVideoUrl] = useState<string | undefined>();
 
   // Resolve partner
   const slug = useMemo(() => {
@@ -97,6 +107,22 @@ export const MiniSitePage: React.FC = () => {
     return partner ? getReviewsForPartner(partner.id) : [];
   }, [partner, getReviewsForPartner]);
 
+  useEffect(() => {
+    if (!partner?.id) {
+      setPublicVideoUrl(undefined);
+      return;
+    }
+    let cancelled = false;
+    realApi.getPartnerPublicProfile(partner.id)
+      .then((detail) => {
+        if (!cancelled) setPublicVideoUrl(pickFirstNonEmpty(detail.video_url));
+      })
+      .catch(() => {
+        if (!cancelled) setPublicVideoUrl(undefined);
+      });
+    return () => { cancelled = true; };
+  }, [partner?.id]);
+
   // Fetch real services
   useEffect(() => {
     if (!partner) return;
@@ -106,7 +132,11 @@ export const MiniSitePage: React.FC = () => {
       setServicesError(null);
       try {
         const catalogServices = await realApi.getPartnerCatalogServices(partner.id);
-        if (!cancelled) setDisplayServices(catalogServices);
+        if (!cancelled) {
+          setDisplayServices(
+            catalogServices.filter((s) => s.is_available).map((s) => mapCatalogPartnerServiceToService(s)),
+          );
+        }
       } catch (err: any) {
         if (!cancelled) {
           setServicesError(err.message || 'Erreur de chargement des services');
@@ -142,6 +172,25 @@ export const MiniSitePage: React.FC = () => {
   }
 
   const images = partner.imageUrls?.length > 0 ? partner.imageUrls : ['/images/service-placeholder.jpg'];
+  const presentationVideoUrl = pickFirstNonEmpty(publicVideoUrl, partner.videoUrl);
+
+  const handleShopCheckout = () => {
+    if (!partner || shopCart.lines.length === 0) return;
+    const primaryType = shopCart.lines[0]?.service.type;
+    const serviceItems = shopCart.serviceItems;
+    const totalPrice = shopCart.subtotal;
+    shopCart.clearCart();
+    resetOrderDraft();
+    updateOrderDraft({
+      partner,
+      serviceType: primaryType,
+      serviceItems,
+      totalPrice,
+      checkoutSource: 'partner_shop',
+    });
+    setCurrentPage({ name: 'order' });
+    addNotification('Panier transfere. Finalisez votre commande.', 'success');
+  };
 
   // Mock stats
   const publicStats = {
@@ -269,6 +318,33 @@ export const MiniSitePage: React.FC = () => {
           ))}
         </div>
 
+        {presentationVideoUrl && (
+          <section className="bg-white rounded-2xl border border-slate-100 p-6" data-testid="partner-presentation-video">
+            <h2 className="text-lg font-bold text-[#0F172A] mb-4 flex items-center gap-2">
+              <Icon name="play" className="w-5 h-5 text-[#0B5FFF]" />Video de presentation
+            </h2>
+            <PartnerPresentationVideo videoUrl={presentationVideoUrl} partnerName={partner.name} />
+          </section>
+        )}
+
+        <PartnerServiceShopSection
+          partnerName={partner.name}
+          services={displayServices}
+          loading={isLoadingServices}
+          formatPrice={formatPrice}
+          cartLines={shopCart.lines}
+          cartOpen={shopCart.isOpen}
+          cartSubtotal={shopCart.subtotal}
+          cartItemCount={shopCart.itemCount}
+          onAdd={shopCart.addService}
+          onOpenCart={() => shopCart.setIsOpen(true)}
+          onCloseCart={() => shopCart.setIsOpen(false)}
+          onCheckout={handleShopCheckout}
+          onUpdateQuantity={shopCart.updateQuantity}
+          onUpdateWeight={shopCart.updateWeight}
+          onRemove={shopCart.removeLine}
+        />
+
         {/* ─── Public Statistics (6 cards) ─── */}
         <section className="bg-white rounded-2xl border border-slate-100 p-6">
           <h2 className="text-lg font-bold text-[#0F172A] mb-4 flex items-center gap-2">
@@ -320,51 +396,11 @@ export const MiniSitePage: React.FC = () => {
           </div>
         </section>
 
-        {/* ─── Services Catalogue (live from API) ─── */}
-        <section>
-          <h2 className="text-lg font-bold text-[#0F172A] mb-4 flex items-center gap-2">
-            <Icon name="sparkles" className="w-5 h-5 text-[#0B5FFF]" />Catalogue des services
-          </h2>
-          {isLoadingServices ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white rounded-xl border border-slate-100 animate-pulse" />)}
-            </div>
-          ) : servicesError ? (
-            <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
-              <Icon name="warning" className="w-12 h-12 mx-auto text-orange-300 mb-3" />
-              <p className="text-slate-500 font-medium">{servicesError}</p>
-            </div>
-          ) : displayServices.length > 0 ? (
-            <div className="space-y-3">
-              {displayServices.map(s => (
-                <div key={s.id} className="p-4 bg-white rounded-xl border border-slate-100 hover:border-[#0B5FFF]/20 transition">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h4 className="font-bold text-[#0F172A] text-sm">{s.service_category_name || 'Service'}</h4>
-                      <p className="text-xs text-slate-500">{s.service_type_name || ''}</p>
-                    </div>
-                    <div className="text-right shrink-0 ml-4">
-                      <div className="text-sm font-bold text-[#0B5FFF]">
-                        A partir de {typeof s.base_price === 'string' ? parseFloat(s.base_price).toFixed(2) : Number(s.base_price).toFixed(2)} $
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">Delai standard {s.estimated_turnaround_hours}h</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 ml-0">
-                    <span className="text-[10px] text-slate-500 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Lavage</span>
-                    <span className="text-[10px] text-slate-500 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Repassage</span>
-                    <span className="text-[10px] text-slate-500 flex items-center gap-1"><Icon name="check" className="w-3 h-3 text-[#22C55E]" />Pliage</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
-              <Icon name="shirt" className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-              <p className="text-slate-500 font-medium">Aucun service disponible pour le moment.</p>
-            </div>
-          )}
-        </section>
+        {servicesError && (
+          <div className="bg-white rounded-2xl border border-orange-100 p-4 text-sm text-orange-700">
+            {servicesError}
+          </div>
+        )}
 
         {/* ─── Comparison (horizontal table like PartnerDetailPage) ─── */}
         <section className="bg-white rounded-2xl border border-slate-100 p-6">

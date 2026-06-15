@@ -6,6 +6,7 @@ import { OrderDetailsModal } from '../../components/partner/OrderDetailsModal.ts
 import { Icon } from '../../components/Icon';
 import { findPartner } from '../../utils/findPartner';
 import { timeSince } from '../../utils/timeSince';
+import { partnerCard } from './partner-ui';
 
 export const EstimateTimeModal: React.FC<{
   isOpen: boolean;
@@ -17,16 +18,16 @@ export const EstimateTimeModal: React.FC<{
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-slide-up">
-        <h2 className="text-xl font-bold mb-4">Temps estime de traitement</h2>
-        <select value={selectedOption} onChange={(e) => setSelectedOption(e.target.value)} className="w-full p-2.5 border border-slate-200 rounded-lg mb-6 text-sm">
+      <div className={`${partnerCard} w-full max-w-md p-6 shadow-xl animate-slide-up`}>
+        <h2 className="mb-4 text-xl font-bold text-content-primary">Temps estime de traitement</h2>
+        <select value={selectedOption} onChange={(e) => setSelectedOption(e.target.value)} className="mb-6 w-full rounded-lg border border-surface-border-subtle bg-surface-muted p-2.5 text-sm text-content-primary">
           <option value="12">12 heures</option>
           <option value="24">24 heures</option>
           <option value="48">48 heures</option>
           <option value="72">72 heures</option>
         </select>
         <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuler</button>
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-content-muted hover:bg-surface-muted rounded-lg transition">Annuler</button>
           <button onClick={() => { const h = parseInt(selectedOption); const d = new Date(); d.setHours(d.getHours() + h); onConfirm(d.toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })); }} disabled={isLoading} className="px-6 py-2 bg-brand-blue text-white text-sm font-bold rounded-lg hover:bg-brand-blue-700 transition">
             {isLoading ? '...' : 'Confirmer'}
           </button>
@@ -51,8 +52,8 @@ const ScoreGauge: React.FC<{ score: number }> = ({ score }) => {
         <circle cx="60" cy="60" r={radius} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-all duration-1000" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-extrabold text-[#0F172A]">{score}</span>
-        <span className="text-xs text-slate-400">/100</span>
+        <span className="text-3xl font-extrabold text-content-primary">{score}</span>
+        <span className="text-xs text-content-muted">/100</span>
       </div>
     </div>
   );
@@ -61,11 +62,11 @@ const ScoreGauge: React.FC<{ score: number }> = ({ score }) => {
 /* ─── Score Bar ─── */
 const ScoreBar: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
   <div className="flex items-center gap-2">
-    <span className="text-xs text-slate-500 w-28 shrink-0">{label}</span>
-    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+    <span className="w-28 shrink-0 text-xs text-content-muted">{label}</span>
+    <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-muted">
       <div className="h-full rounded-full transition-all duration-700" style={{ width: `${value}%`, backgroundColor: color }} />
     </div>
-    <span className="text-xs font-bold text-slate-700 w-10 text-right">{value}%</span>
+    <span className="w-10 text-right text-xs font-bold text-content-primary">{value}%</span>
   </div>
 );
 
@@ -90,9 +91,9 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[]; onCreat
   const hasData = data.some(d => d.amount > 0);
   if (!hasData) return (
     <div className="h-48 flex flex-col items-center justify-center text-center">
-      <Icon name="currencyDollar" className="w-10 h-10 text-slate-300 mb-3" />
-      <p className="text-sm font-medium text-slate-500 mb-1">Aucun revenu enregistre</p>
-      <p className="text-xs text-slate-400 mb-3">Recevez votre premiere commande pour commencer a suivre vos revenus.</p>
+      <Icon name="currencyDollar" className="w-10 h-10 text-content-faint mb-3" />
+      <p className="text-sm font-medium text-content-muted mb-1">Aucun revenu enregistre</p>
+      <p className="text-xs text-content-muted mb-3">Recevez votre premiere commande pour commencer a suivre vos revenus.</p>
       {onCreatePromo && <button onClick={onCreatePromo} className="px-4 py-1.5 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition">Creer une promotion</button>}
     </div>
   );
@@ -248,7 +249,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
     { icon: 'check', color: 'text-[#22C55E]', bg: 'bg-green-50', title: `Commande ${completedOrders[0]?.backendOrderNumber || 'LE-2024-0001'} livree`, detail: 'Paiement recu', time: 'Il y a 1h' },
     { icon: 'user', color: 'text-brand-blue', bg: 'bg-blue-50', title: 'Nouveau client', detail: 'Marie K. a passe sa 1ere commande', time: 'Il y a 2h' },
     { icon: 'currencyDollar', color: 'text-purple-600', bg: 'bg-purple-50', title: `Paiement recu : ${formatPrice(stats.revenue > 0 ? 18 : 0)}`, detail: 'Mobile Money', time: 'Il y a 3h' },
-    { icon: 'search', color: 'text-slate-500', bg: 'bg-slate-100', title: 'Nouveau visiteur profil', detail: 'Depuis Gombe', time: 'Il y a 4h' },
+    { icon: 'search', color: 'text-content-muted', bg: 'bg-surface-muted', title: 'Nouveau visiteur profil', detail: 'Depuis Gombe', time: 'Il y a 4h' },
     { icon: 'sparkles', color: 'text-[#FF7A00]', bg: 'bg-orange-50', title: 'Promotion consultee', detail: '-20% Costumes', time: 'Il y a 5h' },
   ], [completedOrders, stats]);
 
@@ -257,17 +258,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       {/* ─── Hero + Score + Top Local ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Hero + Score */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 md:p-8">
+        <div className={`lg:col-span-2 ${partnerCard} p-6 md:p-8`}>
           <div className="flex flex-col md:flex-row gap-8">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F172A] mb-1">{greeting}, {partner.name} 👋</h1>
-              <p className="text-sm text-slate-500 mb-6">Voici un apercu de votre activite aujourd'hui.</p>
+              <h1 className="mb-1 text-2xl font-extrabold text-content-primary md:text-3xl">{greeting}, {partner.name} 👋</h1>
+              <p className="mb-6 text-sm text-content-muted">Voici un apercu de votre activite aujourd'hui.</p>
               <div className="flex items-center gap-6">
                 <div className="flex flex-col items-center">
                   <ScoreGauge score={marketplaceScore.total} />
                   <span className={`mt-2 text-xs font-bold px-3 py-1 rounded-full ${
                     marketplaceScore.total >= 90 ? 'bg-yellow-100 text-yellow-700' :
-                    marketplaceScore.total >= 75 ? 'bg-slate-200 text-slate-700' :
+                    marketplaceScore.total >= 75 ? 'bg-surface-muted text-content-primary' :
                     marketplaceScore.total >= 60 ? 'bg-orange-100 text-orange-700' :
                     marketplaceScore.total >= 40 ? 'bg-amber-100 text-amber-700' :
                     'bg-blue-100 text-blue-700'
@@ -330,7 +331,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
           { label: 'Visiteurs ce mois', value: stats.visitors.toLocaleString('fr-FR'), change: stats.visitorsChange, icon: 'search', iconBg: 'bg-purple-50', iconColor: 'text-purple-600', sparkData: [80, 120, 95, 150, 180, 160, 200], sparkColor: '#9333EA' },
           { label: 'Conversion profil', value: '6.4%', change: 0.8, icon: 'chartBar', iconBg: 'bg-orange-50', iconColor: 'text-[#FF7A00]', sparkData: [4.2, 4.8, 5.1, 5.5, 5.9, 6.1, 6.4], sparkColor: '#FF7A00' },
         ].map((kpi, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 hover:shadow-md transition">
+          <div key={i} className={`${partnerCard} p-5 transition hover:shadow-md`}>
             <div className="flex items-center justify-between mb-3">
               <div className={`p-2.5 rounded-xl ${kpi.iconBg}`}><Icon name={kpi.icon as any} className={`w-5 h-5 ${kpi.iconColor}`} /></div>
               {kpi.change !== 0 && (
@@ -339,40 +340,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mb-1">{kpi.label}</p>
-            <p className="text-xl font-extrabold text-[#0F172A]">{kpi.value}</p>
+            <p className="text-xs text-content-muted mb-1">{kpi.label}</p>
+            <p className="text-xl font-extrabold text-content-primary">{kpi.value}</p>
             {kpi.stars && (
               <div className="flex items-center gap-0.5 mt-1">
-                {[1,2,3,4,5].map(s => <Icon key={s} name="star" className={`w-3.5 h-3.5 ${s <= Math.round(parseFloat(stats.avgRating)) ? 'text-yellow-400' : 'text-slate-200'}`} />)}
-                <span className="text-[10px] text-slate-400 ml-1">{kpi.reviewCount} avis</span>
+                {[1,2,3,4,5].map(s => <Icon key={s} name="star" className={`w-3.5 h-3.5 ${s <= Math.round(parseFloat(stats.avgRating)) ? 'text-yellow-400' : 'text-content-faint'}`} />)}
+                <span className="text-[10px] text-content-muted ml-1">{kpi.reviewCount} avis</span>
               </div>
             )}
             {!kpi.stars && kpi.sparkData && <Sparkline data={kpi.sparkData} color={kpi.sparkColor} />}
-            {kpi.change !== 0 && <p className="text-[10px] text-slate-400 mt-1">vs mois dernier</p>}
+            {kpi.change !== 0 && <p className="text-[10px] text-content-muted mt-1">vs mois dernier</p>}
           </div>
         ))}
       </div>
 
       {/* ─── Revenue Chart + Visibility ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6">
+        <div className={`lg:col-span-2 ${partnerCard} p-6`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-[#0F172A]">Revenus des 30 derniers jours</h2>
+              <h2 className="text-lg font-bold text-content-primary">Revenus des 30 derniers jours</h2>
               <div className="flex items-baseline gap-3 mt-1">
-                <p className="text-2xl font-extrabold text-[#0F172A]">{formatPrice(stats.revenue)}</p>
+                <p className="text-2xl font-extrabold text-content-primary">{formatPrice(stats.revenue)}</p>
                 {stats.totalHistoricalRevenue > stats.revenue && (
-                  <span className="text-xs text-slate-400">Total historique : {formatPrice(stats.totalHistoricalRevenue)}</span>
+                  <span className="text-xs text-content-muted">Total historique : {formatPrice(stats.totalHistoricalRevenue)}</span>
                 )}
               </div>
             </div>
-            <span className="text-xs font-medium text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg">30 derniers jours</span>
+            <span className="text-xs font-medium text-content-muted bg-surface-muted px-3 py-1.5 rounded-lg">30 derniers jours</span>
           </div>
           <RevenueChart data={revenueData} onCreatePromo={() => setSection('promotions')} />
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-4">Visibilite Marketplace</h2>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-4">Visibilite Marketplace</h2>
           <div className="space-y-4">
             {[
               { icon: 'search', label: 'Apparitions recherches', value: '8 524', change: '+22%' },
@@ -382,12 +383,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             ].map((v, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                 <div className="flex items-center gap-2">
-                  <Icon name={v.icon as any} className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm text-slate-600">{v.label}</span>
+                  <Icon name={v.icon as any} className="w-4 h-4 text-content-muted" />
+                  <span className="text-sm text-content-muted">{v.label}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-bold text-[#0F172A]">{v.value}</span>
-                  <span className={`text-[10px] font-bold ml-1.5 ${v.change.startsWith('+') ? 'text-[#22C55E]' : v.change === '=' ? 'text-slate-400' : 'text-red-500'}`}>{v.change}</span>
+                  <span className="text-sm font-bold text-content-primary">{v.value}</span>
+                  <span className={`text-[10px] font-bold ml-1.5 ${v.change.startsWith('+') ? 'text-[#22C55E]' : v.change === '=' ? 'text-content-muted' : 'text-red-500'}`}>{v.change}</span>
                 </div>
               </div>
             ))}
@@ -398,17 +399,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       {/* ─── Marketplace Benchmark + Funnel ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Benchmark */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-1">Marketplace Benchmark</h2>
-          <p className="text-xs text-slate-400 mb-4">Comment vous comparez a la moyenne de Gombe</p>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-1">Marketplace Benchmark</h2>
+          <p className="text-xs text-content-muted mb-4">Comment vous comparez a la moyenne de Gombe</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 text-slate-500 font-medium">Metrique</th>
+                <tr className="border-b border-surface-border-subtle">
+                  <th className="text-left py-2 text-content-muted font-medium">Metrique</th>
                   <th className="text-center py-2 text-brand-blue font-bold">Vous</th>
-                  <th className="text-center py-2 text-slate-500 font-medium">Moy. Gombe</th>
-                  <th className="text-center py-2 text-slate-500 font-medium">Statut</th>
+                  <th className="text-center py-2 text-content-muted font-medium">Moy. Gombe</th>
+                  <th className="text-center py-2 text-content-muted font-medium">Statut</th>
                 </tr>
               </thead>
               <tbody>
@@ -419,9 +420,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                   { metric: 'Delai', you: '24h', avg: '36h', better: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2.5 text-slate-600 font-medium">{row.metric}</td>
+                    <td className="py-2.5 text-content-muted font-medium">{row.metric}</td>
                     <td className="py-2.5 text-center font-bold text-brand-blue">{row.you}</td>
-                    <td className="py-2.5 text-center text-slate-500">{row.avg}</td>
+                    <td className="py-2.5 text-center text-content-muted">{row.avg}</td>
                     <td className="py-2.5 text-center">
                       {row.better ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#22C55E] bg-green-50 px-2 py-0.5 rounded-full">
@@ -441,9 +442,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
         </div>
 
         {/* Funnel */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-1">Funnel Marketplace</h2>
-          <p className="text-xs text-slate-400 mb-4">Ou vous perdez des clients</p>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-1">Funnel Marketplace</h2>
+          <p className="text-xs text-content-muted mb-4">Ou vous perdez des clients</p>
           <div className="space-y-3">
             {[
               { step: 'Recherches', value: '8 524', pct: 100, color: 'bg-brand-blue', icon: 'search' },
@@ -454,20 +455,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
               <div key={i}>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <Icon name={f.icon as any} className="w-4 h-4 text-slate-400" />
-                    <span className="text-sm font-medium text-[#0F172A]">{f.step}</span>
+                    <Icon name={f.icon as any} className="w-4 h-4 text-content-muted" />
+                    <span className="text-sm font-medium text-content-primary">{f.step}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-bold text-[#0F172A]">{f.value}</span>
-                    <span className="text-[10px] text-slate-400 ml-1">({f.pct}%)</span>
+                    <span className="text-sm font-bold text-content-primary">{f.value}</span>
+                    <span className="text-[10px] text-content-muted ml-1">({f.pct}%)</span>
                   </div>
                 </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
                   <div className={`h-full rounded-full ${f.color} transition-all duration-700`} style={{ width: `${f.pct}%` }} />
                 </div>
                 {i < 3 && (
                   <div className="flex justify-center py-1">
-                    <span className="text-[10px] text-slate-400">↓ {i === 0 ? '27% convertis' : i === 1 ? '6.4% convertis' : `${stats.ordersThisMonth > 0 ? Math.round((stats.ordersThisMonth / 150) * 100) : 0}% convertis`}</span>
+                    <span className="text-[10px] text-content-muted">↓ {i === 0 ? '27% convertis' : i === 1 ? '6.4% convertis' : `${stats.ordersThisMonth > 0 ? Math.round((stats.ordersThisMonth / 150) * 100) : 0}% convertis`}</span>
                   </div>
                 )}
               </div>
@@ -479,9 +480,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       {/* ─── Pending Orders + Reputation + Promotions ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Pending Orders */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
+        <div className={`${partnerCard} p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-[#0F172A]">Commandes a traiter ({pendingOrders.length})</h2>
+            <h2 className="text-lg font-bold text-content-primary">Commandes a traiter ({pendingOrders.length})</h2>
           </div>
           {pendingOrders.length > 0 ? (
             <div className="space-y-3">
@@ -491,28 +492,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                 const commune = order.clientDetails?.pickupAddress?.commune || order.clientDetails?.pickupAddress?.avenue?.split(' ')[0] || 'Gombe';
                 const service = order.serviceItems?.map(s => s.service.title).join(', ') || 'Pressing';
                 return (
-                  <div key={order.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div key={order.id} className="p-3 bg-surface-muted rounded-xl border border-surface-border-subtle">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-9 h-9 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue font-bold text-xs">{initials}</div>
                         <div>
-                          <p className="text-sm font-bold text-[#0F172A]">{clientName}</p>
-                          <p className="text-[10px] text-slate-400">#{order.backendOrderNumber || order.id}</p>
+                          <p className="text-sm font-bold text-content-primary">{clientName}</p>
+                          <p className="text-[10px] text-content-muted">#{order.backendOrderNumber || order.id}</p>
                         </div>
                       </div>
-                      <span className="text-base font-extrabold text-[#0F172A]">{formatPrice(order.totalPrice)}</span>
+                      <span className="text-base font-extrabold text-content-primary">{formatPrice(order.totalPrice)}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-600 mb-1">
+                    <div className="flex items-center gap-3 text-xs text-content-muted mb-1">
                       <span className="font-medium">{service}</span>
-                      <span className="text-slate-300">|</span>
-                      <span className="flex items-center gap-1"><Icon name="mapPin" className="w-3 h-3 text-slate-400" />{commune}</span>
+                      <span className="text-content-faint">|</span>
+                      <span className="flex items-center gap-1"><Icon name="mapPin" className="w-3 h-3 text-content-muted" />{commune}</span>
                     </div>
                     <div className="flex items-center gap-1 text-[11px] text-brand-blue font-medium mb-3">
                       <Icon name="clock" className="w-3 h-3" />
                       <span>Ramassage aujourd'hui</span>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="flex-1 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-100 transition">Voir details</button>
+                      <button onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="flex-1 py-2 text-xs font-bold border border-surface-border-subtle rounded-lg hover:bg-surface-muted transition">Voir details</button>
                       <button onClick={() => handleAcceptOrder(order)} className="flex-1 py-2 text-xs font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Accepter</button>
                     </div>
                   </div>
@@ -522,22 +523,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             </div>
           ) : (
             <div className="text-center py-6">
-              <Icon name="shoppingBag" className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-500">Aucune commande en attente</p>
-              <p className="text-xs text-slate-400 mt-1">Votre profil est en ligne. Les commandes arriveront bientot.</p>
+              <Icon name="shoppingBag" className="w-10 h-10 mx-auto text-content-faint mb-2" />
+              <p className="text-sm text-content-muted">Aucune commande en attente</p>
+              <p className="text-xs text-content-muted mt-1">Votre profil est en ligne. Les commandes arriveront bientot.</p>
             </div>
           )}
         </div>
 
         {/* Reputation */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-4">Reputation</h2>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-4">Reputation</h2>
           <div className="text-center mb-4">
-            <p className="text-3xl font-extrabold text-[#0F172A]">{stats.avgRating} <span className="text-lg text-slate-400">/ 5</span></p>
+            <p className="text-3xl font-extrabold text-content-primary">{stats.avgRating} <span className="text-lg text-content-muted">/ 5</span></p>
             <div className="flex items-center justify-center gap-0.5 mt-1">
-              {[1,2,3,4,5].map(s => <Icon key={s} name="star" className={`w-4 h-4 ${s <= Math.round(parseFloat(stats.avgRating)) ? 'text-yellow-400' : 'text-slate-200'}`} />)}
+              {[1,2,3,4,5].map(s => <Icon key={s} name="star" className={`w-4 h-4 ${s <= Math.round(parseFloat(stats.avgRating)) ? 'text-yellow-400' : 'text-content-faint'}`} />)}
             </div>
-            <p className="text-xs text-slate-400 mt-1">{stats.reviewCount} avis clients</p>
+            <p className="text-xs text-content-muted mt-1">{stats.reviewCount} avis clients</p>
           </div>
           {/* Rating Breakdown — Dynamic from reviews */}
           <div className="space-y-1.5 mb-4">
@@ -546,12 +547,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
               const pct = stats.reviewCount > 0 ? Math.round((count / stats.reviewCount) * 100) : 0;
               return (
                 <div key={stars} className="flex items-center gap-2 text-xs">
-                  <span className="w-3 text-slate-500 text-right">{stars}</span>
+                  <span className="w-3 text-content-muted text-right">{stars}</span>
                   <Icon name="star" className="w-3 h-3 text-yellow-400" />
-                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-surface-muted rounded-full overflow-hidden">
                     <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="w-6 text-right text-slate-400">{count}</span>
+                  <span className="w-6 text-right text-content-muted">{count}</span>
                 </div>
               );
             })}
@@ -563,8 +564,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
               { icon: 'check', label: 'Commandes reussies', value: '98%' },
             ].map((r, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-slate-600"><Icon name={r.icon as any} className="w-4 h-4 text-slate-400" />{r.label}</div>
-                <span className="font-bold text-[#0F172A]">{r.value}</span>
+                <div className="flex items-center gap-2 text-content-muted"><Icon name={r.icon as any} className="w-4 h-4 text-content-muted" />{r.label}</div>
+                <span className="font-bold text-content-primary">{r.value}</span>
               </div>
             ))}
           </div>
@@ -572,23 +573,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
         </div>
 
         {/* Promotions */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-4">Promotions actives</h2>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-4">Promotions actives</h2>
           <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 mb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-bold text-[#FF7A00]">-20% Costumes</p>
               <span className="text-[10px] font-bold px-2 py-0.5 bg-[#22C55E]/10 text-[#22C55E] rounded-full">Active</span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center mb-2">
-              <div><p className="text-lg font-extrabold text-[#0F172A]">124</p><p className="text-[10px] text-slate-400">Vues</p></div>
-              <div><p className="text-lg font-extrabold text-[#0F172A]">34</p><p className="text-[10px] text-slate-400">Clics</p></div>
-              <div><p className="text-lg font-extrabold text-[#0F172A]">7</p><p className="text-[10px] text-slate-400">Commandes</p></div>
+              <div><p className="text-lg font-extrabold text-content-primary">124</p><p className="text-[10px] text-content-muted">Vues</p></div>
+              <div><p className="text-lg font-extrabold text-content-primary">34</p><p className="text-[10px] text-content-muted">Clics</p></div>
+              <div><p className="text-lg font-extrabold text-content-primary">7</p><p className="text-[10px] text-content-muted">Commandes</p></div>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-orange-100">
-              <span className="text-xs text-slate-500">ROI genere</span>
+              <span className="text-xs text-content-muted">ROI genere</span>
               <span className="text-sm font-extrabold text-[#22C55E]">126 $</span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">Expire le 30/06/2026</p>
+            <p className="text-[10px] text-content-muted mt-1">Expire le 30/06/2026</p>
           </div>
           <button onClick={() => setSection('promotions')} className="w-full py-2 text-sm font-bold text-brand-blue hover:underline">Voir mes promotions</button>
         </div>
@@ -597,9 +598,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       {/* ─── Ranking + Actions + Activity ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Local Ranking */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-1">Classement a Gombe</h2>
-          <p className="text-xs text-slate-400 mb-4">Top pressings dans votre zone</p>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-1">Classement a Gombe</h2>
+          <p className="text-xs text-content-muted mb-4">Top pressings dans votre zone</p>
           <div className="space-y-2">
             {[
               { rank: 1, name: 'Pressing Royal', rating: '4.9', time: '24h' },
@@ -609,12 +610,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             ].map((r, i) => (
               <div key={i} className={`flex items-center justify-between p-2.5 rounded-lg ${r.isYou ? 'bg-blue-50 border border-blue-100' : ''}`}>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold w-5 ${r.isYou ? 'text-brand-blue' : 'text-slate-400'}`}>{r.rank}</span>
-                  <span className={`text-sm ${r.isYou ? 'font-bold text-brand-blue' : 'text-[#0F172A]'}`}>{r.name}</span>
+                  <span className={`text-xs font-bold w-5 ${r.isYou ? 'text-brand-blue' : 'text-content-muted'}`}>{r.rank}</span>
+                  <span className={`text-sm ${r.isYou ? 'font-bold text-brand-blue' : 'text-content-primary'}`}>{r.name}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="font-bold text-[#0F172A]">{r.rating}</span>
-                  <span className="text-slate-400">{r.time}</span>
+                  <span className="font-bold text-content-primary">{r.rating}</span>
+                  <span className="text-content-muted">{r.time}</span>
                 </div>
               </div>
             ))}
@@ -622,14 +623,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
         </div>
 
         {/* Priority Actions */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-4">Actions prioritaires</h2>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-4">Actions prioritaires</h2>
           <div className="space-y-2">
             {priorityActions.map((a, i) => (
-              <button key={i} onClick={() => !a.done && setSection(a.section)} className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition ${a.done ? 'opacity-50' : 'hover:bg-slate-50'}`}>
+              <button key={i} onClick={() => !a.done && setSection(a.section)} className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition ${a.done ? 'opacity-50' : 'hover:bg-surface-muted'}`}>
                 <div className="flex items-center gap-2">
-                  <Icon name={a.done ? 'check' : 'plus'} className={`w-4 h-4 ${a.done ? 'text-[#22C55E]' : 'text-slate-400'}`} />
-                  <span className={`text-sm ${a.done ? 'text-slate-400 line-through' : 'text-[#0F172A]'}`}>{a.label}</span>
+                  <Icon name={a.done ? 'check' : 'plus'} className={`w-4 h-4 ${a.done ? 'text-[#22C55E]' : 'text-content-muted'}`} />
+                  <span className={`text-sm ${a.done ? 'text-content-muted line-through' : 'text-content-primary'}`}>{a.label}</span>
                 </div>
                 <span className="text-xs font-bold text-[#22C55E]">+{a.pts} pts</span>
               </button>
@@ -638,16 +639,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-[#0F172A] mb-4">Activite recente</h2>
+        <div className={`${partnerCard} p-6`}>
+          <h2 className="text-lg font-bold text-content-primary mb-4">Activite recente</h2>
           <div className="space-y-3">
             {recentActivity.map((a, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className={`p-1.5 rounded-lg shrink-0 ${a.bg}`}><Icon name={a.icon as any} className={`w-4 h-4 ${a.color}`} /></div>
                 <div className="min-w-0">
-                  <p className="text-sm text-[#0F172A] font-medium">{a.title}</p>
-                  {a.detail && <p className="text-[11px] text-slate-400 truncate">{a.detail}</p>}
-                  <p className="text-[10px] text-slate-400">{a.time}</p>
+                  <p className="text-sm text-content-primary font-medium">{a.title}</p>
+                  {a.detail && <p className="text-[11px] text-content-muted truncate">{a.detail}</p>}
+                  <p className="text-[10px] text-content-muted">{a.time}</p>
                 </div>
               </div>
             ))}
@@ -656,14 +657,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
       </div>
 
       {/* ─── AI Growth Advisor ─── */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-6">
+      <div className={`${partnerCard} p-6`}>
         <div className="flex items-center gap-2 mb-4">
           <div className="p-2 bg-gradient-to-br from-brand-blue to-brand-blue-700 rounded-xl">
             <Icon name="sparkles" className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-[#0F172A]">Pourquoi je ne suis pas #1 ?</h2>
-            <p className="text-xs text-slate-400">Conseils personnalises pour ameliorer votre classement</p>
+            <h2 className="text-lg font-bold text-content-primary">Pourquoi je ne suis pas #1 ?</h2>
+            <p className="text-xs text-content-muted">Conseils personnalises pour ameliorer votre classement</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -672,7 +673,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
             { action: 'Ajouter 3 photos supplementaires', gain: '+4%', pts: 5, icon: 'photo', done: (partner?.imageUrls?.length || 0) >= 5, color: 'from-purple-500 to-purple-600' },
             { action: 'Repondre aux avis clients', gain: '+6%', pts: 5, icon: 'chatBubble', done: false, color: 'from-green-500 to-green-600' },
           ].map((item, i) => (
-            <div key={i} className={`p-4 rounded-xl border ${item.done ? 'border-green-200 bg-green-50/50' : 'border-slate-100 bg-slate-50'}`}>
+            <div key={i} className={`p-4 rounded-xl border ${item.done ? 'border-green-200 bg-green-50/50' : 'border-surface-border-subtle bg-surface-muted'}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className={`p-1.5 rounded-lg bg-gradient-to-br ${item.color}`}>
                   <Icon name={item.icon as any} className="w-4 h-4 text-white" />
@@ -683,15 +684,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
                   <span className="text-[10px] font-bold text-brand-blue bg-blue-50 px-2 py-0.5 rounded-full">{item.gain} visibilite</span>
                 )}
               </div>
-              <p className="text-sm font-medium text-[#0F172A] mb-1">{item.action}</p>
-              <p className="text-[10px] text-slate-400">+{item.pts} pts marketplace</p>
+              <p className="text-sm font-medium text-content-primary mb-1">{item.action}</p>
+              <p className="text-[10px] text-content-muted">+{item.pts} pts marketplace</p>
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+        <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-4 dark:from-blue-950/40 dark:to-purple-950/40">
           <div>
-            <p className="text-sm font-bold text-[#0F172A]">Impact estime</p>
-            <p className="text-xs text-slate-500">En completant ces 3 actions, vous gagnerez <span className="font-bold text-brand-blue">+18% de visibilite</span></p>
+            <p className="text-sm font-bold text-content-primary">Impact estime</p>
+            <p className="text-xs text-content-muted">En completant ces 3 actions, vous gagnerez <span className="font-bold text-brand-blue">+18% de visibilite</span></p>
           </div>
           <button onClick={() => setSection('profile')} className="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-lg hover:bg-brand-blue-700 transition shrink-0">Ameliorer mon profil</button>
         </div>

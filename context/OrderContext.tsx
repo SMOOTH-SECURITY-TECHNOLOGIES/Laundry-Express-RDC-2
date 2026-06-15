@@ -10,6 +10,16 @@ import { useNotification } from './NotificationContext';
 import { useLanguageContext } from './LanguageContext';
 import { appEvents } from '../utils/events';
 import { realApi, CatalogPartnerService, CatalogPartnerSummary } from '../services/real-api';
+import { processOrderPayment } from '../services/payment-flow';
+import { mapBackendOrderResponseToFrontend, isLocalMockOrderId } from '../utils/order-mappers';
+import { features } from '../config/features';
+import {
+  computePromoDiscount,
+  countUserPromoUses,
+  isPromoWithinDates,
+  isWithinBudget,
+  matchesAnySegment,
+} from '../utils/promoEligibility';
 
 export interface OrderDraft {
   serviceType?: ServiceType;
@@ -23,6 +33,8 @@ export interface OrderDraft {
   loyaltyPointsToRedeem?: number;
   pointsDiscount?: number;
   referralDiscount?: number;
+  /** Pre-filled cart from a partner public shop — skip marketplace estimator sync. */
+  checkoutSource?: 'marketplace' | 'partner_shop';
 }
 
 const initialOrderDraft: OrderDraft = {
@@ -62,15 +74,67 @@ export const useOrder = () => {
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [orderDraft, setOrderDraft] = useLocalStorage<OrderDraft>('orderDraft', initialOrderDraft);
-  const [activeOrder, setActiveOrder] = useLocalStorage<Order | null>('activeOrder', null);
+  const [activeOrderId, setActiveOrderId] = useLocalStorage<string | null>('activeOrderId', null);
+  const [activeOrder, setActiveOrderState] = useState<Order | null>(null);
   const [guestOrderCount, setGuestOrderCount] = useLocalStorage<number>('guestOrderCount', 0);
   const [isLoading, setIsLoading] = useState(false);
   
   const { user } = useAuth();
-  const { orderHistory, promoCodes, partners } = useData();
+  const { orderHistory, promoCodes, partners, recordPromoUsage } = useData();
   const { addNotification } = useNotification();
   const { t } = useLanguageContext();
   const [partnerLiveOrders, setPartnerLiveOrders] = useState<Order[]>([]);
+
+  const setActiveOrder = useCallback((order: Order | null) => {
+    setActiveOrderId(order?.id ?? null);
+    setActiveOrderState(order);
+  }, [setActiveOrderId]);
+
+  useEffect(() => {
+    const legacyActiveOrder = localStorage.getItem('activeOrder');
+    if (legacyActiveOrder && !activeOrderId) {
+      try {
+        const parsed = JSON.parse(legacyActiveOrder) as Order;
+        if (parsed?.id) {
+          setActiveOrderId(parsed.id);
+        }
+      } catch {
+        // ignore invalid legacy payload
+      }
+      localStorage.removeItem('activeOrder');
+    }
+  }, [activeOrderId, setActiveOrderId]);
+
+  useEffect(() => {
+    if (!activeOrderId) {
+      setActiveOrderState(null);
+      return;
+    }
+
+    if (features.useMockApi || isLocalMockOrderId(activeOrderId)) {
+      const localOrder = orderHistory.find((entry) => entry.id === activeOrderId) || null;
+      setActiveOrderState(localOrder);
+      return;
+    }
+
+    let cancelled = false;
+    realApi.getOrder(activeOrderId)
+      .then((backendOrder) => {
+        if (!cancelled) {
+          setActiveOrderState(mapBackendOrderResponseToFrontend(backendOrder, partners));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          const localOrder = orderHistory.find((entry) => entry.id === activeOrderId) || null;
+          setActiveOrderState(localOrder);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeOrderId, partners, orderHistory]);
 
   const normalizeText = useCallback((value?: string | null) => {
     return (value || '')
@@ -486,7 +550,30 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 idempotency_key: createIdempotencyKey(),
             });
 
-            const newOrder = mapBackendOrderToFrontend(backendOrder, orderData);
+            try {
+                await processOrderPayment({
+                    orderId: backendOrder.id,
+                    amount: Number(backendOrder.total_amount),
+                    currency: orderData.partner.currency || 'USD',
+                    paymentMethod: orderData.paymentMethod,
+                    mobileMoneyDetails: orderData.mobileMoneyDetails,
+                });
+            } catch (paymentError) {
+                console.warn('Payment initiation failed after order creation', paymentError);
+                addNotification(
+                    'Commande créée. Le paiement n\'a pas pu être initié — vous pourrez réessayer depuis le suivi.',
+                    'info',
+                );
+            }
+
+            const refreshedBackendOrder = await realApi.getOrder(backendOrder.id);
+            const newOrder = mapBackendOrderToFrontend(refreshedBackendOrder, orderData);
+            if (orderData.appliedPromoCode) {
+              await recordPromoUsage(
+                orderData.appliedPromoCode,
+                Number(orderData.discountAmount || newOrder.discountAmount || 0),
+              );
+            }
             if (user && String(user.role).startsWith('partner-')) {
                 await refreshPartnerOrders();
             } else {
@@ -506,8 +593,13 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     status: OrderStatus.AWAITING_CONFIRMATION,
                     trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: new Date().toISOString() }],
                     totalPrice: orderData.totalPrice || 0,
+                    appliedPromoCode: orderData.appliedPromoCode,
+                    discountAmount: orderData.discountAmount,
                     createdAt: new Date().toISOString(),
                 };
+                if (orderData.appliedPromoCode) {
+                  await recordPromoUsage(orderData.appliedPromoCode, orderData.discountAmount || 0);
+                }
                 appEvents.emit('data_changed');
                 return localOrder;
             }
@@ -562,51 +654,82 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!user) return;
     setIsLoading(true);
     try {
-        // FIX: Corrected argument count for apiSubmitReview call.
-        const { pointsEarned, newTotalPoints } = await api.apiSubmitReview(orderId, user.id, rating, comment, t);
-        
-        if (pointsEarned > 0) {
-            addNotification(
-                t('notifications.pointsEarnedToast', { 
-                    points: pointsEarned, 
-                    total: newTotalPoints 
-                }),
-                'success'
-            );
+        if (features.useMockApi) {
+            const { pointsEarned, newTotalPoints } = await api.apiSubmitReview(orderId, user.id, rating, comment, t);
+            if (pointsEarned > 0) {
+                addNotification(
+                    t('notifications.pointsEarnedToast', {
+                        points: pointsEarned,
+                        total: newTotalPoints,
+                    }),
+                    'success',
+                );
+            } else {
+                addNotification(t('notifications.reviewThanks'), 'success');
+            }
         } else {
-            addNotification(t('notifications.reviewThanks'), 'success');
+            const createdReview = await realApi.submitReview({
+                order_id: orderId,
+                rating,
+                comment: comment || undefined,
+            });
+
+            if (createdReview.status === 'pending') {
+                addNotification('Merci. Votre avis sera publié après vérification.', 'success');
+            } else {
+                addNotification(t('notifications.reviewThanks'), 'success');
+            }
+
+            if (activeOrder && activeOrder.id === orderId) {
+                setActiveOrder({ ...activeOrder, isReviewed: true });
+            }
+            appEvents.emit('data_changed');
         }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Impossible d\'envoyer votre avis';
+        addNotification(message, 'error');
+        throw error;
     } finally {
         setIsLoading(false);
     }
-  }, [user, addNotification, t]);
+  }, [user, addNotification, t, activeOrder, setActiveOrder]);
 
   const validatePromoCode = useCallback((code: string, currentOrderDraft: Partial<OrderDraft>): { isValid: boolean, message: string, discountAmount?: number, codeData?: PromoCode } => {
-    const promo = promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase() && p.isActive);
-    
+    const promo = promoCodes.find((p) => p.code.toUpperCase() === code.toUpperCase() && p.isActive);
+
     if (!promo) return { isValid: false, message: t('orderSummary.promoValidation.invalid') };
 
-    if (promo.isForNewUsersOnly) {
-        if (!user) return { isValid: false, message: t('orderSummary.promoValidation.newUsersOnly') };
-        const userOrders = orderHistory.filter(o => o.userId === user.id);
-        if (userOrders.length > 0) {
-            return { isValid: false, message: t('orderSummary.promoValidation.newUsersOnly') };
-        }
+    if (!isPromoWithinDates(promo)) {
+      return { isValid: false, message: 'Cette promotion n\'est pas valide a cette date.' };
     }
-    
-    if(promo.partnerId && promo.partnerId !== currentOrderDraft.partner?.id) {
-        return { isValid: false, message: t('orderSummary.promoValidation.notForPartner') };
+
+    if (promo.maxUsage != null && (promo.usageCount || 0) >= promo.maxUsage) {
+      return { isValid: false, message: 'Cette promotion a atteint sa limite d\'utilisation.' };
+    }
+
+    if (promo.partnerId && promo.partnerId !== currentOrderDraft.partner?.id) {
+      return { isValid: false, message: t('orderSummary.promoValidation.notForPartner') };
+    }
+
+    if (!matchesAnySegment(promo, user, orderHistory)) {
+      return { isValid: false, message: 'Vous n\'etes pas eligible a cette promotion.' };
+    }
+
+    if (user && promo.usageLimitPerCustomer) {
+      const uses = countUserPromoUses(promo.code, user.id, orderHistory);
+      if (uses >= promo.usageLimitPerCustomer) {
+        return { isValid: false, message: 'Vous avez deja utilise ce code le nombre maximum de fois.' };
+      }
     }
 
     if (promo.minOrderValue && (currentOrderDraft.totalPrice || 0) < promo.minOrderValue) {
-        return { isValid: false, message: t('orderSummary.promoValidation.minValue', { value: promo.minOrderValue }) };
+      return { isValid: false, message: t('orderSummary.promoValidation.minValue', { value: promo.minOrderValue }) };
     }
 
-    let discountAmount = 0;
-    if (promo.discountType === 'percentage') {
-        discountAmount = (currentOrderDraft.totalPrice || 0) * (promo.discountValue / 100);
-    } else {
-        discountAmount = promo.discountValue;
+    const discountAmount = computePromoDiscount(promo, currentOrderDraft.totalPrice || 0);
+
+    if (!isWithinBudget(promo, discountAmount)) {
+      return { isValid: false, message: 'Le budget de cette promotion est epuise.' };
     }
 
     return { isValid: true, message: t('orderSummary.promoValidation.success'), discountAmount, codeData: promo };

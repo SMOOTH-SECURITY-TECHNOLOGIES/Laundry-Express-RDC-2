@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Icon } from './Icon';
 import { Language } from '../context/LanguageContext';
-import { NotificationPanel } from './NotificationPanel';
+import { NotificationBell } from './NotificationBell';
+import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAppContext } from '../context/AppContext';
 import { Page, PageObject } from '../context/NavigationContext';
 
@@ -69,67 +70,6 @@ const LanguageSwitcher: React.FC = () => {
     );
 };
 
-const ThemeSwitcher: React.FC = () => {
-    const { theme, toggleTheme } = useAppContext();
-
-    return (
-        <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-            aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-        >
-            {theme === 'light' ? (
-                <Icon name="moon" className="w-6 h-6" />
-            ) : (
-                <Icon name="sun" className="w-6 h-6" />
-            )}
-        </button>
-    );
-};
-
-const NotificationBell: React.FC = () => {
-  const { user, appNotifications } = useAppContext();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const userNotifications = useMemo(() => {
-    if (!user) return [];
-    const adminTargets = user.role === 'admin' || user.role === 'superadmin' ? ['admin', 'USER-ADMIN', user.id] : [user.id];
-    return appNotifications
-      .filter(n => adminTargets.includes(String(n.recipientId)))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [appNotifications, user]);
-
-  const unreadCount = useMemo(() => userNotifications.filter(n => !n.isRead).length, [userNotifications]);
-
-  const handleToggle = () => {
-    setIsOpen(prev => !prev);
-  };
-  
-  const closePanel = () => setIsOpen(false);
-
-  if (!user) return null;
-
-  return (
-    <div className="relative">
-      <button onClick={handleToggle} className="relative p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-        <Icon name="bell" className={`w-6 h-6 ${unreadCount > 0 ? 'text-brand-blue' : 'text-slate-600 dark:text-slate-300'}`} />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold ring-2 ring-white animate-pulse">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
-      {isOpen && (
-        <NotificationPanel 
-            notifications={userNotifications} 
-            onClose={closePanel} 
-        />
-      )}
-    </div>
-  );
-};
-
-
 export const Header: React.FC = () => {
   const { setCurrentPage, currentPage, activeOrder, user, logout, t } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -173,11 +113,11 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-50 shadow-sm">
+    <header className="bg-surface-card/80 dark:bg-surface-card/90 backdrop-blur-lg border-b border-surface-border-subtle fixed top-0 w-full z-50 shadow-sm">
       <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setCurrentPage({ name: 'home' })}>
           <Icon name="logo" className="h-8 w-8 text-brand-blue" />
-          <span className="text-lg sm:text-xl font-bold text-brand-dark dark:text-slate-100 whitespace-nowrap">Laundry Express</span>
+          <span className="text-lg sm:text-xl font-bold text-content-primary whitespace-nowrap">Laundry Express</span>
         </div>
         
         {/* Desktop Nav */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
+import { logisticsCard } from './logistics-ui';
 
 const REPORTS = [
   {
@@ -36,20 +37,20 @@ export const LogisticsReports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-brand-dark">Rapports</h1>
-        <p className="text-sm text-gray-500 mt-1">Générez et téléchargez vos rapports d'opération</p>
+        <h1 className="text-2xl font-extrabold text-content-primary">Rapports</h1>
+        <p className="text-sm text-content-muted mt-1">Générez et téléchargez vos rapports d'opération</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {REPORTS.map(report => (
-          <div key={report.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+          <div key={report.id} className={`${logisticsCard} p-6 transition-shadow hover:shadow-md`}>
             <div className="flex items-start gap-4">
               <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${report.tone}`}>
                 <Icon name={report.icon} className="h-7 w-7" />
               </span>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-brand-dark mb-1">{report.title}</h3>
-                <p className="text-sm text-gray-500 mb-4">{report.description}</p>
+                <h3 className="text-lg font-bold text-content-primary mb-1">{report.title}</h3>
+                <p className="text-sm text-content-muted mb-4">{report.description}</p>
                 <button className="px-5 py-2.5 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90 flex items-center gap-2">
                   <Icon name="arrow-down-tray" className="w-4 h-4" />
                   Générer

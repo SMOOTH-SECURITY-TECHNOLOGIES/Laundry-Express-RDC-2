@@ -22,7 +22,7 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-extrabold text-brand-dark flex items-center gap-2">
+        <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
           <Icon name="shoppingBag" className="w-5 h-5 text-brand-blue" />
           Toutes les missions
         </h2>
@@ -51,7 +51,7 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
           <tbody className="divide-y divide-gray-100">
             {missions.map((mission) => (
               <tr key={mission.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="py-3 px-4 font-bold text-brand-dark">{mission.id}</td>
+                <td className="py-3 px-4 font-bold text-content-primary">{mission.id}</td>
                 <td className="py-3 px-4">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusColor[mission.status] || 'bg-gray-100 text-gray-600'}`}>
                     {mission.status}
@@ -60,7 +60,7 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
                 <td className="py-3 px-4 text-gray-600">{mission.driver}</td>
                 <td className="py-3 px-4 text-gray-600">{mission.commune}</td>
                 <td className="py-3 px-4">
-                  <button className="text-brand-blue hover:text-brand-dark text-xs font-bold flex items-center gap-1">
+                  <button className="text-brand-blue hover:text-content-primary text-xs font-bold flex items-center gap-1">
                     <Icon name="search" className="w-3 h-3" />
                     Voir
                   </button>

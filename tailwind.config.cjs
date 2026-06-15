@@ -8,6 +8,19 @@ module.exports = {
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
+        surface: {
+          page: 'var(--le-bg-page)',
+          card: 'var(--le-bg-card)',
+          muted: 'var(--le-bg-muted)',
+          elevated: 'var(--le-bg-elevated)',
+          border: 'var(--le-border)',
+          'border-subtle': 'var(--le-border-subtle)',
+        },
+        content: {
+          primary: 'var(--le-text)',
+          muted: 'var(--le-text-muted)',
+          faint: 'var(--le-text-faint)',
+        },
         'brand-blue': '#0066CC',
         'brand-dark': '#0A1628',
         'brand-navy': '#0F2140',
@@ -49,5 +62,17 @@ module.exports = {
       },
     },
   },
+  safelist: [
+    'bg-surface-page',
+    'bg-surface-card',
+    'bg-surface-muted',
+    'bg-surface-elevated',
+    'text-content-primary',
+    'text-content-muted',
+    'text-content-faint',
+    'border-surface-border',
+    'border-surface-border-subtle',
+    'shadow-card',
+  ],
   plugins: [],
 };

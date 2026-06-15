@@ -1,12 +1,32 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppContext } from '../../context/AppContext';
-import { Partner, Service, WorkingHours, DayWorkingHours, PartnerSection, Review } from '../../types';
-import { PartnerEditModal } from '../../components/PartnerEditModal';
-import { ServiceEditModal } from '../../components/ServiceEditModal';
+import { Partner, WorkingHours, PartnerSection } from '../../types';
 import { findPartner } from '../../utils/findPartner';
 import { Icon } from '../../components/Icon';
-import { PartnerProfileDetailResponse, realApi } from '../../services/real-api';
-import { timeSince } from '../../utils/timeSince';
+import { CatalogPartnerService, PartnerProfileDetailResponse, realApi } from '../../services/real-api';
+import { PartnerMediaGallery } from '../../types';
+import { features } from '../../config/features';
+import { appEvents } from '../../utils/events';
+import { PartnerMediaModal } from './profile/PartnerMediaModal';
+import { PartnerProfileEditModal, PartnerProfileFormValues } from './profile/PartnerProfileEditModal';
+import { PartnerWorkingHoursModal } from './profile/PartnerWorkingHoursModal';
+import { PartnerCatalogServiceModal } from './profile/PartnerCatalogServiceModal';
+import {
+  isYoutubeUrl,
+  normalizeMediaGallery,
+  PARTNER_PHOTO_CATEGORIES,
+  PartnerPhotoCategoryKey,
+  isDayOpen,
+  flattenGallery,
+  mapApiMediaGallery,
+  mapApiWorkingHours,
+  mapWorkingHoursToApi,
+  readStoredPartnerMedia,
+  toYoutubeEmbed,
+} from './profile/partnerMedia';
+
+type ProfileAction = 'info' | 'media-cover' | 'media-video' | 'services' | 'hours';
 
 type DayKey = keyof WorkingHours;
 
@@ -29,74 +49,381 @@ const dayOrder: DayKey[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'frida
 interface ProfileProps { setSection?: (section: PartnerSection) => void; }
 
 export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
-  const { user, partners, services, reviews, savePartnerService, deletePartnerService, addNotification, formatPrice } = useAppContext();
+  const {
+    user,
+    partners,
+    services,
+    reviews,
+    addNotification,
+    apiUpdatePartnerMedia,
+    updatePartner,
+  } = useAppContext();
   const [partner, setPartner] = useState<Partner | null>(null);
   const [workingHours, setWorkingHours] = useState<WorkingHours | undefined>(undefined);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [serviceToEdit, setServiceToEdit] = useState<Service | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activePhotoTab, setActivePhotoTab] = useState('Couverture');
+  const [mediaGallery, setMediaGallery] = useState<PartnerMediaGallery>(normalizeMediaGallery());
+  const [videoUrl, setVideoUrl] = useState('');
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
+  const [isHoursModalOpen, setIsHoursModalOpen] = useState(false);
+  const [isCatalogServiceOpen, setIsCatalogServiceOpen] = useState(false);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [mediaModalTab, setMediaModalTab] = useState<PartnerPhotoCategoryKey>('couverture');
+  const [catalogServiceToEdit, setCatalogServiceToEdit] = useState<CatalogPartnerService | null>(null);
+  const [catalogServices, setCatalogServices] = useState<CatalogPartnerService[]>([]);
+  const [activePhotoTab, setActivePhotoTab] = useState<PartnerPhotoCategoryKey>('couverture');
+  const [profileDetail, setProfileDetail] = useState<PartnerProfileDetailResponse | null>(null);
 
   useEffect(() => {
-    if (user?.partnerId) {
-      const p = findPartner(partners, user.partnerId);
-      setPartner(p);
-      setWorkingHours(p?.workingHours || getDefaultWorkingHours());
-    }
+    if (!user?.partnerId) return;
+    const p = findPartner(partners, user.partnerId);
+    if (!p) return;
+    const stored = readStoredPartnerMedia(p);
+    setPartner({ ...p, imageUrls: stored.imageUrls, videoUrl: stored.videoUrl, mediaGallery: stored.mediaGallery });
+    setMediaGallery(stored.mediaGallery);
+    setVideoUrl(stored.videoUrl);
+    setWorkingHours(p.workingHours || getDefaultWorkingHours());
   }, [user, partners]);
+
+  const loadProfileDetail = useCallback(async () => {
+    if (!user?.partnerId) return;
+    try {
+      const detail = await realApi.getPartnerProfileDetail(user.partnerId);
+      setProfileDetail(detail);
+      if (detail.media_gallery || detail.image_urls?.length) {
+        const gallery = mapApiMediaGallery(detail.media_gallery);
+        const urls = detail.image_urls?.length ? detail.image_urls : flattenGallery(gallery);
+        setMediaGallery(gallery);
+        setVideoUrl(detail.video_url || '');
+        setPartner((prev) =>
+          prev
+            ? { ...prev, mediaGallery: gallery, imageUrls: urls, videoUrl: detail.video_url || undefined }
+            : prev,
+        );
+      } else if (detail.video_url) {
+        setVideoUrl(detail.video_url);
+      }
+      if (detail.working_hours) setWorkingHours(mapApiWorkingHours(detail.working_hours));
+    } catch {
+      /* profil API indisponible — on garde les donnees locales */
+    }
+  }, [user?.partnerId]);
+
+  const loadCatalogServices = useCallback(async () => {
+    if (!partner?.id || features.useMockApi) return;
+    try {
+      const items = await realApi.getPartnerCatalogServices(partner.id, {
+        availableOnly: false,
+        activeOnly: false,
+      });
+      setCatalogServices(items);
+    } catch {
+      setCatalogServices([]);
+    }
+  }, [partner?.id]);
+
+  useEffect(() => {
+    loadProfileDetail();
+  }, [loadProfileDetail]);
+
+  useEffect(() => {
+    loadCatalogServices();
+  }, [loadCatalogServices]);
+
+  const persistMedia = useCallback(
+    async (payload: { mediaGallery: PartnerMediaGallery; imageUrls: string[]; videoUrl: string }) => {
+      if (!partner) return;
+      try {
+        if (!features.useMockApi && user?.partnerId) {
+          await realApi.updatePartnerProfileMedia(user.partnerId, {
+            media_gallery: payload.mediaGallery as Record<string, string[]>,
+            image_urls: payload.imageUrls,
+            video_url: payload.videoUrl || null,
+          });
+        }
+        await apiUpdatePartnerMedia(
+          partner.id,
+          {
+            mediaGallery: payload.mediaGallery,
+            imageUrls: payload.imageUrls,
+            videoUrl: payload.videoUrl || null,
+          },
+          partner,
+        );
+        setMediaGallery(payload.mediaGallery);
+        setVideoUrl(payload.videoUrl);
+        setPartner((prev) =>
+          prev
+            ? {
+                ...prev,
+                mediaGallery: payload.mediaGallery,
+                imageUrls: payload.imageUrls,
+                videoUrl: payload.videoUrl || undefined,
+              }
+            : prev,
+        );
+        appEvents.emit('data_changed');
+        addNotification('Photos et videos enregistrees', 'success');
+        setIsMediaModalOpen(false);
+      } catch {
+        addNotification('Impossible de sauvegarder les medias.', 'error');
+      }
+    },
+    [partner, apiUpdatePartnerMedia, addNotification],
+  );
 
   const partnerServices = useMemo(() => partner?.serviceIds ? services.filter(s => partner.serviceIds!.includes(s.id)) : [], [partner, services]);
   const partnerReviews = useMemo(() => reviews.filter(r => r.partnerId === user?.partnerId), [reviews, user]);
-  const shareUrl = useMemo(() => partner?.slug ? `https://laundry.app/partner/${partner.slug}` : '', [partner]);
-
-  const handleDeleteService = (serviceId: string) => {
-    if (window.confirm('Supprimer ce service ?')) {
-      deletePartnerService(partner!.id, serviceId);
-      addNotification('Service supprime', 'success');
+  const shareUrl = useMemo(() => {
+    if (!partner?.id) return '';
+    if (import.meta.env.DEV) {
+      return `${window.location.origin}/partner-detail?partnerId=${partner.id}`;
     }
-  };
+    return partner.slug ? `https://laundry.app/partner/${partner.slug}` : '';
+  }, [partner]);
 
-  const handleSaveService = (service: Service) => {
-    savePartnerService(partner!.id, service);
-    setIsServiceModalOpen(false);
-    setServiceToEdit(null);
-    addNotification(serviceToEdit ? 'Service modifie' : 'Service ajoute', 'success');
-  };
+  const profileFormValues = useMemo<PartnerProfileFormValues>(
+    () => ({
+      name: profileDetail?.name || partner?.name || '',
+      address: profileDetail?.address || partner?.address || '',
+      city: profileDetail?.city || '',
+      commune: profileDetail?.commune || '',
+    }),
+    [profileDetail, partner],
+  );
 
-  /* ─── Profile Score ─── */
-  const profileScore = useMemo(() => {
-    let score = 0;
-    if (partner?.address) score += 15;
-    if (partner?.imageUrls && partner.imageUrls.length > 0) score += 20;
-    if (partner?.imageUrls && partner.imageUrls.length >= 5) score += 5;
-    if (partnerServices.length > 0) score += 20;
-    if (partner?.workingHours) score += 10;
-    score += 10; // Description from profileDetail
-    return Math.min(100, score);
-  }, [partner, partnerServices]);
+  const handleSaveProfile = useCallback(
+    async (values: PartnerProfileFormValues) => {
+      if (!partner || !user?.partnerId) return;
+      try {
+        const updated = await realApi.updatePartnerProfileDetail(user.partnerId, {
+          name: values.name.trim(),
+          address: values.address.trim(),
+          city: values.city.trim() || null,
+          commune: values.commune.trim() || null,
+        });
+        setProfileDetail(updated);
+        const nextPartner: Partner = {
+          ...partner,
+          name: updated.name,
+          address: updated.address,
+        };
+        setPartner(nextPartner);
+        await updatePartner(nextPartner);
+        appEvents.emit('data_changed');
+        addNotification('Informations enregistrees', 'success');
+        setIsProfileEditOpen(false);
+      } catch (error) {
+        addNotification(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde', 'error');
+      }
+    },
+    [partner, user?.partnerId, updatePartner, addNotification],
+  );
 
-  const scoreChecklist = useMemo(() => [
-    { label: 'Informations completes', done: !!partner?.address },
-    { label: 'Photos (min. 5)', done: (partner?.imageUrls?.length || 0) >= 5 },
-    { label: 'Services configures', done: partnerServices.length > 0 },
-    { label: 'FAQ ajoutee', done: true },
-    { label: 'Video de presentation', done: false },
-    { label: 'Zones de livraison', done: true },
-    { label: 'Horaires configurés', done: !!partner?.workingHours },
-  ], [partner, partnerServices]);
+  const handleToggleCatalogService = useCallback(
+    async (service: CatalogPartnerService) => {
+      if (!partner) return;
+      try {
+        await realApi.updatePartnerCatalogService(partner.id, service.id, {
+          is_available: !service.is_available,
+        });
+        await loadCatalogServices();
+        await loadProfileDetail();
+        addNotification(service.is_available ? 'Service desactive' : 'Service active', 'success');
+      } catch {
+        addNotification('Impossible de modifier ce service.', 'error');
+      }
+    },
+    [partner, loadCatalogServices, loadProfileDetail, addNotification],
+  );
 
-  /* ─── Working Hours ─── */
-  const handleSaveHours = async () => {
-    if (!partner || !workingHours || !user?.partnerId) return;
-    setIsSaving(true);
-    try {
-      const detail = await realApi.getPartnerProfileDetail(user.partnerId);
-      setPartner(prev => prev ? { ...prev, workingHours } : prev);
-      addNotification('Horaires enregistres avec succes', 'success');
-    } catch { addNotification('Erreur lors de la sauvegarde', 'error'); }
-    finally { setIsSaving(false); }
-  };
+  const openMediaModal = useCallback((tab: PartnerPhotoCategoryKey = 'couverture') => {
+    setMediaModalTab(tab);
+    setIsMediaModalOpen(true);
+  }, []);
+
+  const runProfileAction = useCallback((action: ProfileAction) => {
+    switch (action) {
+      case 'info':
+        setIsProfileEditOpen(true);
+        break;
+      case 'media-cover':
+        openMediaModal('couverture');
+        break;
+      case 'media-video':
+        openMediaModal('couverture');
+        break;
+      case 'services':
+        setCatalogServiceToEdit(null);
+        setIsCatalogServiceOpen(true);
+        break;
+      case 'hours':
+        setIsHoursModalOpen(true);
+        break;
+      default:
+        break;
+    }
+  }, [openMediaModal]);
+
+  const totalPhotoCount = useMemo(
+    () => PARTNER_PHOTO_CATEGORIES.reduce((sum, cat) => sum + (mediaGallery[cat.key]?.length || 0), 0),
+    [mediaGallery],
+  );
+
+  const activeCategoryPhotos = useMemo(
+    () => mediaGallery[activePhotoTab] || [],
+    [mediaGallery, activePhotoTab],
+  );
+
+  const hasConfiguredHours = useMemo(() => {
+    if (!profileDetail?.working_hours) return false;
+    return Object.values(profileDetail.working_hours).some((day) =>
+      isDayOpen(day as { is_closed?: boolean; isClosed?: boolean }),
+    );
+  }, [profileDetail?.working_hours]);
+
+  const activeCatalogServices = catalogServices.filter((s) => s.is_available);
+  const serviceCount = Math.max(
+    activeCatalogServices.length,
+    partnerServices.length,
+    profileDetail?.service_count || 0,
+  );
+
+  const scoreChecklist = useMemo(
+    () => [
+      {
+        label: 'Informations de base',
+        done: !!(partner?.name && (partner?.address || profileDetail?.address)),
+        weight: 15,
+        action: 'info' as ProfileAction,
+      },
+      {
+        label: 'Contact (telephone ou email)',
+        done: !!(
+          profileDetail?.phone?.trim()
+          || profileDetail?.email?.trim()
+          || user?.phone?.trim()
+          || user?.email?.trim()
+        ),
+        weight: 10,
+        action: 'info' as ProfileAction,
+      },
+      {
+        label: 'Photo de couverture',
+        done: (mediaGallery.couverture?.length || 0) > 0,
+        weight: 15,
+        action: 'media-cover' as ProfileAction,
+      },
+      {
+        label: 'Galerie complete (5+ photos)',
+        done: totalPhotoCount >= 5,
+        weight: 10,
+        action: 'media-cover' as ProfileAction,
+      },
+      {
+        label: 'Video de presentation',
+        done: !!videoUrl,
+        weight: 15,
+        action: 'media-video' as ProfileAction,
+      },
+      {
+        label: 'Services actifs',
+        done: serviceCount > 0,
+        weight: 20,
+        action: 'services' as ProfileAction,
+      },
+      {
+        label: 'Horaires configures',
+        done: hasConfiguredHours,
+        weight: 15,
+        action: 'hours' as ProfileAction,
+      },
+    ],
+    [
+      partner,
+      profileDetail,
+      mediaGallery.couverture,
+      totalPhotoCount,
+      videoUrl,
+      serviceCount,
+      hasConfiguredHours,
+      user,
+    ],
+  );
+
+  const profileScore = useMemo(
+    () => Math.min(100, scoreChecklist.filter((item) => item.done).reduce((sum, item) => sum + item.weight, 0)),
+    [scoreChecklist],
+  );
+
+  const handleSaveHours = useCallback(
+    async (hours: WorkingHours) => {
+      if (!partner || !user?.partnerId) return;
+      try {
+        const detail = await realApi.updatePartnerWorkingHours(user.partnerId, {
+          working_hours: mapWorkingHoursToApi(hours),
+        });
+        const mapped = mapApiWorkingHours(detail.working_hours);
+        setWorkingHours(mapped);
+        setProfileDetail(detail);
+        const nextPartner = { ...partner, workingHours: mapped };
+        setPartner(nextPartner);
+        await updatePartner(nextPartner);
+        appEvents.emit('data_changed');
+        addNotification('Horaires enregistres avec succes', 'success');
+        setIsHoursModalOpen(false);
+      } catch (error) {
+        addNotification(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde', 'error');
+      }
+    },
+    [partner, user?.partnerId, updatePartner, addNotification],
+  );
+
+  const firstIncompleteItem = useMemo(
+    () => scoreChecklist.find((item) => !item.done),
+    [scoreChecklist],
+  );
+
+  const handleCompleteProfile = useCallback(() => {
+    if (!firstIncompleteItem) {
+      addNotification('Felicitations, votre profil est complet a 100% !', 'success');
+      return;
+    }
+    runProfileAction(firstIncompleteItem.action);
+    addNotification(`Prochaine etape : ${firstIncompleteItem.label}`, 'info');
+  }, [firstIncompleteItem, runProfileAction, addNotification]);
+
+  const aiTips = useMemo(
+    () => [
+      {
+        action: 'Ajoutez une video de presentation',
+        gain: '+15% visibilite',
+        icon: 'play' as const,
+        done: !!videoUrl,
+        onClick: () => openMediaModal('couverture'),
+      },
+      {
+        action: totalPhotoCount >= 5 ? 'Galerie complete' : `Ajoutez ${Math.max(0, 5 - totalPhotoCount)} photo(s)`,
+        gain: '+10% visibilite',
+        icon: 'photo' as const,
+        done: totalPhotoCount >= 5,
+        onClick: () => openMediaModal('couverture'),
+      },
+      {
+        action: 'Configurez vos horaires',
+        gain: '+15% confiance',
+        icon: 'calendar' as const,
+        done: hasConfiguredHours,
+        onClick: () => setIsHoursModalOpen(true),
+      },
+      {
+        action: 'Activez au moins un service',
+        gain: '+20% commandes',
+        icon: 'shoppingBag' as const,
+        done: serviceCount > 0,
+        onClick: () => { setCatalogServiceToEdit(null); setIsCatalogServiceOpen(true); },
+      },
+    ],
+    [videoUrl, totalPhotoCount, hasConfiguredHours, serviceCount, openMediaModal],
+  );
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -136,20 +463,37 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
           </div>
           <div className="space-y-2 mb-5">
             {scoreChecklist.map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
+              <button
+                key={i}
+                type="button"
+                onClick={() => !item.done && runProfileAction(item.action)}
+                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition ${
+                  item.done ? '' : 'hover:bg-slate-50 cursor-pointer'
+                }`}
+              >
                 <Icon name={item.done ? 'check' : 'xmark'} className={`w-4 h-4 ${item.done ? 'text-[#22C55E]' : 'text-slate-300'}`} />
                 <span className={item.done ? 'text-[#0F172A]' : 'text-slate-400'}>{item.label}</span>
-                {item.done && <span className="text-[10px] font-bold text-[#22C55E] ml-auto">+{i === 0 ? '15' : i === 1 ? '10' : '5'}%</span>}
-              </div>
+                {item.done ? (
+                  <span className="ml-auto text-[10px] font-bold text-[#22C55E]">+{item.weight}%</span>
+                ) : (
+                  <span className="ml-auto text-[10px] font-bold text-brand-blue">Completer</span>
+                )}
+              </button>
             ))}
           </div>
-          <button onClick={() => setSection?.('profile')} className="w-full py-2.5 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-brand-blue-700 transition">Completer mon profil →</button>
+          <button
+            type="button"
+            onClick={handleCompleteProfile}
+            className="w-full py-2.5 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-brand-blue-700 transition active:scale-[0.98]"
+          >
+            {firstIncompleteItem ? 'Completer mon profil →' : 'Profil complet ✓'}
+          </button>
         </div>
 
         {/* Apercu profil public */}
         <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
           <div className="relative h-40">
-            <img src={partner.imageUrls?.[0] || 'https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=800&q=80'} alt={partner.name} className="w-full h-full object-cover" />
+            <img src={mediaGallery.couverture?.[0] || partner.imageUrls?.[0] || 'https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=800&q=80'} alt={partner.name} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute top-3 right-3 flex gap-1.5">
               <span className="px-2 py-1 bg-white/90 text-[10px] font-bold text-brand-blue rounded-lg">Apercu reel</span>
@@ -157,7 +501,11 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
             <div className="absolute bottom-3 left-3 right-3">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-12 h-12 rounded-xl bg-white/90 flex items-center justify-center text-brand-blue font-extrabold text-lg overflow-hidden">
-                  {partner.imageUrls?.[0] ? <img src={partner.imageUrls[0]} alt="" className="w-full h-full object-cover" /> : partner.name.charAt(0)}
+                  {mediaGallery.couverture?.[0] || partner.imageUrls?.[0] ? (
+                    <img src={mediaGallery.couverture?.[0] || partner.imageUrls?.[0]} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    partner.name.charAt(0)
+                  )}
                 </div>
                 <div>
                   <h3 className="text-lg font-extrabold text-white drop-shadow">{partner.name}</h3>
@@ -236,15 +584,10 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
           <h2 className="text-lg font-bold mb-1">Conseils pour recevoir plus de commandes</h2>
           <p className="text-xs text-white/70 mb-4">Recommandations personnalisees pour ameliorer votre profil</p>
           <div className="space-y-2.5">
-            {[
-              { action: 'Ajoutez une video de presentation', gain: '+12% visibilite', icon: 'play', done: false },
-              { action: 'Ajoutez 3 photos supplementaires', gain: '+7% visibilite', icon: 'photo', done: false },
-              { action: 'Ajoutez horaires speciaux', gain: '+4% conversion', icon: 'calendar', done: true },
-              { action: 'Repondez aux avis clients', gain: '+9% confiance', icon: 'chatBubble', done: false },
-            ].map((item, i) => (
+            {aiTips.map((item, i) => (
               <div key={i} className={`flex items-center justify-between p-2.5 rounded-xl ${item.done ? 'bg-white/10' : 'bg-white/5'}`}>
                 <div className="flex items-center gap-2">
-                  <Icon name={item.done ? 'check' : item.icon as any} className={`w-4 h-4 ${item.done ? 'text-[#22C55E]' : 'text-white/80'}`} />
+                  <Icon name={item.done ? 'check' : item.icon} className={`w-4 h-4 ${item.done ? 'text-[#22C55E]' : 'text-white/80'}`} />
                   <div>
                     <p className="text-xs font-medium">{item.action}</p>
                     <p className="text-[10px] text-white/60">{item.gain}</p>
@@ -253,7 +596,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
                 {item.done ? (
                   <span className="text-[10px] font-bold text-[#22C55E]">Fait</span>
                 ) : (
-                  <button className="px-2.5 py-1 text-[10px] font-bold bg-white/20 rounded-lg hover:bg-white/30 transition">Ajouter</button>
+                  <button type="button" onClick={item.onClick} className="px-2.5 py-1 text-[10px] font-bold bg-white/20 rounded-lg hover:bg-white/30 transition">Ajouter</button>
                 )}
               </div>
             ))}
@@ -266,20 +609,18 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Informations de l'etablissement</h2>
-            <button onClick={() => setIsEditModalOpen(true)} className="px-3 py-1.5 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center gap-1.5"><Icon name="pencil" className="w-3 h-3" />Modifier</button>
+            <button type="button" onClick={() => setIsProfileEditOpen(true)} className="px-3 py-1.5 text-xs font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition flex items-center gap-1.5"><Icon name="pencil" className="w-3 h-3" />Modifier</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { icon: 'building', label: 'Nom commercial', value: partner.name },
-              { icon: 'mapPin', label: 'Adresse', value: partner.address || 'Non renseignee' },
-              { icon: 'chatBubble', label: 'Description courte', value: partner.name + ' - Votre pressing de confiance a Gombe' },
-              { icon: 'mapPin', label: 'Commune', value: partner.address?.split(',')[1]?.trim() || 'Gombe' },
-              { icon: 'phone', label: 'Telephone', value: '+243 81 234 56 78' },
-              { icon: 'clock', label: 'Annee creation', value: '2020' },
-              { icon: 'device-phone-mobile', label: 'WhatsApp', value: '+243 81 234 56 78' },
-              { icon: 'users', label: 'Employes', value: '12 employes' },
-              { icon: 'envelope', label: 'Email', value: 'contact@prestige-pressing.cd' },
-              { icon: 'building', label: 'Type', value: 'Pressing' },
+              { icon: 'building', label: 'Nom commercial', value: profileDetail?.name || partner.name },
+              { icon: 'mapPin', label: 'Adresse', value: profileDetail?.address || partner.address || 'Non renseignee' },
+              { icon: 'mapPin', label: 'Ville', value: profileDetail?.city || 'Kinshasa' },
+              { icon: 'mapPin', label: 'Commune', value: profileDetail?.commune || partner.address?.split(',')[1]?.trim() || '—' },
+              { icon: 'phone', label: 'Telephone', value: profileDetail?.phone || '—' },
+              { icon: 'envelope', label: 'Email', value: profileDetail?.email || '—' },
+              { icon: 'shoppingBag', label: 'Services actifs', value: String(serviceCount) },
+              { icon: 'clock', label: 'Statut', value: profileDetail?.is_accepting_orders ? 'Accepte les commandes' : 'Pause' },
             ].map((field, i) => (
               <div key={i} className="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl">
                 <Icon name={field.icon as any} className="w-4 h-4 text-slate-400 mt-0.5" />
@@ -320,28 +661,89 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Photos & videos</h2>
-            <button className="text-xs font-bold text-brand-blue hover:underline">Gerer</button>
+            <button
+              type="button"
+              onClick={() => openMediaModal(activePhotoTab)}
+              className="text-xs font-bold text-brand-blue hover:underline"
+            >
+              Gerer ({totalPhotoCount})
+            </button>
           </div>
           <div className="flex gap-1.5 overflow-x-auto mb-3">
-            {['Couverture', 'Boutique', 'Machines', 'Equipe', 'Livraison', 'Avant/Apres'].map(tab => (
-              <button key={tab} onClick={() => setActivePhotoTab(tab)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${activePhotoTab === tab ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}>{tab}</button>
+            {PARTNER_PHOTO_CATEGORIES.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActivePhotoTab(tab.key)}
+                className={`px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap transition ${activePhotoTab === tab.key ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600'}`}
+              >
+                {tab.label}
+                {(mediaGallery[tab.key]?.length || 0) > 0 && (
+                  <span className="ml-1 opacity-80">({mediaGallery[tab.key]?.length})</span>
+                )}
+              </button>
             ))}
           </div>
-          {/* Pinterest-style gallery */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 h-[280px]">
-            <div className="col-span-2 row-span-2 bg-slate-100 rounded-xl overflow-hidden">
-              {partner.imageUrls?.[0] ? <img src={partner.imageUrls[0]} alt="Couverture" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon name="photo" className="w-10 h-10 text-slate-300" /></div>}
-            </div>
-            {[partner.imageUrls?.[1], partner.imageUrls?.[2], partner.imageUrls?.[3]].map((img, i) => (
-              <div key={i} className="bg-slate-100 rounded-xl overflow-hidden">
-                {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon name="photo" className="w-6 h-6 text-slate-300" /></div>}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 min-h-[280px]">
+            {activeCategoryPhotos.length === 0 ? (
+              <div className="col-span-full flex h-[280px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50">
+                <Icon name="photo" className="mb-2 h-10 w-10 text-slate-300" />
+                <p className="text-sm font-medium text-slate-500">Aucune photo dans cette categorie</p>
+                <button
+                  type="button"
+                  onClick={() => openMediaModal(activePhotoTab)}
+                  className="mt-3 rounded-lg bg-brand-blue px-4 py-2 text-xs font-bold text-white hover:bg-brand-blue-700"
+                >
+                  Ajouter des photos
+                </button>
               </div>
-            ))}
+            ) : (
+              <>
+                <div className="col-span-2 row-span-2 overflow-hidden rounded-xl bg-slate-100">
+                  <img src={activeCategoryPhotos[0]} alt="" className="h-full w-full object-cover" />
+                </div>
+                {activeCategoryPhotos.slice(1, 4).map((img, i) => (
+                  <div key={i} className="overflow-hidden rounded-xl bg-slate-100">
+                    <img src={img} alt="" className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </>
+            )}
           </div>
-          <div className="p-3 bg-slate-50 rounded-xl flex items-center gap-3 mt-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center"><Icon name="play" className="w-4 h-4 text-brand-blue" /></div>
-            <div className="flex-1"><p className="text-xs font-bold text-[#0F172A]">Video de presentation</p><p className="text-[10px] text-slate-400">Ajoutez une video pour presenter votre pressing</p></div>
-            <button className="px-3 py-1.5 text-[10px] font-bold text-brand-blue border border-brand-blue/20 rounded-lg hover:bg-brand-blue/5 transition">Ajouter</button>
+          <div className="mt-2 rounded-xl bg-slate-50 p-3">
+            <div className="mb-2 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-blue/10">
+                <Icon name="play" className="h-4 w-4 text-brand-blue" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-[#0F172A]">Video de presentation</p>
+                <p className="text-[10px] text-slate-400">
+                  {videoUrl ? 'Video configuree' : 'Ajoutez une video pour presenter votre pressing'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => openMediaModal('couverture')}
+                className="rounded-lg border border-brand-blue/20 px-3 py-1.5 text-[10px] font-bold text-brand-blue hover:bg-brand-blue/5 transition"
+              >
+                {videoUrl ? 'Modifier' : 'Ajouter'}
+              </button>
+            </div>
+            {videoUrl && (
+              <div className="aspect-video overflow-hidden rounded-lg bg-black">
+                {isYoutubeUrl(videoUrl) ? (
+                  <iframe
+                    title="Video presentation"
+                    src={toYoutubeEmbed(videoUrl)}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video src={videoUrl} controls className="h-full w-full object-cover" />
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -350,7 +752,7 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
             <h2 className="text-lg font-bold text-[#0F172A]">Horaires d'ouverture</h2>
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-bold rounded-full">Ouvert maintenant</span>
-              <button className="text-xs font-bold text-brand-blue hover:underline">Enregistrer</button>
+              <button type="button" onClick={() => setIsHoursModalOpen(true)} className="text-xs font-bold text-brand-blue hover:underline">Modifier</button>
             </div>
           </div>
           <div className="space-y-2">
@@ -401,7 +803,13 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         <div className="bg-white rounded-2xl border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[#0F172A]">Mes services & tarifs</h2>
-            <button onClick={() => { setServiceToEdit(null); setIsServiceModalOpen(true); }} className="px-3 py-1.5 text-xs font-bold text-white bg-brand-blue rounded-lg hover:bg-brand-blue-700 transition flex items-center gap-1.5"><Icon name="plus" className="w-3 h-3" />Ajouter</button>
+            <button
+              type="button"
+              onClick={() => { setCatalogServiceToEdit(null); setIsCatalogServiceOpen(true); }}
+              className="px-3 py-1.5 text-xs font-bold text-white bg-brand-blue rounded-lg hover:bg-brand-blue-700 transition flex items-center gap-1.5"
+            >
+              <Icon name="plus" className="w-3 h-3" />Ajouter
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -409,18 +817,37 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
                 <th className="text-left py-2 text-[10px] text-slate-500">SERVICE</th>
                 <th className="text-left py-2 text-[10px] text-slate-500">PRIX</th>
                 <th className="text-left py-2 text-[10px] text-slate-500">DELAI</th>
+                <th className="text-center py-2 text-[10px] text-slate-500">STATUT</th>
                 <th className="text-center py-2 text-[10px] text-slate-500">ACTIONS</th>
               </tr></thead>
               <tbody>
-                {partnerServices.map(s => (
+                {catalogServices.length === 0 && partnerServices.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-xs text-slate-400">
+                      Aucun service actif. Ajoutez votre premier service pour apparaitre aux clients.
+                    </td>
+                  </tr>
+                )}
+                {catalogServices.map((s) => (
                   <tr key={s.id} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2.5 font-medium text-[#0F172A] text-xs">{s.title}</td>
-                    <td className="py-2.5 text-xs font-bold text-brand-blue">{s.priceModel === 'per_kg' ? `${s.price}$/kg` : `${s.price}$/item`}</td>
-                    <td className="py-2.5 text-xs text-slate-500">24h</td>
+                    <td className="py-2.5 font-medium text-[#0F172A] text-xs">
+                      {s.service_type_name || s.service_category_name || 'Service'}
+                    </td>
+                    <td className="py-2.5 text-xs font-bold text-brand-blue">
+                      {Number(s.base_price).toFixed(2)}$ ({s.pricing_mode === 'kg' ? 'au kg' : s.pricing_mode === 'fixed' ? 'forfait' : "a l'unite"})
+                    </td>
+                    <td className="py-2.5 text-xs text-slate-500">{s.estimated_turnaround_hours}h</td>
+                    <td className="py-2.5 text-center">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.is_available ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-slate-100 text-slate-400'}`}>
+                        {s.is_available ? 'Actif' : 'Inactif'}
+                      </span>
+                    </td>
                     <td className="py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => { setServiceToEdit(s); setIsServiceModalOpen(true); }} className="p-1 hover:bg-slate-100 rounded"><Icon name="pencil" className="w-3 h-3 text-slate-400" /></button>
-                        <button onClick={() => handleDeleteService(s.id)} className="p-1 hover:bg-red-50 rounded"><Icon name="xmark" className="w-3 h-3 text-red-400" /></button>
+                        <button type="button" onClick={() => { setCatalogServiceToEdit(s); setIsCatalogServiceOpen(true); }} className="p-1 hover:bg-slate-100 rounded"><Icon name="pencil" className="w-3 h-3 text-slate-400" /></button>
+                        <button type="button" onClick={() => handleToggleCatalogService(s)} className="p-1 hover:bg-slate-100 rounded" title={s.is_available ? 'Desactiver' : 'Activer'}>
+                          <Icon name={s.is_available ? 'xmark' : 'check'} className={`w-3 h-3 ${s.is_available ? 'text-red-400' : 'text-[#22C55E]'}`} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -520,7 +947,14 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
           </div>
           <div className="flex gap-2">
             <button onClick={handleCopyLink} className="flex-1 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition">Copier URL</button>
-            <button className="flex-1 py-2 text-xs font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Tester</button>
+            <a
+              href={shareUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2 text-xs font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition text-center"
+            >
+              Tester
+            </a>
           </div>
         </div>
 
@@ -555,12 +989,55 @@ export const ProfileManagement: React.FC<ProfileProps> = ({ setSection }) => {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-bold text-white/80">Profil complete a <strong className="text-white">{profileScore}%</strong></span>
-          {setSection && <button onClick={() => setSection('profile')} className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition">Completer mon profil</button>}
+          <button
+            type="button"
+            onClick={handleCompleteProfile}
+            className="px-5 py-2.5 bg-white text-brand-blue font-bold rounded-xl text-sm hover:bg-white/90 transition active:scale-[0.98]"
+          >
+            {firstIncompleteItem ? 'Completer mon profil' : 'Profil complet ✓'}
+          </button>
         </div>
       </div>
 
-      {isEditModalOpen && <PartnerEditModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} partner={partner} onSave={(updated) => { setPartner(updated as Partner); setIsEditModalOpen(false); addNotification('Profil mis a jour', 'success'); }} />}
-      {isServiceModalOpen && <ServiceEditModal isOpen={isServiceModalOpen} onClose={() => { setIsServiceModalOpen(false); setServiceToEdit(null); }} service={serviceToEdit} onSave={handleSaveService} />}
+      {createPortal(
+        <>
+          <PartnerProfileEditModal
+            open={isProfileEditOpen}
+            initial={profileFormValues}
+            profileDetail={profileDetail}
+            onClose={() => setIsProfileEditOpen(false)}
+            onSave={handleSaveProfile}
+          />
+          <PartnerWorkingHoursModal
+            open={isHoursModalOpen}
+            initial={workingHours || getDefaultWorkingHours()}
+            onClose={() => setIsHoursModalOpen(false)}
+            onSave={handleSaveHours}
+          />
+          {partner && (
+            <PartnerCatalogServiceModal
+              open={isCatalogServiceOpen}
+              partnerId={partner.id}
+              service={catalogServiceToEdit}
+              onClose={() => { setIsCatalogServiceOpen(false); setCatalogServiceToEdit(null); }}
+              onSaved={async () => {
+                await loadCatalogServices();
+                await loadProfileDetail();
+                addNotification('Service enregistre', 'success');
+              }}
+            />
+          )}
+          <PartnerMediaModal
+            open={isMediaModalOpen}
+            initialGallery={mediaGallery}
+            initialVideoUrl={videoUrl}
+            initialTab={mediaModalTab}
+            onClose={() => setIsMediaModalOpen(false)}
+            onSave={persistMedia}
+          />
+        </>,
+        document.body,
+      )}
     </div>
   );
 };

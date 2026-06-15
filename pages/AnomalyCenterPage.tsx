@@ -12,7 +12,6 @@ import { AnomalyQuickActions } from '../components/admin/anomalies/AnomalyQuickA
 import { CreateInvestigationModal } from '../components/admin/anomalies/CreateInvestigationModal';
 import { ResolveAnomalyModal } from '../components/admin/anomalies/ResolveAnomalyModal';
 import { AuditRunModal } from '../components/admin/anomalies/AuditRunModal';
-import { TechFooter } from '../components/admin/TechFooter';
 
 export const AnomalyCenterPage: React.FC = () => {
   const {

@@ -2,14 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', sans-serif;
+@layer base {
+  :root {
+    color-scheme: light;
+    --le-bg-page: #f7f9fc;
+    --le-bg-card: #ffffff;
+    --le-bg-muted: #f1f5f9;
+    --le-bg-elevated: #ffffff;
+    --le-border: #e2e8f0;
+    --le-border-subtle: #f1f5f9;
+    --le-text: #0f172a;
+    --le-text-muted: #64748b;
+    --le-text-faint: #94a3b8;
+    --le-shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --le-bg-page: #0f172a;
+    --le-bg-card: #1e293b;
+    --le-bg-muted: #334155;
+    --le-bg-elevated: #273449;
+    --le-border: #475569;
+    --le-border-subtle: #334155;
+    --le-text: #f8fafc;
+    --le-text-muted: #d1dae6;
+    --le-text-faint: #b0becd;
+    --le-shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.25);
+  }
+
+  body {
+    background-color: var(--le-bg-page);
+    color: var(--le-text);
+  }
 }
 
-#root {
-  min-height: 100vh;
+@layer components {
+  .surface-card {
+    background-color: var(--le-bg-card);
+    border: 1px solid var(--le-border-subtle);
+    box-shadow: var(--le-shadow-card);
+  }
+
+  .surface-muted {
+    background-color: var(--le-bg-muted);
+  }
 }
 
 input[type="radio"] {
@@ -47,4 +84,753 @@ input[type="radio"]:checked::after {
 input[type="radio"]:focus-visible {
   outline: 2px solid #ade8f4;
   outline-offset: 2px;
+}
+
+/* Admin control center — after Tailwind utilities so dark remaps win over bg-white */
+html.dark .admin-shell .bg-white {
+  background-color: var(--le-bg-card);
+}
+
+html.dark .admin-shell .bg-gray-50,
+html.dark .admin-shell .bg-slate-50,
+html.dark .admin-shell .bg-gray-100 {
+  background-color: var(--le-bg-muted);
+}
+
+html.dark .admin-shell .border-gray-50,
+html.dark .admin-shell .border-gray-100,
+html.dark .admin-shell .border-gray-200,
+html.dark .admin-shell .border-gray-300 {
+  border-color: var(--le-border);
+}
+
+html.dark .admin-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .admin-shell .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .admin-shell .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--le-border);
+}
+
+html.dark .admin-shell .text-gray-900,
+html.dark .admin-shell .text-gray-800,
+html.dark .admin-shell .text-gray-700 {
+  color: var(--le-text);
+}
+
+html.dark .admin-shell .text-gray-600,
+html.dark .admin-shell .text-gray-500 {
+  color: var(--le-text-muted);
+}
+
+html.dark .admin-shell .text-gray-400 {
+  color: var(--le-text-muted);
+}
+
+html.dark .admin-shell .hover\:bg-gray-50:hover,
+html.dark .admin-shell .hover\:bg-slate-50:hover {
+  background-color: var(--le-bg-muted);
+}
+
+html.dark .admin-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark .admin-shell select,
+html.dark .admin-shell textarea {
+  background-color: var(--le-bg-muted);
+  border-color: var(--le-border);
+  color: var(--le-text);
+}
+
+html.dark .admin-shell input::placeholder,
+html.dark .admin-shell textarea::placeholder {
+  color: var(--le-text-faint);
+}
+
+html.dark .admin-shell .shadow-sm,
+html.dark .admin-shell .shadow {
+  box-shadow: var(--le-shadow-card);
+}
+
+/* Slate palette (used heavily in admin pages like PartnerManagement) */
+html.dark .admin-shell .text-slate-950,
+html.dark .admin-shell .text-slate-900,
+html.dark .admin-shell .text-slate-800 {
+  color: var(--le-text);
+}
+
+html.dark .admin-shell .text-slate-700,
+html.dark .admin-shell .text-slate-600 {
+  color: var(--le-text-muted);
+}
+
+html.dark .admin-shell .text-slate-500,
+html.dark .admin-shell .text-slate-400 {
+  color: var(--le-text-faint);
+}
+
+html.dark .admin-shell .border-slate-100,
+html.dark .admin-shell .border-slate-200,
+html.dark .admin-shell .border-slate-300 {
+  border-color: var(--le-border);
+}
+
+html.dark .admin-shell .bg-slate-50,
+html.dark .admin-shell .bg-slate-100 {
+  background-color: var(--le-bg-muted);
+}
+
+html.dark .admin-shell .hover\:bg-slate-50:hover,
+html.dark .admin-shell .hover\:bg-slate-100:hover {
+  background-color: var(--le-bg-elevated);
+}
+
+html.dark .admin-shell .hover\:text-slate-950:hover {
+  color: var(--le-text);
+}
+
+html.dark .admin-shell .bg-white\/90 {
+  background-color: color-mix(in srgb, var(--le-bg-card) 92%, transparent);
+}
+
+/* Status / KPI tint cards */
+html.dark .admin-shell .bg-emerald-50 { background-color: rgb(6 78 59 / 0.35); }
+html.dark .admin-shell .bg-blue-50 { background-color: rgb(30 58 138 / 0.35); }
+html.dark .admin-shell .bg-orange-50 { background-color: rgb(124 45 18 / 0.35); }
+html.dark .admin-shell .bg-red-50 { background-color: rgb(127 29 29 / 0.35); }
+html.dark .admin-shell .bg-purple-50 { background-color: rgb(88 28 135 / 0.35); }
+html.dark .admin-shell .bg-amber-50 { background-color: rgb(120 53 15 / 0.35); }
+
+html.dark .admin-shell .text-emerald-600,
+html.dark .admin-shell .text-emerald-700 { color: #6ee7b7; }
+html.dark .admin-shell .text-blue-600,
+html.dark .admin-shell .text-blue-700 { color: #93c5fd; }
+html.dark .admin-shell .text-orange-600,
+html.dark .admin-shell .text-orange-700 { color: #fdba74; }
+html.dark .admin-shell .text-red-600,
+html.dark .admin-shell .text-red-700 { color: #fca5a5; }
+html.dark .admin-shell .text-purple-600,
+html.dark .admin-shell .text-purple-700 { color: #c4b5fd; }
+
+html.dark .admin-shell .border-blue-100 { border-color: rgb(59 130 246 / 0.35); }
+
+html.dark .admin-shell .from-blue-50.via-emerald-50.to-orange-50 {
+  background-image: linear-gradient(to bottom right, rgb(30 58 138 / 0.25), rgb(6 78 59 / 0.2), rgb(124 45 18 / 0.2));
+}
+
+html.dark .admin-shell table thead {
+  color: var(--le-text-faint);
+}
+
+/* Badge backgrounds (-100) used in services tables */
+html.dark .admin-shell .bg-green-100 { background-color: rgb(6 78 59 / 0.45); }
+html.dark .admin-shell .bg-emerald-100 { background-color: rgb(6 78 59 / 0.45); }
+html.dark .admin-shell .bg-blue-100 { background-color: rgb(30 58 138 / 0.45); }
+html.dark .admin-shell .bg-yellow-100 { background-color: rgb(113 63 18 / 0.45); }
+html.dark .admin-shell .bg-amber-100 { background-color: rgb(120 53 15 / 0.45); }
+html.dark .admin-shell .bg-orange-100 { background-color: rgb(124 45 18 / 0.45); }
+html.dark .admin-shell .bg-purple-100 { background-color: rgb(88 28 135 / 0.45); }
+html.dark .admin-shell .bg-indigo-100 { background-color: rgb(49 46 129 / 0.45); }
+html.dark .admin-shell .bg-yellow-50 { background-color: rgb(113 63 18 / 0.35); }
+html.dark .admin-shell .bg-amber-50 { background-color: rgb(120 53 15 / 0.35); }
+
+html.dark .admin-shell .text-green-800,
+html.dark .admin-shell .text-green-600 { color: #6ee7b7; }
+html.dark .admin-shell .text-emerald-100 { color: #6ee7b7; }
+html.dark .admin-shell .text-blue-800 { color: #93c5fd; }
+html.dark .admin-shell .text-yellow-800,
+html.dark .admin-shell .text-yellow-600 { color: #fde047; }
+html.dark .admin-shell .text-amber-800,
+html.dark .admin-shell .text-amber-100 { color: #fde68a; }
+html.dark .admin-shell .text-orange-800 { color: #fdba74; }
+html.dark .admin-shell .text-purple-800 { color: #c4b5fd; }
+html.dark .admin-shell .text-indigo-800 { color: #a5b4fc; }
+html.dark .admin-shell .text-red-800,
+html.dark .admin-shell .text-red-100 { color: #fca5a5; }
+
+html.dark .admin-shell .border-yellow-200,
+html.dark .admin-shell .border-orange-200,
+html.dark .admin-shell .border-gray-200 { border-color: var(--le-border); }
+
+html.dark .admin-shell .hover\:bg-gray-100:hover {
+  background-color: var(--le-bg-elevated);
+}
+
+html.dark .admin-shell .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--le-border);
+}
+
+html.dark .admin-shell .bg-gray-200 {
+  background-color: var(--le-bg-muted);
+}
+
+html.dark .admin-shell .text-gray-300 {
+  color: var(--le-text-muted);
+}
+
+/* Admin alert banners — plain CSS so dark mode always works (no Tailwind JIT dependency) */
+.admin-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--le-border);
+  border-left-width: 4px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--le-text);
+}
+
+.admin-status-banner--warning {
+  border-left-color: #d97706;
+  background-color: color-mix(in srgb, #f59e0b 16%, var(--le-bg-card));
+}
+
+html.dark .admin-status-banner--warning {
+  border-color: rgb(245 158 11 / 0.4);
+  border-left-color: #fbbf24;
+  background-color: color-mix(in srgb, #92400e 55%, var(--le-bg-card));
+  color: #fef3c7;
+}
+
+.admin-status-banner--info {
+  border-left-color: #2563eb;
+  background-color: color-mix(in srgb, #3b82f6 12%, var(--le-bg-card));
+}
+
+html.dark .admin-status-banner--info {
+  border-color: rgb(59 130 246 / 0.35);
+  border-left-color: #60a5fa;
+  background-color: color-mix(in srgb, #1e3a8a 50%, var(--le-bg-card));
+  color: #dbeafe;
+}
+
+.admin-status-banner__icon--warning {
+  color: #d97706;
+}
+
+html.dark .admin-status-banner__icon--warning {
+  color: #fbbf24;
+}
+
+.admin-status-banner__icon--info {
+  color: #2563eb;
+}
+
+html.dark .admin-status-banner__icon--info {
+  color: #93c5fd;
+}
+
+html.dark .admin-shell .bg-green-50 {
+  background-color: rgb(6 78 59 / 0.35);
+}
+
+html.dark .admin-shell .bg-violet-50 {
+  background-color: rgb(76 29 149 / 0.35);
+}
+
+html.dark .admin-shell .bg-teal-50 {
+  background-color: rgb(19 78 74 / 0.35);
+}
+
+html.dark .admin-shell .bg-violet-100 {
+  background-color: rgb(76 29 149 / 0.45);
+}
+
+html.dark .admin-shell .text-violet-600 {
+  color: #c4b5fd;
+}
+
+html.dark .admin-shell .text-teal-600 {
+  color: #5eead4;
+}
+
+html.dark .admin-shell .text-indigo-600 {
+  color: #a5b4fc;
+}
+
+html.dark .admin-shell .text-amber-600 {
+  color: #fcd34d;
+}
+
+html.dark .admin-shell .text-green-700 {
+  color: #6ee7b7;
+}
+
+html.dark .admin-shell .border-green-200,
+html.dark .admin-shell .border-red-200,
+html.dark .admin-shell .border-purple-200,
+html.dark .admin-shell .border-blue-200 {
+  border-color: rgb(71 85 105 / 0.6);
+}
+
+html.dark .admin-shell [class*='bg-[#F8FAFC]'],
+html.dark .admin-shell .bg-\[\#F8FAFC\] {
+  background-color: transparent;
+}
+
+/* Driver dashboard — force theme tokens even if cached bundles still emit bg-white */
+.driver-shell {
+  background-color: var(--le-bg-page);
+  color: var(--le-text);
+}
+
+html.dark .driver-shell .bg-white,
+html.dark .driver-shell .bg-slate-50,
+html.dark .driver-shell .bg-gray-50 {
+  background-color: var(--le-bg-card) !important;
+}
+
+html.dark .driver-shell .bg-\[\#f8fbff\],
+html.dark .driver-shell .bg-\[\#f7fbff\],
+html.dark .driver-shell .bg-\[\#eef6ff\],
+html.dark .driver-shell [class*='bg-[#f8'],
+html.dark .driver-shell [class*='bg-[#eef'] {
+  background-color: var(--le-bg-muted) !important;
+}
+
+html.dark .driver-shell .text-\[\#0A1628\],
+html.dark .driver-shell .text-\[\#06105f\],
+html.dark .driver-shell .text-gray-900,
+html.dark .driver-shell .text-slate-900 {
+  color: var(--le-text) !important;
+}
+
+html.dark .driver-shell .text-\[\#52607f\],
+html.dark .driver-shell .text-\[\#20314d\],
+html.dark .driver-shell .text-\[\#6c7894\],
+html.dark .driver-shell .text-gray-600,
+html.dark .driver-shell .text-gray-500,
+html.dark .driver-shell .text-slate-600 {
+  color: var(--le-text-muted) !important;
+}
+
+html.dark .driver-shell .border-\[\#e4edf9\],
+html.dark .driver-shell .border-\[\#dbe7fb\],
+html.dark .driver-shell .border-\[\#b8cce6\],
+html.dark .driver-shell .border-gray-200,
+html.dark .driver-shell .border-slate-200 {
+  border-color: var(--le-border) !important;
+}
+
+html.dark .driver-shell aside {
+  background-color: var(--le-bg-card);
+  border-color: var(--le-border);
+}
+
+/* Logistics + driver dashboards — dark mode compat for legacy Tailwind grays */
+.logistics-shell {
+  background-color: var(--le-bg-page);
+  color: var(--le-text);
+}
+
+html.dark .driver-shell .bg-white,
+html.dark .logistics-shell .bg-white,
+html.dark .partner-shell .bg-white,
+html.dark .driver-shell .bg-gray-50,
+html.dark .logistics-shell .bg-gray-50,
+html.dark .partner-shell .bg-gray-50,
+html.dark .driver-shell .bg-slate-50,
+html.dark .logistics-shell .bg-slate-50,
+html.dark .partner-shell .bg-slate-50 {
+  background-color: var(--le-bg-card) !important;
+}
+
+html.dark .driver-shell .bg-gray-100,
+html.dark .logistics-shell .bg-gray-100,
+html.dark .partner-shell .bg-gray-100,
+html.dark .driver-shell .bg-slate-100,
+html.dark .logistics-shell .bg-slate-100,
+html.dark .partner-shell .bg-slate-100 {
+  background-color: var(--le-bg-muted) !important;
+}
+
+html.dark .driver-shell .bg-blue-50,
+html.dark .logistics-shell .bg-blue-50,
+html.dark .partner-shell .bg-blue-50 {
+  background-color: rgb(30 58 138 / 0.35) !important;
+}
+
+html.dark .driver-shell .bg-blue-100,
+html.dark .logistics-shell .bg-blue-100,
+html.dark .partner-shell .bg-blue-100 {
+  background-color: rgb(30 58 138 / 0.45) !important;
+}
+
+html.dark .driver-shell .bg-green-50,
+html.dark .logistics-shell .bg-green-50,
+html.dark .partner-shell .bg-green-50 {
+  background-color: rgb(6 78 59 / 0.35) !important;
+}
+
+html.dark .driver-shell .bg-green-100,
+html.dark .logistics-shell .bg-green-100,
+html.dark .partner-shell .bg-green-100 {
+  background-color: rgb(6 78 59 / 0.45) !important;
+}
+
+html.dark .driver-shell .bg-orange-50,
+html.dark .logistics-shell .bg-orange-50,
+html.dark .partner-shell .bg-orange-50 {
+  background-color: rgb(124 45 18 / 0.35) !important;
+}
+
+html.dark .driver-shell .bg-orange-100,
+html.dark .logistics-shell .bg-orange-100,
+html.dark .partner-shell .bg-orange-100 {
+  background-color: rgb(124 45 18 / 0.45) !important;
+}
+
+html.dark .driver-shell .bg-violet-50,
+html.dark .logistics-shell .bg-violet-50,
+html.dark .partner-shell .bg-violet-50,
+html.dark .driver-shell .bg-purple-50,
+html.dark .logistics-shell .bg-purple-50,
+html.dark .partner-shell .bg-purple-50 {
+  background-color: rgb(76 29 149 / 0.35) !important;
+}
+
+html.dark .driver-shell .bg-violet-100,
+html.dark .logistics-shell .bg-violet-100,
+html.dark .partner-shell .bg-violet-100 {
+  background-color: rgb(76 29 149 / 0.45) !important;
+}
+
+html.dark .driver-shell .bg-yellow-50,
+html.dark .logistics-shell .bg-yellow-50,
+html.dark .partner-shell .bg-yellow-50 {
+  background-color: rgb(113 63 18 / 0.35) !important;
+}
+
+html.dark .driver-shell .bg-red-50,
+html.dark .logistics-shell .bg-red-50,
+html.dark .partner-shell .bg-red-50 {
+  background-color: rgb(127 29 29 / 0.35) !important;
+}
+
+html.dark .driver-shell .text-gray-900,
+html.dark .logistics-shell .text-gray-900,
+html.dark .partner-shell .text-gray-900,
+html.dark .driver-shell .text-brand-dark,
+html.dark .logistics-shell .text-brand-dark,
+html.dark .partner-shell .text-brand-dark,
+html.dark .driver-shell .text-slate-900,
+html.dark .logistics-shell .text-slate-900,
+html.dark .partner-shell .text-slate-900,
+html.dark .driver-shell .text-gray-800,
+html.dark .logistics-shell .text-gray-800,
+html.dark .partner-shell .text-gray-800,
+html.dark .driver-shell .text-gray-700,
+html.dark .logistics-shell .text-gray-700,
+html.dark .partner-shell .text-gray-700 {
+  color: var(--le-text) !important;
+}
+
+html.dark .driver-shell .text-gray-500,
+html.dark .logistics-shell .text-gray-500,
+html.dark .partner-shell .text-gray-500,
+html.dark .driver-shell .text-gray-600,
+html.dark .logistics-shell .text-gray-600,
+html.dark .partner-shell .text-gray-600,
+html.dark .driver-shell .text-slate-600,
+html.dark .logistics-shell .text-slate-600,
+html.dark .partner-shell .text-slate-600 {
+  color: var(--le-text-muted) !important;
+}
+
+html.dark .driver-shell .text-gray-400,
+html.dark .logistics-shell .text-gray-400,
+html.dark .partner-shell .text-gray-400,
+html.dark .driver-shell .text-slate-500,
+html.dark .logistics-shell .text-slate-500,
+html.dark .partner-shell .text-slate-500 {
+  color: var(--le-text-faint) !important;
+}
+
+html.dark .driver-shell .border-gray-50,
+html.dark .logistics-shell .border-gray-50,
+html.dark .partner-shell .border-gray-50,
+html.dark .driver-shell .border-gray-100,
+html.dark .logistics-shell .border-gray-100,
+html.dark .partner-shell .border-gray-100,
+html.dark .driver-shell .border-gray-200,
+html.dark .logistics-shell .border-gray-200,
+html.dark .partner-shell .border-gray-200,
+html.dark .driver-shell .border-slate-200,
+html.dark .logistics-shell .border-slate-200,
+html.dark .partner-shell .border-slate-200 {
+  border-color: var(--le-border) !important;
+}
+
+html.dark .driver-shell .border-blue-100,
+html.dark .logistics-shell .border-blue-100,
+html.dark .partner-shell .border-blue-100,
+html.dark .driver-shell .border-green-100,
+html.dark .logistics-shell .border-green-100,
+html.dark .partner-shell .border-green-100,
+html.dark .driver-shell .border-orange-100,
+html.dark .logistics-shell .border-orange-100,
+html.dark .partner-shell .border-orange-100,
+html.dark .driver-shell .border-violet-100,
+html.dark .logistics-shell .border-violet-100,
+html.dark .partner-shell .border-violet-100 {
+  border-color: rgb(71 85 105 / 0.6) !important;
+}
+
+html.dark .driver-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .logistics-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .partner-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--le-border) !important;
+}
+
+html.dark .driver-shell .hover\:bg-gray-50:hover,
+html.dark .logistics-shell .hover\:bg-gray-50:hover,
+html.dark .partner-shell .hover\:bg-gray-50:hover {
+  background-color: var(--le-bg-muted) !important;
+}
+
+html.dark .driver-shell .text-green-700,
+html.dark .logistics-shell .text-green-700,
+html.dark .partner-shell .text-green-700 {
+  color: #bbf7d0 !important;
+}
+
+html.dark .driver-shell .text-green-600,
+html.dark .logistics-shell .text-green-600,
+html.dark .partner-shell .text-green-600 {
+  color: #86efac !important;
+}
+
+html.dark .driver-shell .text-orange-600,
+html.dark .logistics-shell .text-orange-600,
+html.dark .partner-shell .text-orange-600 {
+  color: #fdba74 !important;
+}
+
+html.dark .driver-shell .text-orange-700,
+html.dark .logistics-shell .text-orange-700,
+html.dark .partner-shell .text-orange-700 {
+  color: #fed7aa !important;
+}
+
+html.dark .driver-shell .text-red-600,
+html.dark .logistics-shell .text-red-600,
+html.dark .partner-shell .text-red-600 {
+  color: #fca5a5 !important;
+}
+
+html.dark .driver-shell .text-red-700,
+html.dark .logistics-shell .text-red-700,
+html.dark .partner-shell .text-red-700 {
+  color: #fecaca !important;
+}
+
+html.dark .driver-shell .text-yellow-600,
+html.dark .logistics-shell .text-yellow-600,
+html.dark .partner-shell .text-yellow-600 {
+  color: #fde68a !important;
+}
+
+html.dark .driver-shell .text-yellow-700,
+html.dark .logistics-shell .text-yellow-700,
+html.dark .partner-shell .text-yellow-700 {
+  color: #fef08a !important;
+}
+
+html.dark .driver-shell .text-violet-600,
+html.dark .logistics-shell .text-violet-600,
+html.dark .partner-shell .text-violet-600,
+html.dark .driver-shell .text-purple-600,
+html.dark .logistics-shell .text-purple-600,
+html.dark .partner-shell .text-purple-600 {
+  color: #c4b5fd !important;
+}
+
+html.dark .driver-shell .text-content-faint,
+html.dark .logistics-shell .text-content-faint,
+html.dark .partner-shell .text-content-faint {
+  color: var(--le-text-faint) !important;
+}
+
+/* Badges & pills: brighter label on tinted dark backgrounds */
+html.dark .driver-shell .bg-blue-50.text-brand-blue,
+html.dark .logistics-shell .bg-blue-50.text-brand-blue,
+html.dark .partner-shell .bg-blue-50.text-brand-blue,
+html.dark .driver-shell .bg-blue-50 .text-brand-blue,
+html.dark .logistics-shell .bg-blue-50 .text-brand-blue,
+html.dark .partner-shell .bg-blue-50 .text-brand-blue {
+  color: #93c5fd !important;
+}
+
+html.dark .driver-shell [class*='bg-red-50'],
+html.dark .logistics-shell [class*='bg-red-50'] {
+  background-color: rgb(127 29 29 / 0.32) !important;
+  border-color: rgb(248 113 113 / 0.35) !important;
+}
+
+html.dark .driver-shell [class*='bg-orange-50'],
+html.dark .logistics-shell [class*='bg-orange-50'] {
+  background-color: rgb(124 45 18 / 0.32) !important;
+  border-color: rgb(251 146 60 / 0.35) !important;
+}
+
+html.dark .driver-shell [class*='bg-green-50'],
+html.dark .logistics-shell [class*='bg-green-50'] {
+  border-color: rgb(74 222 128 / 0.25) !important;
+}
+
+html.dark .driver-shell [class*='bg-yellow-50'],
+html.dark .logistics-shell [class*='bg-yellow-50'] {
+  background-color: rgb(113 63 18 / 0.32) !important;
+  border-color: rgb(250 204 21 / 0.3) !important;
+}
+
+html.dark .driver-shell [class*='border-red-100'],
+html.dark .logistics-shell [class*='border-red-100'] {
+  border-color: rgb(248 113 113 / 0.35) !important;
+}
+
+html.dark .driver-shell [class*='border-orange-100'],
+html.dark .logistics-shell [class*='border-orange-100'] {
+  border-color: rgb(251 146 60 / 0.35) !important;
+}
+
+html.dark .driver-shell [class*='border-green-100'],
+html.dark .logistics-shell [class*='border-green-100'] {
+  border-color: rgb(74 222 128 / 0.3) !important;
+}
+
+html.dark .logistics-shell aside,
+html.dark .driver-shell aside,
+html.dark .partner-shell aside {
+  background-color: var(--le-bg-card);
+  border-color: var(--le-border);
+}
+
+/* Partner dashboard — dark mode */
+.partner-shell {
+  background-color: var(--le-bg-page);
+  color: var(--le-text);
+}
+
+html.dark .partner-shell .bg-white,
+html.dark .partner-shell .bg-slate-50 {
+  background-color: var(--le-bg-card) !important;
+}
+
+html.dark .partner-shell .bg-slate-100,
+html.dark .partner-shell .bg-slate-200 {
+  background-color: var(--le-bg-muted) !important;
+}
+
+html.dark .partner-shell .text-\[\#0F172A\] {
+  color: var(--le-text) !important;
+}
+
+html.dark .partner-shell .text-slate-400,
+html.dark .partner-shell .text-slate-500,
+html.dark .partner-shell .text-slate-600,
+html.dark .partner-shell .text-slate-700 {
+  color: var(--le-text-muted) !important;
+}
+
+html.dark .partner-shell .text-slate-300,
+html.dark .partner-shell .text-slate-200 {
+  color: var(--le-text-faint) !important;
+}
+
+html.dark .partner-shell .border-slate-100,
+html.dark .partner-shell .border-slate-200 {
+  border-color: var(--le-border) !important;
+}
+
+html.dark .partner-shell .bg-blue-50,
+html.dark .partner-shell .bg-green-50,
+html.dark .partner-shell .bg-yellow-50,
+html.dark .partner-shell .bg-orange-50,
+html.dark .partner-shell .bg-purple-50 {
+  background-color: rgb(30 58 138 / 0.35) !important;
+}
+
+html.dark .partner-shell .bg-purple-50 {
+  background-color: rgb(76 29 149 / 0.35) !important;
+}
+
+html.dark .partner-shell .bg-amber-100,
+html.dark .partner-shell .bg-yellow-100 {
+  background-color: rgb(113 63 18 / 0.35) !important;
+}
+
+html.dark .partner-shell .bg-green-50\/50,
+html.dark .partner-shell .border-green-200 {
+  background-color: rgb(6 78 59 / 0.25) !important;
+  border-color: rgb(74 222 128 / 0.3) !important;
+}
+
+html.dark .partner-shell .hover\:bg-slate-100:hover {
+  background-color: var(--le-bg-muted) !important;
+}
+
+html.dark .partner-shell .from-blue-50 {
+  --tw-gradient-from: rgb(30 58 138 / 0.35) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(30 58 138 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+html.dark .partner-shell .to-purple-50 {
+  --tw-gradient-to: rgb(76 29 149 / 0.35) var(--tw-gradient-to-position);
+}
+
+/* Partner forms, modals & tables — dark readability */
+html.dark .partner-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark .partner-shell select,
+html.dark .partner-shell textarea {
+  background-color: var(--le-bg-muted);
+  border-color: var(--le-border);
+  color: var(--le-text);
+}
+
+html.dark .partner-shell input::placeholder,
+html.dark .partner-shell textarea::placeholder {
+  color: var(--le-text-faint);
+  opacity: 1;
+}
+
+html.dark .partner-shell select option {
+  background-color: var(--le-bg-card);
+  color: var(--le-text);
+}
+
+html.dark .partner-shell .text-gray-400,
+html.dark .partner-shell .text-slate-400 {
+  color: var(--le-text-muted) !important;
+}
+
+html.dark .partner-shell .bg-red-50 {
+  background-color: rgb(127 29 29 / 0.28) !important;
+}
+
+html.dark .partner-shell .border-red-100 {
+  border-color: rgb(248 113 113 / 0.35) !important;
+}
+
+html.dark .partner-shell .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+html.dark .partner-shell .bg-white\/90 {
+  background-color: rgb(30 41 59 / 0.94) !important;
+  color: var(--le-text-muted);
+}
+
+html.dark .partner-shell .bg-green-50.text-\[\#22C55E\],
+html.dark .partner-shell .bg-green-50 .text-\[\#22C55E\] {
+  color: #86efac !important;
+}
+
+html.dark .partner-shell .partner-cta-light {
+  background-color: #ffffff !important;
+  color: #0066cc !important;
+}
+
+html.dark .partner-shell .partner-cta-light:hover {
+  background-color: rgb(255 255 255 / 0.9) !important;
 }

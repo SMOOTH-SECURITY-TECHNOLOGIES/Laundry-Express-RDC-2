@@ -20,7 +20,7 @@ export const OperationalAlerts: React.FC = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-extrabold text-brand-dark flex items-center gap-2">
+        <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
           <Icon name="bell" className="w-5 h-5 text-orange-600" />
           Alertes opérationnelles
         </h2>
@@ -34,12 +34,12 @@ export const OperationalAlerts: React.FC = () => {
           return (
             <div
               key={alert.id}
-              className={`flex items-start gap-3 p-3 rounded-xl ${colors.bg} border border-transparent`}
+              className={`flex items-start gap-3 rounded-xl border border-surface-border-subtle p-3 ${colors.bg}`}
             >
-              <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${colors.dot}`} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-brand-dark">{alert.message}</p>
-                <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+              <div className={`mt-2 h-2 w-2 shrink-0 rounded-full ${colors.dot}`} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-content-primary">{alert.message}</p>
+                <p className="mt-1 text-xs font-medium text-content-muted">{alert.time}</p>
               </div>
             </div>
           );

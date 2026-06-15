@@ -55,7 +55,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user?.id]);
   
   const reloadAppNotifications = useCallback(async () => {
-    if (!user) {
+    if (!user || !realApi.hasAuthSession()) {
       setAppNotifications([]);
       return;
     }
@@ -74,11 +74,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [mapBackendNotification, user]);
   
   useEffect(() => {
-    reloadAppNotifications(); // Initial fetch
-    
-    // Listen for data changes to refresh notifications
-    const unsubscribe = appEvents.on('data_changed', reloadAppNotifications);
-    return () => unsubscribe();
+    reloadAppNotifications();
+
+    const unsubscribeData = appEvents.on('data_changed', reloadAppNotifications);
+    const unsubscribeLogout = appEvents.on('logout', () => setAppNotifications([]));
+    return () => {
+      unsubscribeData();
+      unsubscribeLogout();
+    };
   }, [reloadAppNotifications]);
 
   const addNotification = useCallback((message: string, type: 'success' | 'info' | 'error') => {

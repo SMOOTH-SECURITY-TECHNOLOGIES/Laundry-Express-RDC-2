@@ -179,9 +179,18 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({ onNext, onBack
                   <div className="p-4 space-y-3 animate-fade-in">
                     {category.items.map(article => (
                       <div key={article.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="flex-grow">
-                          <p className="font-semibold text-slate-800 dark:text-slate-100">{article.name}</p>
-                          <p className="text-sm text-brand-blue font-bold">${article.price.toFixed(2)}</p>
+                        <div className="flex min-w-0 flex-grow items-center gap-3">
+                          {article.imageUrl ? (
+                            <img src={article.imageUrl} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-lg object-cover bg-white dark:bg-slate-700" />
+                          ) : (
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-blue/10">
+                              <Icon name="shirt" className="h-6 w-6 text-brand-blue" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-800 dark:text-slate-100">{article.name}</p>
+                            <p className="text-sm font-bold text-brand-blue">${article.price.toFixed(2)}</p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-4">
                           <button onClick={() => handleQuantityChange(article, -1)} className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 shadow-sm border dark:border-slate-600 flex items-center justify-center hover:bg-slate-50 transition-all">-</button>

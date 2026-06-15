@@ -19,8 +19,39 @@ function countArticles(serviceItems?: ServiceItem[]): number {
   if (!serviceItems) return 0;
   return serviceItems.reduce((sum, si) => {
     if (si.items) return sum + si.items.reduce((s, item) => s + item.quantity, 0);
+    if (si.weight) return sum + 1;
     return sum;
   }, 0);
+}
+
+function renderServiceItemLines(
+  serviceItems: ServiceItem[],
+  formatPrice: (price: number) => string,
+): React.ReactNode {
+  return serviceItems.flatMap((si) => {
+    if (si.weight && si.service) {
+      return (
+        <div key={si.service.id} className="flex justify-between text-sm">
+          <span className="text-gray-600 dark:text-gray-300">
+            {si.service.title} ({si.weight} kg)
+          </span>
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {formatPrice((si.service.price || 0) * si.weight)}
+          </span>
+        </div>
+      );
+    }
+    return (si.items ?? []).map((item) => (
+      <div key={`${si.service.id}-${item.article.id}`} className="flex justify-between text-sm">
+        <span className="text-gray-600 dark:text-gray-300">
+          {item.quantity}x {item.article.name}
+        </span>
+        <span className="font-semibold text-gray-900 dark:text-white">
+          {formatPrice(item.article.price * item.quantity)}
+        </span>
+      </div>
+    ));
+  });
 }
 
 export const CheckoutOrderSummary: React.FC<CheckoutOrderSummaryProps> = ({
@@ -86,24 +117,13 @@ export const CheckoutOrderSummary: React.FC<CheckoutOrderSummaryProps> = ({
           </div>
         )}
 
-        {articleCount > 0 && (
+        {(articleCount > 0 || serviceItems.some((si) => si.weight)) && (
           <div className="py-4 border-b border-gray-100 dark:border-slate-700">
             <p className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-              Articles ({articleCount})
+              Articles ({articleCount || serviceItems.length})
             </p>
             <div className="space-y-1.5">
-              {serviceItems.map((si) =>
-                si.items?.map((item) => (
-                  <div key={item.article.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-300">
-                      {item.quantity}x {item.article.name}
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {formatPrice(item.article.price * item.quantity)}
-                    </span>
-                  </div>
-                ))
-              )}
+              {renderServiceItemLines(serviceItems, formatPrice)}
             </div>
           </div>
         )}

@@ -6,7 +6,7 @@ import {
     LogisticsPartner, LoyaltySettings, ReferralSettings, NotificationPreferences, NotificationType, Advertisement, HowItWorksStep, FAQItem, PartnerFeatures, 
     ApplicationSettings, Article, OptimizedRoute, RouteMission, DrcAddress,
     UserRole, TeamMemberRole, WebhookEvent, AutomationSettings, TrackingSettings, SubscriptionPlan, Invoice, CommissionSettings, RefundRequest, RefundReason, RefundStatus, SecurityAlert, CreateOrderRequest,
-    LoginRequest, RegisterRequest, NotificationAnalytic, BulkNotificationTarget, AdminPermissions, AdminSection, InventoryItem, DeliverySettings,
+    LoginRequest, RegisterRequest, NotificationAnalytic, BulkNotificationTarget, AdminPermissions, AdminSection, InventoryItem, DeliverySettings, PartnerDeliveryOps,
     ActivityLog, TicketCategory,
     BackendUser,
     BackendPartner,
@@ -124,7 +124,7 @@ const defaultWorkingHours: WorkingHours = {
 
 const initialDBData = {
     users: [
-        { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'password123', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'LE-X7K9M2BQ', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
+        { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'local-demo-customer-pass', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'LE-X7K9M2BQ', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
         { id: 'USER-ADMIN', name: 'Admin User', email: 'admin@laundry.app', phone: '0810000000', passwordHash: 'adminpass123', role: 'superadmin', pickupAddress: { commune: 'System', avenue: 'Admin', numero: '1' }, loyaltyPoints: 0, referralCode: 'LE-A3D8F1GH', createdAt: '2023-01-01T00:00:00Z', is2FAEnabled: true, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
         { id: 'USER-PARTNER-1', name: 'Patrice Manager', email: 'patrice@prestige.com', phone: '0820000001', passwordHash: 'partnerpass123', role: 'partner-owner', partnerId: 'PARTNER-1', pickupAddress: { commune: 'Gombe', avenue: 'Du 30 Juin', numero: '10' }, loyaltyPoints: 0, referralCode: 'LE-P4R7T9WC', createdAt: '2023-01-10T09:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
         { id: 'USER-DRIVER-1', name: 'Driver Kabila', email: 'driver1@kinexpress.cd', phone: '0831111111', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Lingwala', avenue: 'Des Pilotes', numero: '7' }, loyaltyPoints: 0, referralCode: 'LE-D1V3R5KM', createdAt: '2023-02-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
@@ -140,9 +140,9 @@ const initialDBData = {
         { id: 'PARTNER-4', name: 'Rapido Lavage', slug: 'rapido-lavage', type: PartnerType.LAVANDIER, rating: 4.4, reviewCount: 67, imageUrls: ['https://images.unsplash.com/photo-1489274495757-95c7c1364643?w=800&q=80'], address: 'Bandal Nord, Kinshasa', coordinates: { lat: -4.338, lng: 15.289 }, serviceIds: ['SERV-LAUNDRY-STD'], isFeatured: true, enabledFeatures: { promotions: true, advancedAutomation: true }, commissionRate: 0.10, currency: 'USD', workingHours: defaultWorkingHours },
     ],
     services: [
-        { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: 'Nettoyage professionnel pour vos vêtements délicats.', iconName: 'shirt', imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&q=80', priceModel: 'per_item', articleCategories: [{name: 'Général', items: [{id:'ART-CHEMISE', name: 'Chemise', price: 2.5, description: 'Chemise homme ou femme'}, {id:'ART-PANTALON', name: 'Pantalon', price: 3.5, description: 'Pantalon classique'}]}] },
+        { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: 'Nettoyage professionnel pour vos vêtements délicats.', iconName: 'shirt', imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&q=80', priceModel: 'per_item', articleCategories: [{name: 'Général', items: [{id:'ART-CHEMISE', name: 'Chemise', price: 2.5, description: 'Chemise homme ou femme', imageUrl: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&w=160&q=80'}, {id:'ART-PANTALON', name: 'Pantalon', price: 3.5, description: 'Pantalon classique', imageUrl: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=160&q=80'}]}] },
         { id: 'SERV-LAUNDRY-STD', type: ServiceType.BLANCHISSERIE, title: 'Lavage & Pliage', description: 'Lavage complet, séchage et pliage de vos vêtements quotidiens.', iconName: 'wash', imageUrl: 'https://images.unsplash.com/photo-1545173153-5dd9215b6f57?w=400&q=80', priceModel: 'per_kg', price: 1.5 },
-        { id: 'SERV-CORDONNERIE-STD', type: ServiceType.CORDONNERIE, title: 'Cordonnerie', description: 'Réparation et entretien de vos chaussures et articles en cuir.', iconName: 'sparkles', imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80', priceModel: 'per_item', articleCategories: [{name: 'Général', items: [{id:'ART-TALON', name: 'Réparation Talon', price: 10, description: 'Réparation de talon usé'}, {id:'ART-CIRAGE', name: 'Cirage Complet', price: 5, description: 'Nettoyage et cirage professionnel'}]}] },
+        { id: 'SERV-CORDONNERIE-STD', type: ServiceType.CORDONNERIE, title: 'Cordonnerie', description: 'Réparation et entretien de vos chaussures et articles en cuir.', iconName: 'sparkles', imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80', priceModel: 'per_item', articleCategories: [{name: 'Général', items: [{id:'ART-TALON', name: 'Réparation Talon', price: 10, description: 'Réparation de talon usé', imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=160&q=80'}, {id:'ART-CIRAGE', name: 'Cirage Complet', price: 5, description: 'Nettoyage et cirage professionnel', imageUrl: 'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=160&q=80'}]}] },
     ],
     orderHistory: [
         { id: 'ORDER-001', userId: 'USER-1', partner: { id: 'PARTNER-1', name: 'Prestige Pressing', slug: 'prestige-pressing', type: PartnerType.PRESSING, rating: 4.8, reviewCount: 152, imageUrls: [], address: '123 Av. du 30 Juin, Gombe', coordinates: { lat: -4.316, lng: 15.308 }, serviceIds: ['SERV-PRESSING-STD'], isFeatured: true, enabledFeatures: {}, commissionRate: 0.15, currency: 'USD', workingHours: defaultWorkingHours }, serviceItems: [{ service: { id: 'SERV-PRESSING-STD', type: ServiceType.PRESSING, title: 'Nettoyage à sec standard', description: '', iconName: 'shirt', imageUrl: '', priceModel: 'per_item', articleCategories: [] }, items: [{ article: { id: 'ART-CHEMISE', name: 'Chemise', price: 2.5 }, quantity: 3 }, { article: { id: 'ART-PANTALON', name: 'Pantalon', price: 3.5 }, quantity: 2 }] }], clientDetails: { name: 'John Doe', phone: '0812345678', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' } }, pickupTime: '2024-05-10T09:00:00Z', status: OrderStatus.COMPLETED, trackingHistory: [{ status: OrderStatus.AWAITING_CONFIRMATION, time: '2024-05-10T08:30:00Z' }, { status: OrderStatus.CONFIRMED, time: '2024-05-10T08:45:00Z' }, { status: OrderStatus.READY_FOR_PICKUP, time: '2024-05-10T09:00:00Z' }, { status: OrderStatus.PICKUP, time: '2024-05-10T09:30:00Z' }, { status: OrderStatus.PROCESSING, time: '2024-05-10T10:00:00Z' }, { status: OrderStatus.READY_FOR_DELIVERY, time: '2024-05-10T14:00:00Z' }, { status: OrderStatus.DELIVERY, time: '2024-05-10T15:30:00Z' }, { status: OrderStatus.COMPLETED, time: '2024-05-10T16:00:00Z' }], totalPrice: 14.5, createdAt: '2024-05-10T08:30:00Z', isReviewed: true, driverId: 'USER-DRIVER-1', logisticsPartnerId: 'LOGISTICS-1', paymentStatus: 'paid', amountPaid: 14.5, backendOrderNumber: 'LE-2024-0001' },
@@ -810,7 +810,17 @@ export const apiSubmitReview = async (oid: string, uid: string, r: number, c: st
     return { pointsEarned: 10, newTotalPoints: 100 }; 
 };
 
-export const apiAddPromoCode = async (p: any) => DB.addItem('promoCodes', { ...p, id: `P-${Date.now()}`, createdAt: new Date().toISOString(), usageCount: 0 });
+export const apiAddPromoCode = async (p: any): Promise<PromoCode> => {
+  const created: PromoCode = {
+    ...p,
+    id: `P-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    usageCount: 0,
+    budgetUsed: p.budgetUsed ?? 0,
+  };
+  DB.addItem('promoCodes', created);
+  return created;
+};
 export const apiUpdatePromoCode = async (p: PromoCode) => DB.updateItem('promoCodes', p.id, p);
 export const apiDeletePromoCode = async (id: string) => DB.deleteItem('promoCodes', id);
 export const apiUpdateApplicationSettings = async (s: ApplicationSettings) => DB.set('applicationSettings', s);
@@ -820,6 +830,33 @@ export const apiRejectRefundRequest = async (id: string, n: string) => DB.update
 export const apiAnalyzeActivityLogsForAnomalies = async (pid: string) => [];
 export const apiUpdatePartnerInventory = async (pid: string, inv: InventoryItem[]) => DB.updateItem('partners', pid, { inventory: inv });
 export const apiUpdatePartnerDeliverySettings = async (pid: string, s: DeliverySettings) => DB.updateItem('partners', pid, { deliverySettings: s });
+export const apiUpdatePartnerDeliveryOps = async (pid: string, ops: PartnerDeliveryOps) => DB.updateItem('partners', pid, { deliveryOps: ops });
+export const apiUpdatePartnerMedia = async (
+  partnerId: string,
+  media: { imageUrls: string[]; videoUrl?: string | null; mediaGallery?: Partner['mediaGallery'] },
+  seed?: Partial<Partner>,
+) => {
+  const partners = DB.get('partners') as Partner[];
+  const existing = partners.find((p) => p.id === partnerId);
+  if (existing) {
+    DB.updateItem('partners', partnerId, media);
+    return;
+  }
+  DB.addItem('partners', {
+    id: partnerId,
+    name: seed?.name || 'Partenaire',
+    slug: seed?.slug || partnerId,
+    type: seed?.type || PartnerType.PRESSING,
+    rating: seed?.rating || 0,
+    reviewCount: seed?.reviewCount || 0,
+    address: seed?.address || '',
+    coordinates: seed?.coordinates || { lat: 0, lng: 0 },
+    enabledFeatures: seed?.enabledFeatures || {},
+    currency: seed?.currency || 'USD',
+    ...seed,
+    ...media,
+  } as Partner);
+};
 export const apiGenerateProforma = async (id: string) => DB.updateItem('orderHistory', id, { proformaGeneratedAt: new Date().toISOString() });
 export const apiGenerateInvoice = async (id: string) => DB.updateItem('orderHistory', id, { invoiceGeneratedAt: new Date().toISOString() });
 export const apiConsumeNotificationActions = async (id: string) => DB.updateItem('appNotifications', id, { actions: [] });

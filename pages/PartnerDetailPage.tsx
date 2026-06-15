@@ -1,9 +1,31 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
+import { PartnerPhotoGalleryModal } from '../components/PartnerPhotoGalleryModal';
+import { PartnerPresentationVideo } from '../components/PartnerPresentationVideo';
+import { PartnerServiceShopSection } from '../components/partner-shop/PartnerServiceShopSection';
+import { usePartnerServiceCart } from '../hooks/usePartnerServiceCart';
+import { mapCatalogPartnerServiceToService } from '../utils/partner-catalog-mappers';
 import { Service, Review, ServiceType, PartnerType, WorkingHours, DayWorkingHours } from '../types';
 import { trackEvent } from '../utils/tracking';
 import { realApi } from '../services/real-api';
+import { features } from '../config/features';
+import { mapPublicReviewToFrontend } from '../utils/review-mappers';
+import { appEvents } from '../utils/events';
+import {
+  buildGalleryItems,
+  flattenGallery,
+  getCoverImages,
+  getOpenStatusLabel,
+  isValidImageUrl,
+  mapApiMediaGallery,
+  mapApiWorkingHours,
+  mergeMediaGalleries,
+  pickFirstNonEmpty,
+  preferRemoteImageUrls,
+  readStoredPartnerMedia,
+} from './partner/profile/partnerMedia';
+import { PartnerMediaGallery } from '../types';
 
 /* ─── helpers ─── */
 const tDefault = (key: string, fallback: string) => fallback;
@@ -93,6 +115,20 @@ const ReviewCard: React.FC<{ review: Review; getUserById: (id: string) => any }>
   );
 };
 
+const SafeImage: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className }) => {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  const resolved = failed || !src?.trim() || !isValidImageUrl(src) ? '/images/service-placeholder.jpg' : src;
+  return (
+    <img
+      src={resolved}
+      alt={alt}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
 const MapEmbed: React.FC<{ lat?: number; lng?: number }> = ({ lat, lng }) => {
   const latNum = lat || -4.325;
   const lngNum = lng || 15.322;
@@ -122,7 +158,7 @@ export const PartnerDetailPage: React.FC = () => {
   const {
     activePartnerId, partners, services, getReviewsForPartner,
     setCurrentPage, updateOrderDraft, resetOrderDraft,
-    addNotification, previousPage, user, getUserById, orderDraft,
+    addNotification, previousPage, user, getUserById, orderDraft, formatPrice,
   } = useAppContext();
   const _t = useT();
 
@@ -133,12 +169,121 @@ export const PartnerDetailPage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [partnerServicesList, setPartnerServicesList] = useState<Service[]>([]);
   const [servicesLoading, setServicesLoading] = useState(false);
+  const [partnerReviews, setPartnerReviews] = useState<Review[]>([]);
+  const [publicProfile, setPublicProfile] = useState<{
+    name?: string;
+    address?: string;
+    workingHours?: WorkingHours;
+    videoUrl?: string;
+    mediaGallery?: PartnerMediaGallery;
+    imageUrls?: string[];
+    rating?: number;
+    reviewCount?: number;
+  }>({});
+  const [mediaVersion, setMediaVersion] = useState(0);
+  const [galleryLightboxOpen, setGalleryLightboxOpen] = useState(false);
+  const [galleryLightboxIndex, setGalleryLightboxIndex] = useState(0);
 
-  const partner = partners.find(p => p.id === activePartnerId);
-  const reviews = activePartnerId ? getReviewsForPartner(activePartnerId) : [];
+  const openGalleryLightbox = useCallback((index = 0) => {
+    setGalleryLightboxIndex(Math.max(0, index));
+    setGalleryLightboxOpen(true);
+  }, []);
+
+  const shopCart = usePartnerServiceCart();
+
+  const basePartner = partners.find((p) => p.id === activePartnerId);
+  const partner = useMemo(() => {
+    if (!basePartner) return undefined;
+    const stored = readStoredPartnerMedia(basePartner);
+    const effectiveGallery = mergeMediaGalleries(publicProfile.mediaGallery, stored.mediaGallery);
+    const derivedUrls = preferRemoteImageUrls(flattenGallery(effectiveGallery));
+    return {
+      ...basePartner,
+      name: publicProfile.name || basePartner.name,
+      address: publicProfile.address || basePartner.address,
+      rating: publicProfile.rating ?? basePartner.rating,
+      reviewCount: publicProfile.reviewCount ?? basePartner.reviewCount,
+      workingHours: publicProfile.workingHours || basePartner.workingHours,
+      videoUrl: pickFirstNonEmpty(publicProfile.videoUrl, stored.videoUrl, basePartner.videoUrl),
+      mediaGallery: effectiveGallery,
+      imageUrls: derivedUrls.length > 0 ? derivedUrls : stored.imageUrls.filter(isValidImageUrl),
+    };
+  }, [basePartner, publicProfile, mediaVersion]);
+  const fallbackReviews = activePartnerId ? getReviewsForPartner(activePartnerId) : [];
+  const reviews = partnerReviews.length > 0 ? partnerReviews : fallbackReviews;
   const isInOrderFlow = previousPage === 'order';
   const requestedServiceType = orderDraft.serviceType || (partner?.type === PartnerType.LAVANDIER ? ServiceType.BLANCHISSERIE : ServiceType.PRESSING);
   const isLaundryProfile = requestedServiceType === ServiceType.BLANCHISSERIE;
+
+  const applyPublicProfile = useCallback((detail: Awaited<ReturnType<typeof realApi.getPartnerPublicProfile>>) => {
+    const gallery = mapApiMediaGallery(detail.media_gallery);
+    setPublicProfile({
+      name: detail.name,
+      address: detail.address,
+      workingHours: mapApiWorkingHours(detail.working_hours),
+      videoUrl: pickFirstNonEmpty(detail.video_url),
+      mediaGallery: gallery,
+      imageUrls: detail.image_urls?.length ? detail.image_urls : undefined,
+      rating: detail.rating,
+      reviewCount: detail.total_reviews,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!activePartnerId) {
+      setPublicProfile({});
+      return;
+    }
+    let cancelled = false;
+    realApi.getPartnerPublicProfile(activePartnerId)
+      .then((detail) => {
+        if (!cancelled) applyPublicProfile(detail);
+      })
+      .catch(() => {
+        if (!cancelled) setPublicProfile({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activePartnerId, applyPublicProfile]);
+
+  useEffect(() => {
+    const refreshMedia = () => {
+      setMediaVersion((v) => v + 1);
+      if (!activePartnerId) return;
+      realApi.getPartnerPublicProfile(activePartnerId)
+        .then(applyPublicProfile)
+        .catch(() => {});
+    };
+    const unsubscribe = appEvents.on('data_changed', refreshMedia);
+    return unsubscribe;
+  }, [activePartnerId, applyPublicProfile]);
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [activePartnerId, publicProfile.mediaGallery, mediaVersion]);
+
+  useEffect(() => {
+    if (!activePartnerId || features.useMockApi) {
+      setPartnerReviews([]);
+      return;
+    }
+
+    let cancelled = false;
+    realApi.getPublicReviews({ partner_id: activePartnerId, limit: 20 })
+      .then((rows) => {
+        if (!cancelled) {
+          setPartnerReviews(rows.map(mapPublicReviewToFrontend));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPartnerReviews([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePartnerId]);
 
   /* Fetch real services */
   useEffect(() => {
@@ -148,17 +293,9 @@ export const PartnerDetailPage: React.FC = () => {
       setServicesLoading(true);
       try {
         const catalog = await realApi.getPartnerCatalogServices(partner.id);
-        const mapped = catalog.map((s: any) => ({
-          id: s.id,
-          type: s.service_category_name?.toLowerCase().includes('pressing') ? ServiceType.PRESSING : ServiceType.BLANCHISSERIE,
-          title: s.service_category_name || 'Service',
-          description: s.service_type_name || '',
-          iconName: 'sparkles',
-          imageUrl: '/images/service-placeholder.jpg',
-          priceModel: (s.pricing_mode === 'per_kg' ? 'per_kg' : 'per_item') as 'per_item' | 'per_kg',
-          price: typeof s.base_price === 'string' ? parseFloat(s.base_price) : Number(s.base_price),
-          articleCategories: [],
-        }));
+        const mapped = catalog
+          .filter((s) => s.is_available)
+          .map((s) => mapCatalogPartnerServiceToService(s));
         if (!cancelled) setPartnerServicesList(mapped);
       } catch {
         if (!cancelled) {
@@ -256,7 +393,12 @@ export const PartnerDetailPage: React.FC = () => {
     );
   }
 
-  const images = partner.imageUrls?.length > 0 ? partner.imageUrls : ['/images/service-placeholder.jpg'];
+  const galleryImages = buildGalleryItems(partner);
+  const images = galleryImages.length > 0
+    ? preferRemoteImageUrls(galleryImages.map((item) => item.src))
+    : getCoverImages(partner);
+  const presentationVideoUrl = pickFirstNonEmpty(publicProfile.videoUrl, partner.videoUrl);
+  const openStatusLabel = getOpenStatusLabel(partner.workingHours);
 
   /* Mock data for demo */
   const publicStats = {
@@ -269,15 +411,6 @@ export const PartnerDetailPage: React.FC = () => {
     priceEstimateMin: 18,
     priceEstimateMax: 22,
   };
-
-  const galleryImages = [
-    { src: 'https://images.unsplash.com/photo-1545173168-9f1947eebb8c?w=400&h=300&fit=crop', label: 'Boutique' },
-    { src: 'https://images.unsplash.com/photo-1517677208171-0bc06cff92a1?w=400&h=300&fit=crop', label: 'Machines' },
-    { src: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&h=300&fit=crop', label: 'Repassage' },
-    { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=300&fit=crop', label: 'Pliage' },
-    { src: 'https://images.unsplash.com/photo-1604335399105-f4c6f5e2c3f7?w=400&h=300&fit=crop', label: 'Livraisons' },
-    { src: 'https://images.unsplash.com/photo-1561059488-916d69792237?w=400&h=300&fit=crop', label: 'Equipe' },
-  ];
 
   const priceList = [
     { item: 'Chemise', price: 2 }, { item: 'Pantalon', price: 3 }, { item: 'Costume', price: 8 },
@@ -320,6 +453,24 @@ export const PartnerDetailPage: React.FC = () => {
     setCurrentPage({ name: 'order' });
   };
 
+  const handleShopCheckout = () => {
+    if (!partner || shopCart.lines.length === 0) return;
+    const primaryType = shopCart.lines[0]?.service.type || requestedServiceType;
+    const serviceItems = shopCart.serviceItems;
+    const totalPrice = shopCart.subtotal;
+    shopCart.clearCart();
+    resetOrderDraft();
+    updateOrderDraft({
+      partner,
+      serviceType: primaryType,
+      serviceItems,
+      totalPrice,
+      checkoutSource: 'partner_shop',
+    });
+    setCurrentPage({ name: 'order' });
+    addNotification('Panier transfere. Finalisez votre commande.', 'success');
+  };
+
   const shareUrl = useMemo(() => partner.slug ? `https://laundry.app/partner/${partner.slug}` : '', [partner.slug]);
 
   const handleShare = async () => {
@@ -356,21 +507,39 @@ export const PartnerDetailPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Cover image */}
-          <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden shadow-lg">
-            <img src={images[currentImageIndex]} alt={partner.name} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
+          <div
+            className={`relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden shadow-lg ${galleryImages.length > 0 ? 'cursor-pointer' : ''}`}
+            onClick={() => {
+              if (galleryImages.length === 0) return;
+              const idx = galleryImages.findIndex((item) => item.src === images[currentImageIndex]);
+              openGalleryLightbox(idx >= 0 ? idx : 0);
+            }}
+            onKeyDown={(e) => {
+              if (galleryImages.length === 0) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const idx = galleryImages.findIndex((item) => item.src === images[currentImageIndex]);
+                openGalleryLightbox(idx >= 0 ? idx : 0);
+              }
+            }}
+            role={galleryImages.length > 0 ? 'button' : undefined}
+            tabIndex={galleryImages.length > 0 ? 0 : undefined}
+            aria-label={galleryImages.length > 0 ? 'Ouvrir la galerie photos' : undefined}
+          >
+            <SafeImage key={images[currentImageIndex]} src={images[currentImageIndex]} alt={partner.name} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-xs font-bold text-[#0F172A] flex items-center gap-1.5 pointer-events-none">
               <div className="w-2 h-2 bg-[#22C55E] rounded-full animate-pulse" />
-              Ouvert maintenant . Ferme a 20:00
+              {openStatusLabel}
             </div>
-            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
+            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-xs font-bold text-[#0F172A] flex items-center gap-1.5 pointer-events-none">
               <Icon name="camera" className="w-3.5 h-3.5" />
               {currentImageIndex + 1} / {images.length}
             </div>
             {images.length > 1 && (
               <>
-                <button onClick={() => setCurrentImageIndex(p => (p - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition"><Icon name="arrowLeft" className="w-4 h-4" /></button>
-                <button onClick={() => setCurrentImageIndex(p => (p + 1) % images.length)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition"><Icon name="arrowRight" className="w-4 h-4" /></button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(p => (p - 1 + images.length) % images.length); }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition"><Icon name="arrowLeft" className="w-4 h-4" /></button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(p => (p + 1) % images.length); }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition"><Icon name="arrowRight" className="w-4 h-4" /></button>
               </>
             )}
           </div>
@@ -457,24 +626,89 @@ export const PartnerDetailPage: React.FC = () => {
 
             {/* Gallery — Airbnb style */}
             <section>
-              <SectionTitle icon={<Icon name="photo" className="w-5 h-5" />} title="Galerie" action={<button className="text-sm font-bold text-brand-blue hover:underline">Voir toutes les photos</button>} />
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 h-[320px]">
-                <div className="col-span-2 md:col-span-2 row-span-2 relative rounded-xl overflow-hidden group">
-                  <img src={galleryImages[0].src} alt={galleryImages[0].label} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                    <span className="text-sm font-bold text-white">{galleryImages[0].label}</span>
-                  </div>
+              <SectionTitle
+                icon={<Icon name="photo" className="w-5 h-5" />}
+                title="Galerie"
+                action={
+                  galleryImages.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => openGalleryLightbox(0)}
+                      className="text-sm font-bold text-brand-blue hover:underline"
+                    >
+                      Voir toutes les photos ({galleryImages.length})
+                    </button>
+                  ) : null
+                }
+              />
+              {galleryImages.length === 0 ? (
+                <div className="flex h-[220px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                  Aucune photo publiee pour le moment.
                 </div>
-                {galleryImages.slice(1, 5).map((img, i) => (
-                  <div key={i} className="relative rounded-xl overflow-hidden group">
-                    <img src={img.src} alt={img.label} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      <span className="text-xs font-bold text-white">{img.label}</span>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 h-[320px]">
+                  <button
+                    type="button"
+                    onClick={() => openGalleryLightbox(0)}
+                    className="col-span-2 md:col-span-2 row-span-2 relative rounded-xl overflow-hidden group cursor-pointer text-left"
+                  >
+                    <SafeImage src={galleryImages[0].src} alt={galleryImages[0].label} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                      <span className="text-sm font-bold text-white">{galleryImages[0].label}</span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  </button>
+                  {galleryImages.slice(1, 5).map((img, i) => (
+                    <button
+                      key={`${img.src}-${i}`}
+                      type="button"
+                      onClick={() => openGalleryLightbox(i + 1)}
+                      className="relative rounded-xl overflow-hidden group cursor-pointer text-left"
+                    >
+                      <SafeImage src={img.src} alt={img.label} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                        <span className="text-xs font-bold text-white">{img.label}</span>
+                      </div>
+                      {i === 3 && galleryImages.length > 5 && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm font-bold text-white">
+                          +{galleryImages.length - 5} photos
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </section>
+
+            {presentationVideoUrl && (
+              <section data-testid="partner-presentation-video">
+                <SectionTitle
+                  icon={<Icon name="play" className="w-5 h-5" />}
+                  title="Video de presentation"
+                />
+                <PartnerPresentationVideo
+                  videoUrl={presentationVideoUrl}
+                  partnerName={partner.name}
+                />
+              </section>
+            )}
+
+            <PartnerServiceShopSection
+              partnerName={partner.name}
+              services={partnerServicesList}
+              loading={servicesLoading}
+              formatPrice={formatPrice}
+              cartLines={shopCart.lines}
+              cartOpen={shopCart.isOpen}
+              cartSubtotal={shopCart.subtotal}
+              cartItemCount={shopCart.itemCount}
+              onAdd={shopCart.addService}
+              onOpenCart={() => shopCart.setIsOpen(true)}
+              onCloseCart={() => shopCart.setIsOpen(false)}
+              onCheckout={handleShopCheckout}
+              onUpdateQuantity={shopCart.updateQuantity}
+              onUpdateWeight={shopCart.updateWeight}
+              onRemove={shopCart.removeLine}
+            />
 
             {/* Performance Stats */}
             <section>
@@ -798,6 +1032,15 @@ export const PartnerDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <PartnerPhotoGalleryModal
+        open={galleryLightboxOpen}
+        images={galleryImages}
+        index={galleryLightboxIndex}
+        partnerName={partner.name}
+        onClose={() => setGalleryLightboxOpen(false)}
+        onIndexChange={setGalleryLightboxIndex}
+      />
 
       {/* Mobile Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 p-4 shadow-lg lg:hidden">

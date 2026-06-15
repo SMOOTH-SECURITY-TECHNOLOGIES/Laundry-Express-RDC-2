@@ -4,6 +4,9 @@ import { Icon } from '../components/Icon';
 import { Service, ServiceType, formatAddress } from '../types';
 import { ServiceSelectionPage } from '../components/order-marketplace/ServiceSelectionPage';
 import { OrderAddressPaymentPage } from './OrderAddressPaymentPage';
+import { calculateSubtotal } from '../utils/order-pricing';
+import { realApi } from '../services/real-api';
+import { DEFAULT_ORDER_ADDONS, mapOrderAddOnFromApi, OrderAddOnUiItem } from '../utils/order-addons';
 
 interface EstimatorItem {
   id: string;
@@ -137,37 +140,6 @@ const serviceOptions = [
   { id: 'hanger', title: 'Hanger service', description: 'Vetements sur cintres inclus.', price: 1, defaultSelected: false },
 ];
 
-const addOnItems = [
-  {
-    id: 'chaussures',
-    name: 'Nettoyage chaussures',
-    description: 'Entretien complet de vos chaussures.',
-    imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=180&q=80',
-    price: 5,
-  },
-  {
-    id: 'repassage-premium',
-    name: 'Repassage premium',
-    description: 'Repassage vapeur professionnel.',
-    imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=180&q=80',
-    price: 3,
-  },
-  {
-    id: 'desodorisation',
-    name: 'Desodorisation textile',
-    description: 'Elimine les odeurs et rafraichit.',
-    imageUrl: 'https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?auto=format&fit=crop&w=180&q=80',
-    price: 2,
-  },
-  {
-    id: 'sac-transport',
-    name: 'Sac de transport',
-    description: 'Sac premium pour votre linge.',
-    imageUrl: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?auto=format&fit=crop&w=180&q=80',
-    price: 2,
-  },
-];
-
 const serviceToTypeMap: Record<string, ServiceType> = {
   lessive: ServiceType.BLANCHISSERIE,
   nettoyage: ServiceType.PRESSING,
@@ -218,7 +190,28 @@ export const OrderPage: React.FC = () => {
     serviceOptions.filter((option) => option.defaultSelected).map((option) => option.id)
   );
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
+  const [addOnItems, setAddOnItems] = useState<OrderAddOnUiItem[]>(DEFAULT_ORDER_ADDONS);
   const [laundryWeightKg, setLaundryWeightKg] = useState(5);
+
+  const isPartnerShopCheckout = orderDraft.checkoutSource === 'partner_shop';
+
+  useEffect(() => {
+    let cancelled = false;
+    realApi.getOrderAddOns()
+      .then((response) => {
+        if (cancelled) return;
+        const active = (response.add_ons || []).filter((item) => item.is_active);
+        if (active.length > 0) {
+          setAddOnItems(active.map(mapOrderAddOnFromApi));
+        }
+      })
+      .catch(() => {
+        // Keep DEFAULT_ORDER_ADDONS when API unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!orderDraft.partner && !orderDraft.serviceType) return;
@@ -229,12 +222,21 @@ export const OrderPage: React.FC = () => {
 
     if (orderDraft.partner) {
       setSelectedPartnerId(orderDraft.partner.id);
+      const hasShopCart = (orderDraft.serviceItems?.length || 0) > 0 && (orderDraft.totalPrice || 0) > 0;
+      if (hasShopCart && orderDraft.checkoutSource === 'partner_shop') {
+        setStep(2);
+        return;
+      }
+      if (hasShopCart) {
+        setStep(3);
+        return;
+      }
       setStep(orderDraft.serviceType ? 2 : 1);
       return;
     }
 
     setStep(1);
-  }, [orderDraft.partner, orderDraft.serviceType]);
+  }, [orderDraft.partner, orderDraft.serviceType, orderDraft.serviceItems, orderDraft.totalPrice]);
 
   const estimatorTotal = useMemo(() => {
     return estimatorItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -408,13 +410,26 @@ export const OrderPage: React.FC = () => {
 
   const laundryPricePerKg = selectedServiceDefinition?.price || 1.5;
   const laundrySubtotal = isLaundryFlow ? laundryWeightKg * laundryPricePerKg : 0;
-  const orderSubtotal = isLaundryFlow ? laundrySubtotal : estimatorTotal + addOnTotal;
+  const partnerShopSubtotal = isPartnerShopCheckout
+    ? (orderDraft.totalPrice ?? calculateSubtotal(orderDraft.serviceItems ?? []))
+    : 0;
+  const orderSubtotal = isPartnerShopCheckout
+    ? partnerShopSubtotal
+    : isLaundryFlow ? laundrySubtotal : estimatorTotal + addOnTotal;
   const orderTotal = orderSubtotal + optionsTotal + deliveryFee;
-  const articleCount = isLaundryFlow
-    ? laundryWeightKg
-    : selectedEstimatorItems.reduce((sum, item) => sum + item.quantity, 0) + selectedAddOnIds.length;
+  const articleCount = isPartnerShopCheckout
+    ? (orderDraft.serviceItems ?? []).reduce((sum, si) => {
+      if (si.items) return sum + si.items.reduce((s, item) => s + item.quantity, 0);
+      if (si.weight) return sum + 1;
+      return sum;
+    }, 0)
+    : isLaundryFlow
+      ? laundryWeightKg
+      : selectedEstimatorItems.reduce((sum, item) => sum + item.quantity, 0) + selectedAddOnIds.length;
 
   useEffect(() => {
+    if (isPartnerShopCheckout) return;
+
     if (!selectedServiceDefinition) {
       updateOrderDraft({ serviceItems: [], totalPrice: 0 });
       return;
@@ -464,14 +479,14 @@ export const OrderPage: React.FC = () => {
       }] : [],
       totalPrice: orderTotal,
     });
-  }, [estimatorItems, laundryWeightKg, orderTotal, selectedAddOnIds, selectedServiceDefinition, updateOrderDraft]);
+  }, [estimatorItems, laundryWeightKg, orderTotal, selectedAddOnIds, selectedServiceDefinition, updateOrderDraft, isPartnerShopCheckout]);
 
   /* ─── Handlers ─── */
 
   const handleSelectService = (serviceId: string) => {
     setSelectedService(serviceId);
     const serviceType = serviceToTypeMap[serviceId];
-    updateOrderDraft({ serviceType });
+    updateOrderDraft({ serviceType, checkoutSource: 'marketplace' });
     setStep(1);
   };
 
@@ -535,6 +550,10 @@ export const OrderPage: React.FC = () => {
       setStep(0);
       setSelectedService(null);
     } else if (step === 2) {
+      if (isPartnerShopCheckout && orderDraft.partner) {
+        setCurrentPage({ name: 'partner-detail', params: { partnerId: orderDraft.partner.id } } as any);
+        return;
+      }
       setStep(1);
       setSelectedPartnerId(null);
     } else if (step === 3) {
@@ -1153,15 +1172,21 @@ export const OrderPage: React.FC = () => {
         className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-brand-blue dark:hover:text-[#00B4D8] transition-colors font-medium"
       >
         <Icon name="arrowLeft" className="w-5 h-5" />
-        Retour aux partenaires
+        {isPartnerShopCheckout ? 'Retour a la boutique' : 'Retour aux partenaires'}
       </button>
 
       <div className="max-w-3xl">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-          Preparez votre <span className="text-brand-blue">commande</span>
+          {isPartnerShopCheckout ? (
+            <>Verifiez votre <span className="text-brand-blue">commande</span></>
+          ) : (
+            <>Preparez votre <span className="text-brand-blue">commande</span></>
+          )}
         </h1>
         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mt-2">
-          Ajoutez les articles, choisissez vos options et verifiez le recapitulatif avant de continuer.
+          {isPartnerShopCheckout
+            ? 'Verifiez les services selectionnes, choisissez vos options puis continuez vers l adresse et le paiement.'
+            : 'Ajoutez les articles, choisissez vos options et verifiez le recapitulatif avant de continuer.'}
         </p>
       </div>
 
@@ -1172,10 +1197,10 @@ export const OrderPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <span className="w-7 h-7 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">1</span>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {isLaundryFlow ? 'Poids estime du linge' : 'Vos articles'}
+                  {isPartnerShopCheckout ? 'Services selectionnes' : isLaundryFlow ? 'Poids estime du linge' : 'Vos articles'}
                 </h2>
               </div>
-              {!isLaundryFlow && (
+              {!isLaundryFlow && !isPartnerShopCheckout && (
                 <button
                   type="button"
                   onClick={addNextArticle}
@@ -1187,7 +1212,45 @@ export const OrderPage: React.FC = () => {
               )}
             </div>
 
-            {isLaundryFlow ? (
+            {isPartnerShopCheckout ? (
+              <div className="space-y-3">
+                {(orderDraft.serviceItems ?? []).map((si) => {
+                  const lineTotal = si.weight && si.service
+                    ? (si.service.price || 0) * si.weight
+                    : (si.items ?? []).reduce((sum, item) => sum + item.article.price * item.quantity, 0);
+                  const label = si.weight && si.service
+                    ? `${si.service.title} (${si.weight} kg)`
+                    : (si.items ?? []).map((item) => `${item.quantity}x ${item.article.name}`).join(', ') || si.service.title;
+                  return (
+                    <div
+                      key={si.service.id}
+                      className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 dark:border-slate-700 bg-gray-50/80 dark:bg-slate-700/40"
+                    >
+                      {si.service.imageUrl ? (
+                        <img src={si.service.imageUrl} alt={si.service.title} className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-brand-blue/10 flex items-center justify-center shrink-0">
+                          <Icon name="shoppingBag" className="w-7 h-7 text-brand-blue" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-gray-900 dark:text-white truncate">{si.service.title}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+                      </div>
+                      <p className="font-bold text-brand-blue shrink-0">{formatPrice(lineTotal)}</p>
+                    </div>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => orderDraft.partner && setCurrentPage({ name: 'partner-detail', params: { partnerId: orderDraft.partner.id } } as any)}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-blue-700 mt-2"
+                >
+                  <Icon name="pencil" className="w-4 h-4" />
+                  Modifier le panier
+                </button>
+              </div>
+            ) : isLaundryFlow ? (
               <div className="rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50/70 dark:bg-slate-700/40 p-5">
                 <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                   <div className="flex-1">
@@ -1526,9 +1589,37 @@ export const OrderPage: React.FC = () => {
 
             <div className="space-y-3 border-b border-gray-100 dark:border-slate-700 pb-5">
               <p className="text-sm font-bold text-gray-900 dark:text-white">
-                {isLaundryFlow ? `Linge estime (${laundryWeightKg} kg)` : `Articles (${articleCount})`}
+                {isPartnerShopCheckout
+                  ? `Services boutique (${articleCount})`
+                  : isLaundryFlow ? `Linge estime (${laundryWeightKg} kg)` : `Articles (${articleCount})`}
               </p>
-              {isLaundryFlow ? (
+              {isPartnerShopCheckout ? (
+                <>
+                  {(orderDraft.serviceItems ?? []).map((si) => {
+                    if (si.weight && si.service) {
+                      return (
+                        <div key={si.service.id} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-300">
+                            {si.service.title} ({si.weight} kg)
+                          </span>
+                          <span className="font-bold text-gray-900 dark:text-white">
+                            {formatPrice((si.service.price || 0) * si.weight)}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return si.items?.map((item) => (
+                      <div key={`${si.service.id}-${item.article.id}`} className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">{item.quantity}x {item.article.name}</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{formatPrice(item.article.price * item.quantity)}</span>
+                      </div>
+                    ));
+                  })}
+                  {articleCount === 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Votre panier boutique est vide.</p>
+                  )}
+                </>
+              ) : isLaundryFlow ? (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-300">
                     {laundryWeightKg} kg x {formatPrice(laundryPricePerKg)}

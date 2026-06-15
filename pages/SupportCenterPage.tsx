@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
+import { CustomerTrustPanel } from '../components/customer/CustomerTrustPanel';
 
 type ChatbotMessage = { id: number; author: 'user' | 'bot'; text: string };
 
@@ -44,12 +45,6 @@ export const SupportCenterPage: React.FC = () => {
       inputRef.current?.focus();
     }
   };
-
-  const tickets = useMemo(() => [
-    { id: 'TIC-001', subject: 'Commande en retard', status: 'Ouvert', date: '15 Mai 2026', priority: 'Haute' },
-    { id: 'TIC-002', subject: 'Question sur le plan', status: 'Resolu', date: '10 Mai 2026', priority: 'Normale' },
-    { id: 'TIC-003', subject: 'Bug affichage profil', status: 'Ouvert', date: '12 Mai 2026', priority: 'Basse' },
-  ], []);
 
   const faq = useMemo(() => [
     { q: 'Comment creer une promotion ?', a: 'Allez dans Promotions > Nouvelle promotion. Choisissez le type, le montant et la duree.' },
@@ -115,33 +110,7 @@ export const SupportCenterPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'tickets' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-bold text-[#0F172A]">Mes tickets ({tickets.length})</h2>
-                <button className="px-3 py-1.5 text-[10px] font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-blue-700 transition">Nouveau ticket</button>
-              </div>
-              <div className="space-y-2">
-                {tickets.map((ticket, i) => {
-                  const st = ticket.status === 'Ouvert' ? 'bg-orange-50 text-[#FF7A00]' : 'bg-green-50 text-[#22C55E]';
-                  const pr = ticket.priority === 'Haute' ? 'bg-red-50 text-red-500' : ticket.priority === 'Normale' ? 'bg-blue-50 text-brand-blue' : 'bg-slate-100 text-slate-500';
-                  return (
-                    <div key={i} className="p-3 bg-slate-50 rounded-xl">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-mono text-slate-400">{ticket.id}</span>
-                        <div className="flex gap-1.5">
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${pr}`}>{ticket.priority}</span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${st}`}>{ticket.status}</span>
-                        </div>
-                      </div>
-                      <p className="text-xs font-bold text-[#0F172A]">{ticket.subject}</p>
-                      <p className="text-[10px] text-slate-400">{ticket.date}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {activeTab === 'tickets' && <CustomerTrustPanel />}
 
           {activeTab === 'faq' && (
             <div className="bg-white rounded-2xl border border-slate-100 p-5">
