@@ -19,12 +19,12 @@ COPY . .
 RUN addgroup -g 1001 nodejs && adduser -S -u 1001 -G nodejs nodejs
 
 # Expose Vite dev server port
-EXPOSE 5173
+EXPOSE 3003
 
 # Health check for Vite dev server
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:5173/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+  CMD curl -f http://localhost:3003/ || exit 1
 
 # Start dev server
 # Run as root in dev so Vite can create /app/node_modules/.vite when volumes are mounted
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+CMD ["sh", "-c", "npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0 --port 3003"]

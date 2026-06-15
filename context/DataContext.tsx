@@ -10,6 +10,16 @@ import { appEvents } from '../utils/events.ts';
 import { ResponseSanitizer } from '../backend/utils/sanitize';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { realApi, CatalogPartnerSummary, SiteContentData, BackendSubscriptionPlan, BackendAdvertisement } from '../services/real-api';
+import { features } from '../config/features';
+import { EMPTY_LOCAL_DATA } from '../config/localData';
+import { mapBackendOrderResponseToFrontend } from '../utils/order-mappers';
+import { mapPublicReviewToFrontend } from '../utils/review-mappers';
+import {
+  mapApiPromoToFrontend,
+  mapFrontendPromoToApiCreate,
+  mergePromoExtras,
+  savePromoExtras,
+} from '../utils/promoApiMapper';
 
 const emptySiteContent: SiteContent = {
   hero: { title: '', subtitle: '' },
@@ -137,6 +147,7 @@ const mergeCatalogPartnerWithLocal = (
         ? localPartner.imageUrls
         : mappedCatalogPartner.imageUrls,
     videoUrl: localPartner.videoUrl,
+    mediaGallery: localPartner.mediaGallery,
     workingHours: localPartner.workingHours,
     unavailability: localPartner.unavailability,
     customDomain: localPartner.customDomain,
@@ -145,6 +156,7 @@ const mergeCatalogPartnerWithLocal = (
     commissionRate: localPartner.commissionRate,
     inventory: localPartner.inventory,
     deliverySettings: localPartner.deliverySettings,
+    deliveryOps: localPartner.deliveryOps,
     automationSettings: localPartner.automationSettings,
   };
 };
@@ -204,8 +216,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const fetchData = useCallback(async () => {
     try {
-        const [data, catalogPartners, siteContentResponse, subscriptionPlanResponse, trackingSettingsResponse, advertisementsResponse, loyaltySettingsResponse, referralSettingsResponse] = await Promise.all([
-          api.fetchAllData(),
+        const [data, catalogPartners, siteContentResponse, subscriptionPlanResponse, trackingSettingsResponse, advertisementsResponse, loyaltySettingsResponse, referralSettingsResponse, publicReviewsResponse] = await Promise.all([
+          features.useMockApi ? api.fetchAllData() : Promise.resolve(EMPTY_LOCAL_DATA),
           realApi.getCatalogPartners().catch(() => [] as CatalogPartnerSummary[]),
           realApi.getSiteContent().catch(() => null),
           realApi.getSubscriptionPlans().catch(() => null),
@@ -213,27 +225,74 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           realApi.getAdvertisements().catch(() => null),
           realApi.getLoyaltySettings().catch(() => null),
           realApi.getReferralSettings().catch(() => null),
+          !features.useMockApi ? realApi.getPublicReviews({ limit: 20 }).catch(() => []) : Promise.resolve([]),
         ]);
 
-        setPartners(
+        const localPartnersFromStorage = (api.DB.get('partners') as Partner[]) || [];
+        const resolvedPartners =
           catalogPartners.length > 0
             ? catalogPartners.map((catalogPartner) =>
                 mergeCatalogPartnerWithLocal(
                   catalogPartner,
-                  data.partners.find((partner) => partner.id === catalogPartner.id)
+                  localPartnersFromStorage.find((partner) => partner.id === catalogPartner.id) ||
+                    data.partners.find((partner) => partner.id === catalogPartner.id)
                 )
               )
-            : data.partners
-        );
+            : localPartnersFromStorage.length > 0
+              ? localPartnersFromStorage
+              : data.partners;
+
+        setPartners(resolvedPartners);
         setServices(data.services);
         setLogisticsPartners(data.logisticsPartners);
-        setReviews(data.reviews);
+        setReviews(
+          !features.useMockApi && publicReviewsResponse.length > 0
+            ? publicReviewsResponse.map(mapPublicReviewToFrontend)
+            : data.reviews
+        );
         setUsers(data.users);
-        setOrderHistory(data.orderHistory);
+
+        let resolvedOrderHistory = data.orderHistory;
+        if (user && user.role === 'customer' && !features.useMockApi) {
+          try {
+            const ordersResponse = await realApi.getOrders({ page: 1, page_size: 100 });
+            resolvedOrderHistory = (ordersResponse.orders || []).map((backendOrder) =>
+              mapBackendOrderResponseToFrontend(backendOrder, resolvedPartners)
+            );
+          } catch (orderError) {
+            console.warn('Failed to load customer orders from API', orderError);
+          }
+        }
+        setOrderHistory(resolvedOrderHistory);
         setPartnerApplications(data.partnerApplications.filter(app => app.status === ApplicationStatus.PENDING));
         setSupportTickets(data.supportTickets);
         setChats(data.chats);
-        setPromoCodes(data.promoCodes);
+        let resolvedPromoCodes: PromoCode[] = data.promoCodes;
+        if (!features.useMockApi) {
+          const localPromoCodes = ((api.DB.get('promoCodes') as PromoCode[]) || []).map(mergePromoExtras);
+          if (user?.partnerId && String(user.role).startsWith('partner')) {
+            try {
+              const response = await realApi.getPartnerPromoCodes(user.partnerId);
+              resolvedPromoCodes = response.promo_codes.map((item) => mapApiPromoToFrontend(item));
+            } catch (promoError) {
+              console.warn('Failed to load partner promos from API, using local cache', promoError);
+              resolvedPromoCodes = localPromoCodes.filter(
+                (promo) => String(promo.partnerId) === String(user.partnerId),
+              );
+            }
+          } else if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+            try {
+              const response = await realApi.getPromoCodes();
+              resolvedPromoCodes = response.promo_codes.map((item) => mapApiPromoToFrontend(item));
+            } catch (promoError) {
+              console.warn('Failed to load admin promos from API, using local cache', promoError);
+              resolvedPromoCodes = localPromoCodes;
+            }
+          } else {
+            resolvedPromoCodes = localPromoCodes;
+          }
+        }
+        setPromoCodes(resolvedPromoCodes);
         setLoyaltySettings(
           loyaltySettingsResponse
             ? {
@@ -284,7 +343,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
         console.error("Failed to fetch data:", error);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const initialFetch = async () => {
@@ -443,15 +502,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
   }, [partners, addNotification, t]);
   
-  const createSupportTicket = useCallback(async (ticketData: any) => {
-      // FIX: Resolved reference error by ensuring apiCreateSupportTicket exists in constants.
-      await api.apiCreateSupportTicket(ticketData);
+  const createSupportTicket = useCallback(async (ticketData: {
+    subject: string;
+    message: string;
+    orderId?: string;
+    userId?: string;
+  }) => {
+      if (!features.useMockApi) {
+        await realApi.createCustomerSupportTicket({
+          title: ticketData.subject,
+          description: ticketData.message,
+          order_id: ticketData.orderId,
+          category: 'order',
+        });
+      } else {
+        await api.apiCreateSupportTicket(ticketData);
+      }
       addNotification(t('notifications.ticketCreated'), 'success');
+      appEvents.emit('data_changed');
   }, [addNotification, t]);
   
-  const addMessageToTicket = useCallback(async (ticketId: string, messageData: any) => {
-      // FIX: Resolved reference error by ensuring apiAddMessageToTicket exists in constants.
-      await api.apiAddMessageToTicket(ticketId, messageData);
+  const addMessageToTicket = useCallback(async (ticketId: string, messageData: { message: string }) => {
+      if (!features.useMockApi) {
+        await realApi.replyCustomerSupportTicket(ticketId, messageData.message);
+      } else {
+        await api.apiAddMessageToTicket(ticketId, messageData);
+      }
+      appEvents.emit('data_changed');
   }, []);
   
   const updateTicketStatus = useCallback(async (ticketId: string, status: TicketStatus) => {
@@ -562,15 +639,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [addNotification, t]);
 
   const addPromoCode = useCallback(async (promo: Omit<PromoCode, 'id' | 'createdAt'>) => {
-      await api.apiAddPromoCode(promo);
+      if (!features.useMockApi && promo.partnerId) {
+        const apiPromo = await realApi.createPartnerPromoCode(
+          promo.partnerId,
+          mapFrontendPromoToApiCreate(promo),
+        );
+        const created = mapApiPromoToFrontend(apiPromo, promo);
+        savePromoExtras(created.id, promo);
+        setPromoCodes((current) => [...current, created]);
+        addNotification(t('notifications.promoAdded'), 'success');
+        return created;
+      }
+
+      const created = await api.apiAddPromoCode(promo);
+      setPromoCodes((current) => [...current, created]);
       addNotification(t('notifications.promoAdded'), 'success');
+      return created;
   }, [addNotification, t]);
+
+  const recordPromoUsage = useCallback(async (code: string, discountAmount: number) => {
+      const promo = promoCodes.find((p) => p.code.toUpperCase() === code.toUpperCase());
+      if (!promo) return;
+      const updated: PromoCode = {
+        ...promo,
+        usageCount: (promo.usageCount || 0) + 1,
+        budgetUsed: (promo.budgetUsed || 0) + Math.max(0, discountAmount),
+      };
+      await api.apiUpdatePromoCode(updated);
+      setPromoCodes((current) => current.map((p) => (p.id === updated.id ? updated : p)));
+  }, [promoCodes]);
   const updatePromoCode = useCallback(async (promo: PromoCode) => {
       await api.apiUpdatePromoCode(promo);
       addNotification(t('notifications.promoUpdated'), 'success');
   }, [addNotification, t]);
   const deletePromoCode = useCallback(async (promoId: string) => {
       await api.apiDeletePromoCode(promoId);
+      setPromoCodes((current) => current.filter((p) => p.id !== promoId));
       addNotification(t('notifications.promoDeleted'), 'success');
   }, [addNotification, t]);
 
@@ -742,6 +846,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateAdvertisement,
     deleteAdvertisement,
     addPromoCode,
+    recordPromoUsage,
     updatePromoCode,
     deletePromoCode,
     reassignDriver,
@@ -788,6 +893,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     apiSubscribePartner: api.apiSubscribePartner,
     apiUpdatePartnerInventory: api.apiUpdatePartnerInventory,
     apiUpdatePartnerDeliverySettings: api.apiUpdatePartnerDeliverySettings,
+    apiUpdatePartnerDeliveryOps: api.apiUpdatePartnerDeliveryOps,
+    apiUpdatePartnerMedia: api.apiUpdatePartnerMedia,
     apiGenerateProforma: api.apiGenerateProforma,
     apiGenerateInvoice: api.apiGenerateInvoice,
     addSubscriptionPlan,
@@ -807,7 +914,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateTrackingSettings, updateCommissionSettings, assignDriverToOrder,
     assignDriverForDelivery, reassignPartner, muteChat, logNotificationEvent,
     sendBulkNotifications, addAdvertisement, updateAdvertisement, deleteAdvertisement,
-    addPromoCode, updatePromoCode, deletePromoCode, reassignDriver,
+    addPromoCode,
+    recordPromoUsage, updatePromoCode, deletePromoCode, reassignDriver,
     addLogisticsPartner, updateLogisticsPartner, deleteLogisticsPartner,
     updateApplicationSettings, submitRefundRequest, approveRefundRequest,
     rejectRefundRequest, getChatbotResponse, generatePersonalizedRecommendation,

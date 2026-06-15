@@ -1,4 +1,6 @@
 import { Icon } from '../Icon';
+import { isAdminModuleVisible } from '../../config/pilot';
+import { useAppContext } from '../../context/AppContext';
 
 interface ControlCenterSidebarProps {
   activeItem: string;
@@ -116,10 +118,12 @@ export const controlCenterSections: NavSection[] = [
 ];
 
 export const ControlCenterSidebar = ({ activeItem, onItemClick }: ControlCenterSidebarProps) => {
+  const { user, logout, t } = useAppContext();
+
   return (
-    <aside className="hidden lg:flex w-[260px] h-screen fixed left-0 top-0 bg-[#081A44] flex-col overflow-y-auto">
+    <aside className="hidden lg:flex w-[260px] h-screen fixed left-0 top-0 z-20 bg-[#081A44] flex-col">
       {/* Logo */}
-      <div className="px-5 py-6 flex items-center gap-3 border-b border-white/10">
+      <div className="shrink-0 px-5 py-6 flex items-center gap-3 border-b border-white/10">
         <div className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center">
           <Icon name="shield-check" className="w-5 h-5 text-white" />
         </div>
@@ -129,15 +133,18 @@ export const ControlCenterSidebar = ({ activeItem, onItemClick }: ControlCenterS
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-3 px-3">
-        {controlCenterSections.map((section) => (
+      {/* Navigation — scrollable middle; footer stays pinned */}
+      <nav className="flex-1 min-h-0 overflow-y-auto py-3 px-3">
+        {controlCenterSections.map((section) => {
+          const visibleItems = section.items.filter((item) => isAdminModuleVisible(item.label));
+          if (visibleItems.length === 0) return null;
+          return (
           <div key={section.title} className="mb-4">
             <div className="px-2 mb-1 text-[10px] font-semibold text-slate-500 tracking-wider uppercase">
               {section.title}
             </div>
             <ul className="space-y-0.5">
-              {section.items.map((item) => {
+              {visibleItems.map((item) => {
                 const isActive = activeItem === item.label;
                 return (
                   <li key={item.label}>
@@ -175,8 +182,23 @@ export const ControlCenterSidebar = ({ activeItem, onItemClick }: ControlCenterS
               })}
             </ul>
           </div>
-        ))}
+        );
+        })}
       </nav>
+
+      <div className="shrink-0 border-t border-white/10 p-4">
+        <div className="mb-3 px-1">
+          <p className="text-sm font-semibold text-white truncate">{user?.name || user?.email || 'Admin'}</p>
+          {user?.email && <p className="text-[11px] text-slate-400 truncate">{user.email}</p>}
+        </div>
+        <button
+          type="button"
+          onClick={logout}
+          className="w-full rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/20 transition-colors"
+        >
+          {t('header.logout', { default: 'Déconnexion' })}
+        </button>
+      </div>
     </aside>
   );
 };

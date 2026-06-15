@@ -42,7 +42,10 @@
     "test:local-staging-check": "powershell -ExecutionPolicy Bypass -File scripts/run_local_staging_simulation.ps1 -CheckOnly",
     "test:local-staging-flows": "powershell -ExecutionPolicy Bypass -File scripts/run_local_staging_simulation.ps1",
     "report:staging-gate": "python scripts/report_staging_gate.py",
-    "check:staging-prereqs": "python scripts/check_staging_prereqs.py"
+    "check:staging-prereqs": "python scripts/check_staging_prereqs.py",
+    "check:production-readiness": "node scripts/run_production_readiness_gate.mjs",
+    "test:production-readiness-gate": "node scripts/run_production_readiness_gate.mjs",
+    "test:production-readiness-e2e": "node scripts/run_production_readiness_gate.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.24.0",

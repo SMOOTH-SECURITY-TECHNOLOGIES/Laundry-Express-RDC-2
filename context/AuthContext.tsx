@@ -100,13 +100,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { setCurrentPage } = useNavigation();
   const skipNextSyncRef = useRef(false);
 
-  const clearExpiredSession = useCallback(() => {
+  const clearStaleSession = useCallback(() => {
     setUser(null);
     localStorage.removeItem('activeOrder');
+    localStorage.removeItem('activeOrderId');
     realApi.clearToken();
     appEvents.emit('logout');
-    setCurrentPage({ name: 'login' });
-  }, [setUser, setCurrentPage]);
+  }, [setUser]);
+
+  useEffect(() => {
+    const onAuthCleared = () => clearStaleSession();
+    window.addEventListener('ler:auth-cleared', onAuthCleared);
+    return () => window.removeEventListener('ler:auth-cleared', onAuthCleared);
+  }, [clearStaleSession]);
+
+  useEffect(() => {
+    if (!user) return;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (token?.startsWith('TOKEN-')) return;
+    if (!realApi.hasAuthSession()) {
+      clearStaleSession();
+    }
+  }, []);
 
   useEffect(() => {
     const syncCurrentUser = async () => {
@@ -116,13 +131,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
 
-        // Skip backend sync for mock users (tokens starting with "TOKEN-")
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-        if (token && token.startsWith('TOKEN-')) {
-            return; // Mock user — backend won't recognize this token
-        }
-        if (!token) {
-            clearExpiredSession();
+        if (!realApi.hasAuthSession()) {
+            clearStaleSession();
             return;
         }
 
@@ -134,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         } catch (error: any) {
             if (error?.status === 401 || error?.status === 403) {
-                clearExpiredSession();
+                clearStaleSession();
             }
         }
     };
@@ -145,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const unsubscribe = appEvents.on('data_changed', syncCurrentUser);
     return () => unsubscribe();
-  }, [user, setUser, clearExpiredSession]);
+  }, [user, setUser, clearStaleSession]);
 
   // Effect for Advanced Matching and User ID tracking
   useEffect(() => {
@@ -202,11 +212,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isNetworkError = !status;
       const shouldUseMockFallback = import.meta.env.VITE_USE_MOCK_API === 'true';
 
-      // Fallback mock is only allowed when explicitly enabled, or when the
-      // backend cannot be reached at all. A backend 401 must remain a real
-      // failed login; otherwise the UI stores a mock user with an invalid
-      // backend session and requires a refresh to recover.
-      if (shouldUseMockFallback || isNetworkError) {
+      // Mock fallback only when explicitly enabled — never on network errors in pilot.
+      if (shouldUseMockFallback) {
         try {
           const mockResult = await apiLogin(payload);
           const mockUser: User = {
@@ -293,7 +300,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isNetworkError = !status;
       const shouldUseMockFallback = import.meta.env.VITE_USE_MOCK_API === 'true';
 
-      if (shouldUseMockFallback || isNetworkError) {
+      if (shouldUseMockFallback) {
         try {
           const mockResult = await apiRegister(payload, t);
           const mockUser: User = {
@@ -331,6 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('activeOrder');
+    localStorage.removeItem('activeOrderId');
     realApi.clearToken();
     appEvents.emit('logout'); // Emit logout event to clear other contexts
     setCurrentPage({ name: 'home' });

@@ -6,10 +6,21 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:18000';
+
   return {
     server: {
       port: 3003,
       host: '0.0.0.0',
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+      proxy: {
+        '/api/v1': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
+      },
     },
 
     plugins: [

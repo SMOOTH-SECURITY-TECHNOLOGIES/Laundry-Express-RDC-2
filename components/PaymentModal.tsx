@@ -3,6 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { Icon } from './Icon';
 import { trackEvent } from '../utils/tracking';
 import { User } from '../types';
+import { pilotConfig } from '../config/pilot';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -169,6 +170,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onConfirmP
             </button>
          )}
         <div className="p-8 text-center">
+            {pilotConfig.paymentMode !== 'live' && (
+              <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                {pilotConfig.paymentModeLabel}
+              </div>
+            )}
             <h2 id="payment-modal-title" className="text-2xl font-bold text-brand-dark mb-2">{t('paymentModal.title')}</h2>
             <p className="text-slate-600 mb-6">{t('paymentModal.totalToPay')}</p>
             <p className="text-5xl font-extrabold text-brand-blue mb-8">{finalTotal.toFixed(2)} $</p>
