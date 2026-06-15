@@ -125,23 +125,23 @@ export const ServiceSelectionPage: React.FC<ServiceSelectionPageProps> = ({
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 overflow-hidden px-1 sm:space-y-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
 
-      <section className="text-center pt-4 sm:pt-8" aria-labelledby="service-hero-title">
+      <section className="px-2 pt-2 text-center sm:pt-8" aria-labelledby="service-hero-title">
         <div className="inline-flex items-center gap-2 rounded-full bg-brand-blue/10 px-4 py-2 text-sm font-bold text-brand-blue mb-5">
           <Icon name="sparkles" className="w-4 h-4" />
           Marketplace pressing premium a Kinshasa
         </div>
-        <h1 id="service-hero-title" className="text-3xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-normal">
+        <h1 id="service-hero-title" className="text-2xl font-extrabold tracking-normal text-gray-900 dark:text-white min-[380px]:text-3xl sm:text-5xl">
           De quel service avez-vous <span className="text-brand-blue">besoin</span> ?
         </h1>
         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mt-4">
           Choisissez le service qui correspond a vos besoins et laissez-nous nous occuper du reste.
         </p>
-        <div className="flex flex-wrap justify-center gap-3 mt-6">
+        <div className="mt-5 grid grid-cols-1 gap-2 min-[380px]:grid-cols-3 sm:mt-6 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
           {trustBadges.map((badge) => (
-            <div key={badge.label} className="inline-flex items-center gap-2 rounded-xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm">
+            <div key={badge.label} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-3 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:px-4">
               <Icon name={badge.icon} className="w-4 h-4 text-brand-blue" />
               <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{badge.label}</span>
             </div>
@@ -162,9 +162,9 @@ export const ServiceSelectionPage: React.FC<ServiceSelectionPageProps> = ({
             {visibleServices.map((service) => {
               const visual = serviceVisuals[service.type] || serviceVisuals.PRESSING;
               return (
-                <article key={service.id} className={`group rounded-2xl overflow-hidden shadow-card border border-gray-100 dark:border-slate-700 bg-gradient-to-br ${visual.accent} dark:from-slate-800 dark:to-slate-700 transition duration-300 hover:-translate-y-1 hover:shadow-xl`}>
-                  <div className="grid grid-cols-[42%_1fr] min-h-[220px]">
-                    <img src={service.imageUrl || visual.imageUrl} alt={service.title} loading="lazy" className="h-full w-full object-cover" />
+                <article key={service.id} className={`group overflow-hidden rounded-2xl border border-gray-100 bg-gradient-to-br shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 ${visual.accent} dark:from-slate-800 dark:to-slate-700`}>
+                  <div className="grid min-h-[220px] grid-cols-1 sm:grid-cols-[42%_1fr]">
+                    <img src={service.imageUrl || visual.imageUrl} alt={service.title} loading="lazy" className="h-44 w-full object-cover sm:h-full" />
                     <div className="p-5 flex flex-col">
                       <div className="flex items-start justify-between gap-3">
                         <div className="w-14 h-14 rounded-full bg-white/90 dark:bg-slate-900 flex items-center justify-center shadow-sm">
@@ -229,15 +229,15 @@ export const ServiceSelectionPage: React.FC<ServiceSelectionPageProps> = ({
               { icon: 'truck', title: 'Nous recuperons vos articles', description: "Notre livreur se deplace chez vous a l'heure convenue." },
               { icon: 'shoppingBag', title: 'Nous nettoyons et livrons', description: 'Vos articles sont nettoyes avec soin et livres a votre adresse.' },
             ].map((step, index) => (
-              <div key={step.title} className="grid grid-cols-[72px_36px_1fr] gap-4 items-center">
-                <div className="w-16 h-16 rounded-2xl bg-brand-blue/10 flex items-center justify-center">
+              <div key={step.title} className="grid grid-cols-[44px_1fr] gap-3 sm:grid-cols-[72px_36px_1fr] sm:gap-4 sm:items-center">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-blue/10 sm:h-16 sm:w-16">
                   <Icon name={step.icon as any} className="w-8 h-8 text-brand-blue" />
                 </div>
-                <div className="flex flex-col items-center">
+                <div className="hidden flex-col items-center sm:flex">
                   <span className="w-8 h-8 rounded-full bg-brand-blue text-white text-sm font-bold flex items-center justify-center">{index + 1}</span>
                   {index < 2 && <span className="h-10 w-px bg-brand-blue/30 mt-2" />}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white">{step.title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{step.description}</p>
                 </div>
@@ -248,7 +248,7 @@ export const ServiceSelectionPage: React.FC<ServiceSelectionPageProps> = ({
       </div>
 
       <section aria-labelledby="popular-partners-title">
-        <div className="flex items-center justify-between gap-4 mb-5">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <h2 id="popular-partners-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Partenaires populaires pres de vous</h2>
           <button type="button" className="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-brand-blue">Voir tous les partenaires <Icon name="arrowRight" className="w-4 h-4" /></button>
         </div>

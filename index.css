@@ -37,6 +37,28 @@
   }
 }
 
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+a,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+td,
+th {
+  overflow-wrap: anywhere;
+}
+
 @layer components {
   .surface-card {
     background-color: var(--le-bg-card);

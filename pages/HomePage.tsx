@@ -122,19 +122,19 @@ export const HomePage: React.FC = () => {
 
   /* ──────────────── RENDER ──────────────── */
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12 animate-fade-in">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 pb-10 sm:space-y-8 sm:px-6 sm:pb-12 animate-fade-in">
 
       {/* ═══════════════════════════════════════════
           SECTION 1 — Hero Personalise
       ═══════════════════════════════════════════ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-blue via-brand-blue to-brand-blue-700 text-white px-6 py-8 sm:px-10 sm:py-10">
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue via-brand-blue to-brand-blue-700 px-4 py-6 text-white sm:rounded-3xl sm:px-10 sm:py-10">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative z-10">
           <p className="text-sm font-medium text-blue-100 mb-1">
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
-          <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-1">
+          <h1 className="mb-1 text-2xl font-extrabold leading-tight sm:text-4xl">
             {firstName ? `Bonjour, ${firstName}` : 'Bonjour !'}
           </h1>
           <p className="text-blue-100 text-sm sm:text-base max-w-md">
@@ -142,7 +142,7 @@ export const HomePage: React.FC = () => {
           </p>
 
           {/* Promo Banner */}
-          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur-sm sm:mt-6 sm:flex-row sm:items-center sm:p-4">
             <div className="p-2 bg-[#FF7A00] rounded-xl">
               <Icon name="fire" className="w-6 h-6 text-white" />
             </div>
@@ -150,7 +150,7 @@ export const HomePage: React.FC = () => {
               <p className="font-bold text-sm">Offre Speciale -20% sur votre prochaine commande</p>
               <p className="text-xs text-blue-100 mt-0.5">Valable pendant :</p>
             </div>
-            <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+            <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2 sm:w-auto">
               <Icon name="clock" className="w-4 h-4 text-[#FF7A00]" />
               <span className="font-mono font-bold text-sm tracking-wider">{promoCountdown}</span>
             </div>
@@ -159,7 +159,7 @@ export const HomePage: React.FC = () => {
           {/* CTA */}
           <button
             onClick={handleNewOrder}
-            className="mt-6 px-8 py-3 bg-white text-brand-blue font-bold rounded-full text-sm hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-brand-blue shadow-lg transition-all duration-300 hover:bg-blue-50 sm:mt-6 sm:w-auto sm:px-8"
           >
             <Icon name="shoppingBag" className="w-5 h-5" />
             <span>Commander maintenant</span>
@@ -200,7 +200,7 @@ export const HomePage: React.FC = () => {
           SECTION 3 — KPI Cards
       ═══════════════════════════════════════════ */}
       <section>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
             { icon: 'shoppingBag', label: 'Commandes totales', value: totalOrders, color: 'text-brand-blue', bg: 'bg-brand-blue/10' },
             { icon: 'star', label: 'Points fidelite', value: points, color: 'text-[#FF7A00]', bg: 'bg-[#FF7A00]/10' },
@@ -213,7 +213,7 @@ export const HomePage: React.FC = () => {
                 <Icon name={kpi.icon as any} className={`w-4 h-4 ${kpi.color}`} />
               </div>
               <p className="text-[11px] text-content-faint font-medium uppercase tracking-wide">{kpi.label}</p>
-              <p className="text-xl font-extrabold text-content-primary mt-1">{kpi.value}</p>
+              <p className="mt-1 break-words text-lg font-extrabold text-content-primary sm:text-xl">{kpi.value}</p>
             </div>
           ))}
         </div>
@@ -251,9 +251,9 @@ export const HomePage: React.FC = () => {
               const sc = getStatusColor(order.status);
               return (
                 <div key={order.id} className="bg-surface-card rounded-2xl border border-surface-border-subtle p-4 sm:p-5 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
                         <span className="text-sm font-bold text-content-primary">
                           {order.partner?.name || 'Partenaire'}
                         </span>
@@ -267,7 +267,7 @@ export const HomePage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setCurrentPage({ name: 'tracking' })}
-                      className="p-2 hover:bg-surface-muted rounded-lg transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 transition hover:bg-surface-muted self-start sm:self-auto"
                     >
                       <Icon name="magnifying-glass-plus" className="w-4 h-4 text-content-faint" />
                     </button>
@@ -520,4 +520,3 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
-

@@ -60,8 +60,8 @@ const EmptyState: React.FC<{ title: string; description: string }> = ({ title, d
 );
 
 const SectionHeading: React.FC<{ title: string; subtitle?: string; light?: boolean }> = ({ title, subtitle, light }) => (
-  <div className="mx-auto mb-8 max-w-3xl text-center">
-    <h2 className={`text-3xl font-black tracking-normal md:text-4xl ${light ? 'text-white' : 'text-content-primary'}`}>{title}</h2>
+  <div className="mx-auto mb-6 max-w-3xl text-center sm:mb-8">
+    <h2 className={`text-2xl font-black tracking-normal sm:text-3xl md:text-4xl ${light ? 'text-white' : 'text-content-primary'}`}>{title}</h2>
     {subtitle && <p className={`mt-3 text-base md:text-lg ${light ? 'text-white/75' : 'text-content-muted'}`}>{subtitle}</p>}
   </div>
 );
@@ -245,12 +245,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-page text-content-primary">
+    <div className="min-h-screen overflow-hidden bg-surface-page text-content-primary">
       <header className="sticky top-0 z-50 border-b border-surface-border bg-surface-card/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:h-20 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:h-20 lg:px-8">
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-3" aria-label="Accueil Laundry Express">
             <Icon name="logo" className="h-9 w-9 text-[#005bd8]" />
-            <span className="text-xl font-black">Laundry Express</span>
+            <span className="text-base font-black sm:text-xl">Laundry Express</span>
           </button>
           <nav className="hidden items-center gap-7 text-sm font-bold text-content-muted lg:flex">
             <a href="#home">Accueil</a>
@@ -305,34 +305,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         <section className="relative overflow-hidden bg-gradient-to-br from-surface-card via-surface-muted to-surface-page">
           <div className="absolute left-0 top-20 h-72 w-72 rounded-full bg-[#005bd8]/10 blur-3xl" />
           <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#ff7a00]/10 blur-3xl" />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-16">
-          <div>
-            <h1 className="text-4xl font-black leading-tight tracking-normal md:text-6xl">
+          <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-16">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-black leading-tight tracking-normal min-[380px]:text-4xl md:text-6xl">
               Commandez. <span className="text-[#005bd8]">Suivez.</span> Recevez.
             </h1>
-            <p className="mt-3 max-w-2xl text-lg leading-8 text-content-muted">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-content-muted sm:text-lg sm:leading-8">
               La premiere plateforme de nettoyage suivie en temps reel a Kinshasa. Lessive, pressing et cordonnerie livres a votre porte.
             </p>
             <div className={`mt-6 rounded-3xl p-3 ${cardClass}`}>
               <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                <select value={selectedServiceId} onChange={(event) => selectService(event.target.value)} className="rounded-2xl border border-surface-border bg-surface-card px-4 py-4 font-bold text-content-primary outline-none focus:ring-4 focus:ring-blue-500/30">
+                <select value={selectedServiceId} onChange={(event) => selectService(event.target.value)} className="min-w-0 rounded-2xl border border-surface-border bg-surface-card px-4 py-4 font-bold text-content-primary outline-none focus:ring-4 focus:ring-blue-500/30">
                   <option value="">Quel service recherchez-vous ?</option>
                   {services.map((service) => (
                     <option key={service.id} value={service.id}>{service.title}</option>
                   ))}
                 </select>
-                <select value={selectedCommune} onChange={(event) => setSelectedCommune(event.target.value)} className="rounded-2xl border border-surface-border bg-surface-card px-4 py-4 font-bold text-content-primary outline-none focus:ring-4 focus:ring-blue-500/30">
+                <select value={selectedCommune} onChange={(event) => setSelectedCommune(event.target.value)} className="min-w-0 rounded-2xl border border-surface-border bg-surface-card px-4 py-4 font-bold text-content-primary outline-none focus:ring-4 focus:ring-blue-500/30">
                   <option value="">Commune</option>
                   {coveredCommunes.map((commune) => (
                     <option key={commune} value={commune}>{commune}</option>
                   ))}
                 </select>
-                <button onClick={search} className="rounded-2xl bg-[#005bd8] px-8 py-4 font-black text-white shadow-lg shadow-[#005bd8]/25">Rechercher</button>
+                <button onClick={search} className="min-h-[48px] rounded-2xl bg-[#005bd8] px-6 py-3 text-sm font-black text-white shadow-lg shadow-[#005bd8]/25 sm:px-8 sm:py-4 sm:text-base">Rechercher</button>
               </div>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button onClick={() => startOrder('hero_primary')} className="rounded-2xl bg-[#005bd8] px-8 py-4 font-black text-white shadow-lg shadow-[#005bd8]/25">Commander maintenant</button>
-              <a href="#partners" className="rounded-2xl border border-surface-border bg-surface-card px-8 py-4 text-center font-black text-content-primary shadow-sm">Voir les partenaires</a>
+              <button onClick={() => startOrder('hero_primary')} className="min-h-[48px] rounded-2xl bg-[#005bd8] px-6 py-3 text-sm font-black text-white shadow-lg shadow-[#005bd8]/25 sm:px-8 sm:py-4 sm:text-base">Commander maintenant</button>
+              <a href="#partners" className="min-h-[48px] rounded-2xl border border-surface-border bg-surface-card px-6 py-3 text-center text-sm font-black text-content-primary shadow-sm sm:px-8 sm:py-4 sm:text-base">Voir les partenaires</a>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-content-muted">
               {[
@@ -355,10 +355,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className={`grid gap-3 rounded-3xl p-4 md:grid-cols-4 ${cardClass}`}>
             {activityStats.map((stat) => (
-              <div key={stat.label} className="flex items-center gap-4 rounded-2xl bg-surface-muted p-5">
+              <div key={stat.label} className="flex items-center gap-3 rounded-2xl bg-surface-muted p-4 sm:gap-4 sm:p-5">
                 <Icon name={stat.icon as any} className="h-8 w-8 text-[#005bd8]" />
                 <div>
-                  <p className="text-2xl font-black text-[#005bd8]">{stat.value}</p>
+                  <p className="text-xl font-black text-[#005bd8] sm:text-2xl">{stat.value}</p>
                   <p className="mt-0.5 text-sm font-bold text-content-muted">{stat.label}</p>
                 </div>
               </div>
@@ -400,12 +400,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
                 {estimateItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-2xl border border-surface-border-subtle bg-surface-card p-4 shadow-sm">
-                    <div>
+                  <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-surface-border-subtle bg-surface-card p-4 shadow-sm min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
+                    <div className="min-w-0">
                       <p className="font-black">{item.label}</p>
                       <p className="text-sm text-content-muted">{formatPrice(item.price)}</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-3 min-[380px]:justify-end">
                       <button onClick={() => updateEstimate(item.id, -1)} className="rounded-full border border-surface-border-subtle bg-surface-card p-2"><Icon name="minus" className="h-4 w-4" /></button>
                       <span className="w-6 text-center font-black">{estimateQty[item.id] || 0}</span>
                       <button onClick={() => updateEstimate(item.id, 1)} className="rounded-full bg-[#005bd8] p-2 text-white"><Icon name="plus" className="h-4 w-4" /></button>
@@ -421,7 +421,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
                   <SummaryLine label="Total" value={formatPrice(total)} strong />
                 </div>
                 <button onClick={() => startOrder('estimate')} className="mt-6 w-full rounded-2xl bg-[#005bd8] py-4 font-black text-white shadow-lg shadow-[#005bd8]/25">Commander maintenant</button>
-                <div className="mt-4 grid grid-cols-2 gap-3 text-center text-xs font-bold text-content-muted">
+                <div className="mt-4 grid grid-cols-1 gap-3 text-center text-xs font-bold text-content-muted min-[380px]:grid-cols-2">
                   <span className="rounded-xl bg-surface-muted p-2">Paiement securise</span>
                   <span className="rounded-xl bg-surface-muted p-2">Suivi en temps reel</span>
                 </div>
@@ -534,17 +534,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
               </div>
             ))}
           </div>
-          <div className="mt-8 rounded-3xl bg-gradient-to-r from-[#06105f] via-[#003b9a] to-[#005bd8] p-6 text-center text-white shadow-2xl md:p-10">
-            <p className="text-lg font-black">Le corridor complet : Commander &rarr; Payer &rarr; Suivre &rarr; Preuves &rarr; Support &rarr; Avis</p>
+          <div className="mt-8 rounded-3xl bg-gradient-to-r from-[#06105f] via-[#003b9a] to-[#005bd8] p-5 text-center text-white shadow-2xl sm:p-6 md:p-10">
+            <p className="text-base font-black sm:text-lg">Le corridor complet : Commander &rarr; Payer &rarr; Suivre &rarr; Preuves &rarr; Support &rarr; Avis</p>
             <p className="mt-2 text-white/75">C\'est cette histoire qui cree la confiance. Pas simplement trouver un pressing.</p>
           </div>
         </section>
 
         <section className="bg-gradient-to-r from-[#005bd8] via-[#006dff] to-[#004bb5] py-10 text-white">
           <div className="mx-auto grid max-w-7xl gap-5 px-4 text-center sm:px-6 md:grid-cols-3 lg:px-8">
-            <div><p className="text-4xl font-black">97%</p><p className="text-white/75">reviennent commander</p></div>
-            <div><p className="text-4xl font-black">99%</p><p className="text-white/75">livraisons reussies</p></div>
-            <div><p className="text-4xl font-black">{reviews.length ? `${averageRating(reviews)}/5` : '4.8/5'}</p><p className="text-white/75">note moyenne clients</p></div>
+            <div><p className="text-3xl font-black sm:text-4xl">97%</p><p className="text-white/75">reviennent commander</p></div>
+            <div><p className="text-3xl font-black sm:text-4xl">99%</p><p className="text-white/75">livraisons reussies</p></div>
+            <div><p className="text-3xl font-black sm:text-4xl">{reviews.length ? `${averageRating(reviews)}/5` : '4.8/5'}</p><p className="text-white/75">note moyenne clients</p></div>
           </div>
         </section>
 
@@ -695,8 +695,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
               ))}
             </div>
           </div>
-          <div className="mx-auto w-full max-w-sm rounded-[2.5rem] bg-[#06105f] p-4 shadow-2xl">
-            <div className="rounded-[2rem] bg-surface-card p-6">
+          <div className="mx-auto w-full max-w-sm rounded-3xl bg-[#06105f] p-3 shadow-2xl sm:rounded-[2.5rem] sm:p-4">
+            <div className="rounded-3xl bg-surface-card p-4 sm:rounded-[2rem] sm:p-6">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-black uppercase text-content-muted">Commande #LE-4821</p>
                 <span className="rounded-full bg-[#00a884]/15 px-2 py-0.5 text-xs font-black text-[#00a884]">En cours</span>
@@ -760,10 +760,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#06105f] via-[#003b9a] to-[#005bd8] p-8 text-white shadow-2xl shadow-[#06105f]/20 md:p-12">
-            <h2 className="text-3xl font-black">Vous possedez un pressing, une blanchisserie ou une flotte de livraison ?</h2>
+          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#06105f] via-[#003b9a] to-[#005bd8] p-6 text-white shadow-2xl shadow-[#06105f]/20 sm:p-8 md:p-12">
+            <h2 className="text-2xl font-black sm:text-3xl">Vous possedez un pressing, une blanchisserie ou une flotte de livraison ?</h2>
             <p className="mt-3 max-w-2xl text-white/75">Rejoignez Laundry Express et recevez plus de commandes dans Kinshasa.</p>
-            <button onClick={() => { trackEvent('become_partner_clicked', { source: 'home_cta' }); setCurrentPage({ name: 'become-partner' }); }} className="mt-6 rounded-2xl bg-[#ff7a00] px-8 py-4 font-black text-white shadow-lg shadow-[#ff7a00]/25">Devenir partenaire</button>
+            <button onClick={() => { trackEvent('become_partner_clicked', { source: 'home_cta' }); setCurrentPage({ name: 'become-partner' }); }} className="mt-6 w-full rounded-2xl bg-[#ff7a00] px-6 py-3 text-sm font-black text-white shadow-lg shadow-[#ff7a00]/25 sm:w-auto sm:px-8 sm:py-4 sm:text-base">Devenir partenaire</button>
           </div>
         </section>
 
