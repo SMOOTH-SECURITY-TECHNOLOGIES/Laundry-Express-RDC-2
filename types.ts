@@ -8,7 +8,7 @@ export type ID = string;
 export type Timestamp = string; // ISO 8601 string
 export type Coordinates = { lat: number; lng: number; };
 export type Page = 'home' | 'order' | 'tracking' | 'profile' | 'become-partner' | 'login' | 'register' | 'admin' | 'partner-dashboard' | 'faq' | 'support' | 'logistics-partnership' | 'logistics-dashboard' | 'driver-dashboard' | 'partner-detail' | 'notifications' | 'landing';
-export type AdminSection = 'dashboard' | 'partners' | 'partner-applications' | 'services' | 'users' | 'orders' | 'drivers' | 'promotions' | 'advertisements' | 'loyalty' | 'referral' | 'content' | 'support' | 'analytics' | 'adminManagement' | 'tracking' | 'subscriptions' | 'refunds' | 'activity' | 'ops_dashboard' | 'ops_truth' | 'ops_anomalies' | 'ops_investigate';
+export type AdminSection = 'dashboard' | 'partners' | 'partner-applications' | 'services' | 'order-add-ons' | 'users' | 'orders' | 'drivers' | 'promotions' | 'advertisements' | 'loyalty' | 'referral' | 'content' | 'support' | 'analytics' | 'adminManagement' | 'tracking' | 'subscriptions' | 'refunds' | 'activity' | 'ops_dashboard' | 'ops_truth' | 'ops_anomalies' | 'ops_investigate';
 export type Currency = 'USD' | 'CDF';
 export type PartnerSection = 'dashboard' | 'orders' | 'profile' | 'promotions' | 'financials' | 'support' | 'analytics' | 'team' | 'security' | 'api-integrations' | 'automation' | 'invoicing' | 'inventory' | 'delivery' | 'subscription';
 export type TeamMemberRole = 'partner-owner' | 'partner-manager' | 'partner-staff';
@@ -240,6 +240,7 @@ export interface Article {
   name: string;
   price: number;
   description?: string;
+  imageUrl?: string;
 }
 
 export interface ArticleCategory {
@@ -257,6 +258,7 @@ export interface Service {
   priceModel: 'per_item' | 'per_kg';
   price?: number;
   articleCategories?: ArticleCategory[];
+  turnaroundHours?: number;
 }
 
 export interface OrderItem {
@@ -312,6 +314,15 @@ export interface UnavailabilityPeriod {
     reason: string;
 }
 
+export interface PartnerMediaGallery {
+  couverture?: string[];
+  boutique?: string[];
+  machines?: string[];
+  equipe?: string[];
+  livraison?: string[];
+  'avant-apres'?: string[];
+}
+
 export interface Partner {
   id: ID;
   name: string;
@@ -321,6 +332,7 @@ export interface Partner {
   reviewCount: number;
   imageUrls: string[];
   videoUrl?: string;
+  mediaGallery?: PartnerMediaGallery;
   address: string;
   coordinates: Coordinates;
   serviceIds?: string[];
@@ -334,6 +346,7 @@ export interface Partner {
   commissionRate?: number;
   inventory?: InventoryItem[];
   deliverySettings?: DeliverySettings;
+  deliveryOps?: PartnerDeliveryOps;
   automationSettings?: AutomationSettings;
 }
 
@@ -470,6 +483,8 @@ export interface PromoCode {
   code: string;
   discountType: 'percentage' | 'fixed';
   discountValue: number;
+  promoType?: 'percentage' | 'fixed' | 'delivery' | 'cashback';
+  name?: string;
   minOrderValue?: number;
   isForNewUsersOnly?: boolean;
   isActive: boolean;
@@ -477,9 +492,13 @@ export interface PromoCode {
   partnerId?: ID;
   usageCount?: number;
   maxUsage?: number | null;
+  maxBudget?: number | null;
+  budgetUsed?: number;
   usageLimitPerCustomer?: number;
   startDate?: string;
   endDate?: string | null;
+  targetSegments?: string[];
+  channels?: string[];
   applicableServices?: string[];
   description?: string;
   geographicRestrictions?: any[];
@@ -634,6 +653,9 @@ export interface InventoryItem {
     unit: 'pcs' | 'liters' | 'kg' | 'units';
     currentStock: number;
     lowStockThreshold: number;
+    imageUrl?: string;
+    category?: string;
+    cost?: number;
 }
 
 export interface DeliveryZone {
@@ -645,6 +667,50 @@ export interface DeliverySettings {
     model: 'platform' | 'self';
     zones: DeliveryZone[];
     ownDrivers: any[]; // Placeholder for future driver objects
+}
+
+export type PartnerDeliveryUrgentAction = 'contact' | 'reassign' | 'escalate';
+
+export interface PartnerDeliveryRow {
+    id: string;
+    orderNumber: string;
+    client: string;
+    commune: string;
+    driver: string;
+    amount: number;
+    status: string;
+    time: string;
+    date: string;
+    urgentIssue?: string;
+    urgentAction?: PartnerDeliveryUrgentAction;
+    urgentResolved?: boolean;
+}
+
+export interface PartnerDeliveryActivityEntry {
+    time: string;
+    icon: string;
+    color: string;
+    title: string;
+    detail: string;
+}
+
+export interface PartnerDeliveryDriver {
+    id: string;
+    name: string;
+    phone: string;
+    state: 'Actif' | 'Inactif' | 'En tournee';
+    zones: string[];
+    total: number;
+    avgTime: string;
+    rating: number;
+    success: number;
+    remaining: string;
+}
+
+export interface PartnerDeliveryOps {
+    deliveries: PartnerDeliveryRow[];
+    activityLog: PartnerDeliveryActivityEntry[];
+    drivers?: PartnerDeliveryDriver[];
 }
 
 export interface DataContextType {
@@ -707,7 +773,8 @@ export interface DataContextType {
     addAdvertisement: (adData: any) => Promise<void>;
     updateAdvertisement: (ad: Advertisement) => Promise<void>;
     deleteAdvertisement: (adId: string) => Promise<void>;
-    addPromoCode: (promo: Omit<PromoCode, 'id' | 'createdAt'>) => Promise<void>;
+    addPromoCode: (promo: Omit<PromoCode, 'id' | 'createdAt'>) => Promise<PromoCode>;
+    recordPromoUsage: (code: string, discountAmount: number) => Promise<void>;
     updatePromoCode: (promo: PromoCode) => Promise<void>;
     deletePromoCode: (promoId: string) => Promise<void>;
     reassignDriver: (orderId: string, oldDriverId: string, newDriverId: string) => Promise<void>;
@@ -754,6 +821,12 @@ export interface DataContextType {
     apiSubscribePartner: (partnerId: ID, planId: ID) => Promise<void>;
     apiUpdatePartnerInventory: (partnerId: ID, inventory: InventoryItem[]) => Promise<void>;
     apiUpdatePartnerDeliverySettings: (partnerId: ID, settings: DeliverySettings) => Promise<void>;
+    apiUpdatePartnerDeliveryOps: (partnerId: ID, ops: PartnerDeliveryOps) => Promise<void>;
+    apiUpdatePartnerMedia: (
+      partnerId: ID,
+      media: { imageUrls: string[]; videoUrl?: string | null; mediaGallery?: PartnerMediaGallery },
+      seed?: Partial<Partner>,
+    ) => Promise<void>;
     apiGenerateProforma: (orderId: ID) => Promise<Order>;
     apiGenerateInvoice: (orderId: ID) => Promise<Order>;
     addSubscriptionPlan: (plan: Omit<SubscriptionPlan, 'id'>) => Promise<void>;

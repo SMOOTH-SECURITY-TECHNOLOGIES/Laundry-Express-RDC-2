@@ -91,7 +91,7 @@ export const PartnerDashboardPage: React.FC = () => {
                 return <OrderManagement setSection={setSection} />;
             case 'profile':
                 if (!hasAccess(['partner-owner', 'partner-manager'])) return renderAccessDenied();
-                return <ProfileManagement />;
+                return <ProfileManagement setSection={setSection} />;
             case 'promotions':
                 if (!partner?.enabledFeatures?.promotions || !hasAccess(['partner-owner', 'partner-manager'])) return renderAccessDenied();
                 return <PartnerPromoManagement />;
@@ -149,10 +149,12 @@ export const PartnerDashboardPage: React.FC = () => {
     }, [section, t]);
 
     return (
-       <DashboardLayout sidebar={sidebar} mobileTitle={mobileTitle}>
-            <div key={section} className="animate-fade-in">
-                {renderSection()}
-            </div>
-       </DashboardLayout>
+       <div className="partner-shell">
+         <DashboardLayout sidebar={sidebar} mobileTitle={mobileTitle}>
+              <div key={section} className="animate-fade-in">
+                  {renderSection()}
+              </div>
+         </DashboardLayout>
+       </div>
     )
 }

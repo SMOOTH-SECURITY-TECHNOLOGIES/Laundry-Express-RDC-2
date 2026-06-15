@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '../../components/Icon';
+import { logisticsCard } from './logistics-ui';
 import BacklogBoard from './BacklogBoard';
 import ReadyDriversPanel from './ReadyDriversPanel';
 import MissionTable from './MissionTable';
@@ -127,14 +128,14 @@ const SuggestedDispatchTable: React.FC<{
   onAutoDispatch: () => void;
   onApplySuggestion: (label: string) => void;
 }> = ({ onAutoDispatch, onApplySuggestion }) => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-gray-100">
+  <div className={`${logisticsCard} overflow-hidden`}>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-surface-border-subtle">
       <div>
-        <h2 className="text-lg font-extrabold text-brand-dark flex items-center gap-2">
+        <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
           <Icon name="sparkles" className="w-5 h-5 text-brand-orange" />
           Suggestions auto-dispatch
         </h2>
-        <p className="text-xs text-gray-500 mt-1">Score basé sur distance, charge, disponibilité et historique chauffeur.</p>
+        <p className="text-xs text-content-muted mt-1">Score basé sur distance, charge, disponibilité et historique chauffeur.</p>
       </div>
       <button
         type="button"
@@ -146,7 +147,7 @@ const SuggestedDispatchTable: React.FC<{
     </div>
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
-        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+        <thead className="bg-gray-50 text-xs uppercase text-content-muted">
           <tr>
             <th className="text-left px-5 py-3">Mission</th>
             <th className="text-left px-5 py-3">Client</th>
@@ -160,16 +161,16 @@ const SuggestedDispatchTable: React.FC<{
         <tbody className="divide-y divide-gray-100">
           {DISPATCH_SUGGESTIONS.map((row) => (
             <tr key={row.missionId} className="hover:bg-gray-50/60">
-              <td className="px-5 py-4 font-mono font-bold text-brand-dark">#{row.missionId}</td>
-              <td className="px-5 py-4 text-gray-700">{row.client}</td>
-              <td className="px-5 py-4 text-gray-500">{row.time}</td>
+              <td className="px-5 py-4 font-mono font-bold text-content-primary">#{row.missionId}</td>
+              <td className="px-5 py-4 text-content-primary">{row.client}</td>
+              <td className="px-5 py-4 text-content-muted">{row.time}</td>
               <td className="px-5 py-4">
-                <div className="font-semibold text-brand-dark">{row.driver}</div>
+                <div className="font-semibold text-content-primary">{row.driver}</div>
                 <div className={`text-xs ${row.driverStatus === 'dispo' ? 'text-green-600' : 'text-orange-600'}`}>
                   {row.driverStatus === 'dispo' ? 'Disponible maintenant' : 'À planifier après mission'}
                 </div>
               </td>
-              <td className="px-5 py-4 text-gray-600">{row.distance} km</td>
+              <td className="px-5 py-4 text-content-muted">{row.distance} km</td>
               <td className="px-5 py-4">
                 <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-brand-blue">
                   {row.score}%
@@ -195,31 +196,31 @@ const SuggestedDispatchTable: React.FC<{
 const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpenTour }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
     {ACTIVE_TOURS.map((tour) => (
-      <article key={tour.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <article key={tour.id} className={`${logisticsCard} p-5`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-mono text-xs font-bold text-brand-blue">#{tour.id}</p>
-            <h3 className="mt-1 text-lg font-extrabold text-brand-dark">{tour.driver}</h3>
-            <p className="mt-1 text-sm text-gray-500">Prochain arrêt : {tour.nextStop}</p>
+            <h3 className="mt-1 text-lg font-extrabold text-content-primary">{tour.driver}</h3>
+            <p className="mt-1 text-sm text-content-muted">Prochain arrêt : {tour.nextStop}</p>
           </div>
           <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">{tour.status}</span>
         </div>
         <div className="grid grid-cols-3 gap-3 mt-5 text-center">
           <div className="rounded-xl bg-blue-50 p-3">
             <p className="text-xl font-extrabold text-brand-blue">{tour.pickups}</p>
-            <p className="text-[11px] text-gray-500">Collectes</p>
+            <p className="text-[11px] text-content-muted">Collectes</p>
           </div>
           <div className="rounded-xl bg-orange-50 p-3">
             <p className="text-xl font-extrabold text-brand-orange">{tour.deliveries}</p>
-            <p className="text-[11px] text-gray-500">Livraisons</p>
+            <p className="text-[11px] text-content-muted">Livraisons</p>
           </div>
           <div className="rounded-xl bg-gray-50 p-3">
-            <p className="text-xl font-extrabold text-brand-dark">{tour.eta}</p>
-            <p className="text-[11px] text-gray-500">ETA</p>
+            <p className="text-xl font-extrabold text-content-primary">{tour.eta}</p>
+            <p className="text-[11px] text-content-muted">ETA</p>
           </div>
         </div>
         <div className="mt-5">
-          <div className="flex justify-between text-xs font-semibold text-gray-500 mb-2">
+          <div className="flex justify-between text-xs font-semibold text-content-muted mb-2">
             <span>Progression tournée</span>
             <span>{tour.progress}%</span>
           </div>
@@ -239,30 +240,32 @@ const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpen
   </div>
 );
 
+const ALERT_TONE_CLASS: Record<string, string> = {
+  red: 'border-red-500/35 bg-red-500/15 text-red-100',
+  orange: 'border-orange-500/35 bg-orange-500/15 text-orange-100',
+  green: 'border-green-500/35 bg-green-500/15 text-green-100',
+};
+
 const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }> = ({ onAlertAction }) => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
     {ACTIONABLE_ALERTS.map((alert) => {
-      const tone = alert.tone === 'red'
-        ? 'border-red-100 bg-red-50/50 text-red-700'
-        : alert.tone === 'orange'
-        ? 'border-orange-100 bg-orange-50/60 text-orange-700'
-        : 'border-green-100 bg-green-50/60 text-green-700';
+      const tone = ALERT_TONE_CLASS[alert.tone] || ALERT_TONE_CLASS.green;
       return (
         <article key={alert.id} className={`rounded-2xl border p-4 ${tone}`}>
-          <h3 className="text-sm font-extrabold">{alert.title}</h3>
-          <p className="mt-1 min-h-[40px] text-sm text-gray-600">{alert.detail}</p>
+          <h3 className="text-sm font-extrabold text-content-primary">{alert.title}</h3>
+          <p className="mt-1 min-h-[40px] text-sm text-content-muted">{alert.detail}</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
               onClick={() => onAlertAction(`${alert.primary} - ${alert.title}`)}
-              className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.primary}
             </button>
             <button
               type="button"
               onClick={() => onAlertAction(`${alert.secondary} - ${alert.title}`)}
-              className="rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.secondary}
             </button>
@@ -274,16 +277,16 @@ const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }
 );
 
 const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> = ({ onDriverAction }) => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div className="px-5 py-4 border-b border-gray-100">
-      <h2 className="text-lg font-extrabold text-brand-dark flex items-center gap-2">
+  <div className={`${logisticsCard} overflow-hidden`}>
+    <div className="px-5 py-4 border-b border-surface-border-subtle">
+      <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
         <Icon name="trophy" className="w-5 h-5 text-brand-orange" />
         Performance chauffeur individuelle
       </h2>
     </div>
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
-        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+        <thead className="bg-gray-50 text-xs uppercase text-content-muted">
           <tr>
             <th className="text-left px-5 py-3">Chauffeur</th>
             <th className="text-left px-5 py-3">Missions</th>
@@ -296,14 +299,14 @@ const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> =
         <tbody className="divide-y divide-gray-100">
           {DRIVER_RANKING.map((driver) => (
             <tr key={driver.name}>
-              <td className="px-5 py-4 font-bold text-brand-dark">{driver.name}</td>
-              <td className="px-5 py-4 text-gray-600">{driver.missions}</td>
+              <td className="px-5 py-4 font-bold text-content-primary">{driver.name}</td>
+              <td className="px-5 py-4 text-content-muted">{driver.missions}</td>
               <td className="px-5 py-4">
                 <span className={`font-bold ${driver.onTime >= 90 ? 'text-green-600' : 'text-orange-600'}`}>{driver.onTime}%</span>
               </td>
-              <td className="px-5 py-4 text-gray-600">{driver.delays}</td>
+              <td className="px-5 py-4 text-content-muted">{driver.delays}</td>
               <td className="px-5 py-4">
-                <span className="inline-flex items-center gap-1 font-bold text-gray-700">
+                <span className="inline-flex items-center gap-1 font-bold text-content-primary">
                   <Icon name="star" className="w-3.5 h-3.5 text-yellow-500" />
                   {driver.rating}
                 </span>
@@ -365,7 +368,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <Icon name="arrow-path" className="w-8 h-8 text-brand-blue animate-spin" />
-            <p className="text-sm text-gray-500 font-medium">Chargement...</p>
+            <p className="text-sm text-content-muted font-medium">Chargement...</p>
           </div>
         </div>
       );
@@ -377,18 +380,18 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
           <div className="space-y-6">
             <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
             <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className={`${logisticsCard} p-5`}>
                 <BacklogBoard missions={MOCK_BACKLOG} />
               </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className={`${logisticsCard} p-5`}>
                 <ReadyDriversPanel drivers={MOCK_READY_DRIVERS} />
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className={`${logisticsCard} p-5`}>
                 <DispatchMap />
               </div>
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className={`${logisticsCard} p-5`}>
                 <OperationalAlerts />
               </div>
             </div>
@@ -404,11 +407,11 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       case 'tours':
         return (
           <div className="space-y-5">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div className={`${logisticsCard} p-5`}>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-lg font-extrabold text-brand-dark">Mode tournées multi-arrêts</h2>
-                  <p className="text-sm text-gray-500">Regroupez collectes et livraisons pour Laundry Express, colis, repas, pharmacie ou courses.</p>
+                  <h2 className="text-lg font-extrabold text-content-primary">Mode tournées multi-arrêts</h2>
+                  <p className="text-sm text-content-muted">Regroupez collectes et livraisons pour Laundry Express, colis, repas, pharmacie ou courses.</p>
                 </div>
                 <button
                   type="button"
@@ -424,20 +427,20 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
         );
       case 'missions':
         return (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className={`${logisticsCard} p-5`}>
             <MissionTable missions={MOCK_ACTIVE_MISSIONS} />
           </div>
         );
       case 'drivers':
         return (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className={`${logisticsCard} p-5`}>
             <DriversTable drivers={MOCK_READY_DRIVERS} />
           </div>
         );
       case 'performance':
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div className={`${logisticsCard} p-5`}>
               <PerformanceDashboard data={MOCK_PERFORMANCE} />
             </div>
             <DriverLeaderboard onDriverAction={(label) => announceAction(`Action chauffeur ouverte : ${label}.`)} />
@@ -450,18 +453,18 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div className={`${logisticsCard} p-6`}>
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
             <p className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-1">COCKPIT DISPATCHER</p>
-            <h1 className="text-2xl font-extrabold text-brand-dark">Cockpit logistique universel</h1>
-            <p className="text-sm text-gray-500 mt-1">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
+            <h1 className="text-2xl font-extrabold text-content-primary">Cockpit logistique universel</h1>
+            <p className="text-sm text-content-muted mt-1">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={handleRefresh}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="px-4 py-2 rounded-xl border border-surface-border-subtle text-sm font-semibold text-content-primary hover:bg-surface-muted flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               <Icon name="arrow-path" className="w-4 h-4" /> Rafraîchir
             </button>
@@ -475,7 +478,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
             <button
               type="button"
               onClick={onExport}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="px-4 py-2 rounded-xl border border-surface-border-subtle text-sm font-semibold text-content-primary hover:bg-surface-muted flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               <Icon name="arrow-down-tray" className="w-4 h-4" /> Exporter CSV
             </button>
@@ -486,7 +489,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       {actionMessage && (
         <div
           role="status"
-          className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-3 text-sm font-semibold text-brand-blue"
+          className="rounded-2xl border border-brand-blue/30 bg-brand-blue/15 px-5 py-3 text-sm font-semibold text-blue-100"
         >
           {actionMessage}
         </div>
@@ -494,15 +497,15 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {KPI_CARDS.map((kpi) => (
-          <div key={kpi.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div key={kpi.label} className={`${logisticsCard} p-5`}>
             <div className="flex items-center gap-4">
               <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${kpi.tone}`}>
                 <Icon name={kpi.icon} className="h-6 w-6" />
               </span>
               <div>
-                <p className="text-sm text-gray-500">{kpi.label}</p>
-                <p className="mt-1 text-3xl font-extrabold text-brand-dark">{kpi.value}</p>
-                <p className="mt-1 text-xs text-gray-400">{kpi.sub}</p>
+                <p className="text-sm font-semibold text-content-muted">{kpi.label}</p>
+                <p className="mt-1 text-3xl font-extrabold tracking-tight text-content-primary">{kpi.value}</p>
+                <p className="mt-1 text-xs font-medium text-content-muted">{kpi.sub}</p>
               </div>
             </div>
           </div>
@@ -510,7 +513,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       </div>
 
       <div>
-        <nav className="flex gap-1 overflow-x-auto bg-gray-100 rounded-xl p-1 mb-6" role="tablist" aria-label="Sections logistiques">
+        <nav className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-surface-muted p-1" role="tablist" aria-label="Sections logistiques">
           {TABS.map((tab) => (
             <button
               type="button"
@@ -520,8 +523,8 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
               onClick={() => setActiveTab(tab.key)}
               className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${
                 activeTab === tab.key
-                  ? 'bg-white shadow-sm text-brand-dark'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface-card text-content-primary shadow-sm'
+                  : 'text-content-muted hover:text-content-primary'
               }`}
             >
               <Icon name={tab.icon} className="w-4 h-4" />

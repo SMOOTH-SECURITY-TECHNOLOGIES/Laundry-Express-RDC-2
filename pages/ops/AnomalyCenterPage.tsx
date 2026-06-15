@@ -21,10 +21,10 @@ const ANOMALY_LABELS: Record<string, string> = {
   missing_proof: 'Preuve manquante',
 };
 
-const CORRIDOR_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  order: { label: 'Commande', color: 'blue', icon: 'shirt' },
-  payment: { label: 'Paiement', color: 'green', icon: 'currencyDollar' },
-  logistics: { label: 'Logistique', color: 'orange', icon: 'truck' },
+const CORRIDOR_CONFIG: Record<string, { label: string; badge: string; icon: string }> = {
+  order: { label: 'Commande', badge: 'bg-blue-100 text-blue-700', icon: 'shirt' },
+  payment: { label: 'Paiement', badge: 'bg-green-100 text-green-700', icon: 'currencyDollar' },
+  logistics: { label: 'Logistique', badge: 'bg-orange-100 text-orange-700', icon: 'truck' },
 };
 
 const SEVERITY_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; icon: string }> = {
@@ -173,7 +173,7 @@ export const AnomalyCenterPage: React.FC = () => {
           <div className="space-y-3">
             {anomalies.map(anomaly => {
               const severity = SEVERITY_CONFIG[anomaly.severity] || SEVERITY_CONFIG.low;
-              const corridorCfg = CORRIDOR_CONFIG[anomaly.corridor] || { label: anomaly.corridor, color: 'gray', icon: 'circle' };
+              const corridorCfg = CORRIDOR_CONFIG[anomaly.corridor] || { label: anomaly.corridor, badge: 'bg-gray-100 text-gray-700', icon: 'circle' };
 
               return (
                 <div key={anomaly.id} className={`bg-white rounded-lg border ${severity.border} shadow-sm hover:shadow-md transition overflow-hidden`}>
@@ -191,7 +191,7 @@ export const AnomalyCenterPage: React.FC = () => {
                           <span className="text-sm font-medium text-gray-900">
                             {ANOMALY_LABELS[anomaly.anomaly_type] || anomaly.anomaly_type}
                           </span>
-                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-${corridorCfg.color}-100 text-${corridorCfg.color}-700`}>
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${corridorCfg.badge}`}>
                             <Icon name={corridorCfg.icon as any} className="w-3 h-3" />
                             {corridorCfg.label}
                           </span>

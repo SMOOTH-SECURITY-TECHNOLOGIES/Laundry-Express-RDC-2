@@ -1,6 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { AdminAccountBar } from '../components/admin/AdminAccountBar';
+import { AdminStatusBanner } from '../components/admin/AdminStatusBanner';
 import { ControlCenterSidebar, controlCenterSections } from '../components/admin/ControlCenterSidebar';
 import { ControlCenterHeader } from '../components/admin/ControlCenterHeader';
 import { TechFooter } from '../components/admin/TechFooter';
@@ -9,47 +11,66 @@ import { Icon } from '../components/Icon';
 // Real pages - PILOTAGE
 import { TruthDashboard } from './ops/TruthDashboard';
 import { OrderTruthPage } from './ops/OrderTruthPage';
-import { AnomalyCenterPage } from './ops/AnomalyCenterPage';
+import { AnomalyCenterPage } from './AnomalyCenterPage';
 import { InvestigatePage } from './ops/InvestigatePage';
 
 // Real pages - MARKETPLACE
 import { PartnerManagement } from './admin/PartnerManagement';
 import { PartnerApplicationsPage } from './admin/PartnerApplicationsPage';
-import { ServiceManagement } from './admin/ServiceManagement';
-import { SubscriptionManagement } from './admin/SubscriptionManagement';
+import { ServicesControlCenter } from './ServicesControlCenter';
+import { SubscriptionsControlCenter } from './SubscriptionsControlCenter';
 
 // Real pages - COMMANDES
 import { OrderManagement } from './admin/OrderManagement';
-import { RefundManagement } from './admin/RefundManagement';
+import { OrdersControlCenter } from './OrdersControlCenter';
+import { RefundsControlCenter } from './RefundsControlCenter';
+import { DisputesControlCenter } from './DisputesControlCenter';
 
-// Real pages - LOGISTIQUE (widgets only, no existing CRUD pages for these)
+// Real pages - LOGISTIQUE
 import { CockpitDispatcher } from '../components/admin/CockpitDispatcher';
-import { DriverManagement } from './admin/DriverManagement';
+import { DispatcherControlCenter } from './DispatcherControlCenter';
+import { DriversControlCenter } from './DriversControlCenter';
+import { ZonesControlCenter } from './ZonesControlCenter';
 import { SlaCenter } from '../components/admin/SlaCenter';
+import { SlaControlCenter } from './SlaControlCenter';
 
 // Real pages - FINANCE
 import { FinanceSummary } from '../components/admin/FinanceSummary';
+import { PaymentsControlCenter } from './PaymentsControlCenter';
 import { RevenueLeakage } from '../components/admin/RevenueLeakage';
-import { CommissionManagement } from './admin/CommissionManagement';
+import { RevenueLeakageControlCenter } from './RevenueLeakageControlCenter';
+import { RevenueControlCenter } from './RevenueControlCenter';
+import { CommissionsControlCenter } from './CommissionsControlCenter';
 
 // Real pages - CROISSANCE
-import { PromoManagement } from './admin/PromoManagement';
-import { AdManagement } from './admin/AdManagement';
-import { LoyaltyManagement } from './admin/LoyaltyManagement';
-import { ReferralManagement } from './admin/ReferralManagement';
+import { PromotionsControlCenter } from './PromotionsControlCenter';
+import { AdsControlCenter } from './AdsControlCenter';
+import { LoyaltyControlCenter } from './LoyaltyControlCenter';
+import { ReferralsControlCenter } from './ReferralsControlCenter';
+import { CampaignsControlCenter } from './CampaignsControlCenter';
 
 // Real pages - CLIENTS
-import { UserManagement } from './admin/UserManagement';
+import { UsersControlCenter } from './UsersControlCenter';
+import { ReviewsControlCenter } from './ReviewsControlCenter';
+import { ClaimsControlCenter } from './ClaimsControlCenter';
+import { SupportControlCenter } from './SupportControlCenter';
 import { SupportManagement } from './admin/SupportManagement';
 
 // Real pages - CONTENU
-import { ContentManagement } from './admin/ContentManagement';
+import { CmsControlCenter } from './CmsControlCenter';
+import { BlogControlCenter } from './BlogControlCenter';
+import { NotificationsControlCenter } from './NotificationsControlCenter';
+import { PaymentGatewaysControlCenter } from './PaymentGatewaysControlCenter';
+import { WhatsappControlCenter } from './WhatsappControlCenter';
+import { SmsControlCenter } from './SmsControlCenter';
+import { EmailControlCenter } from './EmailControlCenter';
+import { IntegrationsControlCenter } from './IntegrationsControlCenter';
 
 // Real pages - ADMINISTRATION
-import { AdminManagement } from './admin/AdminManagement';
-import { ActivityLogManagement } from './admin/ActivityLogManagement';
+import { AdminManagementControlCenter } from './AdminManagementControlCenter';
+import { PermissionsControlCenter } from './PermissionsControlCenter';
+import { ActivityLogControlCenter } from './ActivityLogControlCenter';
 import { Analytics as AdminAnalytics } from './admin/Analytics';
-import { TrackingManagement } from './admin/TrackingManagement';
 
 // Overview widgets (dashboard-only)
 import { AlertBar } from '../components/admin/AlertBar';
@@ -76,6 +97,17 @@ const legacySectionMap: Record<string, string> = {
   loyalty: 'Fidélité',
   referral: 'Parrainage',
   content: 'Pages & CMS',
+  blog: 'Blog',
+  notifications: 'Notifications',
+  'payment-gateways': 'Passerelles paiement',
+  'integrations/whatsapp': 'WhatsApp',
+  whatsapp: 'WhatsApp',
+  'integrations/sms': 'SMS',
+  sms: 'SMS',
+  'integrations/email': 'Email',
+  email: 'Email',
+  'integrations/api-webhooks': 'API & Webhooks',
+  'api-webhooks': 'API & Webhooks',
   support: 'Support',
   analytics: 'Analytics',
   adminManagement: 'Gestion Admin',
@@ -90,16 +122,16 @@ const legacySectionMap: Record<string, string> = {
 };
 
 const ModulePage: React.FC<{ title: string; description: string; icon: string; connections: string[] }> = ({ title, description, icon, connections }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+  <div className="bg-surface-card rounded-2xl border border-surface-border-subtle shadow-sm p-8">
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="flex items-start gap-4">
-        <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
-          <Icon name={icon as any} className="w-7 h-7 text-blue-600" />
+        <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+          <Icon name={icon as any} className="w-7 h-7 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-          <p className="text-sm text-gray-500 max-w-2xl mt-1">{description}</p>
-          <p className="mt-3 inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">{title}</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-400 max-w-2xl mt-1">{description}</p>
+          <p className="mt-3 inline-flex rounded-full bg-orange-50 dark:bg-orange-900/30 px-3 py-1 text-xs font-bold text-orange-700 dark:text-orange-300">
             Module à connecter au backend avant activation des actions sensibles.
           </p>
         </div>
@@ -107,9 +139,9 @@ const ModulePage: React.FC<{ title: string; description: string; icon: string; c
     </div>
     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
       {connections.map((connection) => (
-        <div key={connection} className="flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2">
-          <Icon name="check" className="w-4 h-4 text-green-600" />
-          <span className="text-sm font-semibold text-gray-700">{connection}</span>
+        <div key={connection} className="flex items-center gap-2 rounded-xl bg-gray-50 dark:bg-slate-700/50 px-3 py-2">
+          <Icon name="check" className="w-4 h-4 text-green-600 dark:text-green-400" />
+          <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">{connection}</span>
         </div>
       ))}
     </div>
@@ -148,9 +180,25 @@ export const AdminControlCenter: React.FC = () => {
       const detail = (event as CustomEvent<string>).detail;
       if (detail) setActionMessage(detail);
     };
+    const handleAdminNavigate = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (!detail) return;
+      setActiveItem(detail);
+      setActionMessage(null);
+    };
+    const handleAdminActionMessage = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (detail) setActionMessage(detail);
+    };
 
     window.addEventListener('admin-action', handleAdminAction);
-    return () => window.removeEventListener('admin-action', handleAdminAction);
+    window.addEventListener('admin-navigate', handleAdminNavigate);
+    window.addEventListener('admin-action-message', handleAdminActionMessage);
+    return () => {
+      window.removeEventListener('admin-action', handleAdminAction);
+      window.removeEventListener('admin-navigate', handleAdminNavigate);
+      window.removeEventListener('admin-action-message', handleAdminActionMessage);
+    };
   }, []);
 
   const renderContent = () => {
@@ -195,7 +243,7 @@ export const AdminControlCenter: React.FC = () => {
       case 'Analytics':
         return <AdminAnalytics />;
       case 'Activity Log':
-        return <ActivityLogManagement />;
+        return <ActivityLogControlCenter />;
 
       // ─── MARKETPLACE ───
       case 'Partenaires':
@@ -203,167 +251,91 @@ export const AdminControlCenter: React.FC = () => {
       case 'Candidatures':
         return <PartnerApplicationsPage />;
       case 'Services':
-        return <ServiceManagement />;
+        return <ServicesControlCenter />;
       case 'Abonnements':
-        return <SubscriptionManagement />;
+        return <SubscriptionsControlCenter />;
 
       // ─── COMMANDES ───
       case 'Commandes':
-        return <OrderManagement />;
+        return <OrdersControlCenter />;
       case 'Litiges':
-        return <RefundManagement />;
+        return <DisputesControlCenter />;
 
       // ─── LOGISTIQUE ───
       case 'Cockpit Dispatcher':
-        return (
-          <>
-            <CockpitDispatcher />
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <SlaCenter />
-              <KinshasaMap />
-            </div>
-          </>
-        );
+        return <DispatcherControlCenter />;
       case 'Missions':
-        return <CockpitDispatcher />;
+        return <DispatcherControlCenter />;
       case 'Chauffeurs':
-        return <DriverManagement />;
+        return <DriversControlCenter />;
       case 'Zones':
-        return (
-          <ModulePage
-            title="Gestion des zones"
-            description="Définissez les zones de couverture, tarifs par zone et limites de livraison."
-            icon="map"
-            connections={['Cockpit Dispatcher', 'Chauffeurs', 'SLA Center', 'Services']}
-          />
-        );
+        return <ZonesControlCenter />;
       case 'SLA Center':
-        return <SlaCenter />;
+        return <SlaControlCenter />;
 
       // ─── FINANCE ───
       case 'Revenus':
-        return (
-          <>
-            <FinanceSummary />
-            <RevenueLeakage />
-          </>
-        );
+        return <RevenueControlCenter />;
       case 'Commissions':
-        return <CommissionManagement />;
+        return <CommissionsControlCenter />;
       case 'Remboursements':
-        return <RefundManagement />;
+        return <RefundsControlCenter />;
       case 'Paiements':
-        return <FinanceSummary />;
+        return <PaymentsControlCenter />;
       case 'Revenue Leakage':
-        return <RevenueLeakage />;
+        return <RevenueLeakageControlCenter />;
 
       // ─── CROISSANCE ───
       case 'Promotions':
-        return <PromoManagement />;
+        return <PromotionsControlCenter />;
       case 'Publicités':
-        return <AdManagement />;
+        return <AdsControlCenter />;
       case 'Fidélité':
-        return <LoyaltyManagement />;
+        return <LoyaltyControlCenter />;
       case 'Parrainage':
-        return <ReferralManagement />;
+        return <ReferralsControlCenter />;
       case 'Campagnes':
-        return (
-          <ModulePage
-            title="Campagnes"
-            description="Créez des campagnes SMS, email et WhatsApp pour vos utilisateurs."
-            icon="paper-plane"
-            connections={['Notifications', 'WhatsApp', 'SMS', 'Email']}
-          />
-        );
+        return <CampaignsControlCenter />;
 
       // ─── CLIENTS ───
       case 'Utilisateurs':
-        return <UserManagement />;
+        return <UsersControlCenter />;
       case 'Support':
-        return <SupportManagement />;
+        return <SupportControlCenter />;
       case 'Avis & Notes':
-        return (
-          <ModulePage
-            title="Avis & Notes"
-            description="Consultez les avis clients, notes partenaires et répondez aux évaluations."
-            icon="star"
-            connections={['Partenaires', 'Chauffeurs', 'Support', 'Analytics']}
-          />
-        );
+        return <ReviewsControlCenter />;
       case 'Réclamations':
-        return <SupportManagement />;
+        return <ClaimsControlCenter />;
 
       // ─── CONTENU ───
       case 'Pages & CMS':
-        return <ContentManagement />;
+        return <CmsControlCenter />;
       case 'Bannières':
-        return <AdManagement />;
+        return <AdsControlCenter />;
       case 'Blog':
-        return (
-          <ModulePage
-            title="Blog"
-            description="Publiez des articles, conseils et actualités pour vos utilisateurs."
-            icon="document"
-            connections={['Pages & CMS', 'Services', 'Partenaires', 'Analytics']}
-          />
-        );
+        return <BlogControlCenter />;
       case 'Notifications':
-        return (
-          <ModulePage
-            title="Notifications"
-            description="Configurez les notifications push, email et SMS automatiques."
-            icon="bell"
-            connections={['Campagnes', 'WhatsApp', 'SMS', 'Email']}
-          />
-        );
+        return <NotificationsControlCenter />;
 
       // ─── INTÉGRATIONS ───
       case 'Passerelles paiement':
-        return <FinanceSummary />;
+        return <PaymentGatewaysControlCenter />;
       case 'WhatsApp':
-        return (
-          <ModulePage
-            title="Intégration WhatsApp"
-            description="Configurez l'envoi de notifications et le support client via WhatsApp Business API."
-            icon="chatBubble"
-            connections={['Notifications', 'Support', 'Campagnes', 'API & Webhooks']}
-          />
-        );
+        return <WhatsappControlCenter />;
       case 'SMS':
-        return (
-          <ModulePage
-            title="Intégration SMS"
-            description="Configurez l'envoi de SMS transactionnels et marketing via les opérateurs locaux."
-            icon="device-phone-mobile"
-            connections={['Notifications', 'Campagnes', 'Utilisateurs', 'API & Webhooks']}
-          />
-        );
+        return <SmsControlCenter />;
       case 'Email':
-        return (
-          <ModulePage
-            title="Intégration Email"
-            description="Configurez l'envoi d'emails transactionnels (confirmations, factures, notifications)."
-            icon="envelope"
-            connections={['Notifications', 'Campagnes', 'Paiements', 'Utilisateurs']}
-          />
-        );
+        return <EmailControlCenter />;
       case 'API & Webhooks':
-        return <TrackingManagement />;
+        return <IntegrationsControlCenter />;
 
       // ─── ADMINISTRATION ───
       case 'Gestion Admin':
-        return <AdminManagement />;
+        return <AdminManagementControlCenter />;
       case 'Permissions':
-        return (
-          <ModulePage
-            title="Permissions"
-            description="Configurez la matrice de permissions par rôle et section du dashboard."
-            icon="shield-check"
-            connections={['Gestion Admin', 'Journal admin', 'Activity Log', 'API & Webhooks']}
-          />
-        );
+        return <PermissionsControlCenter />;
       case 'Journal admin':
-        return <ActivityLogManagement />;
+        return <ActivityLogControlCenter />;
 
       default:
         return (
@@ -380,22 +352,31 @@ export const AdminControlCenter: React.FC = () => {
     }
   };
 
+  const selfHeaderSections = new Set([
+    'Litiges', 'Commandes', 'Abonnements', 'Cockpit Dispatcher', 'Missions', 'Chauffeurs', 'Zones', 'SLA Center',
+    'Revenus', 'Commissions', 'Remboursements', 'Paiements', 'Revenue Leakage', 'Promotions',
+    'Pages & CMS', 'Blog', 'Notifications', 'Passerelles paiement', 'WhatsApp', 'SMS', 'Email', 'API & Webhooks', 'Gestion Admin', 'Permissions', 'Journal admin', 'Réclamations', 'Publicités', 'Fidélité', 'Parrainage', 'Campagnes', 'Support', 'Avis & Notes',
+  ]);
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
+    <div className="admin-shell min-h-screen bg-surface-page text-content-primary flex">
       <ControlCenterSidebar activeItem={activeItem} onItemClick={handleNavigate} />
-      <div className="flex-1 lg:ml-[260px]">
-        <ControlCenterHeader
-          activeItem={activeItem}
-          onNavigate={handleNavigate}
-          onAction={handleAction}
-        />
-        <div className="lg:hidden border-b border-gray-200 bg-white px-4 py-3">
+      <div className="flex-1 lg:ml-[260px] flex flex-col min-h-screen">
+        <AdminAccountBar />
+        {!selfHeaderSections.has(activeItem) && (
+          <ControlCenterHeader
+            activeItem={activeItem}
+            onNavigate={handleNavigate}
+            onAction={handleAction}
+          />
+        )}
+        <div className="lg:hidden border-b border-surface-border bg-surface-card px-4 py-3">
           <label htmlFor="admin-mobile-section" className="sr-only">Section admin</label>
           <select
             id="admin-mobile-section"
             value={activeItem}
             onChange={(event) => handleNavigate(event.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-surface-border bg-surface-muted px-3 py-2 text-sm font-semibold text-content-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {controlCenterSections.map((section) => (
               <optgroup key={section.title} label={section.title}>
@@ -410,9 +391,9 @@ export const AdminControlCenter: React.FC = () => {
         </div>
         <div className="p-6 space-y-6">
           {actionMessage && (
-            <div role="status" className="rounded-2xl border border-blue-100 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700">
+            <AdminStatusBanner variant="info" showIcon={false}>
               {actionMessage}
-            </div>
+            </AdminStatusBanner>
           )}
           {renderContent()}
         </div>

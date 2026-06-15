@@ -28,6 +28,7 @@ import { OrderTruthPage } from './ops/OrderTruthPage';
 import { AnomalyCenterPage } from './ops/AnomalyCenterPage';
 import { InvestigatePage } from './ops/InvestigatePage';
 import { PartnerApplicationsPage } from './admin/PartnerApplicationsPage';
+import { OrderAddOnManagement } from './admin/OrderAddOnManagement';
 
 export const AdminPage: React.FC = () => {
     const { user, setCurrentPage, logout, setOpenChatForOrderId, adminSectionParams, setAdminSectionParams, t } = useAppContext();
@@ -90,6 +91,8 @@ export const AdminPage: React.FC = () => {
                 return <PartnerApplicationsPage />;
             case 'services':
                 return <ServiceManagement />;
+            case 'order-add-ons':
+                return <OrderAddOnManagement />;
             case 'users':
                 return <UserManagement />;
             case 'orders':

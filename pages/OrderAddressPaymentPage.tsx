@@ -150,6 +150,12 @@ export const OrderAddressPaymentPage: React.FC<OrderAddressPaymentPageProps> = (
         pickupTime: selectedSlot,
         appliedPromoCode: orderDraft.appliedPromoCode,
         paymentMethod,
+        mobileMoneyDetails: paymentMethod === 'mobile_money' ? {
+          transactionId: '',
+          phoneNumber: mmDetails.phone,
+          amount: displayTotal,
+          provider: mmDetails.operator === 'Airtel Money' ? 'Airtel Money' : mmDetails.operator === 'Orange Money' ? 'Orange Money' : 'M-Pesa',
+        } : undefined,
         discountAmount: orderDraft.discountAmount,
         pointsDiscount: orderDraft.pointsDiscount,
         referralDiscount: orderDraft.referralDiscount,
@@ -157,7 +163,14 @@ export const OrderAddressPaymentPage: React.FC<OrderAddressPaymentPageProps> = (
       });
 
       setActiveOrder(createdOrder);
-      addNotification('Commande créée avec succès. Vous pouvez maintenant la suivre.', 'success');
+
+      if (createdOrder.paymentStatus === 'paid') {
+        addNotification('Commande confirmée et paiement reçu. Suivez votre commande en temps réel.', 'success');
+      } else if (paymentMethod === 'cash') {
+        addNotification('Commande créée. Le paiement sera collecté à la livraison.', 'success');
+      } else {
+        addNotification('Commande créée. Paiement en cours de traitement.', 'success');
+      }
       appEvents.emit('analytics', { event: 'order_confirmed', data: { orderId: createdOrder.id } });
       setCurrentPage({ name: 'tracking' });
     } catch {

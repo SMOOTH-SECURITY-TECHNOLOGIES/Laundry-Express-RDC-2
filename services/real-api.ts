@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:18000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 import { DB } from '../constants';
 
@@ -102,6 +102,22 @@ export interface CatalogPartnerService {
   is_available: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface OrderAddOnItem {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  image_url: string;
+  price: number | string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export interface OrderAddOnListResponse {
+  add_ons: OrderAddOnItem[];
+  total: number;
 }
 
 export interface CatalogServiceCategory {
@@ -447,7 +463,23 @@ export interface PartnerProfileDetailResponse {
   city?: string | null;
   commune?: string | null;
   video_url?: string | null;
+  image_urls?: string[];
+  media_gallery?: Record<string, string[]>;
   service_count: number;
+  working_hours: PartnerProfileWorkingHours;
+}
+
+export interface PartnerPublicProfileResponse {
+  id: string;
+  name: string;
+  address: string;
+  city?: string | null;
+  commune?: string | null;
+  rating: number;
+  total_reviews: number;
+  video_url?: string | null;
+  image_urls: string[];
+  media_gallery: Record<string, string[]>;
   working_hours: PartnerProfileWorkingHours;
 }
 
@@ -546,6 +578,59 @@ export interface AdminOverview {
   open_disputes: number;
   open_tickets: number;
   pending_refunds: number;
+}
+
+export interface BackendAdsDashboardResponse {
+  kpis: {
+    active_ads: number;
+    active_ads_change: number;
+    active_ads_sparkline?: number[];
+    impressions: number;
+    impressions_change: number;
+    impressions_sparkline?: number[];
+    clicks: number;
+    clicks_change: number;
+    clicks_sparkline?: number[];
+    ctr: number;
+    ctr_change: number;
+    ctr_sparkline?: number[];
+    conversions: number;
+    conversions_change: number;
+    conversions_sparkline?: number[];
+    spend: number;
+    spend_change: number;
+    spend_sparkline?: number[];
+    roi: number;
+    roi_change: number;
+    roi_sparkline?: number[];
+  };
+  ads: Array<{
+    id: string;
+    title: string;
+    campaign: string;
+    channel: string;
+    zone: string;
+    budget: number;
+    spend: number;
+    impressions: number;
+    clicks: number;
+    ctr: number;
+    conversions: number;
+    roi: number;
+    status: string;
+  }>;
+  funnel: Array<{ stage: string; count: number; rate: number }>;
+  channels: Array<{ channel: string; percent: number; budget: number; conversions: number; roi: number; color: string }>;
+  zones: Array<{ id: string; name: string; budget: number; conversions: number; roi: number; map_x: number; map_y: number; heat_color: string }>;
+  campaigns: Array<{ id: string; name: string; objective: string; budget: number; spend: number; conversions: number; roi: number; status: string }>;
+  segments: Array<{ segment: string; segment_key: string; clients: number; percent: number }>;
+  reactivation: { dormant_clients: number; reactivated: number; revenue_recovered: number; reactivation_rate: number };
+  ab_tests: Array<Record<string, unknown>>;
+  top_ads: Array<{ title: string; roi: number; rank: number }>;
+  insights: Array<{ id: string; text: string; type: string }>;
+  truth_anomalies: Array<{ id: string; message: string; severity: string }>;
+  attribution: { cpa: number; cac: number; roas: number; roi: number; attributed_revenue: number };
+  source: string;
 }
 
 export interface AdminActivityLog {
@@ -780,6 +865,78 @@ export interface LoyaltyPolicyMetrics {
   reward_value_per_100_spent: number;
 }
 
+export interface BackendLoyaltyDashboardResponse {
+  kpis: {
+    members: number;
+    members_change: number;
+    members_sparkline?: number[];
+    points_circulation: number;
+    points_circulation_change: number;
+    points_circulation_sparkline?: number[];
+    points_earned: number;
+    points_earned_change: number;
+    points_earned_sparkline?: number[];
+    points_redeemed: number;
+    points_redeemed_change: number;
+    points_redeemed_sparkline?: number[];
+    points_value: number;
+    points_value_change: number;
+    points_value_sparkline?: number[];
+    redemption_rate: number;
+    redemption_rate_change: number;
+    redemption_rate_sparkline?: number[];
+    influenced_revenue: number;
+    influenced_revenue_change: number;
+    influenced_revenue_sparkline?: number[];
+    retention_rate: number;
+    retention_rate_change: number;
+    retention_rate_sparkline?: number[];
+  };
+  health: {
+    score: number;
+    status: string;
+    redemption_rate: number;
+    points_liability: number;
+    retention_uplift: number;
+    fraud_risk: number;
+    unused_points: number;
+  };
+  settings: {
+    is_enabled: boolean;
+    points_per_dollar: number;
+    points_to_dollar: number;
+    points_expiry_days: number | null;
+    redemption_cap: number | null;
+    first_order_bonus: number;
+  };
+  rewards: Array<{ id: string; name: string; points_required: number; value_dollars: number; uses_count: number; status: string }>;
+  earning_rules: Array<{ id: string; name: string; condition: string; points: string; status: string; performance: number }>;
+  activity: Array<{
+    id: string; client_name: string; client_email: string; entry_type: string;
+    order_number: string | null; points_delta: number; balance_after: number;
+    created_at: string | null; source: string;
+  }>;
+  top_users: Array<{
+    user_id: string; name: string; email: string; points: number;
+    estimated_value: number; orders_count: number; last_activity: string | null;
+  }>;
+  top_redeemers: Array<{
+    user_id: string; name: string; points_used: number;
+    amount_saved: number; linked_orders: number;
+  }>;
+  retention: Array<{ period: string; members: number; non_members: number }>;
+  revenue_impact: {
+    influenced_revenue: number; influenced_revenue_change: number;
+    avg_basket_members: number; avg_basket_non_members: number;
+    order_frequency_members: number; points_cost: number; loyalty_roi: number;
+  };
+  cohorts: Array<{ month: string; m0: number; m1: number; m2: number; m3: number; m4: number }>;
+  risks: Array<{ id: string; message: string; count: number; severity: string }>;
+  segments: Array<{ segment: string; segment_key: string; count: number; percent: number }>;
+  integrations: Array<{ module: string; status: string; connected: boolean }>;
+  source: string;
+}
+
 export interface LoyaltyAdminOverview {
   total_users_with_points: number;
   total_points_balance: number;
@@ -815,6 +972,561 @@ export interface ReferralTopReferrer {
   referral_code?: string | null;
   successful_referrals: number;
   total_bonus_points_awarded: number;
+}
+
+export interface BackendReferralDashboardResponse {
+  kpis: {
+    users_with_code: number;
+    users_with_code_change: number;
+    users_with_code_sparkline?: number[];
+    referred_users: number;
+    referred_users_change: number;
+    referred_users_sparkline?: number[];
+    discounts_used: number;
+    discounts_used_change: number;
+    discounts_used_sparkline?: number[];
+    bonus_points: number;
+    bonus_points_change: number;
+    bonus_points_sparkline?: number[];
+    completed_conversions: number;
+    completed_conversions_change: number;
+    completed_conversions_sparkline?: number[];
+    revenue_generated: number;
+    revenue_generated_change: number;
+    revenue_generated_sparkline?: number[];
+  };
+  settings: {
+    is_enabled: boolean;
+    referrer_bonus_points: number;
+    referee_discount_amount: number;
+    referrer_conversion_bonus: number;
+    referee_conversion_bonus: number;
+    points_expiry_days: number | null;
+    bonus_cap_per_referrer: number | null;
+    allowed_channels: string[];
+  };
+  channels: Array<{ channel: string; percent: number; conversions: number; roi: number; color: string }>;
+  top_referrers: Array<{
+    rank: number; user_id: string; name: string; email: string; referral_code: string | null;
+    referees: number; conversions: number; bonus_points: number; revenue_generated: number;
+  }>;
+  recent_conversions: Array<{
+    id: string; referee_name: string; referee_email: string; order_id: string | null;
+    date: string | null; discount_used: number; status: string;
+  }>;
+  watchlist: Array<{ id: string; message: string; count: number; severity: string }>;
+  trends: Array<{ date: string; conversions: number; revenue: number }>;
+  impact: Array<{ indicator: string; referred: number; non_referred: number; difference: number }>;
+  popular_codes: Array<{ code: string; uses: number; conversions: number; roi: number }>;
+  total_revenue: number;
+  source: string;
+}
+
+export interface BackendReviewsDashboardResponse {
+  kpis: {
+    avg_rating: number; avg_rating_change: number; avg_rating_sparkline?: number[];
+    total_reviews: number; total_reviews_change: number; total_reviews_sparkline?: number[];
+    five_star: number; five_star_change: number; five_star_sparkline?: number[];
+    low_star: number; low_star_change: number; low_star_sparkline?: number[];
+    response_rate: number; response_rate_change: number; response_rate_sparkline?: number[];
+    pending_reviews: number; pending_reviews_change: number; pending_reviews_sparkline?: number[];
+    positive_sentiment: number; positive_sentiment_change: number; positive_sentiment_sparkline?: number[];
+    churn_risk: number; churn_risk_change: number; churn_risk_sparkline?: number[];
+  };
+  reviews: Array<{
+    id: string; client_name: string; client_id: string; review_type: string; review_type_label: string;
+    rating: number; comment: string; source: string; date: string | null;
+    status: string; status_label: string; partner_name?: string | null; order_id?: string | null;
+  }>;
+  rating_distribution: Array<{ stars: number; count: number; percent: number; change: number; color: string }>;
+  channels: Array<{ channel: string; count: number; percent: number; color: string }>;
+  review_types: Array<{ review_type: string; count: number; avg_rating: number; percent: number }>;
+  top_partners: Array<{ partner_id: string; partner_name: string; avg_rating: number; review_count: number }>;
+  top_drivers: Array<{ driver_id: string; driver_name: string; avg_rating: number; review_count: number }>;
+  negative_queue: Array<{ id: string; author: string; problem: string; date: string | null; priority: string }>;
+  sentiment: Array<{ sentiment: string; count: number; percent: number; color: string }>;
+  issues: Array<{ issue: string; tickets: number; variation: number; impact: string }>;
+  agents: Array<{ agent_id: string; agent_name: string; reviews_handled: number; avg_response_minutes: number; satisfaction: number }>;
+  insights: Array<{ id: string; text: string; category: string }>;
+  word_cloud: Array<{ word: string; weight: number; color: string }>;
+  trends: Array<{ date: string; avg_rating: number; volume: number }>;
+  source: string;
+}
+
+export interface BackendClaimsDashboardResponse {
+  kpis: {
+    open_claims: number; open_claims_change: number; open_claims_sparkline?: number[];
+    critical_claims: number; critical_claims_change: number; critical_claims_sparkline?: number[];
+    active_disputes: number; active_disputes_change: number; active_disputes_sparkline?: number[];
+    refund_exposure: number; refund_exposure_change: number; refund_exposure_sparkline?: number[];
+    sla_compliance: number; sla_compliance_change: number; sla_compliance_sparkline?: number[];
+    avg_resolution_hours: number; avg_resolution_change: number; avg_resolution_sparkline?: number[];
+    resolved_this_month: number; resolved_change: number; resolved_sparkline?: number[];
+    amount_at_risk: number; amount_at_risk_change: number; amount_at_risk_sparkline?: number[];
+  };
+  claims: Array<{
+    id: string; claim_number: string; title: string; ai_summary: string;
+    client_name: string; category: string; category_label: string;
+    priority: string; priority_label: string; status: string; status_label: string;
+    financial_impact: number; sla_label: string; sla_state: string;
+    sla_minutes_remaining: number | null; updated_at: string | null; partner_name?: string | null;
+  }>;
+  distribution: Array<{ category: string; count: number; percent: number; color: string }>;
+  sla: { in_sla: number; at_risk: number; breached: number; compliance_percent: number; by_category: Array<Record<string, unknown>> };
+  workflow: Array<{ stage: string; stage_label: string; claims: BackendClaimsDashboardResponse['claims'] }>;
+  root_causes: Array<{ cause: string; occurrences: number; trend: number; impact: string }>;
+  heatmap: Array<{ zone: string; claims: number; density: number }>;
+  partner_risks: Array<{ partner_id: string; partner_name: string; claim_count: number; avg_rating: number; refund_amount: number; risk_score: number }>;
+  driver_risks: Array<{ driver_id: string; driver_name: string; incident_count: number; complaints: number; avg_rating: number; risk_score: number }>;
+  refunds: {
+    pending_count: number; pending_amount: number; approved_count: number; approved_amount: number;
+    paid_count: number; paid_amount: number; rejected_count: number; rejected_amount: number; total_exposure: number;
+  };
+  escalations: Array<{ reason: string; severity: string; claim_id?: string; count?: number }>;
+  source: string;
+}
+
+export interface BackendCmsDashboardResponse {
+  kpis: {
+    published_pages: number; published_change: number; published_sparkline?: number[];
+    drafts: number; drafts_change: number; drafts_sparkline?: number[];
+    scheduled_pages: number; scheduled_change: number; scheduled_sparkline?: number[];
+    blog_posts: number; blog_change: number; blog_sparkline?: number[];
+    visitors_7d: number; visitors_change: number; visitors_sparkline?: number[];
+    conversions_7d: number; conversions_change: number; conversions_sparkline?: number[];
+    avg_seo_score: number; seo_change: number; seo_sparkline?: number[];
+    revenue_generated: number; revenue_change: number; revenue_sparkline?: number[];
+  };
+  pages: Array<{
+    id: string; slug: string; title: string; page_type: string; page_type_label: string;
+    status: string; status_label: string; language: string; updated_at: string | null;
+    views_7d: number; seo_score: number; thumbnail_url?: string | null;
+  }>;
+  site_tree: Array<{ id: string; label: string; slug: string; children?: Array<{ id: string; label: string; slug: string }> }>;
+  publication_status: Array<{ status: string; label: string; count: number; percent: number; color: string }>;
+  seo_score: number;
+  seo_checklist: Array<Record<string, unknown>>;
+  top_pages: Array<{ page_id: string; title: string; slug: string; views: number; percent: number }>;
+  recent_revisions: Array<{ id: string; page_title: string; action: string; user_name: string; created_at: string | null }>;
+  languages: Array<{ language: string; label: string; page_count: number }>;
+  templates: Array<{ key: string; label: string; description: string; preview_url?: string | null }>;
+  ai_suggestions: Array<{ id: string; text: string; category: string }>;
+  recent_media: Array<{ id: string; filename: string; file_url: string; mime_type?: string | null; size?: number | null; thumbnail_url?: string | null }>;
+  source: string;
+}
+
+export interface BackendBlogDashboardResponse {
+  kpis: {
+    published_posts: number; published_change: number; published_sparkline?: number[];
+    drafts: number; drafts_change: number; drafts_sparkline?: number[];
+    scheduled_posts: number; scheduled_change: number; scheduled_sparkline?: number[];
+    monthly_views: number; monthly_views_change: number; monthly_views_sparkline?: number[];
+    leads_generated: number; leads_change: number; leads_sparkline?: number[];
+    conversions: number; conversions_change: number; conversions_sparkline?: number[];
+    avg_seo_score: number; seo_change: number; seo_sparkline?: number[];
+  };
+  posts: Array<{
+    id: string; slug: string; title: string; excerpt: string;
+    author_name: string; author_avatar?: string | null;
+    category: string; category_color: string;
+    status: string; status_label: string;
+    seo_score: number; views_count: number; comments_count: number;
+    published_at: string | null; featured_image?: string | null;
+  }>;
+  categories: Array<{ id: string; name: string; slug: string; post_count: number; color: string }>;
+  tags: Array<{ id: string; name: string; slug: string; post_count: number }>;
+  seo_distribution: Array<{ label: string; count: number; percent: number; color: string }>;
+  top_posts: Array<{ post_id: string; title: string; views: number; ctr: number; leads: number; seo_score: number }>;
+  trends: Array<{ date: string; views: number; leads: number }>;
+  ai_suggestions: Array<{ id: string; text: string; category: string }>;
+  calendar: Array<{ date: string; post_count: number }>;
+  source: string;
+}
+
+export interface BackendPaymentGatewaysDashboardResponse {
+  kpis: {
+    revenue_trend: number; revenue_trend_sparkline?: number[];
+    revenue_today: number; revenue_today_change: number; revenue_today_tx: number;
+    revenue_week: number; revenue_week_change: number; revenue_week_tx: number;
+    revenue_month: number; revenue_month_change: number; revenue_month_tx: number;
+    commissions_due: number; commissions_due_ops: number;
+    commissions_paid: number; commissions_paid_ops: number;
+    cash_in_transit: number; cash_in_transit_ops: number;
+  };
+  gateways: Array<{ id: string; slug: string; name: string; channel: string; logo_key: string | null; status: string; status_label: string; volume: number; revenue: number; commission: number; success_rate: number; last_incident_at: string | null }>;
+  revenue_distribution: Array<{ label: string; amount: number; percent: number; color: string; trend: number }>;
+  channel_performance: Array<{ channel: string; delivery_rate: number; success_rate: number; failure_rate: number; avg_time_ms: number; latency_ms: number }>;
+  transactions: Array<{ id: string; reference: string; client_name: string; gateway_slug: string; gateway_name: string; amount: number; currency: string; status: string; status_label: string; created_at: string | null }>;
+  cash_flow: { cash_received: number; cash_withdrawn: number; cash_in_transit: number; cash_net: number; sparkline_7d?: number[]; sparkline_30d?: number[]; sparkline_90d?: number[] };
+  commissions: { generated: number; paid: number; pending: number; cancelled: number; distribution: Array<{ label: string; amount: number; percent: number; color: string }> };
+  incidents: Array<{ id: string; incident_type: string; title: string; severity: string; gateway_slug: string | null; impact: string | null; occurred_at: string | null }>;
+  success_rate_trend: Array<{ label: string; rate: number }>;
+  top_partners: Array<{ name: string; revenue: number; transactions: number; avg_basket: number }>;
+  settlements: Array<{ id: string; gateway_slug: string; gateway_name: string; scheduled_at: string | null; amount: number; status: string; status_label: string }>;
+  webhooks: Array<{ id: string; gateway_slug: string; endpoint: string; last_call_at: string | null; success_count: number; error_count: number; retry_count: number; events: string[] }>;
+  reconciliations: Array<{ id: string; reference: string; provider_amount: number | null; internal_amount: number | null; status: string; status_label: string; gateway_slug: string | null }>;
+  provider_health: Array<{ gateway_slug: string; name: string; uptime: number; latency_ms: number; error_rate: number; success_rate: number; status: string }>;
+  refunds: Array<{ id: string; client_name: string; amount: number; reason: string | null; status: string; gateway_slug: string | null }>;
+  fraud: { score: number; repeated_payments: number; suspicious_amounts: number; abusive_refunds: number; multiple_attempts: number };
+  source: string;
+}
+
+export interface BackendSmsDashboardResponse {
+  kpis: {
+    sent_today: number; sent_today_change: number; sent_today_sparkline?: number[];
+    delivery_rate: number; delivery_rate_change: number; delivery_rate_sparkline?: number[];
+    failure_rate: number; failure_rate_change: number; failure_rate_sparkline?: number[];
+    cost_today: number; cost_today_change: number; cost_today_sparkline?: number[];
+    credits_available: number; credits_change: number; credits_sparkline?: number[];
+    active_campaigns: number; active_campaigns_change: number;
+    otp_success_rate: number; otp_success_change: number; otp_success_sparkline?: number[];
+    monthly_volume: number; monthly_volume_change: number; monthly_volume_sparkline?: number[];
+  };
+  operator_distribution: Array<{ slug: string; name: string; volume: number; percent: number; cost: number; delivery_rate: number; color: string }>;
+  messages: Array<{ id: string; reference: string; recipient_name: string | null; phone_number: string; sender_name: string | null; message_type: string; message_type_label: string; status: string; status_label: string; operator_slug: string | null; operator_name: string | null; cost: number; sent_at: string | null }>;
+  operator_performance: Array<{ slug: string; name: string; delivery_rate: number; failure_rate: number; avg_delivery_ms: number; cost: number; volume: number }>;
+  delivery_status: Array<{ label: string; count: number; percent: number; color: string }>;
+  campaigns: Array<{ id: string; name: string; campaign_type: string; type_label: string; status: string; status_label: string; audience: string | null; sent_count: number; delivered_count: number; reply_count: number; scheduled_at: string | null }>;
+  templates: Array<{ id: string; name: string; category: string; category_label: string; content: string; active: boolean; usage_count: number; delivery_rate: number }>;
+  senders: Array<{ id: string; name: string; sender_id: string; approved: boolean; active: boolean; approval_status: string; approval_label: string; volume: number; delivery_rate: number }>;
+  credits: { current_credits: number; monthly_consumption: number; avg_cost_per_sms: number; auto_recharge: boolean; alert_threshold: number };
+  credit_ledger: Array<{ id: string; movement_type: string; movement_label: string; amount: number; balance_after: number; note: string | null; created_at: string | null }>;
+  otp_kpis: { sent: number; validated: number; success_rate: number; avg_validation_sec: number };
+  otp_records: Array<{ id: string; phone_number: string; code_masked: string; status: string; status_label: string; created_at: string | null; expires_at: string | null }>;
+  alerts: Array<{ id: string; alert_type: string; title: string; severity: string; count: number }>;
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  activities: Array<{ id: string; message: string; activity_type: string; created_at: string | null }>;
+  webhooks: Array<{ id: string; endpoint: string; secret_masked: string | null; last_call_at: string | null; success_count: number; error_count: number; consecutive_errors: number }>;
+  settings: { auto_recharge: boolean; alert_threshold: number; default_sender: string; providers: string[] };
+  logs: Array<{ id: string; reference: string | null; phone_number: string | null; event_type: string; status: string | null; provider_id: string | null; created_at: string | null }>;
+  source: string;
+}
+
+export interface BackendAdminMgmtDashboardResponse {
+  kpis: {
+    total_admins: number; total_admins_change: number; total_admins_sparkline?: number[];
+    super_admins: number; super_admins_change: number;
+    active_admins: number; active_admins_change: number;
+    roles_count: number; roles_change: number;
+    active_sessions: number; active_sessions_change: number;
+    pending_invitations: number; pending_invitations_change: number;
+  };
+  admins: Array<{ id: string; name: string; email: string; phone: string | null; role_slug: string; role_label: string; status: string; status_label: string; two_fa_enabled: boolean; last_login_at: string | null; avatar_url: string | null }>;
+  roles: Array<{ id: string; slug: string; name: string; description: string | null; user_count: number; permissions_count: number; created_at_label: string | null }>;
+  rbac_matrix: Array<{ role_slug: string; resource: string; can_view: boolean; can_create: boolean; can_update: boolean; can_delete: boolean; can_export: boolean }>;
+  rbac_resources: string[];
+  invitations: Array<{ id: string; email: string; role_slug: string; role_label: string; invited_by: string | null; status: string; expires_at: string | null; created_at: string | null }>;
+  sessions: Array<{ id: string; user_name: string; user_email: string; ip_address: string | null; city: string | null; device: string | null; browser: string | null; is_active: boolean; last_seen_at: string | null }>;
+  security: { active_sessions: number; logins_24h: number; login_failures: number; two_fa_pct: number };
+  activity_logs: Array<{ id: string; occurred_at: string | null; actor_name: string; action: string; action_label: string; target: string | null; ip_address: string | null; result: string; result_label: string }>;
+  audit_logs: Array<{ id: string; occurred_at: string | null; actor_name: string; resource_type: string; resource_id: string | null; old_state: Record<string, unknown> | null; new_state: Record<string, unknown> | null }>;
+  security_alerts: Array<{ id: string; alert_type: string; title: string; severity: string; count: number }>;
+  role_distribution: Array<{ role_slug: string; role_label: string; count: number; percent: number; color: string }>;
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  read_only: boolean;
+  source: string;
+}
+
+export interface BackendRbacDashboardResponse {
+  kpis: {
+    roles_count: number; roles_change: number; roles_sparkline?: number[];
+    permissions_count: number; permissions_change: number; permissions_sparkline?: number[];
+    affected_users: number; affected_users_change: number; affected_users_sparkline?: number[];
+    super_admins: number; super_admins_change: number;
+    changes_30d: number; changes_30d_change: number; changes_30d_sparkline?: number[];
+    security_alerts: number; security_alerts_change: number; security_alerts_sparkline?: number[];
+  };
+  roles: Array<{ id: string; slug: string; name: string; description: string | null; user_count: number; permissions_count: number; created_at_label: string | null; is_system: boolean; status: string }>;
+  permissions: Array<{ id: string; slug: string; module: string; action: string; label: string; description: string | null; risk_level: string; risk_label: string }>;
+  matrix: Array<{ role_slug: string; module: string; can_view: boolean; can_create: boolean; can_update: boolean; can_delete: boolean; can_export: boolean; can_validate: boolean; can_approve: boolean; access_level: string }>;
+  matrix_modules: string[];
+  matrix_actions: string[];
+  user_assignments: Array<{ id: string; name: string; email: string; role_slug: string; role_label: string; custom_permissions: string[]; last_login_at: string | null; two_fa_enabled: boolean; status: string; status_label: string }>;
+  user_overrides: Array<{ id: string; user_email: string; user_name: string; role_slug: string; permission_slug: string; grant_type: string; grant_type_label: string; access_level: string }>;
+  temporary_permissions: Array<{ id: string; user_email: string; user_name: string; permission_slug: string; permission_label: string; granted_by: string | null; expires_at: string | null }>;
+  audit_logs: Array<{ id: string; actor_name: string; actor_email: string | null; permission_slug: string; action: string; old_value: string | null; new_value: string | null; ip_address: string | null; occurred_at: string | null }>;
+  history: Array<{ id: string; event_type: string; event_label: string; actor_name: string; target: string | null; occurred_at: string | null }>;
+  risk_alerts: Array<{ id: string; alert_type: string; title: string; severity: string; severity_label: string; user_email: string | null }>;
+  security_policies: Array<{ policy_key: string; policy_label: string; policy_value: string | null; enabled: boolean }>;
+  tenants: Array<{ id: string; slug: string; name: string; user_count: number; role_count: number; status: string }>;
+  role_distribution: Array<{ role_slug: string; role_label: string; count: number; percent: number; color: string }>;
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  read_only: boolean;
+  source: string;
+}
+
+export interface BackendActivityLogDashboardResponse {
+  kpis: {
+    total_activities: number; total_change: number; total_sparkline?: number[];
+    admin_activities: number; admin_change: number;
+    partner_activities: number; partner_change: number;
+    driver_activities: number; driver_change: number;
+    system_activities: number; system_change: number;
+    anomalies: number; anomalies_change: number;
+  };
+  events: Array<{
+    id: string; event_id: string; occurred_at: string | null;
+    actor_id: string | null; actor_type: string; actor_type_label: string;
+    actor_name: string; actor_role: string | null;
+    action: string; action_label: string | null; description: string | null;
+    resource_type: string; resource_id: string | null; reference: string | null;
+    corridor: string; corridor_label: string;
+    severity: string; severity_label: string;
+    status: string; status_label: string; impact: string | null;
+    ip_address: string | null; user_agent: string | null;
+    device: string | null; browser: string | null; os_name: string | null;
+    before_state: Record<string, unknown> | null; after_state: Record<string, unknown> | null;
+    corridors_impacted: string[]; is_anomaly: boolean;
+  }>;
+  live_events: BackendActivityLogDashboardResponse['events'];
+  anomalies: BackendActivityLogDashboardResponse['events'];
+  heatmap: Array<{ day: number; hour: number; count: number }>;
+  top_activities: Array<{ label: string; count: number; percent: number; color: string }>;
+  corridor_health: Array<{ corridor: string; corridor_label: string; events: number; anomalies: number; coherence: string; coherence_label: string; latency_ms: number | null }>;
+  actor_distribution: Array<{ actor_type: string; actor_label: string; count: number; percent: number }>;
+  severity_distribution: Array<{ severity: string; severity_label: string; count: number }>;
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  total: number;
+  sensitive_access: boolean;
+  read_only: boolean;
+  source: string;
+}
+
+export interface BackendIntegrationsDashboardResponse {
+  kpis: {
+    api_calls_today: number; api_calls_today_change: number; api_calls_today_sparkline?: number[];
+    webhooks_received: number; webhooks_received_change: number; webhooks_received_sparkline?: number[];
+    webhooks_sent: number; webhooks_sent_change: number; webhooks_sent_sparkline?: number[];
+    success_rate: number; success_rate_change: number; success_rate_sparkline?: number[];
+    failed_events: number; failed_events_change: number; failed_events_sparkline?: number[];
+    active_integrations: number; active_integrations_change: number; active_integrations_sparkline?: number[];
+    api_keys_count: number; api_keys_change: number; api_keys_sparkline?: number[];
+    avg_response_time_ms: number; avg_response_time_change: number; avg_response_time_sparkline?: number[];
+  };
+  api_keys: Array<{ id: string; name: string; key_type: string; type_label: string; scope: string; created_by: string | null; last_used_at: string | null; status: string; status_label: string }>;
+  webhooks: Array<{ id: string; name: string; url: string; event: string; event_label: string; last_call_at: string | null; success_count: number; failure_count: number; status: string; status_label: string; signed: boolean }>;
+  webhook_deliveries: Array<{ id: string; webhook_id: string; webhook_name: string | null; payload: Record<string, unknown> | null; headers: Record<string, string> | null; signature: string | null; response_body: string | null; status: string; duration_ms: number; attempts: number; created_at: string | null }>;
+  tracking: Array<{ provider: string; provider_label: string; config_value: string | null; enabled: boolean; health_status: string; health_label: string }>;
+  server_side_tracking: { events_relayed_24h: number; success_rate: number; failed_events: number; queue_size: number };
+  integrations: Array<{ id: string; name: string; category: string; category_label: string; status: string; status_label: string; last_sync_at: string | null; response_time_ms: number; uptime_pct: number }>;
+  logs: Array<{ id: string; occurred_at: string | null; source: string; endpoint: string; log_type: string; user_name: string | null; integration_name: string | null; status: string; status_label: string; response_time_ms: number }>;
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  event_distribution: Array<{ label: string; count: number; percent: number; color: string }>;
+  top_endpoints: Array<{ method: string; path: string; calls: number }>;
+  security: { api_keys_total: number; api_keys_expired: number; api_keys_revoked: number; webhooks_signed: number; webhooks_unsigned: number; audit_access_count: number; audit_modifications: number; audit_deletions: number };
+  alerts: Array<{ id: string; alert_type: string; title: string; severity: string; count: number }>;
+  openapi: { version: string; title: string; endpoints_count: number; webhook_events: string[] };
+  source: string;
+}
+
+export interface BackendEmailDashboardResponse {
+  kpis: {
+    sent_today: number; sent_today_change: number; sent_today_sparkline?: number[];
+    delivery_rate: number; delivery_rate_change: number; delivery_rate_sparkline?: number[];
+    open_rate: number; open_rate_change: number; open_rate_sparkline?: number[];
+    click_rate: number; click_rate_change: number; click_rate_sparkline?: number[];
+    bounces: number; bounces_change: number; bounces_sparkline?: number[];
+    unsubscribes: number; unsubscribes_change: number; unsubscribes_sparkline?: number[];
+    active_templates: number; active_templates_change: number; active_templates_sparkline?: number[];
+    attributed_revenue: number; attributed_revenue_change: number; attributed_revenue_sparkline?: number[];
+  };
+  messages: Array<{ id: string; reference: string; recipient_email: string; recipient_name: string | null; subject: string; message_type: string; message_type_label: string; template_name: string | null; status: string; status_label: string; open_rate: number | null; click_rate: number | null; sent_at: string | null }>;
+  templates: Array<{ id: string; name: string; template_type: string; type_label: string; language: string; subject: string; status: string; usage_count: number; open_rate: number; click_rate: number; version: number }>;
+  campaigns: Array<{ id: string; name: string; audience: string | null; status: string; status_label: string; sent_count: number; opened_count: number; clicked_count: number; conversions: number; revenue: number; roi: number }>;
+  automations: Array<{ id: string; name: string; trigger_key: string; trigger_label: string; template_name: string | null; status: string; last_run_at: string | null; volume_30d: number; open_rate: number; click_rate: number }>;
+  type_distribution: Array<{ label: string; count: number; percent: number; color: string }>;
+  domain_performance: Array<{ domain: string; delivery_rate: number; open_rate: number; click_rate: number; bounce_rate: number }>;
+  deliverability: Array<{ domain: string; health_status: string; health_label: string; spf: string; dkim: string; dmarc: string; bounce_rate: number; spam_complaints: number; reputation_score: number }>;
+  bounces: Array<{ id: string; email: string; bounce_type: string; bounce_type_label: string; reason: string | null; provider_code: string | null; occurred_at: string | null }>;
+  unsubscribe_summary: { total: number; campaign: number; marketing: number; preferences_count: number };
+  unsubscribes: Array<{ id: string; email: string; unsubscribe_type: string; type_label: string; reason: string | null }>;
+  invoice_summary: { sent: number; opened: number; downloaded: number; reminders: number; failures: number };
+  invoices: Array<{ id: string; invoice_ref: string; recipient_email: string; status: string; opened: boolean; downloaded: boolean; reminder_count: number }>;
+  webhooks: Array<{ id: string; endpoint: string; secret_masked: string | null; last_call_at: string | null; success_count: number; error_count: number; events: string[] }>;
+  alerts: Array<{ id: string; alert_type: string; title: string; severity: string; count: number }>;
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  segments: Array<{ slug: string; name: string; size: number }>;
+  settings: { provider: string; from_email: string; reply_to: string; marketing_opt_out_required: boolean };
+  source: string;
+}
+
+export interface BackendWhatsappDashboardResponse {
+  kpis: {
+    open_conversations: number; open_conversations_change: number; open_conversations_sparkline?: number[];
+    messages_today: number; messages_today_change: number; messages_today_sparkline?: number[];
+    response_rate: number; response_rate_change: number; response_rate_sparkline?: number[];
+    avg_response_time: string; avg_response_time_change: string; avg_response_time_sparkline?: number[];
+    active_templates: number; active_templates_change: number; active_templates_sparkline?: number[];
+    cost_today: number; cost_today_change: number; cost_today_sparkline?: number[];
+    ai_conversations_pct: number; ai_conversations_change: number; ai_conversations_sparkline?: number[];
+    satisfaction: number; satisfaction_change: number; satisfaction_sparkline?: number[];
+  };
+  conversations: Array<{ id: string; client_name: string; phone: string; last_message: string | null; channel: string; assigned_to: string | null; status: string; status_label: string; wait_time_sec: number; wait_time_label: string; created_at: string | null }>;
+  live_monitor: { active_conversations: number; waiting_conversations: number; sla_breached: number; escalations: number; available_agents: string[]; ai_active_pct: number; support_backlog: number };
+  templates: Array<{ id: string; name: string; category: string; category_label: string; language: string; meta_status: string; meta_status_label: string; usage_count: number; delivery_rate: number }>;
+  notifications: Array<{ id: string; event_type: string; event_label: string; template_name: string | null; recipient: string; status: string; status_label: string; created_at: string | null }>;
+  campaigns: Array<{ id: string; name: string; campaign_type: string; type_label: string; template_name: string | null; audience: string | null; status: string; sent: number; delivered: number; opened: number; replies: number; clicks: number; conversions: number }>;
+  automations: Array<{ id: string; name: string; trigger_type: string; trigger_label: string; status: string; runs_count: number; success_rate: number }>;
+  webhooks: Array<{ id: string; endpoint: string; secret_masked: string | null; last_call_at: string | null; success_count: number; error_count: number; retry_count: number; events: string[] }>;
+  quality: { quality_rating: string; quality_label: string; messaging_limit: string; phone_status: string; phone_status_label: string; verification_status: string; verification_label: string; alerts: Array<{ type: string; severity: string; message: string }> };
+  ai_metrics: { ai_conversations_pct: number; human_escalations: number; ai_confidence: number; resolution_rate: number; resolved_without_human: number; cost_saved: number; satisfaction: number };
+  costs: { total_today: number; total_week: number; total_month: number; marketing_cost: number; utility_cost: number; auth_cost: number; cost_per_conversation: number; trend: number; forecast: number; sparkline_day?: number[]; sparkline_week?: number[]; sparkline_month?: number[] };
+  analytics: Array<{ key: string; title: string; data: Array<{ label: string; value: number }> }>;
+  segments: Array<{ id: string; slug: string; name: string; size: number; engagement: number; conversion: number }>;
+  sla: { first_response_avg: string; resolution_avg: string; open_conversations: number; sla_breached: number; first_response_status: string; resolution_status: string; open_status: string; breached_status: string };
+  source: string;
+}
+
+export interface BackendNotificationsDashboardResponse {
+  kpis: {
+    total_sent: number; total_sent_change: number; total_sent_sparkline?: number[];
+    delivery_rate: number; delivery_rate_change: number; delivery_rate_sparkline?: number[];
+    email_open_rate: number; email_open_rate_change: number; email_open_rate_sparkline?: number[];
+    click_rate: number; click_rate_change: number; click_rate_sparkline?: number[];
+    unsubscribes: number; unsubscribes_change: number; unsubscribes_sparkline?: number[];
+    errors: number; errors_change: number; errors_sparkline?: number[];
+  };
+  notifications: Array<{
+    id: string; title: string; message_preview: string; channel: string; channel_label: string;
+    event_type: string; event_label: string; audience: string; status: string; status_label: string;
+    sent_at: string | null; delivery_rate: number; open_rate?: number | null; click_rate?: number | null; zone?: string | null;
+  }>;
+  channel_distribution: Array<{ channel: string; label: string; count: number; percent: number; color: string; trend: number }>;
+  delivery_status: Array<{ label: string; count: number; percent: number; color: string }>;
+  top_events: Array<{ event_type: string; label: string; sends: number }>;
+  channel_performance: Array<{ channel: string; label: string; delivery_rate: number; open_rate: number; click_rate: number; failures: number }>;
+  popular_templates: Array<{ id: string; name: string; channel: string; usage_count: number; delivery_rate: number; open_rate?: number | null }>;
+  automations: Array<{ id: string; name: string; trigger_key: string; trigger_label: string; channel: string; status: string; last_run_at: string | null }>;
+  activities: Array<{ id: string; activity_type: string; message: string; actor_name: string | null; created_at: string | null }>;
+  provider_health: Array<{ channel: string; label: string; provider: string; delivery_rate: number; latency_ms: number; error_count: number; status: string; last_incident_at: string | null }>;
+  errors: Array<{ id: string; channel: string; provider: string; error_code: string; message: string; occurrences: number; last_occurrence_at: string | null }>;
+  unsubscribes: Array<{ id: string; channel: string; user_email: string | null; user_phone: string | null; reason: string | null; unsubscribed_at: string | null }>;
+  segments: Array<{ id: string; name: string; slug: string; size: number; preferred_channel: string | null; engagement_rate: number }>;
+  templates: Array<{ id: string; name: string; channel: string; event_type: string; language: string; status: string; usage_count: number; delivery_rate: number; open_rate?: number | null; updated_at: string | null }>;
+  source: string;
+}
+
+export interface BackendPublicBlogListResponse {
+  posts: Array<{
+    id: string; slug: string; title: string; excerpt: string;
+    author_name: string; author_avatar?: string | null;
+    category: string; category_color: string;
+    reading_time: number; views_count: number;
+    published_at: string | null; featured_image?: string | null;
+  }>;
+  categories: Array<{ id: string; name: string; slug: string; post_count: number; color: string }>;
+  source: string;
+}
+
+export interface BackendPublicBlogPostResponse {
+  id: string; slug: string; title: string; excerpt: string;
+  author_name: string; author_avatar?: string | null;
+  category: string; category_color: string;
+  reading_time: number; views_count: number;
+  published_at: string | null; featured_image?: string | null;
+  content: string;
+  tags: string[];
+  seo_title?: string | null;
+  seo_description?: string | null;
+}
+
+export interface BackendSupportDashboardResponse {
+  kpis: {
+    open_tickets: number; open_tickets_change: number; open_tickets_sparkline?: number[];
+    new_tickets: number; new_tickets_change: number; new_tickets_sparkline?: number[];
+    waiting_client: number; waiting_client_change: number; waiting_client_sparkline?: number[];
+    waiting_support: number; waiting_support_change: number; waiting_support_sparkline?: number[];
+    sla_compliance: number; sla_compliance_change: number; sla_compliance_sparkline?: number[];
+    critical_tickets: number; critical_tickets_change: number; critical_tickets_sparkline?: number[];
+    satisfaction: number; satisfaction_change: number; satisfaction_sparkline?: number[];
+    avg_response_minutes: number; avg_response_change: number; avg_response_sparkline?: number[];
+  };
+  tickets: Array<{
+    id: string; ticket_code: string; title: string; ai_summary: string;
+    client_name: string; client_id: string; category: string; category_label: string;
+    priority: string; priority_label: string; status: string; status_label: string;
+    sla_label: string; sla_status: string; sla_minutes_remaining: number | null;
+    updated_at: string | null; agent_name: string | null; channel: string;
+    order_id?: string | null; sentiment?: string | null;
+  }>;
+  sla: { within_sla: number; at_risk: number; breached: number; avg_resolution_minutes: number; compliance_percent: number };
+  queue: Array<{ status: string; status_label: string; tickets: BackendSupportDashboardResponse['tickets'] }>;
+  ai_triage: Array<{
+    ticket_id: string; ticket_code: string; client_name: string; subject: string;
+    sentiment: string; predicted_category: string; priority: string;
+    refund_risk: string; churn_risk: string; suggested_reply: string;
+  }>;
+  sentiment: Array<{ sentiment: string; count: number; percent: number; color: string }>;
+  top_issues: Array<{ issue: string; tickets: number; variation: number; impact: string }>;
+  agents: Array<{ agent_id: string; agent_name: string; tickets_handled: number; avg_response_minutes: number; sla_percent: number; satisfaction: number }>;
+  escalations: Array<{ id: string; label: string; count: number; severity: string }>;
+  trends: Array<{ date: string; new_tickets: number; resolved_tickets: number; open_tickets: number }>;
+  channels: Array<{ channel: string; count: number; percent: number; color: string }>;
+  source: string;
+}
+
+export interface BackendUsersDashboardResponse {
+  kpis: {
+    total_users: number; total_users_change: number; total_users_sparkline?: number[];
+    new_signups: number; new_signups_change: number; new_signups_sparkline?: number[];
+    active_users: number; active_users_change: number; active_users_sparkline?: number[];
+    inactive_users: number; inactive_users_change: number; inactive_users_sparkline?: number[];
+    partners: number; partners_change: number; partners_sparkline?: number[];
+    drivers: number; drivers_change: number; drivers_sparkline?: number[];
+  };
+  users: Array<{
+    id: string; name: string; email: string; phone: string;
+    role: string; role_label: string; status: string; status_label: string;
+    loyalty_points: number; referral_code: string | null;
+    created_at: string | null; last_login_at: string | null;
+  }>;
+  role_distribution: Array<{ role: string; count: number; percent: number; color: string }>;
+  status_breakdown: Array<{ status: string; count: number; percent: number }>;
+  growth: Array<{ date: string; new_signups: number; active_users: number }>;
+  acquisition_sources: Array<{ source: string; count: number; percent: number; color: string }>;
+  top_zones: Array<{ zone: string; users: number; percent: number }>;
+  recent_activity: Array<{ id: string; user_name: string; action: string; detail: string; device: string; date: string | null }>;
+  devices: Array<{ device: string; count: number; percent: number; color: string }>;
+  loyalty: {
+    users_with_points: number; users_with_points_percent: number;
+    total_points: number; average_balance: number;
+    top_holders: Array<{ name: string; points: number }>;
+  };
+  security: {
+    two_fa_enabled_percent: number; verified_accounts_percent: number;
+    unverified_accounts_percent: number; suspicious_logins: number;
+  };
+  watchlist: Array<{ id: string; message: string; count: number; severity: string }>;
+  top_users: Array<{ user_id: string; name: string; orders: number; revenue: number; loyalty_points: number; last_activity: string | null }>;
+  segments: Array<{ segment: string; segment_key: string; count: number; percent: number }>;
+  value_users: Array<{ user_id: string; name: string; clv: number; avg_basket: number; frequency: number; last_order: string | null }>;
+  source: string;
+}
+
+export interface BackendCampaignDashboardResponse {
+  kpis: {
+    active_campaigns: number; active_campaigns_change: number; active_campaigns_sparkline?: number[];
+    messages_sent: number; messages_sent_change: number; messages_sent_sparkline?: number[];
+    open_rate: number; open_rate_change: number; open_rate_sparkline?: number[];
+    click_rate: number; click_rate_change: number; click_rate_sparkline?: number[];
+    conversions: number; conversions_change: number; conversions_sparkline?: number[];
+    attributed_revenue: number; attributed_revenue_change: number; attributed_revenue_sparkline?: number[];
+  };
+  campaigns: Array<{
+    id: string; name: string; channel: string; audience: string | null; segment: string | null;
+    status: string; messages_sent: number; opens: number; open_rate: number; clicks: number;
+    click_rate: number; conversions: number; conversion_rate: number; roi: number; revenue: number; scheduled_at?: string | null;
+  }>;
+  channels: Array<{ channel: string; percent: number; messages: number; conversions: number; revenue: number; color: string }>;
+  funnel: Array<{ stage: string; count: number; rate: number }>;
+  trends: Array<{ date: string; messages: number; conversions: number; revenue: number }>;
+  top_campaigns: Array<{ id: string; name: string; channel: string; roi: number; conversions: number; revenue: number }>;
+  segments: Array<{ segment: string; segment_key: string; audience_size: number; conversion_rate: number; revenue: number }>;
+  automations: Array<{ id: string; name: string; trigger: string; status: string; conversions: number; revenue: number }>;
+  calendar: Array<{ id: string; title: string; date: string; time: string; channel: string; audience: string | null }>;
+  roi: { budget_spent: number; revenue_generated: number; global_roi: number; cost_per_acquisition: number; customer_lifetime_value: number; roas: number };
+  watchlist: Array<{ id: string; message: string; count: number; severity: string }>;
+  source: string;
 }
 
 export interface ReferralAdminOverview {
@@ -884,6 +1596,87 @@ export interface AdminSupportMessage {
   created_at: string;
   updated_at: string;
 }
+
+export interface CustomerSupportMessage {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  content: string;
+  is_internal: boolean;
+  created_at: string;
+}
+
+export interface CustomerSupportAttachment {
+  id: string;
+  ticket_id: string;
+  uploaded_by: string;
+  file_url: string;
+  file_name?: string | null;
+  mime_type?: string | null;
+  size?: number | null;
+  created_at: string;
+}
+
+export interface CustomerSupportTicket {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  category?: string | null;
+  order_id?: string | null;
+  partner_id?: string | null;
+  order_number?: string | null;
+  payment_status?: string | null;
+  created_at: string;
+  updated_at: string;
+  messages: CustomerSupportMessage[];
+  attachments: CustomerSupportAttachment[];
+}
+
+export interface CustomerClaim {
+  id: string;
+  claim_number: string;
+  customer_id: string;
+  order_id?: string | null;
+  partner_id?: string | null;
+  order_number?: string | null;
+  payment_status?: string | null;
+  type: string;
+  priority: string;
+  status: string;
+  title: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublicReview {
+  id: string;
+  order_id: string;
+  user_id: string;
+  partner_id: string;
+  rating: number;
+  title?: string | null;
+  comment?: string | null;
+  status: string;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+  order_number?: string | null;
+  partner_name?: string | null;
+  customer_first_name?: string | null;
+}
+
+export interface SubmitReviewRequest {
+  order_id: string;
+  rating: number;
+  comment?: string;
+  title?: string;
+}
+
+export interface SubmitReviewResponse extends PublicReview {}
 
 export interface AdminSupportTicket {
   id: string;
@@ -1033,6 +1826,8 @@ class ApiClient {
   private baseUrl: string;
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
+  private refreshInFlight: Promise<boolean> | null = null;
+  private currentUserInFlight: Promise<ApiCurrentUserResponse> | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -1045,6 +1840,18 @@ class ApiClient {
   private isMockToken(): boolean {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     return !!token?.startsWith('TOKEN-');
+  }
+
+  /** True when a real or mock API token is present in storage. */
+  hasAuthSession(): boolean {
+    this.syncTokensFromStorage();
+    return this.isMockToken() || !!this.accessToken;
+  }
+
+  private notifySessionCleared() {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ler:auth-cleared'));
+    }
   }
 
   private syncTokensFromStorage() {
@@ -1064,7 +1871,33 @@ class ApiClient {
     }
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async tryRefreshToken(): Promise<boolean> {
+    this.syncTokensFromStorage();
+    if (!this.refreshToken) return false;
+    if (this.refreshInFlight) return this.refreshInFlight;
+
+    this.refreshInFlight = (async () => {
+      try {
+        const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: this.refreshToken }),
+        });
+        if (!response.ok) return false;
+        const data = (await response.json()) as LoginResponse;
+        this.setTokens(data.access_token, data.refresh_token);
+        return true;
+      } catch {
+        return false;
+      } finally {
+        this.refreshInFlight = null;
+      }
+    })();
+
+    return this.refreshInFlight;
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}, retried = false): Promise<T> {
     this.syncTokensFromStorage();
 
     const url = `${this.baseUrl}${endpoint}`;
@@ -1086,6 +1919,14 @@ class ApiClient {
     });
 
     if (!response.ok) {
+      const isAuthEndpoint = endpoint.startsWith('/auth/login') || endpoint.startsWith('/auth/refresh') || endpoint.startsWith('/auth/register');
+      if (response.status === 401 && !retried && !isAuthEndpoint) {
+        const refreshed = await this.tryRefreshToken();
+        if (refreshed) return this.request<T>(endpoint, options, true);
+        this.clearToken();
+        this.notifySessionCleared();
+      }
+
       const errorData = await response.json().catch(() => ({
         detail: `HTTP ${response.status}: ${response.statusText}`,
       }));
@@ -1171,7 +2012,31 @@ class ApiClient {
   }
 
   async getCurrentUser(): Promise<ApiCurrentUserResponse> {
-    return this.request<ApiCurrentUserResponse>('/auth/me');
+    if (!this.hasAuthSession()) {
+      const err = new Error('Not authenticated') as Error & { status?: number };
+      err.status = 401;
+      throw err;
+    }
+    if (!this.currentUserInFlight) {
+      this.currentUserInFlight = this.request<ApiCurrentUserResponse>('/auth/me').finally(() => {
+        this.currentUserInFlight = null;
+      });
+    }
+    return this.currentUserInFlight;
+  }
+
+  async updateThemePreference(themePreference: 'light' | 'dark' | 'system'): Promise<void> {
+    const current = await this.getCurrentUser();
+    const profile = current.profile;
+    await this.request<ApiCurrentUserResponse>('/users/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify({
+        first_name: profile?.first_name ?? null,
+        last_name: profile?.last_name ?? null,
+        preferred_language: profile?.preferred_language ?? 'fr',
+        theme_preference: themePreference,
+      }),
+    });
   }
 
   async createAddress(data: CreateAddressRequest): Promise<ApiAddress> {
@@ -1214,6 +2079,83 @@ class ApiClient {
     return this.request<AdminSupportTicket[]>('/support/tickets');
   }
 
+  async createCustomerSupportTicket(data: {
+    title: string;
+    description: string;
+    category?: string;
+    priority?: string;
+    order_id?: string;
+  }): Promise<CustomerSupportTicket> {
+    return this.request<CustomerSupportTicket>('/support/tickets', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCustomerSupportTickets(): Promise<CustomerSupportTicket[]> {
+    return this.request<CustomerSupportTicket[]>('/support/tickets');
+  }
+
+  async getCustomerSupportTicket(ticketId: string): Promise<CustomerSupportTicket> {
+    return this.request<CustomerSupportTicket>(`/support/tickets/${ticketId}`);
+  }
+
+  async replyCustomerSupportTicket(ticketId: string, content: string): Promise<CustomerSupportTicket> {
+    return this.request<CustomerSupportTicket>(`/support/tickets/${ticketId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async attachCustomerSupportProof(
+    ticketId: string,
+    data: { file_url: string; file_name?: string; mime_type?: string; size?: number }
+  ): Promise<CustomerSupportAttachment> {
+    return this.request<CustomerSupportAttachment>(`/support/tickets/${ticketId}/attachments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createCustomerClaim(data: {
+    title: string;
+    description: string;
+    type?: string;
+    order_id?: string;
+  }): Promise<CustomerClaim> {
+    return this.request<CustomerClaim>('/claims', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCustomerClaims(): Promise<CustomerClaim[]> {
+    return this.request<CustomerClaim[]>('/claims');
+  }
+
+  async getCustomerClaim(claimId: string): Promise<CustomerClaim> {
+    return this.request<CustomerClaim>(`/claims/${claimId}`);
+  }
+
+  async submitReview(data: SubmitReviewRequest): Promise<SubmitReviewResponse> {
+    return this.request<SubmitReviewResponse>('/reviews', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPublicReviews(params?: { partner_id?: string; limit?: number }): Promise<PublicReview[]> {
+    const query = new URLSearchParams();
+    if (params?.partner_id) query.set('partner_id', params.partner_id);
+    if (params?.limit) query.set('limit', String(params.limit));
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return this.request<PublicReview[]>(`/reviews/public${suffix}`);
+  }
+
+  async getMyReviews(): Promise<PublicReview[]> {
+    return this.request<PublicReview[]>('/reviews/me');
+  }
+
   async getCatalogPartners(): Promise<CatalogPartnerSummary[]> {
     return this.request<CatalogPartnerSummary[]>('/catalog/partners');
   }
@@ -1222,8 +2164,95 @@ class ApiClient {
     return this.request<CatalogResponse>('/catalog');
   }
 
-  async getPartnerCatalogServices(partnerId: string): Promise<CatalogPartnerService[]> {
-    return this.request<CatalogPartnerService[]>(`/catalog/partners/${partnerId}/services`);
+  async getPartnerCatalogServices(
+    partnerId: string,
+    opts?: { availableOnly?: boolean; activeOnly?: boolean },
+  ): Promise<CatalogPartnerService[]> {
+    const params = new URLSearchParams();
+    if (opts?.availableOnly === false) params.set('available_only', 'false');
+    if (opts?.activeOnly === false) params.set('active_only', 'false');
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    return this.request<CatalogPartnerService[]>(`/catalog/partners/${partnerId}/services${suffix}`);
+  }
+
+  async getOrderAddOns(): Promise<OrderAddOnListResponse> {
+    return this.request<OrderAddOnListResponse>('/catalog/order-add-ons');
+  }
+
+  async getAdminOrderAddOns(): Promise<OrderAddOnListResponse> {
+    return this.request<OrderAddOnListResponse>('/admin/order-add-ons');
+  }
+
+  async createAdminOrderAddOn(data: {
+    slug: string;
+    name: string;
+    description?: string;
+    image_url?: string;
+    price: number;
+    sort_order?: number;
+    is_active?: boolean;
+  }): Promise<OrderAddOnItem> {
+    return this.request<OrderAddOnItem>('/admin/order-add-ons', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAdminOrderAddOn(
+    addOnId: string,
+    data: Partial<{
+      slug: string;
+      name: string;
+      description: string;
+      image_url: string;
+      price: number;
+      sort_order: number;
+      is_active: boolean;
+    }>,
+  ): Promise<OrderAddOnItem> {
+    return this.request<OrderAddOnItem>(`/admin/order-add-ons/${addOnId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deactivateAdminOrderAddOn(addOnId: string): Promise<void> {
+    await this.request<void>(`/admin/order-add-ons/${addOnId}`, { method: 'DELETE' });
+  }
+
+  async createPartnerCatalogService(
+    partnerId: string,
+    data: {
+      service_category_id: string;
+      service_type_id: string;
+      base_price: number;
+      pricing_mode: string;
+      estimated_turnaround_hours: number;
+      is_available: boolean;
+    },
+  ): Promise<CatalogPartnerService> {
+    return this.request<CatalogPartnerService>(`/catalog/partners/${partnerId}/services`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePartnerCatalogService(
+    partnerId: string,
+    serviceId: string,
+    data: Partial<{
+      service_category_id: string;
+      service_type_id: string;
+      base_price: number;
+      pricing_mode: string;
+      estimated_turnaround_hours: number;
+      is_available: boolean;
+    }>,
+  ): Promise<CatalogPartnerService> {
+    return this.request<CatalogPartnerService>(`/catalog/partners/${partnerId}/services/${serviceId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 
   async getPartnerPricingSummary(partnerId: string): Promise<PartnerPricingSummary> {
@@ -1415,6 +2444,43 @@ class ApiClient {
     });
   }
 
+  async updatePartnerProfileMedia(
+    partnerId: string,
+    data: {
+      media_gallery: Record<string, string[]>;
+      image_urls: string[];
+      video_url?: string | null;
+    },
+  ): Promise<PartnerProfileDetailResponse> {
+    if (this.isMockToken()) {
+      return this.getPartnerProfileDetail(partnerId);
+    }
+    return this.request<PartnerProfileDetailResponse>(`/partners/${partnerId}/profile-detail/media`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPartnerPublicProfile(partnerId: string): Promise<PartnerPublicProfileResponse> {
+    if (this.isMockToken()) {
+      const detail = await this.getPartnerProfileDetail(partnerId);
+      return {
+        id: detail.id,
+        name: detail.name,
+        address: detail.address,
+        city: detail.city,
+        commune: detail.commune,
+        rating: 0,
+        total_reviews: 0,
+        video_url: detail.video_url,
+        image_urls: detail.image_urls || [],
+        media_gallery: detail.media_gallery || {},
+        working_hours: detail.working_hours,
+      };
+    }
+    return this.request<PartnerPublicProfileResponse>(`/catalog/partners/${partnerId}/public-profile`);
+  }
+
   async getPartnerAnalyticsSummary(
     partnerId: string,
     range: 'week' | 'month' | 'year' = 'month'
@@ -1472,6 +2538,53 @@ class ApiClient {
 
   async getAdminOverview(): Promise<AdminOverview> {
     return this.request<AdminOverview>('/admin/overview');
+  }
+
+  async getAdsDashboard(days = 7): Promise<BackendAdsDashboardResponse> {
+    return this.request<BackendAdsDashboardResponse>(`/admin/ads/dashboard?days=${days}`);
+  }
+
+  async pauseAd(adId: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/ads/${adId}/pause`, { method: 'POST' });
+  }
+
+  async deleteAd(adId: string): Promise<void> {
+    return this.request<void>(`/admin/ads/${adId}`, { method: 'DELETE' });
+  }
+
+  async duplicateAd(adId: string): Promise<{ id: string }> {
+    return this.request(`/admin/ads/${adId}/duplicate`, { method: 'POST' });
+  }
+
+  async createAd(data: {
+    title: string;
+    description?: string;
+    creative_type?: string;
+    image_url?: string;
+    video_url?: string;
+    cta_text?: string;
+    cta_url?: string;
+    status?: string;
+    campaign_id?: string;
+    budget_total?: number;
+    channel?: string;
+    zone?: string;
+    partner_id?: string;
+  }): Promise<{ id: string }> {
+    return this.request('/admin/ads', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async createAdCampaign(data: {
+    name: string;
+    objective?: string;
+    budget?: number;
+    target_audience?: string;
+  }): Promise<{ id: string }> {
+    return this.request('/admin/ads/campaign', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async exportAds(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/ads/export', { method: 'POST', body: JSON.stringify(data) });
   }
 
   async getAdminActivityLogs(limit = 200): Promise<AdminActivityLogListResponse> {
@@ -1658,6 +2771,37 @@ class ApiClient {
     });
   }
 
+  async getLoyaltyDashboard(days = 7): Promise<BackendLoyaltyDashboardResponse> {
+    return this.request<BackendLoyaltyDashboardResponse>(`/admin/loyalty/dashboard?days=${days}`);
+  }
+
+  async updateLoyaltyAdminSettings(data: {
+    is_enabled?: boolean;
+    points_per_dollar?: number;
+    points_to_dollar?: number;
+    points_expiry_days?: number | null;
+    redemption_cap?: number | null;
+    first_order_bonus?: number;
+  }): Promise<BackendLoyaltyDashboardResponse['settings']> {
+    return this.request('/admin/loyalty/settings', { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  async runLoyaltyAdminExpiration(): Promise<{ users_processed: number; expired_points: number }> {
+    return this.request('/admin/loyalty/expire', { method: 'POST' });
+  }
+
+  async createLoyaltyReward(data: { name: string; points_required: number; value_dollars: number }): Promise<{ id: string }> {
+    return this.request('/admin/loyalty/rewards', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async updateLoyaltyReward(id: string, data: { is_active?: boolean; name?: string }): Promise<{ id: string }> {
+    return this.request(`/admin/loyalty/rewards/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+  }
+
+  async exportLoyalty(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/loyalty/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
   async getLoyaltyAdminOverview(): Promise<LoyaltyAdminOverview> {
     return this.request<LoyaltyAdminOverview>('/loyalty/admin/overview');
   }
@@ -1674,6 +2818,30 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data || {}),
     });
+  }
+
+  async getMyLoyaltyHistory(limit = 50): Promise<{
+    entries: Array<{
+      id: string;
+      entry_type: string;
+      points_delta: number;
+      balance_after: number;
+      order_id?: string | null;
+      description: string;
+      created_at?: string | null;
+    }>;
+    total: number;
+  }> {
+    return this.request(`/loyalty/me/history?limit=${limit}`);
+  }
+
+  async getMyReferralStats(): Promise<{
+    referral_code: string | null;
+    referred_users_count: number;
+    completed_conversions: number;
+    total_bonus_points: number;
+  }> {
+    return this.request('/referral/me');
   }
 
   async getReferralSettings(): Promise<BackendReferralSettingsResponse> {
@@ -1693,6 +2861,390 @@ class ApiClient {
 
   async getReferralAdminOverview(): Promise<ReferralAdminOverview> {
     return this.request<ReferralAdminOverview>('/referral/admin/overview');
+  }
+
+  async getReferralDashboard(days = 7): Promise<BackendReferralDashboardResponse> {
+    return this.request<BackendReferralDashboardResponse>(`/admin/referrals/dashboard?days=${days}`);
+  }
+
+  async updateReferralAdminSettings(data: {
+    is_enabled?: boolean;
+    referrer_bonus_points?: number;
+    referee_discount_amount?: number;
+    referee_bonus_points?: number;
+    points_expiry_days?: number | null;
+    bonus_cap_per_referrer?: number | null;
+    allowed_channels?: string[];
+  }): Promise<BackendReferralDashboardResponse['settings']> {
+    return this.request('/admin/referrals/settings', { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  async createReferralCampaign(data: {
+    name: string; audience?: string; budget: number; start_date?: string; end_date?: string;
+  }): Promise<{ id: string; name: string }> {
+    return this.request('/admin/referrals/campaigns', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async sendReferralManualBonus(data: { user_id: string; points: number; reason: string }): Promise<{ user_id: string; new_balance: number }> {
+    return this.request('/admin/referrals/manual-bonus', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async auditReferrals(): Promise<{ watchlist_items: number; conversions_audited: number; status: string }> {
+    return this.request('/admin/referrals/audit', { method: 'POST' });
+  }
+
+  async exportReferrals(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/referrals/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getReviewsDashboard(days = 7): Promise<BackendReviewsDashboardResponse> {
+    return this.request<BackendReviewsDashboardResponse>(`/admin/reviews/dashboard?days=${days}`);
+  }
+
+  async getReviewDetail(id: string): Promise<{
+    id: string; client_name: string; client_id: string; review_type: string; review_type_label: string;
+    rating: number; comment: string; source: string; date: string | null; status: string; status_label: string;
+    partner_name?: string | null; order_id?: string | null; title?: string | null; driver_name?: string | null;
+    ai_summary: string; sentiment: string; churn_risk: string; priority: string; recommendation: string;
+    previous_replies?: string[];
+  }> {
+    return this.request(`/admin/reviews/${id}`);
+  }
+
+  async replyReview(id: string, content: string): Promise<{ review_id: string; status: string }> {
+    return this.request(`/admin/reviews/${id}/reply`, { method: 'POST', body: JSON.stringify({ content }) });
+  }
+
+  async escalateReview(id: string): Promise<{ review_id: string; status: string }> {
+    return this.request(`/admin/reviews/${id}/escalate`, { method: 'POST' });
+  }
+
+  async reportReview(id: string): Promise<{ review_id: string; status: string }> {
+    return this.request(`/admin/reviews/${id}/report`, { method: 'POST' });
+  }
+
+  async exportReviews(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/reviews/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getClaimsDashboard(days = 7): Promise<BackendClaimsDashboardResponse> {
+    return this.request<BackendClaimsDashboardResponse>(`/admin/claims/dashboard?days=${days}`);
+  }
+
+  async getClaimDetail(id: string): Promise<{
+    id: string; claim_number: string; title: string; ai_summary: string;
+    client_name: string; category: string; category_label: string;
+    priority: string; priority_label: string; status: string; status_label: string;
+    financial_impact: number; sla_label: string; sla_state: string;
+    sla_minutes_remaining: number | null; updated_at: string | null; partner_name?: string | null;
+    description: string; order_id?: string | null; driver_name?: string | null;
+    risk_score: number; recommendation: string;
+    timeline?: Array<{ event: string; date: string | null; detail: string }>;
+    notes?: Array<{ content: string; author_id: string }>;
+    attachments?: Array<{ url: string; mime: string | null }>;
+    refunds?: Array<{ amount: number; status: string }>;
+    escalations?: Array<{ reason: string; severity: string }>;
+  }> {
+    return this.request(`/admin/claims/${id}`);
+  }
+
+  async createClaim(data: { title: string; description: string; type?: string; priority?: string }): Promise<{ id: string; claim_number: string }> {
+    return this.request('/admin/claims', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async updateClaimStatus(id: string, status: string, note?: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/claims/${id}/status`, { method: 'POST', body: JSON.stringify({ status, note }) });
+  }
+
+  async assignClaim(id: string, assigneeId: string): Promise<{ id: string; assigned_to: string }> {
+    return this.request(`/admin/claims/${id}/assign`, { method: 'POST', body: JSON.stringify({ assignee_id: assigneeId }) });
+  }
+
+  async addClaimNote(id: string, content: string): Promise<{ id: string }> {
+    return this.request(`/admin/claims/${id}/notes`, { method: 'POST', body: JSON.stringify({ content, is_internal: true }) });
+  }
+
+  async escalateClaim(id: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/claims/${id}/escalate`, { method: 'POST' });
+  }
+
+  async processClaimRefund(id: string, action: string, amount?: number): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/claims/${id}/refund`, { method: 'POST', body: JSON.stringify({ action, amount }) });
+  }
+
+  async getCmsDashboard(days = 7): Promise<BackendCmsDashboardResponse> {
+    return this.request<BackendCmsDashboardResponse>(`/admin/cms/dashboard?days=${days}`);
+  }
+
+  async getCmsPageDetail(id: string): Promise<{
+    id: string; slug: string; title: string; page_type: string; page_type_label: string;
+    status: string; status_label: string; language: string; updated_at: string | null;
+    views_7d: number; seo_score: number; thumbnail_url?: string | null;
+    description?: string | null; seo_title?: string | null; seo_description?: string | null;
+    blocks?: Array<Record<string, unknown>>; sections?: Array<Record<string, unknown>>;
+    faqs?: Array<{ id: string; question: string; answer: string; position: number }>;
+    revisions?: Array<{ id: string; note: string; created_at: string | null }>;
+  }> {
+    return this.request(`/admin/cms/pages/${id}`);
+  }
+
+  async createCmsPage(data: { title: string; slug: string; page_type?: string }): Promise<{ id: string; slug: string; title: string }> {
+    return this.request('/admin/cms/pages', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async updateCmsPage(id: string, data: Record<string, unknown>): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/cms/pages/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  async publishCmsPage(id: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/cms/pages/${id}/publish`, { method: 'POST' });
+  }
+
+  async getBlogDashboard(days = 30): Promise<BackendBlogDashboardResponse> {
+    return this.request<BackendBlogDashboardResponse>(`/admin/blog/dashboard?days=${days}`);
+  }
+
+  async getBlogPostDetail(id: string): Promise<{
+    id: string; slug: string; title: string; excerpt: string;
+    author_name: string; author_avatar?: string | null;
+    category: string; category_color: string;
+    status: string; status_label: string;
+    seo_score: number; views_count: number; comments_count: number;
+    published_at: string | null; featured_image?: string | null;
+    content: string; reading_time: number;
+    content_blocks?: Array<Record<string, unknown>>;
+    tags?: string[]; seo?: Record<string, unknown>;
+    revisions?: Array<{ id: string; note: string }>;
+  }> {
+    return this.request(`/admin/blog/posts/${id}`);
+  }
+
+  async createBlogPost(data: { title: string; slug: string }): Promise<{ id: string; slug: string; title: string }> {
+    return this.request('/admin/blog/posts', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async publishBlogPost(id: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/blog/posts/${id}/publish`, { method: 'POST' });
+  }
+
+  async generateBlogAI(topic: string): Promise<{ title: string; outline: string[]; content: string; faq: Array<Record<string, unknown>>; seo: Record<string, unknown>; cta: Record<string, unknown> }> {
+    return this.request('/admin/blog/ai/generate', { method: 'POST', body: JSON.stringify({ topic }) });
+  }
+
+  async auditBlogSEO(postId: string): Promise<{ post_id: string; score: number; checklist: Array<Record<string, unknown>>; recommendations: string[] }> {
+    return this.request('/admin/blog/seo/audit', { method: 'POST', body: JSON.stringify({ post_id: postId }) });
+  }
+
+  async getPaymentGatewaysDashboard(days = 30): Promise<BackendPaymentGatewaysDashboardResponse> {
+    return this.request<BackendPaymentGatewaysDashboardResponse>(`/admin/payment-gateways/dashboard?days=${days}`);
+  }
+
+  async exportPaymentGateways(data: { format: string }): Promise<{ format: string; rows: number; revenue_month: number }> {
+    return this.request('/admin/payment-gateways/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async runPaymentReconciliation(): Promise<{ status: string; message: string }> {
+    return this.request('/admin/payment-gateways/reconciliation/run', { method: 'POST' });
+  }
+
+  async testPaymentWebhook(gatewaySlug: string): Promise<{ gateway_slug: string; status: string; response_ms: number }> {
+    return this.request(`/admin/payment-gateways/webhooks/test?gateway_slug=${encodeURIComponent(gatewaySlug)}`, { method: 'POST' });
+  }
+
+  async getSmsDashboard(): Promise<BackendSmsDashboardResponse> {
+    return this.request<BackendSmsDashboardResponse>('/admin/sms/dashboard');
+  }
+
+  async exportSms(data: { format: string }): Promise<{ format: string; rows: number; sent_today: number }> {
+    return this.request('/admin/sms/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async sendSms(data: { phone_number: string; message: string; message_type?: string }): Promise<{ status: string; phone_number: string }> {
+    return this.request('/admin/sms/send', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getAdminMgmtDashboard(): Promise<BackendAdminMgmtDashboardResponse> {
+    return this.request<BackendAdminMgmtDashboardResponse>('/admin/management/dashboard');
+  }
+
+  async getRbacDashboard(): Promise<BackendRbacDashboardResponse> {
+    return this.request<BackendRbacDashboardResponse>('/admin/rbac/dashboard');
+  }
+
+  async getActivityLogDashboard(limit = 200): Promise<BackendActivityLogDashboardResponse> {
+    return this.request<BackendActivityLogDashboardResponse>(`/admin/activity-log?limit=${limit}`);
+  }
+
+  async getIntegrationsDashboard(): Promise<BackendIntegrationsDashboardResponse> {
+    return this.request<BackendIntegrationsDashboardResponse>('/admin/integrations/dashboard');
+  }
+
+  async getEmailDashboard(): Promise<BackendEmailDashboardResponse> {
+    return this.request<BackendEmailDashboardResponse>('/admin/email/dashboard');
+  }
+
+  async exportEmail(data: { format: string }): Promise<{ format: string; rows: number; sent_today: number }> {
+    return this.request('/admin/email/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getWhatsappDashboard(): Promise<BackendWhatsappDashboardResponse> {
+    return this.request<BackendWhatsappDashboardResponse>('/admin/whatsapp/dashboard');
+  }
+
+  async exportWhatsapp(data: { format: string }): Promise<{ format: string; rows: number; messages_today: number }> {
+    return this.request('/admin/whatsapp/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async testWhatsappWebhook(): Promise<{ status: string; response_ms: number }> {
+    return this.request('/admin/whatsapp/webhooks/test', { method: 'POST' });
+  }
+
+  async sendWhatsappMessage(data: { phone: string; message: string }): Promise<{ status: string; phone: string }> {
+    return this.request('/admin/whatsapp/send', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getNotificationsDashboard(days = 30): Promise<BackendNotificationsDashboardResponse> {
+    return this.request<BackendNotificationsDashboardResponse>(`/admin/notifications/dashboard?days=${days}`);
+  }
+
+  async sendNotification(data: { channel: string; audience: string; title: string; message: string; event_type?: string }): Promise<{ id: string; status: string }> {
+    return this.request('/admin/notifications/send', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async retryNotification(id: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/notifications/retry?notification_id=${encodeURIComponent(id)}`, { method: 'POST' });
+  }
+
+  async createNotificationTemplate(data: { name: string; channel: string; event_type: string; language?: string; subject?: string; body: string }): Promise<{ id: string; name: string }> {
+    return this.request('/admin/notifications/templates', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async exportNotifications(data: { format: string }): Promise<{ format: string; rows: number; exported_at: number }> {
+    return this.request('/admin/notifications/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getPublicBlogPosts(category?: string): Promise<BackendPublicBlogListResponse> {
+    const query = category ? `?category=${encodeURIComponent(category)}` : '';
+    return this.request<BackendPublicBlogListResponse>(`/blog/posts${query}`);
+  }
+
+  async getPublicBlogPost(slug: string): Promise<BackendPublicBlogPostResponse> {
+    return this.request<BackendPublicBlogPostResponse>(`/blog/posts/${encodeURIComponent(slug)}`);
+  }
+
+  async getSupportDashboard(days = 7): Promise<BackendSupportDashboardResponse> {
+    return this.request<BackendSupportDashboardResponse>(`/admin/support/dashboard?days=${days}`);
+  }
+
+  async getSupportTicketDetail(id: string): Promise<{
+    id: string; ticket_code: string; title: string; ai_summary: string; description: string;
+    client_name: string; client_id: string; category: string; category_label: string;
+    priority: string; priority_label: string; status: string; status_label: string;
+    sla_label: string; sla_status: string; sla_minutes_remaining: number | null;
+    updated_at: string | null; agent_name: string | null; channel: string;
+    order_id?: string | null; payment_id?: string | null; partner_name?: string | null; driver_name?: string | null;
+    messages?: Array<{ id: string; content: string; is_internal: boolean; created_at: string | null }>;
+    internal_notes?: string[]; ai_recommendations?: string[]; refund_risk: string; churn_risk: string;
+  }> {
+    return this.request(`/admin/support/tickets/${id}`);
+  }
+
+  async createSupportTicket(data: { title: string; description: string; category?: string; priority?: string }): Promise<{ id: string; title: string }> {
+    return this.request('/admin/support/tickets', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async replySupportTicket(id: string, content: string): Promise<{ ticket_id: string; message_id: string }> {
+    return this.request(`/admin/support/tickets/${id}/reply`, { method: 'POST', body: JSON.stringify({ content }) });
+  }
+
+  async assignSupportTicket(id: string, agentId: string): Promise<{ ticket_id: string; assigned_to: string }> {
+    return this.request(`/admin/support/tickets/${id}/assign`, { method: 'POST', body: JSON.stringify({ agent_id: agentId }) });
+  }
+
+  async escalateSupportTicket(id: string): Promise<{ ticket_id: string; status: string }> {
+    return this.request(`/admin/support/tickets/${id}/escalate`, { method: 'POST' });
+  }
+
+  async resolveSupportTicket(id: string): Promise<{ ticket_id: string; status: string }> {
+    return this.request(`/admin/support/tickets/${id}/resolve`, { method: 'POST' });
+  }
+
+  async exportSupport(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/support/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async getUsersDashboard(days = 7): Promise<BackendUsersDashboardResponse> {
+    return this.request<BackendUsersDashboardResponse>(`/admin/users/dashboard?days=${days}`);
+  }
+
+  async getUserDetail(id: string): Promise<{
+    id: string; name: string; email: string; phone: string; role: string; status: string;
+    loyalty_points: number; referral_code: string | null; is_email_verified: boolean;
+    is_phone_verified: boolean; is_2fa_enabled: boolean; created_at: string | null;
+    last_login_at: string | null; orders_count: number; total_spent: number; referrals_count: number;
+  }> {
+    return this.request(`/admin/users/${id}`);
+  }
+
+  async getUserSecurity(id: string): Promise<{
+    user_id: string; two_fa_enabled: boolean; suspicious_logins: number;
+    recent_logins: Array<{ ip: string; date: string | null }>; active_sessions: number;
+  }> {
+    return this.request(`/admin/users/${id}/security`);
+  }
+
+  async exportUsers(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/users/export', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async suspendUser(userId: string): Promise<{ user_id: string; status: string }> {
+    return this.request('/admin/users/suspend', { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+  }
+
+  async reactivateUser(userId: string): Promise<{ user_id: string; status: string }> {
+    return this.request('/admin/users/reactivate', { method: 'POST', body: JSON.stringify({ user_id: userId }) });
+  }
+
+  async getCampaignDashboard(days = 7): Promise<BackendCampaignDashboardResponse> {
+    return this.request<BackendCampaignDashboardResponse>(`/admin/campaigns/dashboard?days=${days}`);
+  }
+
+  async createCampaign(data: { name: string; channel: string; audience: string; content: string; budget: number; scheduledAt?: string }): Promise<{ id: string; name: string }> {
+    return this.request('/admin/campaigns', { method: 'POST', body: JSON.stringify({
+      name: data.name, channel: data.channel, audience: data.audience,
+      content: data.content, budget: data.budget, scheduled_at: data.scheduledAt,
+    }) });
+  }
+
+  async updateCampaign(id: string, data: Record<string, unknown>): Promise<{ id: string; name: string }> {
+    return this.request(`/admin/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  async deleteCampaign(id: string): Promise<void> {
+    return this.request(`/admin/campaigns/${id}`, { method: 'DELETE' });
+  }
+
+  async pauseCampaign(id: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/campaigns/${id}/pause`, { method: 'POST' });
+  }
+
+  async resumeCampaign(id: string): Promise<{ id: string; status: string }> {
+    return this.request(`/admin/campaigns/${id}/resume`, { method: 'POST' });
+  }
+
+  async duplicateCampaign(id: string): Promise<{ id: string; name: string }> {
+    return this.request(`/admin/campaigns/${id}/duplicate`, { method: 'POST' });
+  }
+
+  async getCampaignAnalytics(id: string): Promise<{
+    campaign_id: string; name: string; messages_sent: number; opens: number; clicks: number;
+    conversions: number; revenue: number; roi: number; open_rate: number; click_rate: number; conversion_rate: number;
+  }> {
+    return this.request(`/admin/campaigns/${id}/analytics`);
+  }
+
+  async exportCampaigns(data: { format: string; scope: string }): Promise<{ filename: string; count: number; format: string }> {
+    return this.request('/admin/campaigns/export', { method: 'POST', body: JSON.stringify(data) });
   }
 
   async updateReferralReviewStatus(
@@ -1751,7 +3303,8 @@ class ApiClient {
   }
 
   async getPublicOrderSocialProof(limit = 10): Promise<PublicOrderSocialProof[]> {
-    return this.request<PublicOrderSocialProof[]>(`/orders/social-proof?limit=${limit}`);
+    const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 20);
+    return this.request<PublicOrderSocialProof[]>(`/orders/social-proof?limit=${safeLimit}`);
   }
 
   async getOrder(id: string): Promise<Order> {
@@ -1867,6 +3420,30 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  async initiatePayment(intentId: string): Promise<{
+    id: string;
+    payment_intent_id: string;
+    order_id: string;
+    status: string;
+    amount: number;
+    currency: string;
+  }> {
+    return this.request(`/payments/intents/${intentId}/initiate`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async getOrderPaymentSummary(orderId: string): Promise<{
+    order_id: string;
+    total_amount: number;
+    amount_paid: number;
+    amount_due: number;
+    payment_status: string;
+  }> {
+    return this.request(`/payments/orders/${orderId}/summary`);
   }
 
   async getPaymentIntent(id: string): Promise<PaymentIntent> {
@@ -2028,6 +3605,11 @@ class ApiClient {
         total: userNotifs.length,
         unread_count: userNotifs.filter((n: any) => !n.isRead).length,
       };
+    }
+    if (!this.hasAuthSession()) {
+      const err = new Error('Not authenticated') as Error & { status?: number };
+      err.status = 401;
+      throw err;
     }
     return this.request('/notifications/me');
   }

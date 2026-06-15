@@ -10,9 +10,16 @@ from app.api.dependencies import (
     is_admin_user,
     user_has_partner_access_sync,
 )
-from app.models.promotion import PromoCode
+from app.models.promotion import PromoCode, PromoCodeUsage
 from app.models.user import User
-from app.schemas.promotion import PromoCodeCreate, PromoCodeListResponse, PromoCodeResponse, PromoCodeUpdate
+from app.schemas.promotion import (
+    PromoCodeCreate,
+    PromoCodeListResponse,
+    PromoCodeResponse,
+    PromoCodeUpdate,
+    PromoUsageHistoryEntry,
+    PromoUsageHistoryResponse,
+)
 from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/promotions", tags=["promotions"])
@@ -40,6 +47,38 @@ def _to_response(promo: PromoCode) -> PromoCodeResponse:
         created_at=str(promo.created_at),
         updated_at=str(promo.updated_at),
     )
+
+
+@router.get("/me/history", response_model=PromoUsageHistoryResponse)
+def get_my_promo_usage_history(
+    limit: int = Query(50, ge=1, le=200),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
+):
+    rows = (
+        db.query(PromoCodeUsage, PromoCode)
+        .join(PromoCode, PromoCode.id == PromoCodeUsage.promo_code_id)
+        .filter(PromoCodeUsage.customer_id == current_user.id)
+        .order_by(PromoCodeUsage.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    entries = [
+        PromoUsageHistoryEntry(
+            id=usage.id,
+            promo_code=promo.code,
+            order_id=usage.order_id,
+            discount_applied=float(usage.discount_applied),
+            consumed_at=usage.consumed_at.isoformat() if usage.consumed_at else None,
+        )
+        for usage, promo in rows
+    ]
+    total = (
+        db.query(PromoCodeUsage)
+        .filter(PromoCodeUsage.customer_id == current_user.id)
+        .count()
+    )
+    return PromoUsageHistoryResponse(entries=entries, total=total)
 
 
 @router.get("", response_model=PromoCodeListResponse)

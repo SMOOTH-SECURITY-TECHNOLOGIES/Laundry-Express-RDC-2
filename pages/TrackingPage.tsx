@@ -6,6 +6,8 @@ import { ReviewModal } from '../components/ReviewModal';
 import { OrderTrackingMap } from '../components/OrderTrackingMap';
 import { ChatModal } from '../components/ChatModal';
 import { Icon } from '../components/Icon';
+import { useOrderTracking } from '../hooks/useOrderTracking';
+import { useMyReviews } from '../hooks/useMyReviews';
 
 const statusConfig: Record<string, { label: string; heroMessage: string; color: string; bgColor: string; borderColor: string; icon: string; progress: number }> = {
   [OrderStatus.AWAITING_CONFIRMATION]: { label: 'Commande reçue', heroMessage: 'Le partenaire doit encore confirmer votre demande.', color: 'text-amber-600', bgColor: 'bg-amber-50 dark:bg-amber-900/20', borderColor: 'border-amber-200 dark:border-amber-800', icon: 'clock', progress: 12 },
@@ -39,11 +41,29 @@ const notificationPrefs = [
 
 export const TrackingPage: React.FC = () => {
   const {
-    activeOrder, setActiveOrder, setCurrentPage,
+    activeOrder: contextActiveOrder, setActiveOrder, setCurrentPage,
     resetOrderDraft, submitReview, getUserById,
     openChatForOrderId, setOpenChatForOrderId,
-    formatPrice, t,
+    formatPrice, t, partners,
   } = useAppContext();
+
+  const { order: trackedOrder } = useOrderTracking({
+    orderId: contextActiveOrder?.id ?? null,
+    partners,
+    fallbackOrder: contextActiveOrder,
+  });
+
+  const activeOrder = trackedOrder ?? contextActiveOrder;
+  const { reviews: myReviews } = useMyReviews(!!contextActiveOrder?.id);
+  const hasSubmittedReview = Boolean(
+    activeOrder?.isReviewed || myReviews.some((review) => review.order_id === activeOrder?.id),
+  );
+
+  useEffect(() => {
+    if (trackedOrder && trackedOrder.id === contextActiveOrder?.id) {
+      setActiveOrder(trackedOrder);
+    }
+  }, [trackedOrder, contextActiveOrder?.id, setActiveOrder]);
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -777,7 +797,7 @@ export const TrackingPage: React.FC = () => {
                   <span className="text-sm font-bold text-green-700 dark:text-green-300">+{activeOrder.pointsEarned} points gagnés</span>
                 </div>
               )}
-              {!activeOrder.isReviewed && (
+              {!hasSubmittedReview && (
                 <>
                   <p className="text-sm text-green-600 dark:text-green-400 mt-3">Comment était votre expérience ?</p>
                   <div className="mt-4 flex gap-3 justify-center">

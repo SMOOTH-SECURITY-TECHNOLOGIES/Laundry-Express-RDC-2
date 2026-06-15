@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
@@ -12,6 +12,18 @@ class LoyaltySettingsConfig(BaseModel):
     points_per_dollar = Column(Integer, nullable=False, default=10)
     points_to_dollar = Column(Integer, nullable=False, default=100)
     points_expiry_days = Column(Integer, nullable=True)
+    redemption_cap = Column(Integer, nullable=True)
+    first_order_bonus = Column(Integer, nullable=False, default=200)
+
+
+class LoyaltyReward(BaseModel):
+    __tablename__ = "loyalty_rewards"
+
+    name = Column(String(255), nullable=False)
+    points_required = Column(Integer, nullable=False)
+    value_dollars = Column(Numeric(10, 2), nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+    uses_count = Column(Integer, nullable=False, default=0)
 
 
 class LoyaltyLedgerEntry(BaseModel):

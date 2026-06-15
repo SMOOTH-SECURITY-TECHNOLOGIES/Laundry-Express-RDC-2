@@ -36,7 +36,6 @@ from app.schemas.order import (
 from app.schemas.pricing import PriceCalculationInput
 from app.services.loyalty_service import LoyaltyService
 from app.services.pricing_service import PricingService
-from app.models.promotion import PromoCode
 
 
 class OrderService:
@@ -233,13 +232,28 @@ class OrderService:
             self.repository.create(order)
 
             if loyalty_points_redeemed > 0:
+                balance_after = int(getattr(customer, "loyalty_points", 0) or 0)
                 LoyaltyService(self.db).record_entry(
                     user_id=customer_id,
                     order_id=order.id,
                     entry_type="redeem",
                     points_delta=-loyalty_points_redeemed,
-                    balance_after=int(getattr(customer, "loyalty_points", 0) or 0),
+                    balance_after=balance_after,
                     description=f"Redeemed {loyalty_points_redeemed} loyalty points on order {order_number}",
+                )
+                from app.services.audit_service import AuditService
+
+                AuditService(self.db).log_event(
+                    user_id=customer_id,
+                    action="loyalty_points_redeemed",
+                    resource_type="loyalty_ledger",
+                    resource_id=order.id,
+                    details={
+                        "order_id": str(order.id),
+                        "order_number": order_number,
+                        "points_redeemed": loyalty_points_redeemed,
+                        "balance_after": balance_after,
+                    },
                 )
 
             for item_data in order_data.items:
@@ -283,15 +297,21 @@ class OrderService:
             )
             self.repository.create_event(event)
 
-            if order_data.promo_code:
-                promo = (
-                    self.db.query(PromoCode)
-                    .filter(PromoCode.code == order_data.promo_code.upper())
-                    .first()
-                )
+            promo_discount = Decimal(
+                str((price_result.calculation_breakdown or {}).get("promo_discount", 0))
+            )
+            if order_data.promo_code and promo_discount > 0:
+                from app.services.promotion_service import PromotionService
+
+                promo = PromotionService(self.db).get_promo_by_code(order_data.promo_code)
                 if promo:
-                    promo.usage_count = int(promo.usage_count or 0) + 1
-                    self.db.add(promo)
+                    PromotionService(self.db).log_promotion_applied(
+                        customer_id=customer_id,
+                        order_id=order.id,
+                        promo=promo,
+                        discount_applied=promo_discount,
+                        order_total=self._to_decimal(price_result.total_amount),
+                    )
 
             self.db.commit()
             refreshed_order = self.repository.get_by_id(order.id)

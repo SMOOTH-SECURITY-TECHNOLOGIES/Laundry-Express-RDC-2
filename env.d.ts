@@ -16,6 +16,9 @@ interface ImportMetaEnv {
   readonly VITE_ORANGE_MONEY_API_KEY: string
   readonly VITE_LOG_LEVEL: string
   readonly VITE_USE_REAL_API: string
+  readonly VITE_USE_MOCK_API: string
+  readonly VITE_PILOT_MODE: string
+  readonly VITE_PAYMENT_MODE: string
 }
 
 interface ImportMeta {

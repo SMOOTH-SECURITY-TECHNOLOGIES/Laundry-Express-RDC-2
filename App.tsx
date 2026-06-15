@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, lazy, Suspense } from 'react';
+import { PartnerDetailPage } from './pages/PartnerDetailPage';
 import { Header } from './components/Header';
 import { HomePage } from './pages/HomePage';
 import { OrderPage } from './pages/OrderPage';
@@ -13,6 +14,7 @@ import { AdminControlCenter } from './pages/AdminControlCenter';
 import { PartnerDashboardPage } from './pages/PartnerDashboardPage';
 import { NotificationContainer } from './components/Notification';
 import { FAQPage } from './pages/FAQPage';
+import { BlogPage } from './pages/BlogPage';
 import { SupportCenterPage } from './pages/SupportCenterPage';
 import { LogisticsPartnershipPage } from './pages/LogisticsPartnershipPage';
 import { LogisticsDashboardPage } from './pages/LogisticsDashboardPage';
@@ -25,8 +27,6 @@ import { Page } from './context/NavigationContext';
 import { Icon } from './components/Icon';
 const LandingPage = lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
 
-const PartnerDetailPage = lazy(() => import('./pages/PartnerDetailPage').then(module => ({ default: module.PartnerDetailPage })));
-
 const App: React.FC = () => {
   const { 
     currentPage, setCurrentPage, setActivePartnerId, partners, 
@@ -34,7 +34,7 @@ const App: React.FC = () => {
     setOpenChatForOrderId, setOpenOrderDetailsForOrderId,
     setOpenLogisticsMissionForOrderId, setAdminSectionParams,
     setOpenDriverMissionForOrderId, t, user,
-    setRouterPage, activePartnerId, trackingSettings
+    setRouterPage, activePartnerId, setActiveBlogSlug, trackingSettings
   } = useAppContext();
 
   const initialRoutingHandled = useRef(false);
@@ -216,6 +216,12 @@ const App: React.FC = () => {
         setRouterPage('mini-site');
       } else if (path === '/order/service') {
         setRouterPage('order');
+      } else if (path.startsWith('/blog/')) {
+        setActiveBlogSlug(pathParts[1] || null);
+        setRouterPage('blog');
+      } else if (path === '/blog') {
+        setActiveBlogSlug(null);
+        setRouterPage('blog');
       } else if (path === '/partner-detail') {
         const partnerId = params.get('partnerId');
         if (partnerId) {
@@ -224,7 +230,7 @@ const App: React.FC = () => {
         setRouterPage('partner-detail');
       } else {
         const page = (pathParts[0] as Page) || 'home';
-        const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
+        const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'blog', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
         if (validPages.includes(page)) {
           setRouterPage(page);
         } else {
@@ -235,7 +241,7 @@ const App: React.FC = () => {
     
     window.addEventListener('popstate', handleLocationChange);
     return () => window.removeEventListener('popstate', handleLocationChange);
-  }, [setActivePartnerId, setRouterPage]);
+  }, [setActivePartnerId, setActiveBlogSlug, setRouterPage]);
 
   useEffect(() => {
     if (!isLoading && !initialRoutingHandled.current && partners.length > 0) {
@@ -320,6 +326,12 @@ const App: React.FC = () => {
             setRouterPage('mini-site');
         } else if (path === '/order/service') {
             setRouterPage('order');
+        } else if (path.startsWith('/blog/')) {
+            setActiveBlogSlug(pathParts[1] || null);
+            setRouterPage('blog');
+        } else if (path === '/blog') {
+            setActiveBlogSlug(null);
+            setRouterPage('blog');
         } else if (path === '/partner-detail') {
             const partnerId = params.get('partnerId');
             if (partnerId) {
@@ -328,7 +340,7 @@ const App: React.FC = () => {
             setRouterPage('partner-detail');
         } else if (pathParts[0]) {
             const pageFromPath = pathParts[0] as Page;
-            const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
+            const validPages: Page[] = ['home', 'order', 'tracking', 'profile', 'become-partner', 'login', 'register', 'admin', 'partner-dashboard', 'faq', 'blog', 'support', 'logistics-partnership', 'logistics-dashboard', 'driver-dashboard', 'partner-detail', 'notifications', 'mini-site'];
             if (validPages.includes(pageFromPath)) {
                 setRouterPage(pageFromPath);
             }
@@ -338,7 +350,7 @@ const App: React.FC = () => {
       isLoading, partners, setActivePartnerId, setRouterPage, 
       orderHistory, setActiveOrder, setOpenChatForOrderId,
       setOpenOrderDetailsForOrderId, setOpenLogisticsMissionForOrderId, 
-      setAdminSectionParams, setOpenDriverMissionForOrderId
+      setAdminSectionParams, setOpenDriverMissionForOrderId, setActiveBlogSlug
     ]);
 
   const renderPage = () => {
@@ -361,6 +373,8 @@ const App: React.FC = () => {
         return <PartnerDashboardPage />;
       case 'faq':
         return <FAQPage />;
+      case 'blog':
+        return <BlogPage />;
       case 'support':
         return <SupportCenterPage />;
       case 'logistics-partnership':
@@ -370,15 +384,7 @@ const App: React.FC = () => {
       case 'driver-dashboard':
         return <DriverDashboardPage />;
       case 'partner-detail':
-        return (
-          <Suspense fallback={
-            <div className="flex justify-center items-center min-h-[400px]">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue"></div>
-            </div>
-          }>
-            <PartnerDetailPage />
-          </Suspense>
-        );
+        return <PartnerDetailPage />;
       case 'notifications':
         return <NotificationsPage />;
       case 'mini-site':
@@ -392,7 +398,7 @@ const App: React.FC = () => {
   
   if (isLoading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-screen bg-brand-gray dark:bg-slate-900 text-brand-dark dark:text-slate-100 font-sans">
+      <div className="flex flex-col justify-center items-center min-h-screen bg-surface-page text-content-primary font-sans">
         <Icon name="logo" className="w-20 h-20 text-brand-blue animate-pulse" />
         <p className="mt-4 text-lg font-semibold">{t('app.loading', { default: 'Loading the application...' })}</p>
       </div>
@@ -409,7 +415,7 @@ const App: React.FC = () => {
   if (currentPage === 'home' && !user) {
     return (
       <Suspense fallback={
-        <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="flex justify-center items-center min-h-screen bg-surface-page">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B5FFF]"></div>
         </div>
       }>
@@ -421,7 +427,7 @@ const App: React.FC = () => {
   // Mini-site: standalone page without app chrome
   if (currentPage === 'mini-site') {
     return (
-      <div className="min-h-screen font-sans">
+      <div className="min-h-screen font-sans bg-surface-page text-content-primary">
         <NotificationContainer />
         {renderPage()}
       </div>
@@ -431,9 +437,9 @@ const App: React.FC = () => {
   const dashboardPages: Page[] = ['admin', 'partner-dashboard', 'logistics-dashboard', 'driver-dashboard'];
   const isDashboardPage = dashboardPages.includes(currentPage);
 
-  if (currentPage === 'admin') {
+  if (currentPage === 'admin' || currentPage === 'driver-dashboard' || currentPage === 'logistics-dashboard') {
     return (
-      <div className="min-h-screen font-sans bg-slate-50 text-slate-800">
+      <div className="min-h-screen font-sans bg-surface-page text-content-primary">
         <NotificationContainer />
         {renderPage()}
       </div>
@@ -443,7 +449,7 @@ const App: React.FC = () => {
   // Layout for Dashboard pages (no footer, full width)
   if (isDashboardPage) {
     return (
-      <div className="min-h-screen flex flex-col font-sans bg-slate-50 text-slate-800">
+      <div className="min-h-screen flex flex-col font-sans bg-surface-page text-content-primary">
         <Header />
         <NotificationContainer />
         <main className="flex-grow pt-24 px-4 sm:px-6 lg:px-8">
@@ -456,7 +462,7 @@ const App: React.FC = () => {
   // Partner detail: full-width marketplace layout (no container padding)
   if (currentPage === 'partner-detail') {
     return (
-      <div className="min-h-screen flex flex-col font-sans">
+      <div className="min-h-screen flex flex-col font-sans bg-surface-page text-content-primary">
         <Header />
         <NotificationContainer />
         <main className="flex-grow pt-24">
@@ -469,7 +475,7 @@ const App: React.FC = () => {
 
   if (currentPage === 'become-partner') {
     return (
-      <div className="min-h-screen flex flex-col font-sans bg-[#f7fbff]">
+      <div className="min-h-screen flex flex-col font-sans bg-surface-page text-content-primary">
         <Header />
         <NotificationContainer />
         <main className="flex-grow pt-24 animate-fade-in">
@@ -482,7 +488,7 @@ const App: React.FC = () => {
 
   // Default layout for all other pages
   return (
-    <div className="min-h-screen flex flex-col font-sans">
+    <div className="min-h-screen flex flex-col font-sans bg-surface-page text-content-primary">
       <Header />
       <NotificationContainer />
       <main className="flex-grow container mx-auto px-4 pt-28 pb-10 md:pb-16 animate-fade-in">

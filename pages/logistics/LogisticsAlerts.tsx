@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
+import { logisticsCard } from './logistics-ui';
 
 interface Alert {
   id: string;
@@ -91,7 +92,7 @@ export const LogisticsAlerts: React.FC = () => {
       </div>
 
       {filteredAlerts.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+        <div className={`${logisticsCard} p-16 text-center`}>
           <Icon name="bell" className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 text-sm font-medium">Aucune alerte dans cette catégorie</p>
           <p className="text-gray-400 text-xs mt-1">Tout est sous contrôle !</p>
@@ -101,7 +102,7 @@ export const LogisticsAlerts: React.FC = () => {
           {filteredAlerts.map(alert => {
             const config = TYPE_CONFIG[alert.type];
             return (
-              <div key={alert.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+              <div key={alert.id} className={`${logisticsCard} p-5 transition-shadow hover:shadow-md`}>
                 <div className="flex items-start gap-4">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.bg}`}>
                     <Icon name={config.icon} className={`h-5 w-5 ${config.color}`} />

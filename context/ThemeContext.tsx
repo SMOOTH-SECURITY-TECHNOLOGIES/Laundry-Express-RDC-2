@@ -1,44 +1,75 @@
-import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
-
-type Theme = 'light' | 'dark';
+import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
+import {
+  applyThemeToDocument,
+  readStoredThemePreference,
+  resolveTheme,
+  THEME_PREFERENCE_KEY,
+  LEGACY_THEME_KEY,
+  type ResolvedTheme,
+  type ThemePreference,
+} from '../lib/theme';
+import { realApi } from '../services/real-api';
 
 interface ThemeContextType {
-  theme: Theme;
+  theme: ResolvedTheme;
+  themePreference: ThemePreference;
+  setThemePreference: (preference: ThemePreference) => void;
   toggleTheme: () => void;
+  syncFromProfile: (preference: string | null | undefined) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const persistThemeToBackend = async (preference: ThemePreference) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  if (!token || token.startsWith('TOKEN-')) return;
+  try {
+    await realApi.updateThemePreference(preference);
+  } catch {
+    // Local preference remains applied even if sync fails.
+  }
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const storedTheme = window.localStorage.getItem('theme') as Theme | null;
-      if (storedTheme) {
-        return storedTheme;
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
-  });
+  const [themePreference, setThemePreferenceState] = useState<ThemePreference>(() => readStoredThemePreference());
+  const theme = useMemo(() => resolveTheme(themePreference), [themePreference]);
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    applyThemeToDocument(theme);
+    localStorage.setItem(THEME_PREFERENCE_KEY, themePreference);
+    localStorage.setItem(LEGACY_THEME_KEY, theme);
+  }, [theme, themePreference]);
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
+  useEffect(() => {
+    if (themePreference !== 'system') return undefined;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => applyThemeToDocument(resolveTheme('system'));
+    media.addEventListener('change', handler);
+    return () => media.removeEventListener('change', handler);
+  }, [themePreference]);
 
-  const value = useMemo(() => ({ theme, toggleTheme }), [theme]);
+  const setThemePreference = useCallback((preference: ThemePreference) => {
+    setThemePreferenceState(preference);
+    void persistThemeToBackend(preference);
+  }, []);
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+  const syncFromProfile = useCallback((preference: string | null | undefined) => {
+    if (preference === 'light' || preference === 'dark' || preference === 'system') {
+      setThemePreferenceState(preference);
+    }
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    const nextResolved: ResolvedTheme = theme === 'light' ? 'dark' : 'light';
+    setThemePreference(nextResolved);
+  }, [theme, setThemePreference]);
+
+  const value = useMemo(
+    () => ({ theme, themePreference, setThemePreference, toggleTheme, syncFromProfile }),
+    [theme, themePreference, setThemePreference, toggleTheme, syncFromProfile],
   );
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = () => {

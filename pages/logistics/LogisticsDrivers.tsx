@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
+import { logisticsCard } from './logistics-ui';
 import { AddDriverModal } from '../../components/logistics/AddDriverModal';
 import { EditDriverModal } from '../../components/logistics/EditDriverModal';
 
@@ -125,7 +126,7 @@ export const LogisticsDrivers: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-brand-dark">Gestion des chauffeurs</h1>
+          <h1 className="text-2xl font-extrabold text-content-primary">Gestion des chauffeurs</h1>
           <p className="text-sm text-gray-500 mt-1">{drivers.length} chauffeurs enregistrés</p>
         </div>
         <button
@@ -144,21 +145,21 @@ export const LogisticsDrivers: React.FC = () => {
           { label: 'Occupés', value: stats.occupes, icon: 'truck' as const, tone: 'bg-orange-50 text-orange-600' },
           { label: 'Hors ligne', value: stats.horsLigne, icon: 'xmark' as const, tone: 'bg-gray-100 text-gray-500' },
         ].map(kpi => (
-          <div key={kpi.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div key={kpi.label} className={`${logisticsCard} p-4`}>
             <div className="flex items-center gap-3">
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${kpi.tone}`}>
                 <Icon name={kpi.icon} className="h-5 w-5" />
               </span>
               <div>
                 <p className="text-xs text-gray-500">{kpi.label}</p>
-                <p className="text-xl font-extrabold text-brand-dark">{kpi.value}</p>
+                <p className="text-xl font-extrabold text-content-primary">{kpi.value}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className={`${logisticsCard} overflow-hidden`}>
         <div className="p-6 border-b border-gray-100">
           <div className="flex flex-wrap gap-2 mb-4">
             {FILTER_TABS.map(tab => (

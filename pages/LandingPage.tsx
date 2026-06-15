@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { useAppContext } from '../context/AppContext';
 import { realApi } from '../services/real-api';
 import { Advertisement, Partner, Review, Service } from '../types';
@@ -16,14 +17,14 @@ type EstimateLine = {
 };
 
 const COMMUNES = ['Gombe', 'Ngaliema', 'Limete', 'Kintambo', 'Bandalungwa', 'Matete', 'Masina'];
-const pageBand = 'bg-gradient-to-b from-[#f8fbff] via-white to-[#f1f7ff]';
-const cardClass = 'border border-[#d8e6fb] bg-white shadow-[0_18px_45px_rgba(0,91,216,0.08)]';
+const pageBand = 'bg-surface-muted text-content-primary';
+const cardClass = 'border border-surface-border-subtle bg-surface-card shadow-card';
 
 const serviceAccent = (index: number) =>
   [
-    { bg: 'from-[#eaf4ff] to-white', text: '#005bd8', icon: 'wash' },
-    { bg: 'from-[#f4efff] to-white', text: '#6b4ce6', icon: 'sparkles' },
-    { bg: 'from-[#fff3e7] to-white', text: '#f97316', icon: 'shoppingBag' },
+    { bg: 'from-blue-500/10 to-surface-card', text: '#005bd8', icon: 'wash' },
+    { bg: 'from-violet-500/10 to-surface-card', text: '#6b4ce6', icon: 'sparkles' },
+    { bg: 'from-orange-500/10 to-surface-card', text: '#f97316', icon: 'shoppingBag' },
   ][index % 3];
 
 const getCommune = (address?: string) => {
@@ -51,17 +52,17 @@ const upsertMeta = (selector: string, attrs: Record<string, string>) => {
 };
 
 const EmptyState: React.FC<{ title: string; description: string }> = ({ title, description }) => (
-  <div className="rounded-2xl border border-dashed border-[#cfe1fb] bg-white/70 p-8 text-center">
+  <div className="rounded-2xl border border-dashed border-surface-border bg-surface-card/80 p-8 text-center">
     <Icon name="cloud" className="mx-auto h-10 w-10 text-[#005bd8]" />
-    <h3 className="mt-4 font-black text-[#06105f]">{title}</h3>
-    <p className="mt-2 text-sm text-[#52607f]">{description}</p>
+    <h3 className="mt-4 font-black text-content-primary">{title}</h3>
+    <p className="mt-2 text-sm text-content-muted">{description}</p>
   </div>
 );
 
 const SectionHeading: React.FC<{ title: string; subtitle?: string; light?: boolean }> = ({ title, subtitle, light }) => (
   <div className="mx-auto mb-8 max-w-3xl text-center">
-    <h2 className={`text-3xl font-black tracking-normal md:text-4xl ${light ? 'text-white' : 'text-[#06105f]'}`}>{title}</h2>
-    {subtitle && <p className={`mt-3 text-base md:text-lg ${light ? 'text-white/75' : 'text-[#52607f]'}`}>{subtitle}</p>}
+    <h2 className={`text-3xl font-black tracking-normal md:text-4xl ${light ? 'text-white' : 'text-content-primary'}`}>{title}</h2>
+    {subtitle && <p className={`mt-3 text-base md:text-lg ${light ? 'text-white/75' : 'text-content-muted'}`}>{subtitle}</p>}
   </div>
 );
 
@@ -244,28 +245,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fbff] text-[#06105f]">
-      <header className="sticky top-0 z-50 border-b border-[#dbe7fb] bg-white/90 backdrop-blur-xl">
+    <div className="min-h-screen bg-surface-page text-content-primary">
+      <header className="sticky top-0 z-50 border-b border-surface-border bg-surface-card/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:h-20 lg:px-8">
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-3" aria-label="Accueil Laundry Express">
             <Icon name="logo" className="h-9 w-9 text-[#005bd8]" />
             <span className="text-xl font-black">Laundry Express</span>
           </button>
-          <nav className="hidden items-center gap-7 text-sm font-bold text-[#243056] lg:flex">
+          <nav className="hidden items-center gap-7 text-sm font-bold text-content-muted lg:flex">
             <a href="#home">Accueil</a>
             <button onClick={() => setCurrentPage({ name: 'tracking' })}>Suivre ma commande</button>
             <button onClick={() => setCurrentPage({ name: 'become-partner' })}>Devenir partenaire</button>
             <a href="#faq">FAQ</a>
           </nav>
           <div className="hidden items-center gap-3 lg:flex">
-            <select aria-label="Langue" className="rounded-full border border-[#dbe7fb] bg-[#f7fbff] px-3 py-2 text-sm font-bold">
+            <select aria-label="Langue" className="rounded-full border border-surface-border bg-surface-muted px-3 py-2 text-sm font-bold text-content-primary">
               <option>Francais</option>
               <option>English</option>
             </select>
-            <button aria-label="Mode sombre" className="rounded-full p-2 text-[#06105f] hover:bg-[#eef6ff]">
-              <Icon name="moon" className="h-5 w-5" />
-            </button>
-            <button onClick={() => setCurrentPage({ name: 'login' })} className="font-bold text-[#06105f]">Connexion</button>
+            <ThemeSwitcher />
+            <button onClick={() => setCurrentPage({ name: 'login' })} className="font-bold text-content-primary">Connexion</button>
             <button onClick={() => setCurrentPage({ name: 'register' })} className="rounded-full bg-[#005bd8] px-5 py-2.5 font-black text-white">Inscription</button>
           </div>
           <button onClick={() => setMenuOpen((value) => !value)} className="rounded-xl p-2 lg:hidden" aria-label="Menu">
@@ -273,7 +272,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
           </button>
         </div>
         {menuOpen && (
-          <div className="border-t border-[#dbe7fb] bg-white px-4 py-4 lg:hidden">
+          <div className="border-t border-surface-border bg-surface-card px-4 py-4 lg:hidden">
             {['Accueil', 'Suivre ma commande', 'Devenir partenaire', 'FAQ'].map((item) => (
               <button
                 key={item}
@@ -291,7 +290,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
       </header>
 
       <main id="home">
-        <section className="relative overflow-hidden bg-gradient-to-br from-white via-[#f2f8ff] to-[#e8f2ff]">
+        <section className="relative overflow-hidden bg-gradient-to-br from-surface-card via-surface-muted to-surface-page">
           <div className="absolute left-0 top-20 h-72 w-72 rounded-full bg-[#005bd8]/10 blur-3xl" />
           <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#ff7a00]/10 blur-3xl" />
           <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-16">
@@ -299,18 +298,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             <h1 className="text-4xl font-black leading-tight tracking-normal md:text-6xl">
               Nettoyage a Sec, Lessive et Cordonnerie <span className="text-[#005bd8]">Livres a votre porte a Kinshasa</span>
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#52607f]">
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-content-muted">
               Reservez un ramassage a domicile en quelques minutes. Suivez votre commande en temps reel et recuperez vos vetements propres sans vous deplacer.
             </p>
             <div className={`mt-8 rounded-3xl p-3 ${cardClass}`}>
               <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                <select value={selectedServiceId} onChange={(event) => selectService(event.target.value)} className="rounded-2xl border border-[#dbe7fb] px-4 py-4 font-bold outline-none focus:ring-4 focus:ring-[#dcecff]">
+                <select value={selectedServiceId} onChange={(event) => selectService(event.target.value)} className="rounded-2xl border border-surface-border bg-surface-card px-4 py-4 font-bold text-content-primary outline-none focus:ring-4 focus:ring-blue-500/30">
                   <option value="">Quel service recherchez-vous ?</option>
                   {services.map((service) => (
                     <option key={service.id} value={service.id}>{service.title}</option>
                   ))}
                 </select>
-                <select value={selectedCommune} onChange={(event) => setSelectedCommune(event.target.value)} className="rounded-2xl border border-[#dbe7fb] px-4 py-4 font-bold outline-none focus:ring-4 focus:ring-[#dcecff]">
+                <select value={selectedCommune} onChange={(event) => setSelectedCommune(event.target.value)} className="rounded-2xl border border-surface-border bg-surface-card px-4 py-4 font-bold text-content-primary outline-none focus:ring-4 focus:ring-blue-500/30">
                   <option value="">Commune</option>
                   {coveredCommunes.map((commune) => (
                     <option key={commune} value={commune}>{commune}</option>
@@ -321,9 +320,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <button onClick={() => startOrder('hero_primary')} className="rounded-2xl bg-[#005bd8] px-8 py-4 font-black text-white shadow-lg shadow-[#005bd8]/25">Commander maintenant</button>
-              <a href="#partners" className="rounded-2xl border border-[#a9c8f5] bg-white px-8 py-4 text-center font-black shadow-sm">Voir les partenaires</a>
+              <a href="#partners" className="rounded-2xl border border-surface-border bg-surface-card px-8 py-4 text-center font-black text-content-primary shadow-sm">Voir les partenaires</a>
             </div>
-            <div className="mt-6 grid gap-3 text-sm font-bold text-[#52607f] sm:grid-cols-2">
+            <div className="mt-6 grid gap-3 text-sm font-bold text-content-muted sm:grid-cols-2">
               {['Paiement securise', 'Ramassage a domicile', 'Livraison rapide', 'Partenaires verifies'].map((badge) => (
                 <span key={badge} className="flex items-center gap-2"><Icon name="check" className="h-5 w-5 rounded-full bg-[#dcecff] p-1 text-[#005bd8]" />{badge}</span>
               ))}
@@ -336,9 +335,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className={`grid gap-3 rounded-3xl p-4 md:grid-cols-4 ${cardClass}`}>
             {activityStats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl bg-[#f7fbff] p-5 text-center">
+              <div key={stat.label} className="rounded-2xl bg-surface-muted p-5 text-center">
                 <p className="text-2xl font-black text-[#005bd8]">{stat.value}</p>
-                <p className="mt-1 text-sm font-bold text-[#52607f]">{stat.label}</p>
+                <p className="mt-1 text-sm font-bold text-content-muted">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -354,12 +353,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
               {services.slice(0, 3).map((service, index) => {
                 const accent = serviceAccent(index);
                 return (
-                  <article key={service.id} className={`overflow-hidden rounded-3xl border border-[#dbe7fb] bg-gradient-to-br ${accent.bg} p-5 shadow-lg shadow-[#dbe7fb]/60`}>
-                    {service.imageUrl ? <img src={service.imageUrl} alt={service.title} loading="lazy" className="h-44 w-full rounded-2xl object-cover" /> : <div className="flex h-44 items-center justify-center rounded-2xl bg-white"><Icon name={accent.icon as any} className="h-12 w-12" style={{ color: accent.text }} /></div>}
+                  <article key={service.id} className={`overflow-hidden rounded-3xl border border-surface-border-subtle bg-gradient-to-br ${accent.bg} p-5 shadow-card`}>
+                    {service.imageUrl ? <img src={service.imageUrl} alt={service.title} loading="lazy" className="h-44 w-full rounded-2xl object-cover" /> : <div className="flex h-44 items-center justify-center rounded-2xl bg-surface-card"><Icon name={accent.icon as any} className="h-12 w-12" style={{ color: accent.text }} /></div>}
                     <h3 className="mt-5 text-2xl font-black">{service.title}</h3>
-                    <p className="mt-2 min-h-[52px] text-sm leading-6 text-[#52607f]">{service.description}</p>
+                    <p className="mt-2 min-h-[52px] text-sm leading-6 text-content-muted">{service.description}</p>
                     <p className="mt-4 font-black" style={{ color: accent.text }}>{servicePriceLabel(service, formatPrice)}</p>
-                    <p className="mt-1 text-sm font-bold text-[#52607f]">Temps moyen selon partenaire</p>
+                    <p className="mt-1 text-sm font-bold text-content-muted">Temps moyen selon partenaire</p>
                     <button onClick={() => startOrder(`service_${service.id}`)} className="mt-5 w-full rounded-2xl bg-[#005bd8] py-3 font-black text-white">Commander</button>
                   </article>
                 );
@@ -433,9 +432,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
                 <p className="text-sm font-black uppercase text-[#9bc8ff]">Promotion</p>
                 <h2 className="mt-2 text-3xl font-black">{activePromotion.title}</h2>
                 <p className="mt-2 text-white/75">{activePromotion.description}</p>
-                {activePromotion.code && <p className="mt-4 inline-flex rounded-full bg-white px-4 py-2 font-black text-[#06105f]">Code: {activePromotion.code}</p>}
+                {activePromotion.code && <p className="mt-4 inline-flex rounded-full bg-surface-card px-4 py-2 font-black text-content-primary">Code: {activePromotion.code}</p>}
               </div>
-              <button onClick={() => { trackEvent('promotion_clicked', { code: activePromotion.code }); startOrder('promotion'); }} className="rounded-2xl bg-white px-8 py-4 font-black text-[#06105f]">Commander maintenant</button>
+              <button onClick={() => { trackEvent('promotion_clicked', { code: activePromotion.code }); startOrder('promotion'); }} className="rounded-2xl bg-surface-card px-8 py-4 font-black text-content-primary">Commander maintenant</button>
             </div>
           </section>
         )}
@@ -445,7 +444,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
           <SectionHeading title="Comment ca marche" />
           <div className="grid gap-5 md:grid-cols-5">
             {['Choisissez un service', 'Selectionnez un partenaire', 'Planifiez le ramassage', 'Suivez votre commande', 'Livraison a domicile'].map((step, index) => (
-              <div key={step} className="rounded-3xl border border-[#dbe7fb] bg-white p-5 text-center shadow-sm">
+              <div key={step} className="rounded-3xl border border-surface-border-subtle bg-surface-card p-5 text-center shadow-sm">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#005bd8] font-black text-white">{index + 1}</div>
                 <p className="mt-4 font-black">{step}</p>
               </div>
@@ -465,7 +464,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
               ['lifebuoy', 'Support 24/7'],
               ['hand-thumb-up', 'Satisfait ou rembourse'],
             ].map(([icon, label]) => (
-              <div key={label} className="rounded-3xl bg-white p-5 text-center shadow-sm">
+              <div key={label} className="rounded-3xl bg-surface-card p-5 text-center shadow-sm">
                 <Icon name={icon as any} className="mx-auto h-9 w-9 text-[#005bd8]" />
                 <p className="mt-3 text-sm font-black">{label}</p>
               </div>
@@ -474,24 +473,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         </section>
 
         <section className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_0.75fr] lg:px-8">
-          <div className="rounded-3xl border border-[#dbe7fb] bg-white p-6 shadow-xl shadow-[#dbe7fb]/60">
+          <div className="rounded-3xl border border-surface-border-subtle bg-surface-card p-6 shadow-card">
             <h2 className="text-2xl font-black">Estimez votre commande</h2>
             {estimateItems.length ? (
               <div className="mt-5 space-y-3">
                 {estimateItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-2xl bg-[#f7fbff] p-3">
+                  <div key={item.id} className="flex items-center justify-between rounded-2xl bg-surface-muted p-3">
                     <div>
                       <p className="font-black">{item.label}</p>
-                      <p className="text-sm text-[#52607f]">{formatPrice(item.price)}</p>
+                      <p className="text-sm text-content-muted">{formatPrice(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button onClick={() => updateEstimate(item.id, -1)} className="rounded-full border border-[#dbe7fb] bg-white p-2"><Icon name="minus" className="h-4 w-4" /></button>
+                      <button onClick={() => updateEstimate(item.id, -1)} className="rounded-full border border-surface-border-subtle bg-surface-card p-2"><Icon name="minus" className="h-4 w-4" /></button>
                       <span className="w-6 text-center font-black">{estimateQty[item.id] || 0}</span>
                       <button onClick={() => updateEstimate(item.id, 1)} className="rounded-full bg-[#005bd8] p-2 text-white"><Icon name="plus" className="h-4 w-4" /></button>
                     </div>
                   </div>
                 ))}
-                <div className="mt-5 rounded-2xl bg-[#eef6ff] p-5">
+                <div className="mt-5 rounded-2xl bg-surface-muted p-5">
                   <SummaryLine label="Sous-total" value={formatPrice(subtotal)} />
                   <SummaryLine label="Livraison" value={formatPrice(delivery)} />
                   <SummaryLine label="Total" value={formatPrice(total)} strong />
@@ -518,15 +517,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
 
         <section className={`px-4 py-14 sm:px-6 lg:px-8 ${pageBand}`}>
           <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
-          <div className="rounded-3xl border border-[#dbe7fb] bg-white p-6">
+          <div className="rounded-3xl border border-surface-border-subtle bg-surface-card p-6">
             <h2 className="text-2xl font-black">Les meilleurs partenaires de Kinshasa</h2>
             {rankedPartners.length ? (
               <div className="mt-5 space-y-3">
                 {rankedPartners.map((partner, index) => (
-                  <button key={partner.id} onClick={() => viewPartner(partner)} className="flex w-full items-center justify-between rounded-2xl bg-[#f7fbff] p-4 text-left">
+                  <button key={partner.id} onClick={() => viewPartner(partner)} className="flex w-full items-center justify-between rounded-2xl bg-surface-muted p-4 text-left">
                     <span className="rounded-full bg-[#005bd8] px-3 py-1 text-sm font-black text-white">#{index + 1}</span>
                     <span className="flex-1 px-4 font-black">{partner.name}</span>
-                    <span className="text-sm font-bold text-[#52607f]">{partner.rating.toFixed(1)} · {getCommune(partner.address)}</span>
+                    <span className="text-sm font-bold text-content-muted">{partner.rating.toFixed(1)} · {getCommune(partner.address)}</span>
                   </button>
                 ))}
               </div>
@@ -534,7 +533,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
               <EmptyState title="Classement indisponible" description="Les partenaires notes apparaitront ici." />
             )}
           </div>
-          <div className="rounded-3xl border border-[#dbe7fb] bg-white p-6">
+          <div className="rounded-3xl border border-surface-border-subtle bg-surface-card p-6">
             <h2 className="text-2xl font-black">Partenaires par commune</h2>
             <div className="mt-5 space-y-3">
               {coveredCommunes.map((commune) => {
@@ -543,7 +542,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
                 return (
                   <button key={commune} onClick={() => { setSelectedCommune(commune); search(); }} className="w-full text-left">
                     <div className="flex justify-between text-sm font-black"><span>{commune}</span><span>{count}</span></div>
-                    <div className="mt-2 h-3 rounded-full bg-[#eef6ff]"><div className="h-3 rounded-full bg-[#005bd8]" style={{ width: `${width}%` }} /></div>
+                    <div className="mt-2 h-3 rounded-full bg-surface-muted"><div className="h-3 rounded-full bg-[#005bd8]" style={{ width: `${width}%` }} /></div>
                   </button>
                 );
               })}
@@ -554,11 +553,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
 
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <SectionHeading title="Couverture geographique" subtitle="Zones couvertes, partenaires actifs et communes en preparation." />
-          <div className="relative min-h-[360px] overflow-hidden rounded-3xl border border-[#dbe7fb] bg-[#eaf4ff] p-6">
+          <div className="relative min-h-[360px] overflow-hidden rounded-3xl border border-surface-border-subtle bg-surface-muted p-6">
             <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 30% 30%, #005bd8 0, transparent 28%), radial-gradient(circle at 70% 55%, #00a884 0, transparent 24%)' }} />
             <div className="relative grid gap-4 md:grid-cols-4">
               {coveredCommunes.map((commune) => (
-                <div key={commune} className="rounded-2xl bg-white/90 p-4 font-black shadow-sm">
+                <div key={commune} className="rounded-2xl bg-surface-card/90 p-4 font-black shadow-sm">
                   <Icon name="mapPin" className="mb-2 h-5 w-5 text-[#005bd8]" />
                   {commune}
                 </div>
@@ -572,7 +571,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             <SectionHeading title="Suivez votre commande" subtitle="Chaque etape est visible depuis votre espace client." />
             <div className="space-y-3">
               {['Commande recue', 'Ramassage', 'Nettoyage', 'Controle qualite', 'Livraison', 'Termine'].map((step, index) => (
-                <div key={step} className="flex items-center gap-4 rounded-2xl bg-white p-4">
+                <div key={step} className="flex items-center gap-4 rounded-2xl bg-surface-card p-4">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#005bd8] text-sm font-black text-white">{index + 1}</span>
                   <p className="font-black">{step}</p>
                 </div>
@@ -580,11 +579,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             </div>
           </div>
           <div className="mx-auto w-full max-w-sm rounded-[2.5rem] bg-[#06105f] p-4 shadow-2xl">
-            <div className="rounded-[2rem] bg-white p-6">
-              <p className="text-xs font-black uppercase text-[#52607f]">Commande #LE-4821</p>
+            <div className="rounded-[2rem] bg-surface-card p-6">
+              <p className="text-xs font-black uppercase text-content-muted">Commande #LE-4821</p>
               <h3 className="mt-1 text-xl font-black">En cours de livraison</h3>
-              <div className="mt-6 h-3 rounded-full bg-[#eef6ff]"><div className="h-3 w-3/4 rounded-full bg-[#005bd8]" /></div>
-              <p className="mt-4 text-sm font-bold text-[#52607f]">Arrivee estimee dans 22 min</p>
+              <div className="mt-6 h-3 rounded-full bg-surface-muted"><div className="h-3 w-3/4 rounded-full bg-[#005bd8]" /></div>
+              <p className="mt-4 text-sm font-bold text-content-muted">Arrivee estimee dans 22 min</p>
             </div>
           </div>
         </section>
@@ -613,8 +612,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
           {partners.length ? (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
               {partners.slice(0, 12).map((partner) => (
-                <button key={partner.id} onClick={() => viewPartner(partner)} className="rounded-2xl border border-[#dbe7fb] bg-white p-4 text-left shadow-sm">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef6ff] font-black text-[#005bd8]">{partner.name.slice(0, 2).toUpperCase()}</span>
+                <button key={partner.id} onClick={() => viewPartner(partner)} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-4 text-left shadow-sm">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted font-black text-[#005bd8]">{partner.name.slice(0, 2).toUpperCase()}</span>
                   <p className="mt-3 font-black">{partner.name}</p>
                 </button>
               ))}
@@ -636,12 +635,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
           <SectionHeading title="FAQ" />
           <div className="space-y-3">
             {siteContent.faq?.length ? siteContent.faq.map((faq) => (
-              <div key={faq.id} className="rounded-2xl border border-[#dbe7fb] bg-white">
+              <div key={faq.id} className="rounded-2xl border border-surface-border-subtle bg-surface-card">
                 <button onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)} className="flex w-full items-center justify-between p-5 text-left font-black">
                   {faq.question}
                   <Icon name={openFaq === faq.id ? 'minus' : 'plus'} className="h-5 w-5" />
                 </button>
-                {openFaq === faq.id && <p className="px-5 pb-5 text-[#52607f]">{faq.answer}</p>}
+                {openFaq === faq.id && <p className="px-5 pb-5 text-content-muted">{faq.answer}</p>}
               </div>
             )) : <EmptyState title="FAQ non configuree" description="Les questions/reponses du backend apparaitront ici." />}
           </div>
@@ -661,7 +660,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             <p className="mt-4 text-white/75">+243 81 234 5678</p>
             <p className="mt-2 text-white/75">contact@laundryexpress.cd</p>
             <p className="mt-2 text-white/75">Kinshasa, RDC</p>
-            <div className="mt-5 flex gap-2"><span className="rounded-full bg-white px-3 py-1 text-sm font-black text-[#06105f]">USD</span><span className="rounded-full bg-white/10 px-3 py-1 text-sm font-black">CDF</span></div>
+            <div className="mt-5 flex gap-2"><span className="rounded-full bg-surface-card px-3 py-1 text-sm font-black text-content-primary">USD</span><span className="rounded-full bg-surface-card/10 px-3 py-1 text-sm font-black">CDF</span></div>
           </div>
         </div>
       </footer>
@@ -676,23 +675,23 @@ const averageRating = (reviews: Review[]) => {
 
 const SkeletonGrid = () => (
   <div className="grid gap-6 md:grid-cols-3">
-    {[1, 2, 3].map((item) => <div key={item} className="h-80 animate-pulse rounded-3xl bg-white" />)}
+    {[1, 2, 3].map((item) => <div key={item} className="h-80 animate-pulse rounded-3xl bg-surface-muted" />)}
   </div>
 );
 
 const AdvertisementCard: React.FC<{ advertisement: Advertisement; onClick: () => void }> = ({ advertisement, onClick }) => (
-  <article className="grid overflow-hidden rounded-3xl border border-[#ffd5ad] bg-gradient-to-br from-white via-[#fff8f1] to-[#fff0e0] shadow-[0_18px_45px_rgba(255,122,0,0.14)] md:grid-cols-[220px_1fr]">
+  <article className="grid overflow-hidden rounded-3xl border border-orange-300/40 bg-gradient-to-br from-surface-card via-orange-500/5 to-orange-500/10 shadow-card md:grid-cols-[220px_1fr]">
     {advertisement.imageUrl ? (
       <img src={advertisement.imageUrl} alt={advertisement.title} loading="lazy" className="h-56 w-full object-cover md:h-full" />
     ) : (
-      <div className="flex h-56 items-center justify-center bg-[#fff0e0] md:h-full">
+      <div className="flex h-56 items-center justify-center bg-orange-500/10 md:h-full">
         <Icon name="gift" className="h-12 w-12 text-[#ff7a00]" />
       </div>
     )}
     <div className="p-6">
-      <span className="rounded-full bg-[#fff0e0] px-3 py-1 text-xs font-black uppercase text-[#ff7a00]">Publicite</span>
-      <h3 className="mt-4 text-2xl font-black text-[#06105f]">{advertisement.title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[#52607f]">{advertisement.description}</p>
+      <span className="rounded-full bg-orange-500/15 px-3 py-1 text-xs font-black uppercase text-[#ff7a00]">Publicite</span>
+      <h3 className="mt-4 text-2xl font-black text-content-primary">{advertisement.title}</h3>
+      <p className="mt-2 text-sm leading-6 text-content-muted">{advertisement.description}</p>
       <button onClick={onClick} className="mt-5 rounded-2xl bg-[#ff7a00] px-6 py-3 font-black text-white shadow-lg shadow-[#ff7a00]/20">Voir l'offre</button>
     </div>
   </article>
@@ -700,12 +699,12 @@ const AdvertisementCard: React.FC<{ advertisement: Advertisement; onClick: () =>
 
 const PartnerCard: React.FC<{ partner: Partner; rank: number; badge?: string; tone?: 'blue' | 'green' | 'orange'; onView: () => void; onOrder: () => void }> = ({ partner, rank, badge, tone = 'blue', onView, onOrder }) => {
   const palette = tone === 'orange'
-    ? { border: 'border-[#ffd5ad]', bg: 'bg-[#fff8f1]', badge: 'bg-[#fff0e0] text-[#ff7a00]', cta: 'bg-[#ff7a00]', text: 'text-[#ff7a00]' }
+    ? { border: 'border-orange-300/40', bg: 'bg-orange-500/10', badge: 'bg-orange-500/15 text-[#ff7a00]', cta: 'bg-[#ff7a00]', text: 'text-[#ff7a00]' }
     : tone === 'green'
-      ? { border: 'border-[#b8efe0]', bg: 'bg-[#f0fbf7]', badge: 'bg-[#e4f8f1] text-[#00a884]', cta: 'bg-[#00a884]', text: 'text-[#00a884]' }
-      : { border: 'border-[#dbe7fb]', bg: 'bg-[#eef6ff]', badge: 'bg-[#eef6ff] text-[#005bd8]', cta: 'bg-[#005bd8]', text: 'text-[#005bd8]' };
+      ? { border: 'border-emerald-300/40', bg: 'bg-emerald-500/10', badge: 'bg-emerald-500/15 text-[#00a884]', cta: 'bg-[#00a884]', text: 'text-[#00a884]' }
+      : { border: 'border-surface-border-subtle', bg: 'bg-surface-muted', badge: 'bg-surface-muted text-[#005bd8]', cta: 'bg-[#005bd8]', text: 'text-[#005bd8]' };
   return (
-  <article className={`overflow-hidden rounded-3xl border bg-white shadow-lg shadow-[#dbe7fb]/60 ${palette.border}`}>
+  <article className={`overflow-hidden rounded-3xl border bg-surface-card shadow-card ${palette.border}`}>
     {partner.imageUrls?.find(Boolean) ? <img src={partner.imageUrls.find(Boolean)} alt={partner.name} loading="lazy" className="h-44 w-full object-cover" /> : <div className={`flex h-44 items-center justify-center text-3xl font-black ${palette.bg} ${palette.text}`}>{partner.name.slice(0, 2).toUpperCase()}</div>}
     <div className="p-5">
       <div className="flex items-center justify-between">
@@ -713,7 +712,7 @@ const PartnerCard: React.FC<{ partner: Partner; rank: number; badge?: string; to
         <span className="font-black text-[#ffb703]">★ {partner.rating.toFixed(1)}</span>
       </div>
       <h3 className="mt-4 text-xl font-black">{partner.name}</h3>
-      <p className="mt-1 text-sm text-[#52607f]">{partner.reviewCount} avis · {getCommune(partner.address)} · temps selon disponibilite</p>
+      <p className="mt-1 text-sm text-content-muted">{partner.reviewCount} avis · {getCommune(partner.address)} · temps selon disponibilite</p>
       <div className="mt-5 grid grid-cols-2 gap-3">
         <button onClick={onView} className={`rounded-xl border py-3 font-black ${palette.border} ${palette.text}`}>Voir profil</button>
         <button onClick={onOrder} className={`rounded-xl py-3 font-black text-white ${palette.cta}`}>Commander</button>
@@ -724,17 +723,17 @@ const PartnerCard: React.FC<{ partner: Partner; rank: number; badge?: string; to
 };
 
 const SummaryLine: React.FC<{ label: string; value: string; strong?: boolean }> = ({ label, value, strong }) => (
-  <div className={`flex justify-between py-1 ${strong ? 'text-xl font-black text-[#005bd8]' : 'font-bold text-[#52607f]'}`}>
+  <div className={`flex justify-between py-1 ${strong ? 'text-xl font-black text-[#005bd8]' : 'font-bold text-content-muted'}`}>
     <span>{label}</span>
     <span>{value}</span>
   </div>
 );
 
 const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
-  <article className="rounded-3xl border border-[#dbe7fb] bg-white p-6 shadow-sm">
+  <article className="rounded-3xl border border-surface-border-subtle bg-surface-card p-6 shadow-sm">
     <p className="text-[#ffb703]">{'★'.repeat(review.rating)}{'☆'.repeat(Math.max(0, 5 - review.rating))}</p>
-    <p className="mt-4 text-[#52607f]">"{review.comment}"</p>
-    <p className="mt-5 font-black text-[#06105f]">Client verifie</p>
+    <p className="mt-4 text-content-muted">"{review.comment}"</p>
+    <p className="mt-5 font-black text-content-primary">Client verifie</p>
   </article>
 );
 

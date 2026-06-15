@@ -15,7 +15,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebar, child
   return (
     <>
       <header className="md:hidden flex items-center justify-between py-4 border-b dark:border-slate-700 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-4">
-        <h1 className="text-lg font-bold text-brand-dark dark:text-slate-100">{mobileTitle}</h1>
+        <h1 className="text-lg font-bold text-content-primary">{mobileTitle}</h1>
         <button onClick={() => setIsSidebarOpen(true)} className="p-2" aria-label={t('header.openMenu')}>
           <Icon name="bars3" className="w-6 h-6" />
         </button>
@@ -30,7 +30,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ sidebar, child
           />
         )}
         <aside
-          className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-800 p-4 shadow-xl z-50 transform transition-transform overflow-y-auto md:sticky md:top-24 md:h-auto md:max-h-[calc(100vh-8rem)] md:shadow-card md:rounded-2xl md:translate-x-0 md:dark:border md:dark:border-slate-700
+          className={`fixed top-0 left-0 z-50 h-full w-64 transform overflow-y-auto border border-surface-border-subtle bg-surface-card p-4 shadow-xl transition-transform md:sticky md:top-24 md:h-auto md:max-h-[calc(100vh-8rem)] md:translate-x-0 md:rounded-2xl md:shadow-card
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           <div className="flex justify-between items-center md:hidden mb-4">

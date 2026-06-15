@@ -16,9 +16,9 @@ const NavItem: React.FC<{
     return (
         <button
             onClick={() => onClick(target, isExternal)}
-            className={`flex items-center w-full shrink-0 px-4 py-3 rounded-lg text-left transition-colors ${isActive ? 'bg-brand-blue text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+            className={`flex w-full shrink-0 items-center rounded-lg px-4 py-3 text-left transition-colors ${isActive ? 'bg-brand-blue text-white' : 'text-content-primary hover:bg-surface-muted'}`}
         >
-            <Icon name={iconName} className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+            <Icon name={iconName} className={`mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-content-muted'}`} />
             <span className="font-medium whitespace-nowrap flex-1">{label}</span>
             {badge !== undefined && badge > 0 && (
                 <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
@@ -69,7 +69,7 @@ export const PartnerSidebar: React.FC<PartnerSidebarProps> = ({ partner, activeS
 
     return (
         <>
-            <h2 className="text-xl font-bold mb-4 px-2 hidden md:block">{t('partnerDashboardPage.partnerMenu')}</h2>
+            <h2 className="mb-4 hidden px-2 text-xl font-bold text-content-primary md:block">{t('partnerDashboardPage.partnerMenu')}</h2>
             <nav className="flex flex-col gap-2">
                 {navItems.map(item => {
                     const hasRequiredRole = role && item.roles.includes(role as UserRole);

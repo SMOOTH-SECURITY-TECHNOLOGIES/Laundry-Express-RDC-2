@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { logisticsCard } from './logistics-ui';
 
 const PERIODS = ['Cette semaine', 'Ce mois', 'Ce trimestre'] as const;
 
@@ -98,7 +99,7 @@ function BarChart({ data, color }: { data: typeof COMMUNE_DATA; color: string })
       {data.map((d, i) => (
         <div key={i} className="flex items-center gap-3">
           <span className="text-xs text-gray-500 w-24 text-right">{d.name}</span>
-          <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+          <div className="flex-1 bg-surface-muted rounded-full h-6 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${(d.value / maxVal) * 100}%`, backgroundColor: color }}
@@ -183,18 +184,18 @@ export const LogisticsPerformance: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-brand-dark">Performance opérationnelle</h1>
+          <h1 className="text-2xl font-extrabold text-content-primary">Performance opérationnelle</h1>
           <p className="text-sm text-gray-500 mt-1">Analysez les indicateurs clés de vos opérations</p>
         </div>
-        <div className="flex bg-gray-100 rounded-xl p-1">
+        <div className="flex bg-surface-muted rounded-xl p-1">
           {PERIODS.map(p => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 period === p
-                  ? 'bg-white shadow-sm text-brand-dark'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface-card text-content-primary shadow-sm'
+                  : 'text-content-muted hover:text-content-primary'
               }`}
             >
               {p}
@@ -205,15 +206,15 @@ export const LogisticsPerformance: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {KPI_DATA.map(kpi => (
-          <div key={kpi.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div key={kpi.label} className={`${logisticsCard} p-5`}>
             <div className="flex items-center gap-4">
               <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${kpi.tone}`}>
                 <Icon name={kpi.icon} className="h-6 w-6" />
               </span>
               <div>
                 <p className="text-sm text-gray-500">{kpi.label}</p>
-                <p className="text-2xl font-extrabold text-brand-dark">{kpi.value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{kpi.sub}</p>
+                <p className="text-2xl font-extrabold text-content-primary">{kpi.value}</p>
+                <p className="mt-0.5 text-xs font-medium text-content-muted">{kpi.sub}</p>
               </div>
             </div>
           </div>
@@ -221,26 +222,26 @@ export const LogisticsPerformance: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h3 className="text-sm font-bold text-brand-dark mb-4">Missions par jour</h3>
+        <div className={`${logisticsCard} p-5`}>
+          <h3 className="text-sm font-bold text-content-primary mb-4">Missions par jour</h3>
           <div className="h-48">
             <LineChart data={DAILY_DATA} color="#2563EB" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h3 className="text-sm font-bold text-brand-dark mb-4">Livraisons par commune</h3>
+        <div className={`${logisticsCard} p-5`}>
+          <h3 className="text-sm font-bold text-content-primary mb-4">Livraisons par commune</h3>
           <div className="h-48">
             <BarChart data={COMMUNE_DATA} color="#F97316" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h3 className="text-sm font-bold text-brand-dark mb-4">Temps moyen collecte (min)</h3>
+        <div className={`${logisticsCard} p-5`}>
+          <h3 className="text-sm font-bold text-content-primary mb-4">Temps moyen collecte (min)</h3>
           <div className="h-44">
             <AreaChart data={COLLECT_TIME_DATA} color="#8B5CF6" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h3 className="text-sm font-bold text-brand-dark mb-4">Revenus quotidiens ($)</h3>
+        <div className={`${logisticsCard} p-5`}>
+          <h3 className="text-sm font-bold text-content-primary mb-4">Revenus quotidiens ($)</h3>
           <div className="h-48">
             <RevenueChart data={REVENUE_DATA} color="#10B981" />
           </div>

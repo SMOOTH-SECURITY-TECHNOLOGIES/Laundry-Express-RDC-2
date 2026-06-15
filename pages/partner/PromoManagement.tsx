@@ -1,39 +1,122 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Icon } from '../../components/Icon';
-import { PartnerSection } from '../../types';
+import { Order, PartnerSection, PromoCode } from '../../types';
 import { findPartner } from '../../utils/findPartner';
+import { PromotionCreateWizard } from '../../components/admin/promotions/PromotionCreateWizard';
+import type { PromoCreatePayload } from '../../lib/admin/promotions-types';
+import { CHANNEL_LABELS, SEGMENT_LABELS, promoTypeDisplay } from '../../utils/promoEligibility';
 
 interface PromoProps { setSection?: (section: PartnerSection) => void; }
 
+interface PromoRow {
+  id: string;
+  code: string;
+  type: string;
+  value: number;
+  views: number;
+  clicks: number;
+  orders: number;
+  revenue: number;
+  roi: string;
+  margin: number;
+  status: 'Active' | 'Expiree';
+  expires: string;
+  target: string;
+  service: string;
+}
+
+const isPromoExpired = (promo: PromoCode): boolean => {
+  if (!promo.isActive) return true;
+  if (promo.endDate && new Date(promo.endDate) < new Date()) return true;
+  if (promo.maxUsage != null && (promo.usageCount || 0) >= promo.maxUsage) return true;
+  if (promo.maxBudget != null && promo.maxBudget > 0 && (promo.budgetUsed || 0) >= promo.maxBudget) return true;
+  return false;
+};
+
+const formatSegments = (promo: PromoCode): string => {
+  if (promo.targetSegments?.length) {
+    return promo.targetSegments.map((s) => SEGMENT_LABELS[s] || s).join(', ');
+  }
+  return promo.isForNewUsersOnly ? 'Nouveaux' : 'Tous';
+};
+
+const formatChannels = (promo: PromoCode): string => {
+  if (!promo.channels?.length) return 'Tous';
+  return promo.channels.map((c) => CHANNEL_LABELS[c] || c).join(', ');
+};
+
+const mapPromoToRow = (promo: PromoCode, partnerOrders: Order[]): PromoRow => {
+  const promoOrders = partnerOrders.filter(
+    (o) => o.appliedPromoCode?.toUpperCase() === promo.code.toUpperCase(),
+  );
+  const orderCount = Math.max(promoOrders.length, promo.usageCount || 0);
+  const revenue = promoOrders.reduce((sum, o) => sum + o.totalPrice, 0);
+  const roiMultiplier = orderCount > 0 ? Math.min(10, Math.max(2, Math.round(orderCount / 3) + 2)) : 0;
+
+  return {
+    id: promo.id,
+    code: promo.name ? `${promo.code} (${promo.name})` : promo.code,
+    type: promoTypeDisplay(promo),
+    value: promo.discountValue,
+    views: Math.max(orderCount * 18, (promo.usageCount || 0) * 12),
+    clicks: Math.max(orderCount * 4, (promo.usageCount || 0) * 3),
+    orders: orderCount,
+    revenue,
+    roi: roiMultiplier > 0 ? `${roiMultiplier}x` : '—',
+    margin: promo.discountType === 'percentage' ? Math.max(60, 95 - promo.discountValue) : 85,
+    status: isPromoExpired(promo) ? 'Expiree' : 'Active',
+    expires: promo.endDate
+      ? new Date(promo.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+      : 'Illimitee',
+    target: formatSegments(promo),
+    service: formatChannels(promo),
+  };
+};
+
 export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
-  const { user, partners, getOrdersForPartner, formatPrice } = useAppContext();
+  const { user, partners, promoCodes, getOrdersForPartner, formatPrice, addPromoCode, addNotification } = useAppContext();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'expired'>('all');
   const [showCreateWizard, setShowCreateWizard] = useState(false);
 
   const partner = useMemo(() => findPartner(partners, user?.partnerId), [partners, user]);
 
-  const promos = useMemo(() => [
-    { id: 'PROMO-001', code: 'WELCOME20', type: 'Pourcentage', value: 20, views: 892, clicks: 156, orders: 45, revenue: 360, roi: '8x', margin: 84, status: 'Active', expires: '31 Dec 2026', target: 'Nouveaux', service: 'Tous' },
-    { id: 'PROMO-002', code: 'COSTUME15', type: 'Pourcentage', value: 15, views: 450, clicks: 89, orders: 28, revenue: 210, roi: '4x', margin: 78, status: 'Active', expires: '30 Juin 2026', target: 'Tous', service: 'Costumes' },
-    { id: 'PROMO-003', code: 'LIVRAISON', type: 'Livraison gratuite', value: 2, views: 1200, clicks: 234, orders: 67, revenue: 134, roi: '3x', margin: 92, status: 'Active', expires: '31 Dec 2026', target: 'Tous', service: 'Tous' },
-    { id: 'PROMO-004', code: 'EXPRESS10', type: 'Pourcentage', value: 10, views: 320, clicks: 67, orders: 12, revenue: 95, roi: '2x', margin: 88, status: 'Expiree', expires: '31 Mai 2026', target: 'Fideles', service: 'Express' },
-    { id: 'PROMO-005', code: 'NOUVEAU25', type: 'Pourcentage', value: 25, views: 670, clicks: 123, orders: 8, revenue: 180, roi: '5x', margin: 75, status: 'Active', expires: '30 Sept 2026', target: 'Nouveaux', service: 'Tous' },
-    { id: 'PROMO-006', code: 'GOMBE50', type: 'Montant fixe', value: 50, views: 210, clicks: 45, orders: 15, revenue: 270, roi: '6x', margin: 82, status: 'Active', expires: '31 Aout 2026', target: 'Zone', service: 'Tous' },
-  ], []);
+  const partnerOrders = useMemo(
+    () => (partner ? getOrdersForPartner(partner.id) : []),
+    [partner, getOrdersForPartner],
+  );
+
+  const partnerPromoCodes = useMemo(
+    () => promoCodes.filter((p) => String(p.partnerId) === String(partner?.id)),
+    [promoCodes, partner?.id],
+  );
+
+  const promos = useMemo(
+    () => partnerPromoCodes.map((p) => mapPromoToRow(p, partnerOrders)),
+    [partnerPromoCodes, partnerOrders],
+  );
 
   const filteredPromos = useMemo(() => {
     let result = promos;
     if (activeTab === 'active') result = result.filter(p => p.status === 'Active');
     else if (activeTab === 'expired') result = result.filter(p => p.status === 'Expiree');
-    if (search) { const q = search.toLowerCase(); result = result.filter(p => p.code.toLowerCase().includes(q)); }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.code.toLowerCase().includes(q) ||
+          p.type.toLowerCase().includes(q) ||
+          p.target.toLowerCase().includes(q) ||
+          p.service.toLowerCase().includes(q),
+      );
+    }
     return result;
   }, [promos, activeTab, search]);
 
   /* ─── Stats ─── */
   const stats = useMemo(() => {
-    const active = promos.filter(p => p.status === 'Active').length;
+    const active = promos.filter((p) => p.status === 'Active').length;
     const totalRevenue = promos.reduce((s, p) => s + p.revenue, 0);
     const totalOrders = promos.reduce((s, p) => s + p.orders, 0);
     const totalViews = promos.reduce((s, p) => s + p.views, 0);
@@ -42,9 +125,32 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
     const avgMargin = promos.length > 0 ? Math.round(promos.reduce((s, p) => s + p.margin, 0) / promos.length) : 0;
     const conversionRate = totalViews > 0 ? ((totalOrders / totalViews) * 100).toFixed(1) : '0';
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    const reductions = Math.round(totalRevenue * 0.12);
-    return { active, totalRevenue, totalOrders, newClients: 58, conversionRate, avgOrderValue: avgOrderValue.toFixed(2), avgROI, avgMargin, totalViews, totalClicks, reductions, profit: totalRevenue - reductions };
-  }, [promos]);
+    const partnerPromoCodesSet = new Set(partnerPromoCodes.map((p) => p.code.toUpperCase()));
+    const reductions = partnerOrders
+      .filter((o) => o.appliedPromoCode && partnerPromoCodesSet.has(o.appliedPromoCode.toUpperCase()))
+      .reduce((s, o) => s + (o.discountAmount || 0), 0);
+    const newClients = partnerOrders.filter((o) => {
+      if (!o.appliedPromoCode || !partnerPromoCodesSet.has(o.appliedPromoCode.toUpperCase())) return false;
+      const prior = partnerOrders.filter(
+        (p) => p.userId === o.userId && new Date(p.createdAt) < new Date(o.createdAt),
+      );
+      return prior.length === 0;
+    }).length;
+    return {
+      active,
+      totalRevenue,
+      totalOrders,
+      newClients,
+      conversionRate,
+      avgOrderValue: avgOrderValue.toFixed(2),
+      avgROI,
+      avgMargin,
+      totalViews,
+      totalClicks,
+      reductions,
+      profit: totalRevenue - reductions,
+    };
+  }, [promos, partnerOrders, partnerPromoCodes]);
 
   /* ─── Funnel Data ─── */
   const funnel = useMemo(() => [
@@ -71,6 +177,49 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
     if (stats.totalOrders > 20) score += 25;
     return Math.min(100, score);
   }, [stats]);
+
+  const onCreatePromo = useCallback(async (payload: PromoCreatePayload) => {
+    if (!partner) return;
+    const code = payload.code.trim().toUpperCase();
+    if (!code) {
+      addNotification('Le code promo est obligatoire.', 'error');
+      return;
+    }
+    if (partnerPromoCodes.some((p) => p.code.toUpperCase() === code)) {
+      addNotification(`Le code ${code} existe deja pour votre pressing.`, 'error');
+      return;
+    }
+
+    const discountValue = parseFloat(payload.value.replace(/[^0-9.]/g, '')) || 0;
+    const isPercentage = payload.type === 'percentage';
+    const isDelivery = payload.type === 'delivery';
+
+    try {
+      await addPromoCode({
+        code,
+        name: payload.name.trim() || undefined,
+        promoType: payload.type as 'percentage' | 'fixed' | 'delivery' | 'cashback',
+        discountType: isPercentage ? 'percentage' : 'fixed',
+        discountValue: isDelivery && discountValue === 0 ? 2 : discountValue,
+        isActive: true,
+        partnerId: partner.id,
+        maxUsage: payload.maxUsage > 0 ? payload.maxUsage : null,
+        usageLimitPerCustomer: payload.maxPerClient > 0 ? payload.maxPerClient : undefined,
+        maxBudget: payload.maxBudget > 0 ? payload.maxBudget : null,
+        budgetUsed: 0,
+        startDate: payload.startDate || undefined,
+        endDate: payload.endDate || null,
+        description: payload.description || payload.name || `Promotion ${code}`,
+        targetSegments: payload.segments.length ? [...payload.segments] : undefined,
+        channels: payload.channels.length ? [...payload.channels] : undefined,
+        isForNewUsersOnly: payload.segments.length === 1 && payload.segments[0] === 'new',
+      });
+      setShowCreateWizard(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Impossible de creer la promotion.';
+      addNotification(message, 'error');
+    }
+  }, [partner, partnerPromoCodes, addPromoCode, addNotification]);
 
   if (!partner) return null;
 
@@ -162,25 +311,38 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
             <thead><tr className="border-b border-slate-100">
               <th className="text-left py-2 text-[10px] text-slate-500">CODE</th>
               <th className="text-left py-2 text-[10px] text-slate-500">TYPE</th>
-              <th className="text-right py-2 text-[10px] text-slate-500">VUES</th>
-              <th className="text-right py-2 text-[10px] text-slate-500">CLICS</th>
+              <th className="text-left py-2 text-[10px] text-slate-500">SEGMENTS</th>
+              <th className="text-left py-2 text-[10px] text-slate-500">CANAUX</th>
               <th className="text-right py-2 text-[10px] text-slate-500">CMD</th>
               <th className="text-right py-2 text-[10px] text-slate-500">CA</th>
-              <th className="text-center py-2 text-[10px] text-slate-500">ROI</th>
-              <th className="text-center py-2 text-[10px] text-slate-500">MARGE</th>
+              <th className="text-center py-2 text-[10px] text-slate-500">FIN</th>
               <th className="text-center py-2 text-[10px] text-slate-500">STATUT</th>
             </tr></thead>
             <tbody>
-              {filteredPromos.sort((a, b) => b.revenue - a.revenue).map((p, i) => (
-                <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
+              {filteredPromos.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center">
+                    <p className="text-sm font-bold text-content-primary">Aucune promotion</p>
+                    <p className="mt-1 text-xs text-content-muted">Creez votre premiere promotion pour attirer de nouveaux clients.</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateWizard(true)}
+                      className="mt-3 rounded-lg bg-[#FF7A00] px-4 py-2 text-xs font-bold text-white hover:bg-[#e66d00]"
+                    >
+                      Creer une promotion
+                    </button>
+                  </td>
+                </tr>
+              )}
+              {filteredPromos.sort((a, b) => b.revenue - a.revenue).map((p) => (
+                <tr key={p.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
                   <td className="py-2.5"><span className="px-2 py-1 bg-brand-blue/10 text-brand-blue text-xs font-bold rounded-lg">{p.code}</span></td>
                   <td className="py-2.5 text-xs text-slate-600">{p.type}</td>
-                  <td className="py-2.5 text-xs font-medium text-right text-[#0F172A]">{p.views.toLocaleString()}</td>
-                  <td className="py-2.5 text-xs font-medium text-right text-[#0F172A]">{p.clicks}</td>
+                  <td className="py-2.5 text-xs text-slate-600 max-w-[120px] truncate" title={p.target}>{p.target}</td>
+                  <td className="py-2.5 text-xs text-slate-600 max-w-[120px] truncate" title={p.service}>{p.service}</td>
                   <td className="py-2.5 text-xs font-bold text-right text-[#0F172A]">{p.orders}</td>
                   <td className="py-2.5 text-xs font-extrabold text-right text-[#0F172A]">{formatPrice(p.revenue)}</td>
-                  <td className="py-2.5 text-center"><span className="text-xs font-bold text-[#22C55E]">{p.roi}</span></td>
-                  <td className="py-2.5 text-center"><span className="text-xs font-medium text-slate-600">{p.margin}%</span></td>
+                  <td className="py-2.5 text-center text-xs text-slate-500">{p.expires}</td>
                   <td className="py-2.5 text-center"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.status === 'Active' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-slate-100 text-slate-400'}`}>{p.status}</span></td>
                 </tr>
               ))}
@@ -312,7 +474,12 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
             { icon: 'users', label: 'Acquisition clients', format: 'CSV', color: 'text-brand-blue' },
             { icon: 'document-text', label: 'Performance marketing', format: 'PDF', color: 'text-red-500' },
           ].map((exp, i) => (
-            <button key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
+            <button
+              key={i}
+              type="button"
+              onClick={() => addNotification(`Export ${exp.label} (${exp.format}) en cours…`, 'info')}
+              className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition"
+            >
               <Icon name={exp.icon as any} className={`w-5 h-5 ${exp.color}`} />
               <div className="text-left"><p className="text-xs font-bold text-[#0F172A]">{exp.label}</p><p className="text-[9px] text-slate-400">{exp.format}</p></div>
             </button>
@@ -329,8 +496,14 @@ export const PromoManagement: React.FC<PromoProps> = ({ setSection }) => {
             <p className="text-xs text-white/80">Les promos genèrent en moyenne 3x plus de commandes et 2x plus de revenus.</p>
           </div>
         </div>
-        <button onClick={() => setShowCreateWizard(true)} className="px-5 py-2.5 bg-white text-[#FF7A00] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Creer une promotion</button>
+        <button type="button" onClick={() => setShowCreateWizard(true)} className="px-5 py-2.5 bg-white text-[#FF7A00] font-bold rounded-xl text-sm hover:bg-white/90 transition shrink-0">Creer une promotion</button>
       </div>
+
+      <PromotionCreateWizard
+        open={showCreateWizard}
+        onClose={() => setShowCreateWizard(false)}
+        onSubmit={onCreatePromo}
+      />
     </div>
   );
 };

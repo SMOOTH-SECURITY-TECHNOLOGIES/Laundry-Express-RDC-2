@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import './index.css';
 import App from './App';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
@@ -8,6 +9,7 @@ import { DataProvider } from './context/DataContext';
 import { OrderProvider } from './context/OrderContext';
 import { NavigationProvider } from './context/NavigationContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ThemeSync } from './components/ThemeSync';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -45,6 +47,7 @@ root.render(
       <LanguageProvider>
         <NavigationProvider>
           <AuthProvider>
+            <ThemeSync />
             <NotificationProvider>
               <DataProvider>
                 <OrderProvider>

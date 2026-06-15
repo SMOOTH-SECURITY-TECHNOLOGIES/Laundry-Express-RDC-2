@@ -53,55 +53,46 @@ const alerts: AlertCard[] = [
 ];
 
 export const AlertBar = () => {
-  const criticalAlerts = alerts.filter((alert) => !alert.color.includes('green'));
+  const incidentAlerts = alerts.filter(
+    (alert) => !alert.color.includes('green') && !alert.color.includes('blue')
+  );
+  const driverStatus = alerts.find((alert) => alert.color.includes('blue'));
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
-              <Icon name="warning" className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-extrabold text-gray-900">Command Center</p>
-              <p className="text-xs text-gray-500">Priorités opérationnelles consolidées avant dispatch.</p>
-            </div>
+    <div className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <Icon name="warning" className="h-5 w-5" />
           </div>
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:flex xl:items-center">
-            {criticalAlerts.map((alert) => (
-              <button
-                type="button"
-                key={`banner-${alert.message}`}
-                className={`inline-flex items-center gap-2 rounded-full border ${alert.borderColor} ${alert.bgColor} px-3 py-2 text-left text-xs font-bold ${alert.color}`}
-              >
-                <Icon name={alert.icon as any} className="h-4 w-4 shrink-0" />
-                {alert.message}
-              </button>
-            ))}
-            <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-2 text-xs font-bold text-green-700">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              Système opérationnel
-            </span>
+          <div>
+            <p className="text-sm font-extrabold text-gray-900">Command Center</p>
+            <p className="text-xs text-gray-500">Priorités opérationnelles consolidées avant dispatch.</p>
           </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {alerts.map((alert) => (
-          <div
-            key={alert.message}
-            className={`rounded-xl border ${alert.borderColor} ${alert.bgColor} p-3 flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow`}
-          >
-            <div className={`shrink-0 ${alert.color}`}>
-              <Icon name={alert.icon as any} className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className={`text-sm font-semibold ${alert.color} leading-tight`}>{alert.message}</span>
-              <span className="text-xs text-gray-500 leading-tight">{alert.subtext}</span>
-            </div>
-          </div>
-        ))}
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:flex xl:items-center">
+          {incidentAlerts.map((alert) => (
+            <button
+              type="button"
+              key={`banner-${alert.message}`}
+              className={`inline-flex items-center gap-2 rounded-full border ${alert.borderColor} ${alert.bgColor} px-3 py-2 text-left text-xs font-bold ${alert.color}`}
+            >
+              <Icon name={alert.icon as any} className="h-4 w-4 shrink-0" />
+              <span>{alert.message}</span>
+              <span className="font-medium opacity-75">· {alert.subtext}</span>
+            </button>
+          ))}
+          {driverStatus && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+              <Icon name="truck" className="h-4 w-4" />
+              {driverStatus.message}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-2 text-xs font-bold text-green-700">
+            <span className="h-2 w-2 rounded-full bg-green-500" />
+            Système opérationnel
+          </span>
+        </div>
       </div>
     </div>
   );

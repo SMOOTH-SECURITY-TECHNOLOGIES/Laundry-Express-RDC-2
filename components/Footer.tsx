@@ -74,6 +74,7 @@ export const Footer: React.FC = () => {
               <li><button onClick={() => setCurrentPage({ name: 'order' })} className="text-slate-300 hover:text-white transition-colors text-sm">{t('footer.order')}</button></li>
               <li><button onClick={() => setCurrentPage({ name: 'profile' })} className="text-slate-300 hover:text-white transition-colors text-sm">{t('footer.myProfile')}</button></li>
               <li><button onClick={() => setCurrentPage({ name: 'faq' })} className="text-slate-300 hover:text-white transition-colors text-sm">{t('footer.faq')}</button></li>
+              <li><button onClick={() => setCurrentPage({ name: 'blog' })} className="text-slate-300 hover:text-white transition-colors text-sm">Blog</button></li>
             </ul>
           </div>
 

@@ -39,6 +39,34 @@ class LoyaltyService:
         self.db.add(entry)
         return entry
 
+    def has_order_entry(
+        self,
+        order_id: UUID,
+        entry_type: str,
+        *,
+        user_id: UUID | None = None,
+    ) -> bool:
+        query = self.db.query(LoyaltyLedgerEntry.id).filter(
+            LoyaltyLedgerEntry.order_id == order_id,
+            LoyaltyLedgerEntry.entry_type == entry_type,
+        )
+        if user_id is not None:
+            query = query.filter(LoyaltyLedgerEntry.user_id == user_id)
+        return query.first() is not None
+
+    def sum_entry_points(self, user_id: UUID, entry_type: str) -> int:
+        from sqlalchemy import func
+
+        total = (
+            self.db.query(func.coalesce(func.sum(LoyaltyLedgerEntry.points_delta), 0))
+            .filter(
+                LoyaltyLedgerEntry.user_id == user_id,
+                LoyaltyLedgerEntry.entry_type == entry_type,
+            )
+            .scalar()
+        )
+        return int(total or 0)
+
     def get_user_history(self, user_id: UUID, limit: int = 50) -> tuple[list[LoyaltyLedgerEntry], int]:
         self.apply_expiration(user_id=user_id)
         query = (

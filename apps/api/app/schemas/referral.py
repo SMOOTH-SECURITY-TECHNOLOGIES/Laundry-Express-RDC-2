@@ -10,6 +10,13 @@ class ReferralSettingsPayload(BaseModel):
     refereeDiscountAmount: float = Field(default=5, ge=0)
 
 
+class ReferralMeResponse(BaseModel):
+    referral_code: str | None = None
+    referred_users_count: int = 0
+    completed_conversions: int = 0
+    total_bonus_points: int = 0
+
+
 class ReferralSettingsResponse(BaseModel):
     id: UUID | None = None
     key: str

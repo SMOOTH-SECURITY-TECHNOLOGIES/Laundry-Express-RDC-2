@@ -10,6 +10,7 @@ from app.models.referral import ReferralReviewStatus, ReferralSettingsConfig
 from app.models.user import User
 from app.schemas.referral import (
     ReferralAdminOverviewResponse,
+    ReferralMeResponse,
     ReferralRecentConversionResponse,
     ReferralReviewStatusPayload,
     ReferralReviewStatusResponse,
@@ -18,6 +19,7 @@ from app.schemas.referral import (
     ReferralTopReferrerResponse,
     ReferralWatchlistEntryResponse,
 )
+from app.services.loyalty_service import LoyaltyService
 from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/referral", tags=["referral"])
@@ -59,6 +61,35 @@ def _to_response(config: ReferralSettingsConfig | None) -> ReferralSettingsRespo
 @router.get("/settings", response_model=ReferralSettingsResponse)
 def get_referral_settings(db: Session = Depends(get_sync_db)):
     return _to_response(_get_config(db))
+
+
+@router.get("/me", response_model=ReferralMeResponse)
+def get_my_referral_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
+):
+    referred_users_count = (
+        db.query(func.count(User.id))
+        .filter(User.referred_by_user_id == current_user.id)
+        .scalar()
+        or 0
+    )
+    completed_conversions = (
+        db.query(func.count(User.id))
+        .filter(
+            User.referred_by_user_id == current_user.id,
+            User.referral_bonus_awarded_at.isnot(None),
+        )
+        .scalar()
+        or 0
+    )
+    total_bonus_points = LoyaltyService(db).sum_entry_points(current_user.id, "referral_bonus")
+    return ReferralMeResponse(
+        referral_code=getattr(current_user, "referral_code", None),
+        referred_users_count=int(referred_users_count),
+        completed_conversions=int(completed_conversions),
+        total_bonus_points=total_bonus_points,
+    )
 
 
 def _to_review_response(review: ReferralReviewStatus) -> ReferralReviewStatusResponse:
