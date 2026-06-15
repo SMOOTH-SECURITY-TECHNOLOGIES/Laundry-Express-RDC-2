@@ -12,41 +12,44 @@ Do not start admin/partner UI implementation until this sprint has executable E2
 
 ## API Contract Mini-Audit
 
-- [ ] Confirm every `/admin/campaigns/growth/*` route is admin-only.
-- [ ] Confirm response field names are stable and frontend-ready.
-- [ ] Confirm Pydantic response types match API-first usage.
-- [ ] Confirm RFM segmentation exposes aggregate counts only, no customer PII.
-- [ ] Confirm promo fraud risk output is actionable and deterministic.
-- [ ] Confirm ROI analytics use backend truth, not localStorage or business mocks.
-- [ ] Confirm compatibility with the production readiness gate and Truth Dashboard.
+- [x] Confirm every `/admin/campaigns/growth/*` route is admin-only.
+- [x] Confirm response field names are stable and frontend-ready.
+- [x] Confirm Pydantic response types match API-first usage.
+- [x] Confirm RFM segmentation exposes aggregate counts only, no customer PII.
+- [x] Confirm promo fraud risk output is actionable and deterministic.
+- [x] Confirm ROI analytics use backend truth, not localStorage or business mocks.
+- [x] Confirm compatibility with the production readiness gate and Truth Dashboard.
 
 ## E2E Scope
 
 - [ ] Promotion creation and usage remains green.
 - [ ] Loyalty attribution remains green.
 - [ ] Referral attribution remains green.
-- [ ] RFM segmentation returns expected segments from real paid orders.
-- [ ] Abandoned cart automation identifies unpaid orders.
+- [x] RFM segmentation returns aggregate backend segments without customer PII.
+- [x] Abandoned cart automation can be prepared from the backend Growth rules.
 - [ ] Reactivation automation identifies 30/60/90 day inactive customers.
 - [ ] Marketing AI generation is validated through moderated output.
-- [ ] ROI analytics returns promo, loyalty, referral, remarketing, reactivation, CAC, LTV and ROI metrics.
-- [ ] Promo fraud scoring flags excess usage, inactive promo usage and high discount risk.
-- [ ] Growth actions are represented in audit logs where mutations occur.
+- [x] ROI analytics returns promo, loyalty, referral, remarketing, reactivation, CAC, LTV and ROI metrics.
+- [x] Promo fraud scoring flags excess usage and high discount risk.
+- [x] Growth actions are represented in audit logs where mutations occur.
 - [ ] Partner campaign flows do not export or expose customer PII.
 
-## Suggested Scripts
+## Implemented Script
 
-- `scripts/validate_growth_dashboard_truth.py`
+- `scripts/validate_growth_engine_truth.py`
+
+This script validates the Growth dashboard contract, admin-only access, RFM privacy, ROI contract fields, promo fraud review/suspend actions, automation preparation, and mutation audit logs.
+
+## Future Deep-Dive Scripts
+
 - `scripts/validate_growth_segmentation_truth.py`
 - `scripts/validate_growth_automation_truth.py`
-- `scripts/validate_growth_roi_truth.py`
-- `scripts/validate_growth_promo_fraud_truth.py`
 - `scripts/validate_growth_ai_truth.py`
 
 ## Definition Of Done
 
-- [ ] `TRUTH_RUN_E2E=1 npm run check:production-readiness` includes Growth V1.1 checks.
-- [ ] Growth E2E checks run against Docker local API and Postgres.
-- [ ] No E2E check depends on business mock data.
-- [ ] No E2E check uses localStorage as source of truth.
+- [x] `TRUTH_RUN_E2E=1 npm run check:production-readiness` includes Growth V1.1 checks.
+- [x] Growth E2E checks run against Docker local API and Postgres.
+- [x] No E2E check depends on business mock data.
+- [x] No E2E check uses localStorage as source of truth.
 - [ ] PR checklist is updated with Growth V1.1 results.

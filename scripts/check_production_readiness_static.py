@@ -104,6 +104,7 @@ def main() -> int:
         "validate_customer_corridor_truth.py",
         "validate_loyalty_referral_truth.py",
         "validate_promotion_truth.py",
+        "validate_growth_engine_truth.py",
         "verify_promo_pricing_consumption.py",
     ):
         run(f"truth_script_exists:{script}", (ROOT / "scripts" / script).exists(), script)
