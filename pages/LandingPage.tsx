@@ -624,10 +624,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
             {rankedPartners.length ? (
               <div className="mt-5 space-y-3">
                 {rankedPartners.map((partner, index) => (
-                  <button key={partner.id} onClick={() => viewPartner(partner)} className="flex w-full items-center justify-between rounded-2xl bg-surface-muted p-4 text-left">
-                    <span className="rounded-full bg-[#005bd8] px-3 py-1 text-sm font-black text-white">#{index + 1}</span>
-                    <span className="flex-1 px-4 font-black">{partner.name}</span>
-                    <span className="text-sm font-bold text-content-muted">{partner.rating.toFixed(1)} · {getCommune(partner.address)}</span>
+                  <button
+                    key={partner.id}
+                    onClick={() => viewPartner(partner)}
+                    className="grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1 rounded-2xl bg-surface-muted p-4 text-left sm:grid-cols-[auto_1fr_auto] sm:gap-x-4"
+                  >
+                    <span className="row-span-2 rounded-full bg-[#005bd8] px-3 py-1 text-sm font-black text-white sm:row-span-1">
+                      #{index + 1}
+                    </span>
+                    <span className="min-w-0 text-base font-black leading-snug text-content-primary">
+                      {partner.name}
+                    </span>
+                    <span className="col-start-2 text-sm font-bold text-content-muted sm:col-start-auto">
+                      {partner.rating.toFixed(1)} · {getCommune(partner.address)}
+                    </span>
                   </button>
                 ))}
               </div>
