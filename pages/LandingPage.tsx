@@ -746,11 +746,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <SectionHeading title="Partenaires verifies" subtitle={`${partners.length} partenaires approuves, ${coveredCommunes.length} quartiers couverts a Kinshasa.`} />
           {partners.length ? (
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <div className="grid gap-3 min-[420px]:grid-cols-2 lg:grid-cols-4">
               {partners.slice(0, 12).map((partner) => (
-                <button key={partner.id} onClick={() => viewPartner(partner)} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-4 text-left shadow-sm">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted font-black text-[#005bd8]">{partner.name.slice(0, 2).toUpperCase()}</span>
-                  <p className="mt-3 font-black">{partner.name}</p>
+                <button
+                  key={partner.id}
+                  onClick={() => viewPartner(partner)}
+                  className="flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-2xl border border-surface-border-subtle bg-surface-card p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:p-4"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-sm font-black text-[#005bd8]">
+                    {partner.name.slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1 text-sm font-black leading-snug text-content-primary sm:text-base">
+                    {partner.name}
+                  </span>
                 </button>
               ))}
             </div>
