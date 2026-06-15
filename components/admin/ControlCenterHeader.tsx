@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Icon } from '../Icon';
+import { ThemeSwitcher } from '../ThemeSwitcher';
 
 interface ControlCenterHeaderProps {
   activeItem: string;
@@ -66,23 +67,24 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
   }, []);
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-gray-200 py-4 px-6">
+    <header className="sticky top-0 z-10 bg-surface-card border-b border-surface-border py-4 px-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{copy.title}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-content-primary">{copy.title}</h1>
+          <p className="text-sm text-content-muted mt-0.5">
             {copy.subtitle}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <ThemeSwitcher />
           {/* Search */}
           <div className="relative">
-            <Icon name="search" className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Icon name="search" className="w-4 h-4 text-content-faint absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder={copy.placeholder}
-              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-56"
+              className="pl-9 pr-4 py-2 border border-surface-border rounded-lg text-sm bg-surface-muted text-content-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-56"
             />
           </div>
 
@@ -100,7 +102,7 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
               }
               onAction('Données du control center rafraîchies.');
             }}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 border border-surface-border rounded-lg text-sm text-content-primary hover:bg-surface-muted transition-colors"
           >
             <Icon name="arrow-path" className="w-4 h-4" />
             Actualiser
@@ -119,7 +121,7 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
               }
               onAction('Export CSV préparé pour la section active.');
             }}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 border border-surface-border rounded-lg text-sm text-content-primary hover:bg-surface-muted transition-colors"
           >
             <Icon name="arrow-down-tray" className="w-4 h-4" />
             {isInvestigate ? 'Exporter PDF' : 'Exporter'}
@@ -129,7 +131,7 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('admin-run-investigation-audit'))}
-              className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 border border-surface-border rounded-lg text-sm text-content-primary hover:bg-surface-muted transition-colors"
             >
               <Icon name="shield-check" className="w-4 h-4" />
               Audit complet
@@ -222,6 +224,7 @@ export const ControlCenterHeader = ({ activeItem, onNavigate, onAction }: Contro
               </button>
             </>
           )}
+
         </div>
       </div>
     </header>

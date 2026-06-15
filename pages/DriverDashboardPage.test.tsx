@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { byText, renderComponent } from '../components/order-marketplace/test-utils';
+import { byText, buttonByText, renderComponent } from '../components/order-marketplace/test-utils';
 import { DriverDashboardPage } from './DriverDashboardPage';
 
 const mocks = vi.hoisted(() => {
@@ -26,7 +26,11 @@ const mocks = vi.hoisted(() => {
     getOrdersForDriver: vi.fn(() => null),
     updateOrderStatus: vi.fn(async () => undefined),
     addNotification: vi.fn(),
+    appNotifications: [],
     setCurrentPage: vi.fn(),
+    logout: vi.fn(),
+    openDriverMissionForOrderId: null,
+    setOpenDriverMissionForOrderId: vi.fn(),
   };
 
   const realApi = {
@@ -51,6 +55,12 @@ const mocks = vi.hoisted(() => {
     acceptLogisticsTask: vi.fn(),
     startLogisticsTask: vi.fn(),
     completeLogisticsTask: vi.fn(),
+    getMyReferralStats: vi.fn(async () => ({
+      referral_code: 'DRV1',
+      referred_users_count: 0,
+      completed_conversions: 0,
+      total_bonus_points: 0,
+    })),
   };
 
   return { context, realApi };
@@ -58,6 +68,10 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('../context/AppContext', () => ({
   useAppContext: () => mocks.context,
+}));
+
+vi.mock('../components/ThemeSwitcher', () => ({
+  ThemeSwitcher: () => null,
 }));
 
 vi.mock('../services/real-api', async (importOriginal) => {
@@ -90,6 +104,20 @@ describe('DriverDashboardPage', () => {
     const view = renderComponent(<DriverDashboardPage />);
 
     expect(byText(view.container, 'Accès chauffeur uniquement')).not.toBeNull();
+
+    view.unmount();
+  });
+
+  it('navigates to the missions section from the sidebar', () => {
+    const view = renderComponent(<DriverDashboardPage />);
+    const missionsButton = buttonByText(view.container, /^Missions$/);
+
+    expect(missionsButton).not.toBeNull();
+    view.click(missionsButton!);
+
+    expect(byText(view.container, 'Mission active, propositions et actions opérationnelles.')).not.toBeNull();
+    expect(byText(view.container, 'Missions disponibles')).not.toBeNull();
+    expect(byText(view.container, 'Missions terminées')).toBeNull();
 
     view.unmount();
   });

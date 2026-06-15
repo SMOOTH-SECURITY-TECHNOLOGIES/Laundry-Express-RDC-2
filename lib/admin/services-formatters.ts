@@ -15,15 +15,15 @@ export function formatPercent(value: number): string {
 }
 
 export function getScoreColor(score: number): string {
-  if (score >= 90) return 'text-green-600 bg-green-50';
-  if (score >= 75) return 'text-yellow-600 bg-yellow-50';
-  return 'text-red-600 bg-red-50';
+  if (score >= 90) return 'text-green-800 bg-green-100 dark:text-emerald-100 dark:bg-emerald-900/60';
+  if (score >= 75) return 'text-amber-800 bg-amber-100 dark:text-amber-100 dark:bg-amber-900/60';
+  return 'text-red-800 bg-red-100 dark:text-red-100 dark:bg-red-900/60';
 }
 
 export function getAnomalyColor(count: number): string {
-  if (count === 0) return 'text-green-600 bg-green-50';
-  if (count <= 2) return 'text-yellow-600 bg-yellow-50';
-  return 'text-red-600 bg-red-50';
+  if (count === 0) return 'text-green-800 bg-green-100 dark:text-emerald-100 dark:bg-emerald-900/60';
+  if (count <= 2) return 'text-amber-800 bg-amber-100 dark:text-amber-100 dark:bg-amber-900/60';
+  return 'text-red-800 bg-red-100 dark:text-red-100 dark:bg-red-900/60';
 }
 
 export function getSlaColor(sla: number): string {

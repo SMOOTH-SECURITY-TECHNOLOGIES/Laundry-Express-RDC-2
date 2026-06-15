@@ -17,7 +17,7 @@ interface ServiceInventoryTableProps {
 const statusConfig = {
   active: { label: 'Actif', bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
   pending: { label: 'En attente', bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
-  inactive: { label: 'Inactif', bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' },
+  inactive: { label: 'Inactif', bg: 'bg-gray-100 dark:bg-slate-700', text: 'text-gray-800 dark:text-slate-200', border: 'border-gray-200 dark:border-slate-600' },
 };
 
 const categoryConfig: Record<string, { bg: string; text: string }> = {

@@ -30,10 +30,10 @@ export default function ServiceAlertsCard({ alerts }: ServiceAlertsCardProps) {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${alert.color} bg-opacity-10`}>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface-muted ${alert.color}`}>
                 {alert.label}
               </span>
-              <p className="text-xs text-gray-600 mt-1 leading-relaxed">{alert.description}</p>
+              <p className="text-xs text-content-muted mt-1 leading-relaxed">{alert.description}</p>
             </div>
           </div>
         ))}

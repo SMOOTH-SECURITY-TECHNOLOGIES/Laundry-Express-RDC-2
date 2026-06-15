@@ -11,10 +11,10 @@ function SlaBar({ value }: { value: number }) {
   const color = value >= 95 ? 'bg-green-500' : value >= 85 ? 'bg-yellow-500' : 'bg-red-500';
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-16 h-2 bg-surface-muted rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
       </div>
-      <span className="text-sm font-medium text-gray-700">{value}%</span>
+      <span className="text-sm font-medium text-content-primary">{value}%</span>
     </div>
   );
 }

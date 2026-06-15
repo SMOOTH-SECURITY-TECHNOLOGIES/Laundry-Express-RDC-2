@@ -81,7 +81,7 @@ export default function ServiceMixChart({ items, total }: ServiceMixChartProps) 
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-gray-900">{item.percentage}%</span>
-                <span className="text-xs text-gray-500">{formatCurrency(item.amount)}</span>
+                <span className="text-xs text-content-faint">{formatCurrency(item.amount)}</span>
               </div>
             </div>
           ))}

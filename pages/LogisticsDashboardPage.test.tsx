@@ -24,6 +24,8 @@ const mocks = vi.hoisted(() => {
     },
     logout: vi.fn(),
     addNotification: vi.fn(),
+    appNotifications: [],
+    setCurrentPage: vi.fn(),
     openLogisticsMissionForOrderId: null,
     setOpenLogisticsMissionForOrderId: vi.fn(),
   };
@@ -68,6 +70,10 @@ vi.mock('../context/AppContext', () => ({
   useAppContext: () => mocks.context,
 }));
 
+vi.mock('../components/ThemeSwitcher', () => ({
+  ThemeSwitcher: () => null,
+}));
+
 vi.mock('../services/real-api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services/real-api')>();
   return {
@@ -85,12 +91,28 @@ describe('LogisticsDashboardPage', () => {
   it('renders the dispatcher cockpit and logistics controls', async () => {
     const view = renderComponent(<LogisticsDashboardPage />);
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 900));
     });
 
     expect(byText(view.container, 'Centre logistique Laundry Express')).not.toBeNull();
     expect(byText(view.container, 'Auto-dispatch')).not.toBeNull();
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+
+    view.unmount();
+  });
+
+  it('navigates to the missions section from the sidebar', async () => {
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const missionsButton = buttonByText(view.container, /^Missions$/);
+    expect(missionsButton).not.toBeNull();
+    view.click(missionsButton!);
+
+    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Cockpit logistique universel')).toBeNull();
 
     view.unmount();
   });

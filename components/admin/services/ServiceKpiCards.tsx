@@ -109,7 +109,7 @@ export default function ServiceKpiCards({ summary }: ServiceKpiCardsProps) {
           <div>
             <p className="text-2xl font-bold text-gray-900">{card.value}</p>
             <p className="text-xs text-gray-500 mt-1">{card.label}</p>
-            <span className="inline-block mt-2 text-xs font-medium text-green-600 bg-green-50 rounded-full px-2 py-0.5">
+            <span className="inline-block mt-2 text-xs font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/40 rounded-full px-2 py-0.5">
               {card.change}
             </span>
           </div>

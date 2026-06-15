@@ -139,8 +139,8 @@ const KpiCard: React.FC<{
     <div className="flex items-start justify-between">
       <div>
         <p className="text-sm font-medium text-slate-500">{label}</p>
-        <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
-        <p className="mt-1 text-xs font-semibold text-emerald-600">{trend}</p>
+        <p className="mt-2 text-2xl font-bold text-content-primary">{value}</p>
+        <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{trend}</p>
       </div>
       <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${tone}`}>
         <Icon name={icon} className="h-5 w-5" />
@@ -408,13 +408,13 @@ export const PartnerManagement: React.FC = () => {
         </div>
       </section>
 
-      <nav className="inline-flex rounded-2xl bg-slate-100 p-1" aria-label="Partner operations tabs">
+      <nav className="inline-flex rounded-2xl bg-surface-muted p-1" aria-label="Partner operations tabs">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`rounded-xl px-5 py-2 text-sm font-bold transition-colors ${activeTab === tab.key ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+            className={`rounded-xl px-5 py-2 text-sm font-bold transition-colors ${activeTab === tab.key ? 'bg-surface-card text-blue-700 dark:text-blue-300 shadow-sm' : 'text-content-muted hover:text-content-primary'}`}
           >
             {tab.label}
           </button>
@@ -445,7 +445,7 @@ export const PartnerManagement: React.FC = () => {
                 <h3 className="font-bold text-slate-950">Santé du réseau partenaires</h3>
                 <div className="mt-5 flex items-center gap-6">
                   <div className="relative h-36 w-36 rounded-full bg conic-gradient" style={{ background: `conic-gradient(#10b981 0 ${Math.min(100, (healthCounts.excellent / Math.max(1, rows.length)) * 100)}%, #3b82f6 0 ${Math.min(100, ((healthCounts.excellent + healthCounts.good) / Math.max(1, rows.length)) * 100)}%, #f97316 0 ${Math.min(100, ((healthCounts.excellent + healthCounts.good + healthCounts.watch) / Math.max(1, rows.length)) * 100)}%, #ef4444 0 100%)` }}>
-                    <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-white">
+                    <div className="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-surface-card">
                       <span className="text-2xl font-bold text-slate-950">{rows.length}</span>
                       <span className="text-xs text-slate-500">Total</span>
                     </div>
@@ -474,7 +474,7 @@ export const PartnerManagement: React.FC = () => {
                   {communeStats.map((commune) => (
                     <div
                       key={commune.commune}
-                      className="absolute z-10 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs shadow-sm backdrop-blur"
+                      className="absolute z-10 rounded-xl border border-surface-border bg-surface-card/95 px-3 py-2 text-xs shadow-sm backdrop-blur"
                       style={{ left: `${commune.left}%`, top: `${commune.top}%`, transform: 'translate(-50%, -50%)' }}
                     >
                       <p className="font-bold text-slate-950">{commune.commune}</p>
@@ -593,9 +593,9 @@ export const PartnerManagement: React.FC = () => {
                   </select>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  <div><p className="text-xs text-slate-500">Revenue</p><p className="text-xl font-bold">{formatMoney(totals.revenue)}</p><Sparkline color="bg-blue-500" seed={11} /></div>
-                  <div><p className="text-xs text-slate-500">Commandes</p><p className="text-xl font-bold">{formatNumber(totals.commands)}</p><Sparkline color="bg-emerald-500" seed={23} /></div>
-                  <div><p className="text-xs text-slate-500">SLA moyen</p><p className="text-xl font-bold">{totals.averageSla}%</p><Sparkline color="bg-purple-500" seed={37} /></div>
+                  <div><p className="text-xs text-content-faint">Revenue</p><p className="text-xl font-bold text-content-primary">{formatMoney(totals.revenue)}</p><Sparkline color="bg-blue-500" seed={11} /></div>
+                  <div><p className="text-xs text-content-faint">Commandes</p><p className="text-xl font-bold text-content-primary">{formatNumber(totals.commands)}</p><Sparkline color="bg-emerald-500" seed={23} /></div>
+                  <div><p className="text-xs text-content-faint">SLA moyen</p><p className="text-xl font-bold text-content-primary">{totals.averageSla}%</p><Sparkline color="bg-purple-500" seed={37} /></div>
                 </div>
               </div>
 
@@ -672,7 +672,7 @@ export const PartnerManagement: React.FC = () => {
                 <button type="button" onClick={() => navigateTo('Candidatures')} className="rounded-xl border border-purple-100 bg-purple-50 px-3 py-4 text-sm font-bold text-purple-700 hover:bg-purple-100">Inviter partenaire</button>
                 <button type="button" onClick={() => navigateTo('Commissions')} className="rounded-xl border border-orange-100 bg-orange-50 px-3 py-4 text-sm font-bold text-orange-700 hover:bg-orange-100">Voir commissions</button>
                 <button type="button" onClick={() => addNotification('Export partenaires préparé.', 'success')} className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-4 text-sm font-bold text-blue-700 hover:bg-blue-100">Exporter partenaires</button>
-                <button type="button" onClick={() => navigateTo('Truth Dashboard')} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-4 text-sm font-bold text-slate-700 hover:bg-slate-100">Audit partenaires</button>
+                <button type="button" onClick={() => navigateTo('Truth Dashboard')} className="rounded-xl border border-surface-border bg-surface-muted px-3 py-4 text-sm font-bold text-content-primary hover:bg-surface-elevated">Audit partenaires</button>
               </div>
             </div>
           </section>
