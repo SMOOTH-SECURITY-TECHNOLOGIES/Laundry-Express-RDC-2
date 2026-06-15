@@ -33,6 +33,9 @@ const mockBundle = {
   },
   refresh: vi.fn(), handleCreate: vi.fn(), handleUpdate: vi.fn(), handleDelete: vi.fn(),
   handlePause: vi.fn(), handleResume: vi.fn(), handleDuplicate: vi.fn(), handleAnalytics: vi.fn(), handleExport: vi.fn(),
+  handlePrepareGrowthAutomation: vi.fn().mockResolvedValue('Workflow préparé'),
+  handleReviewGrowthPromoRisk: vi.fn().mockResolvedValue('Risque envoyé en revue'),
+  handleSuspendGrowthPromo: vi.fn().mockResolvedValue('Promotion suspendue'),
 };
 
 vi.mock('../lib/admin/campaigns-api', () => ({ trackCampaignEvent: vi.fn(), CAMPAIGNS_WRITE_ENABLED: true }));
@@ -63,6 +66,8 @@ describe('CampaignsPage', () => {
     await act(async () => { root.render(<CampaignsControlCenter mode="growth" />); });
     expect(container.textContent).toContain('Growth Engine');
     expect(container.textContent).toContain('Segments RFM');
+    expect(container.textContent).toContain('Préparer workflow');
+    expect(container.textContent).toContain('Suspendre');
     expect(container.textContent).not.toContain('Nouvelle campagne');
     root.unmount();
     container.remove();

@@ -138,6 +138,24 @@ export async function fetchGrowthDashboard(): Promise<GrowthDashboardSummary> {
   return growthPromise;
 }
 
+export async function reviewGrowthPromoRisk(promoCode: string): Promise<string> {
+  const result = await realApi.reviewGrowthPromoRisk(promoCode, 'review requested from Growth Engine UI');
+  invalidateCampaignsCache();
+  return result.message;
+}
+
+export async function suspendGrowthPromo(promoCode: string): Promise<string> {
+  const result = await realApi.suspendGrowthPromo(promoCode, 'suspended from Growth Engine UI');
+  invalidateCampaignsCache();
+  return result.message;
+}
+
+export async function prepareGrowthAutomation(automationKey: string): Promise<string> {
+  const result = await realApi.prepareGrowthAutomation(automationKey, 'prepared from Growth Engine UI');
+  invalidateCampaignsCache();
+  return result.message;
+}
+
 export async function createCampaign(data: { name: string; channel: string; audience: string; content: string; budget: number; scheduledAt?: string }): Promise<{ id: string }> {
   if (!CAMPAIGNS_WRITE_ENABLED) throw new Error('Écriture campagnes désactivée.');
   const r = await realApi.createCampaign(data);

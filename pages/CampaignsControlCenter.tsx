@@ -81,6 +81,7 @@ export const CampaignsControlCenter: React.FC<CampaignsControlCenterProps> = ({ 
     kpis, campaigns, channels, funnel, trends, topCampaigns, segments, automations,
     calendar, roi, watchlist, growth, loading, error, source, days, refresh,
     handleCreate, handleUpdate, handleDelete, handlePause, handleDuplicate, handleAnalytics, handleExport,
+    handlePrepareGrowthAutomation, handleReviewGrowthPromoRisk, handleSuspendGrowthPromo,
   } = useCampaignsCenter();
 
   const [search, setSearch] = useState('');
@@ -128,6 +129,14 @@ export const CampaignsControlCenter: React.FC<CampaignsControlCenterProps> = ({ 
     } catch { setToast('Analytics indisponibles'); }
   }, [handleAnalytics]);
 
+  const onGrowthAction = useCallback(async (run: () => Promise<string>) => {
+    try {
+      setToast(await run());
+    } catch {
+      setToast('Action Growth impossible');
+    }
+  }, []);
+
   if (growthOnly) {
     if (loading && !growth) return <LoadingSkeleton />;
     if (error) return <ErrorState onRetry={() => refresh()} />;
@@ -135,8 +144,14 @@ export const CampaignsControlCenter: React.FC<CampaignsControlCenterProps> = ({ 
     return (
       <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col">
         <div className="flex-1 p-6 space-y-6">
+          {toast && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{toast}</div>}
           <GrowthHeader onRefresh={() => refresh()} />
-          <GrowthEnginePanel growth={growth} />
+          <GrowthEnginePanel
+            growth={growth}
+            onPrepareAutomation={(key) => onGrowthAction(() => handlePrepareGrowthAutomation(key))}
+            onReviewPromoRisk={(promoCode) => onGrowthAction(() => handleReviewGrowthPromoRisk(promoCode))}
+            onSuspendPromo={(promoCode) => onGrowthAction(() => handleSuspendGrowthPromo(promoCode))}
+          />
         </div>
       </div>
     );

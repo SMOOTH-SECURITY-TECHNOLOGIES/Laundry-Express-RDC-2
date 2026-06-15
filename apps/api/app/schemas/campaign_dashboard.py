@@ -238,3 +238,14 @@ class GrowthDashboardResponse(BaseModel):
     trending_offers: list[TrendingOfferResponse] = Field(default_factory=list)
     roi: GrowthRoiResponse
     source: str = "backend"
+
+
+class GrowthActionRequest(BaseModel):
+    note: str | None = None
+
+
+class GrowthActionResponse(BaseModel):
+    status: str
+    action: str
+    resource_id: str | None = None
+    message: str

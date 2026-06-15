@@ -3245,6 +3245,27 @@ class ApiClient {
     return this.request<BackendGrowthDashboardResponse>('/admin/campaigns/growth/dashboard');
   }
 
+  async reviewGrowthPromoRisk(promoCode: string, note?: string): Promise<{ status: string; action: string; resource_id: string | null; message: string }> {
+    return this.request(`/admin/campaigns/growth/promo-fraud/${encodeURIComponent(promoCode)}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  }
+
+  async suspendGrowthPromo(promoCode: string, note?: string): Promise<{ status: string; action: string; resource_id: string | null; message: string }> {
+    return this.request(`/admin/campaigns/growth/promo-fraud/${encodeURIComponent(promoCode)}/suspend`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  }
+
+  async prepareGrowthAutomation(automationKey: string, note?: string): Promise<{ status: string; action: string; resource_id: string | null; message: string }> {
+    return this.request(`/admin/campaigns/growth/automations/${encodeURIComponent(automationKey)}/prepare`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  }
+
   async createCampaign(data: { name: string; channel: string; audience: string; content: string; budget: number; scheduledAt?: string }): Promise<{ id: string; name: string }> {
     return this.request('/admin/campaigns', { method: 'POST', body: JSON.stringify({
       name: data.name, channel: data.channel, audience: data.audience,

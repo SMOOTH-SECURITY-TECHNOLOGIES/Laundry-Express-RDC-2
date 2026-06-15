@@ -3,6 +3,7 @@ import {
   fetchCampaignsBundle, invalidateCampaignsCache, createCampaign, updateCampaign,
   deleteCampaign, pauseCampaign, resumeCampaign, duplicateCampaign,
   getCampaignAnalytics, exportCampaignsData, fetchGrowthDashboard,
+  prepareGrowthAutomation, reviewGrowthPromoRisk, suspendGrowthPromo,
 } from '../lib/admin/campaigns-api';
 import type {
   CampaignKpis, Campaign, CampaignChannelPerformance, CampaignFunnelStep,
@@ -100,5 +101,8 @@ export default function useCampaignsCenter(initialDays = 7) {
       };
     },
     handleExport: exportCampaignsData,
+    handlePrepareGrowthAutomation: async (key: string) => { const msg = await prepareGrowthAutomation(key); await reload(); return msg; },
+    handleReviewGrowthPromoRisk: async (promoCode: string) => { const msg = await reviewGrowthPromoRisk(promoCode); await reload(); return msg; },
+    handleSuspendGrowthPromo: async (promoCode: string) => { const msg = await suspendGrowthPromo(promoCode); await reload(); return msg; },
   };
 }

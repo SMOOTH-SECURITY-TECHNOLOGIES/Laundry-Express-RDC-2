@@ -15,7 +15,19 @@ function severityClass(severity: string): string {
   return 'bg-emerald-50 text-emerald-700 border-emerald-200';
 }
 
-export function GrowthEnginePanel({ growth }: { growth: GrowthDashboardSummary }) {
+interface GrowthEnginePanelProps {
+  growth: GrowthDashboardSummary;
+  onPrepareAutomation?: (key: string) => void;
+  onReviewPromoRisk?: (promoCode: string) => void;
+  onSuspendPromo?: (promoCode: string) => void;
+}
+
+export function GrowthEnginePanel({
+  growth,
+  onPrepareAutomation,
+  onReviewPromoRisk,
+  onSuspendPromo,
+}: GrowthEnginePanelProps) {
   const metrics = [
     { label: 'Acquisition', value: fmt(growth.acquisition), icon: 'users' as const },
     { label: 'Activation', value: fmt(growth.activation), icon: 'sparkles' as const },
@@ -91,6 +103,15 @@ export function GrowthEnginePanel({ growth }: { growth: GrowthDashboardSummary }
                   <span className="text-xs font-semibold">{fmt(automation.eligibleCustomers)}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">{automation.nextAction}</p>
+                {onPrepareAutomation && (
+                  <button
+                    type="button"
+                    onClick={() => onPrepareAutomation(automation.key)}
+                    className="mt-2 rounded-lg border border-violet-200 px-2.5 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50"
+                  >
+                    Préparer workflow
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -112,6 +133,28 @@ export function GrowthEnginePanel({ growth }: { growth: GrowthDashboardSummary }
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">{risk.recommendedAction}</p>
+                {(onReviewPromoRisk || onSuspendPromo) && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {onReviewPromoRisk && (
+                      <button
+                        type="button"
+                        onClick={() => onReviewPromoRisk(risk.promoCode)}
+                        className="rounded-lg border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                      >
+                        Revue
+                      </button>
+                    )}
+                    {onSuspendPromo && (
+                      <button
+                        type="button"
+                        onClick={() => onSuspendPromo(risk.promoCode)}
+                        className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                      >
+                        Suspendre
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
