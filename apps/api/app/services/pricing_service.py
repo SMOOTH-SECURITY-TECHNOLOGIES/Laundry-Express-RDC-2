@@ -13,7 +13,6 @@ from app.models.catalog import (
 )
 from app.models.loyalty import LoyaltySettingsConfig
 from app.models.order import Order
-from app.models.promotion import PromoCode, PromoDiscountType
 from app.models.referral import ReferralReviewStatus, ReferralSettingsConfig
 from app.models.user import User
 from app.repositories.catalog_repository import CatalogRepository
@@ -28,6 +27,7 @@ from app.schemas.pricing import (
 )
 from app.schemas.order import OrderItemCreate
 from app.services.loyalty_service import LoyaltyService
+from app.services.promotion_service import PromotionService
 
 
 class PricingService:
@@ -36,13 +36,6 @@ class PricingService:
     def __init__(self, db: Session):
         self.db = db
         self.repository = CatalogRepository(db)
-
-    def _get_active_promo(self, promo_code: str) -> PromoCode | None:
-        return (
-            self.db.query(PromoCode)
-            .filter(PromoCode.code == promo_code.upper(), PromoCode.is_active.is_(True))
-            .first()
-        )
 
     def _get_loyalty_settings(self) -> tuple[bool, int, int]:
         config = (
@@ -110,31 +103,16 @@ class PricingService:
         if not estimate_request.promo_code:
             return Decimal("0")
 
-        promo = self._get_active_promo(estimate_request.promo_code)
-        if not promo:
-            raise ValueError("Code promo invalide ou inactif")
-
-        if promo.partner_id and promo.partner_id != estimate_request.partner_id:
-            raise ValueError("Ce code promo ne s'applique pas à ce partenaire")
-
-        if promo.min_order_value is not None and subtotal < Decimal(str(promo.min_order_value)):
-            raise ValueError("Le montant minimum pour ce code promo n'est pas atteint")
-
-        if promo.is_for_new_users_only and not self._customer_is_new(estimate_request.customer_id):
-            raise ValueError("Ce code promo est réservé aux nouveaux clients")
-
-        applicable_services = set(str(service_id) for service_id in promo.applicable_services_list)
-        if applicable_services:
-            order_service_ids = {str(item.service_id) for item in estimate_request.items}
-            if applicable_services.isdisjoint(order_service_ids):
-                raise ValueError("Ce code promo ne s'applique pas aux services sélectionnés")
-
-        if promo.discount_type == PromoDiscountType.PERCENTAGE.value:
-            discount_amount = (subtotal * Decimal(str(promo.discount_value))) / Decimal("100")
-        else:
-            discount_amount = Decimal(str(promo.discount_value))
-
-        discount_amount = min(discount_amount, subtotal).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        promo_service = PromotionService(self.db)
+        service_ids = {str(item.service_id) for item in estimate_request.items}
+        promo = promo_service.validate_promo_for_checkout(
+            estimate_request.promo_code,
+            partner_id=estimate_request.partner_id,
+            subtotal=subtotal,
+            customer_id=estimate_request.customer_id,
+            service_ids=service_ids,
+        )
+        discount_amount = promo_service.calculate_discount(promo, subtotal)
 
         adjustments.append(
             PricingAdjustmentLine(
@@ -540,6 +518,15 @@ class PricingService:
                     loyalty_points_redeemed = int(digits)
                     break
 
+        promo_meta: dict[str, str] = {}
+        if estimate_request.promo_code:
+            promo = PromotionService(self.db).get_promo_by_code(estimate_request.promo_code)
+            if promo is not None:
+                promo_meta = {
+                    "promo_code": promo.code,
+                    "promo_code_id": str(promo.id),
+                }
+
         # Convertir en résultat pour OrderService
         return PriceCalculationResult(
             subtotal_amount=estimate.subtotal,
@@ -568,6 +555,8 @@ class PricingService:
                 "fees": float(estimate.fee_total),
                 "total": float(estimate.total),
                 "explanation": estimate.explanation,
+                "promotion_consumed": False,
+                **promo_meta,
             },
         )
 

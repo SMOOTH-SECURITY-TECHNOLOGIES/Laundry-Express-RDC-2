@@ -41,7 +41,12 @@ from app.schemas.refund import (
 )
 from app.schemas.dispute import DisputeCreate, DisputeResolveRequest
 from app.schemas.commission import CommissionComputeRequest
+from app.models.admin import AuditLog
+from app.models.notification import Notification
+from app.services.audit_service import AuditService
 from app.services.loyalty_service import LoyaltyService
+from app.services.notification_service import NotificationService
+from app.services.promotion_service import PromotionService
 from app.exceptions import (
     PaymentError,
     RefundError,
@@ -104,9 +109,112 @@ class PaymentService:
         )
         return self._is_referral_review_blocking(getattr(review, "review_status", None))
 
+    def _loyalty_earn_idempotency_key(self, order_id: UUID) -> str:
+        return f"loyalty_earn:{order_id}"
+
+    def _referral_bonus_idempotency_key(self, order_id: UUID, referrer_id: UUID) -> str:
+        return f"referral_bonus:{order_id}:{referrer_id}"
+
+    def _loyalty_notification_already_sent(self, user_id: UUID, idempotency_key: str) -> bool:
+        notifications = (
+            self.db.query(Notification)
+            .filter(Notification.user_id == user_id)
+            .all()
+        )
+        for notification in notifications:
+            metadata = self._parse_notification_metadata(notification.notification_metadata)
+            if metadata.get("idempotencyKey") == idempotency_key:
+                return True
+        return False
+
+    def _loyalty_audit_already_logged(self, order_id: UUID, action: str) -> bool:
+        return (
+            self.db.query(AuditLog.id)
+            .filter(
+                AuditLog.resource_id == order_id,
+                AuditLog.resource_type == "loyalty_ledger",
+                AuditLog.action == action,
+            )
+            .first()
+            is not None
+        )
+
+    def _emit_loyalty_earn_events(self, order: Order, customer: User, awarded_points: int) -> None:
+        idempotency_key = self._loyalty_earn_idempotency_key(order.id)
+        if awarded_points > 0 and not self._loyalty_notification_already_sent(customer.id, idempotency_key):
+            NotificationService(self.db).create(
+                user_id=customer.id,
+                title="Points fidelite gagnes",
+                message=f"Vous avez gagne {awarded_points} points sur la commande {order.order_number}.",
+                notification_type="loyalty_points_earned",
+                metadata={
+                    "orderId": str(order.id),
+                    "orderNumber": order.order_number,
+                    "pointsEarned": awarded_points,
+                    "page": "profile",
+                    "idempotencyKey": idempotency_key,
+                },
+            )
+        if not self._loyalty_audit_already_logged(order.id, "loyalty_points_earned"):
+            AuditService(self.db).log_event(
+                user_id=customer.id,
+                action="loyalty_points_earned",
+                resource_type="loyalty_ledger",
+                resource_id=order.id,
+                details={
+                    "order_id": str(order.id),
+                    "order_number": order.order_number,
+                    "points_earned": awarded_points,
+                    "balance_after": int(getattr(customer, "loyalty_points", 0) or 0),
+                },
+            )
+
+    def _emit_referral_bonus_events(
+        self,
+        order: Order,
+        referrer: User,
+        referee: User,
+        bonus_points: int,
+    ) -> None:
+        idempotency_key = self._referral_bonus_idempotency_key(order.id, referrer.id)
+        if bonus_points > 0 and not self._loyalty_notification_already_sent(referrer.id, idempotency_key):
+            NotificationService(self.db).create(
+                user_id=referrer.id,
+                title="Bonus parrainage",
+                message=f"Bonus de {bonus_points} points pour le parrainage de {referee.name}.",
+                notification_type="referral_bonus_awarded",
+                metadata={
+                    "orderId": str(order.id),
+                    "refereeUserId": str(referee.id),
+                    "bonusPoints": bonus_points,
+                    "page": "profile",
+                    "idempotencyKey": idempotency_key,
+                },
+            )
+        if not self._loyalty_audit_already_logged(order.id, "referral_bonus_awarded"):
+            AuditService(self.db).log_event(
+                user_id=referrer.id,
+                action="referral_bonus_awarded",
+                resource_type="loyalty_ledger",
+                resource_id=order.id,
+                details={
+                    "order_id": str(order.id),
+                    "referee_user_id": str(referee.id),
+                    "referrer_user_id": str(referrer.id),
+                    "bonus_points": bonus_points,
+                    "balance_after": int(getattr(referrer, "loyalty_points", 0) or 0),
+                },
+            )
+
+    def _consume_promotion_if_needed(self, order: Order) -> None:
+        PromotionService(self.db).consume_for_paid_order(order)
+
     def _award_loyalty_points_if_needed(self, order: Order) -> None:
         breakdown = dict(order.calculation_breakdown or {})
-        if breakdown.get("loyalty_points_awarded"):
+        loyalty_service = LoyaltyService(self.db)
+        if breakdown.get("loyalty_points_awarded") or loyalty_service.has_order_entry(
+            order.id, "earn", user_id=order.customer_id
+        ):
             return
 
         is_enabled, points_per_dollar, _ = self._get_loyalty_settings()
@@ -125,7 +233,7 @@ class PaymentService:
         if awarded_points > 0:
             customer.loyalty_points = int(getattr(customer, "loyalty_points", 0) or 0) + awarded_points
             self.db.add(customer)
-            LoyaltyService(self.db).record_entry(
+            loyalty_service.record_entry(
                 user_id=customer.id,
                 order_id=order.id,
                 entry_type="earn",
@@ -133,23 +241,29 @@ class PaymentService:
                 balance_after=customer.loyalty_points,
                 description=f"Earned {awarded_points} loyalty points from paid order {order.order_number}",
             )
+            self._emit_loyalty_earn_events(order, customer, awarded_points)
 
     def _award_referral_bonus_if_needed(self, order: Order) -> None:
         customer = self.db.query(User).filter(User.id == order.customer_id).first()
         if customer is None:
             return
-        if not getattr(customer, "referred_by_user_id", None):
+        referrer_id = getattr(customer, "referred_by_user_id", None)
+        if not referrer_id:
             return
         if getattr(customer, "referral_bonus_awarded_at", None):
             return
-        if self._is_referrer_blocked(getattr(customer, "referred_by_user_id", None)):
+        if self._is_referrer_blocked(referrer_id):
+            return
+
+        loyalty_service = LoyaltyService(self.db)
+        if loyalty_service.has_order_entry(order.id, "referral_bonus", user_id=referrer_id):
             return
 
         is_enabled, referrer_bonus_points, _ = self._get_referral_settings()
         if not is_enabled or referrer_bonus_points <= 0:
             return
 
-        referrer = self.db.query(User).filter(User.id == customer.referred_by_user_id).first()
+        referrer = self.db.query(User).filter(User.id == referrer_id).first()
         if referrer is None:
             return
 
@@ -157,7 +271,7 @@ class PaymentService:
         customer.referral_bonus_awarded_at = datetime.utcnow()
         self.db.add(referrer)
         self.db.add(customer)
-        LoyaltyService(self.db).record_entry(
+        loyalty_service.record_entry(
             user_id=referrer.id,
             order_id=order.id,
             entry_type="referral_bonus",
@@ -165,6 +279,7 @@ class PaymentService:
             balance_after=referrer.loyalty_points,
             description=f"Referral bonus from first paid order {order.order_number}",
         )
+        self._emit_referral_bonus_events(order, referrer, customer, referrer_bonus_points)
 
     # ========== PAYMENT INTENTS ==========
 
@@ -398,8 +513,10 @@ class PaymentService:
                 order.payment_status = OrderPaymentStatus.PARTIALLY_REFUNDED
 
         if previous_payment_status != OrderPaymentStatus.PAID and order.payment_status == OrderPaymentStatus.PAID:
+            self._consume_promotion_if_needed(order)
             self._award_loyalty_points_if_needed(order)
             self._award_referral_bonus_if_needed(order)
+            self._emit_payment_paid_corridor_events(order, previous_payment_status)
 
         order.updated_at = datetime.utcnow()
         self.db.commit()
@@ -737,6 +854,100 @@ class PaymentService:
         return commission
 
     # ========== HELPER METHODS ==========
+
+    @staticmethod
+    def _parse_notification_metadata(raw_metadata: Any) -> Dict[str, Any]:
+        if not raw_metadata:
+            return {}
+        if isinstance(raw_metadata, dict):
+            return raw_metadata
+        try:
+            return json.loads(raw_metadata)
+        except (TypeError, json.JSONDecodeError):
+            return {}
+
+    def _payment_confirmation_idempotency_key(self, order_id: UUID) -> str:
+        return f"payment_confirmation:{order_id}"
+
+    def _payment_confirmation_already_sent(self, customer_id: UUID, order_id: UUID) -> bool:
+        idempotency_key = self._payment_confirmation_idempotency_key(order_id)
+        notifications = (
+            self.db.query(Notification)
+            .filter(
+                Notification.user_id == customer_id,
+                Notification.notification_type == "payment_confirmation",
+            )
+            .all()
+        )
+        for notification in notifications:
+            metadata = self._parse_notification_metadata(notification.notification_metadata)
+            if metadata.get("idempotencyKey") == idempotency_key:
+                return True
+            if str(metadata.get("orderId")) == str(order_id):
+                return True
+        return False
+
+    def _payment_paid_audit_already_logged(self, order_id: UUID) -> bool:
+        return (
+            self.db.query(AuditLog.id)
+            .filter(
+                AuditLog.resource_id == order_id,
+                AuditLog.resource_type == "payment_status_changed",
+                AuditLog.action == "payment_paid",
+            )
+            .first()
+            is not None
+        )
+
+    def _emit_payment_paid_corridor_events(self, order: Order, previous_payment_status: OrderPaymentStatus) -> None:
+        """Notification + audit sur transition réelle vers PAID (idempotent)."""
+        if previous_payment_status == OrderPaymentStatus.PAID:
+            return
+        if order.payment_status != OrderPaymentStatus.PAID:
+            return
+
+        intents = self.payment_repo.get_intents_for_order(order.id)
+        succeeded_intent = next(
+            (intent for intent in reversed(intents) if intent.status == PaymentIntentStatus.SUCCEEDED),
+            None,
+        )
+
+        if not self._payment_confirmation_already_sent(order.customer_id, order.id):
+            NotificationService(self.db).create(
+                user_id=order.customer_id,
+                title="Paiement confirme",
+                message=f"Votre paiement pour la commande {order.order_number} a ete confirme.",
+                notification_type="payment_confirmation",
+                metadata={
+                    "orderId": str(order.id),
+                    "orderNumber": order.order_number,
+                    "partnerId": str(order.partner_id),
+                    "page": "tracking",
+                    "idempotencyKey": self._payment_confirmation_idempotency_key(order.id),
+                    "amountPaid": float(order.amount_paid or 0),
+                    "currency": order.currency,
+                },
+            )
+
+        if not self._payment_paid_audit_already_logged(order.id):
+            AuditService(self.db).log_event(
+                user_id=order.customer_id,
+                action="payment_paid",
+                resource_type="payment_status_changed",
+                resource_id=order.id,
+                details={
+                    "order_id": str(order.id),
+                    "order_number": order.order_number,
+                    "previous_payment_status": (
+                        previous_payment_status.value
+                        if hasattr(previous_payment_status, "value")
+                        else str(previous_payment_status)
+                    ),
+                    "new_payment_status": OrderPaymentStatus.PAID.value,
+                    "amount_paid": float(order.amount_paid or 0),
+                    "payment_intent_id": str(succeeded_intent.id) if succeeded_intent else None,
+                },
+            )
 
     def _simulate_mobile_money_payment(self, intent: PaymentIntent, transaction: PaymentTransaction):
         """Simuler un paiement mobile money (pour le MVP)"""

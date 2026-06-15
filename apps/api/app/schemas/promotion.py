@@ -67,3 +67,16 @@ class PromoCodeResponse(BaseModel):
 class PromoCodeListResponse(BaseModel):
     promo_codes: List[PromoCodeResponse]
     total: int
+
+
+class PromoUsageHistoryEntry(BaseModel):
+    id: UUID
+    promo_code: str
+    order_id: UUID
+    discount_applied: float
+    consumed_at: Optional[str] = None
+
+
+class PromoUsageHistoryResponse(BaseModel):
+    entries: List[PromoUsageHistoryEntry]
+    total: int

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import auth, users, orders, catalog, pricing, logistics, marketplace, dispatch_settings, payments, refunds, disputes, commissions, admin, support, promotions, content, subscriptions, tracking, notifications, advertisements, loyalty, referral, dashboard, ops
+from app.api.routes import auth, users, orders, catalog, pricing, logistics, marketplace, dispatch_settings, payments, refunds, disputes, commissions, admin, admin_ads, admin_loyalty, admin_referrals, admin_campaigns, admin_users, admin_support, admin_reviews, admin_claims, admin_cms, admin_blog, admin_notifications, admin_payment_gateways, admin_whatsapp, admin_sms, admin_email, admin_integrations_ops, admin_management, admin_rbac, admin_activity_log, admin_order_addons, blog, support, claims, reviews, promotions, content, subscriptions, tracking, notifications, advertisements, loyalty, referral, dashboard, ops
 
 # Crée le router principal de l'API
 api_router = APIRouter()
@@ -19,7 +19,30 @@ api_router.include_router(refunds.router, tags=["refunds"])
 api_router.include_router(disputes.router, tags=["disputes"])
 api_router.include_router(commissions.router, tags=["commissions"])
 api_router.include_router(admin.router, tags=["admin"])
+api_router.include_router(admin_ads.router, tags=["admin-ads"])
+api_router.include_router(admin_loyalty.router, tags=["admin-loyalty"])
+api_router.include_router(admin_referrals.router, tags=["admin-referrals"])
+api_router.include_router(admin_campaigns.router, tags=["admin-campaigns"])
+api_router.include_router(admin_users.router, tags=["admin-users"])
+api_router.include_router(admin_support.router, tags=["admin-support"])
+api_router.include_router(admin_reviews.router, tags=["admin-reviews"])
+api_router.include_router(admin_claims.router, tags=["admin-claims"])
+api_router.include_router(admin_cms.router, tags=["admin-cms"])
+api_router.include_router(admin_blog.router, tags=["admin-blog"])
+api_router.include_router(admin_notifications.router, tags=["admin-notifications"])
+api_router.include_router(admin_payment_gateways.router, tags=["admin-payment-gateways"])
+api_router.include_router(admin_whatsapp.router, tags=["admin-whatsapp"])
+api_router.include_router(admin_sms.router, tags=["admin-sms"])
+api_router.include_router(admin_email.router, tags=["admin-email"])
+api_router.include_router(admin_integrations_ops.router, tags=["admin-integrations"])
+api_router.include_router(admin_management.router, tags=["admin-management"])
+api_router.include_router(admin_rbac.router, tags=["admin-rbac"])
+api_router.include_router(admin_activity_log.router, tags=["admin-activity-log"])
+api_router.include_router(admin_order_addons.router, tags=["admin-order-add-ons"])
+api_router.include_router(blog.router, tags=["blog"])
 api_router.include_router(support.router, tags=["support"])
+api_router.include_router(claims.router, tags=["claims"])
+api_router.include_router(reviews.router, tags=["reviews"])
 api_router.include_router(promotions.router, tags=["promotions"])
 api_router.include_router(content.router, tags=["content"])
 api_router.include_router(subscriptions.router, tags=["subscriptions"])

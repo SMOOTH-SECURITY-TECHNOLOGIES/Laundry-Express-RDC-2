@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_current_user, get_sync_db
 from app.models.user import User
 from app.repositories.catalog_repository import CatalogRepository
+from app.schemas.partner_profile import PartnerPublicProfileResponse
+from app.services.partner_profile_service import PartnerProfileService
 from app.schemas.catalog import (
     ServiceCategoryCreate,
     ServiceCategoryResponse,
@@ -25,6 +27,24 @@ from app.schemas.catalog import (
 )
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
+
+
+def _partner_service_response(service) -> PartnerServiceResponse:
+    """Serialize a PartnerService ORM row for API responses."""
+    return PartnerServiceResponse(
+        id=service.id,
+        partner_id=service.partner_id,
+        service_category_id=service.service_category_id,
+        service_type_id=service.service_type_id,
+        service_category_name=service.service_category.name if service.service_category else None,
+        service_type_name=service.service_type.name if service.service_type else None,
+        base_price=service.base_price,
+        pricing_mode=service.pricing_mode,
+        estimated_turnaround_hours=service.estimated_turnaround_hours,
+        is_available=service.is_available,
+        created_at=str(service.created_at),
+        updated_at=str(service.updated_at),
+    )
 
 
 # === Catalogue public ===
@@ -164,6 +184,24 @@ def get_service_type(
     return service_type
 
 
+@router.get("/partners/{partner_id}/public-profile", response_model=PartnerPublicProfileResponse)
+def get_partner_public_profile(
+    partner_id: UUID,
+    db: Session = Depends(get_sync_db),
+):
+    """Profil public d'un partenaire (photos, horaires, adresse) — sans authentification."""
+    service = PartnerProfileService(db)
+    try:
+        return service.get_public_partner_profile(partner_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la récupération du profil public partenaire",
+        ) from exc
+
+
 @router.get("/partners/{partner_id}/services", response_model=List[PartnerServiceResponse])
 def list_partner_services(
     partner_id: UUID,
@@ -178,23 +216,7 @@ def list_partner_services(
         available_only=available_only,
         active_only=active_only,
     )
-    return [
-        PartnerServiceResponse(
-            id=service.id,
-            partner_id=service.partner_id,
-            service_category_id=service.service_category_id,
-            service_type_id=service.service_type_id,
-            service_category_name=service.service_category.name if service.service_category else None,
-            service_type_name=service.service_type.name if service.service_type else None,
-            base_price=service.base_price,
-            pricing_mode=service.pricing_mode,
-            estimated_turnaround_hours=service.estimated_turnaround_hours,
-            is_available=service.is_available,
-            created_at=str(service.created_at),
-            updated_at=str(service.updated_at),
-        )
-        for service in services
-    ]
+    return [_partner_service_response(service) for service in services]
 
 
 @router.get("/partners/{partner_id}/services/{service_id}", response_model=PartnerServiceResponse)
@@ -213,20 +235,7 @@ def get_partner_service(
             detail="Service partenaire non trouvé",
         )
 
-    return PartnerServiceResponse(
-        id=service.id,
-        partner_id=service.partner_id,
-        service_category_id=service.service_category_id,
-        service_type_id=service.service_type_id,
-        service_category_name=service.service_category.name if service.service_category else None,
-        service_type_name=service.service_type.name if service.service_type else None,
-        base_price=service.base_price,
-        pricing_mode=service.pricing_mode,
-        estimated_turnaround_hours=service.estimated_turnaround_hours,
-        is_available=service.is_available,
-        created_at=str(service.created_at),
-        updated_at=str(service.updated_at),
-    )
+    return _partner_service_response(service)
 
 
 # === Administration (partenaires) ===
@@ -270,7 +279,10 @@ def create_partner_service(
         is_available=service_data.is_available,
     )
 
-    return repository.create_partner_service(partner_service)
+    created = repository.create_partner_service(partner_service)
+    created.service_category = category
+    created.service_type = service_type
+    return _partner_service_response(created)
 
 
 @router.patch("/partners/{partner_id}/services/{service_id}", response_model=PartnerServiceResponse)
@@ -298,7 +310,8 @@ def update_partner_service(
     for field, value in update_data.items():
         setattr(service, field, value)
 
-    return repository.update_partner_service(service)
+    updated = repository.update_partner_service(service)
+    return _partner_service_response(updated)
 
 
 @router.get("/partners/{partner_id}/pricing-rules", response_model=List[PricingRuleResponse])
@@ -522,3 +535,11 @@ def update_service_type(
         setattr(service_type, field, value)
 
     return repository.update_service_type(service_type)
+
+
+@router.get("/order-add-ons")
+def get_public_order_add_ons(db: Session = Depends(get_sync_db)):
+    """Options complémentaires affichées au checkout (public)."""
+    from app.services.order_addon_service import OrderAddOnService
+
+    return OrderAddOnService(db).list_add_ons(active_only=True)

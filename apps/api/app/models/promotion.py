@@ -1,7 +1,7 @@
 import json
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
@@ -53,3 +53,15 @@ class PromoCode(BaseModel):
             return json.loads(self.geographic_restrictions)
         except json.JSONDecodeError:
             return []
+
+
+class PromoCodeUsage(BaseModel):
+    """Ledger d'utilisation promo — une ligne par commande payée."""
+
+    __tablename__ = "promo_code_usage"
+
+    promo_code_id = Column(UUID(as_uuid=True), ForeignKey("promo_codes.id"), nullable=False, index=True)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, unique=True, index=True)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    discount_applied = Column(Numeric(10, 2), nullable=False, default=0)
+    consumed_at = Column(DateTime(timezone=True), nullable=True)

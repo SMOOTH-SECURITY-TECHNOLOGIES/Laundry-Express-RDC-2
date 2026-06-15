@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -51,6 +51,9 @@ class Partner(BaseModel):
     rating = Column(Float, default=0.0, nullable=False)
     total_reviews = Column(Integer, default=0, nullable=False)
     total_orders = Column(Integer, default=0, nullable=False)
+
+    # Profil public (galerie photos, video)
+    profile_media_json = Column(JSONB, nullable=True)
     
     # Relations
     locations = relationship("PartnerLocation", back_populates="partner", cascade="all, delete-orphan")

@@ -27,6 +27,7 @@ from app.schemas.partner_invoicing import (
 )
 from app.schemas.partner_profile import (
     PartnerProfileDetailResponse,
+    PartnerProfileMediaUpdateRequest,
     PartnerProfileUpdateRequest,
     PartnerProfileWorkingHoursUpdateRequest,
 )
@@ -264,6 +265,32 @@ def update_partner_profile_working_hours(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la mise à jour des horaires partenaire",
+        ) from exc
+
+
+@router.put("/{partner_id}/profile-detail/media", response_model=PartnerProfileDetailResponse)
+def update_partner_profile_media(
+    partner_id: UUID,
+    payload: PartnerProfileMediaUpdateRequest,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Met à jour la galerie photos et la vidéo du profil public partenaire."""
+    if not user_has_partner_access_sync(db, current_user, partner_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès refusé à ce profil partenaire",
+        )
+
+    service = PartnerProfileService(db)
+    try:
+        return service.update_partner_profile_media(partner_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la mise à jour des médias partenaire",
         ) from exc
 
 

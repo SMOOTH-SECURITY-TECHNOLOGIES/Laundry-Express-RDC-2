@@ -11,6 +11,21 @@ class ReferralSettingsConfig(BaseModel):
     is_enabled = Column(Boolean, nullable=False, default=True)
     referrer_bonus_points = Column(Integer, nullable=False, default=500)
     referee_discount_amount = Column(Numeric(10, 2), nullable=False, default=5)
+    referee_bonus_points = Column(Integer, nullable=False, default=100)
+    points_expiry_days = Column(Integer, nullable=True)
+    bonus_cap_per_referrer = Column(Integer, nullable=True)
+    allowed_channels = Column(Text, nullable=True, default="whatsapp,email,sms,link")
+
+
+class ReferralCampaign(BaseModel):
+    __tablename__ = "referral_campaigns"
+
+    name = Column(String(255), nullable=False)
+    audience = Column(String(255), nullable=True)
+    budget = Column(Numeric(12, 2), nullable=False, default=0)
+    status = Column(String(32), nullable=False, default="active")
+    start_date = Column(String(32), nullable=True)
+    end_date = Column(String(32), nullable=True)
 
 
 class ReferralReviewStatus(BaseModel):
