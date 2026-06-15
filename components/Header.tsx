@@ -5,6 +5,7 @@ import { NotificationBell } from './NotificationBell';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useAppContext } from '../context/AppContext';
 import { Page, PageObject } from '../context/NavigationContext';
+import { realApi } from '../services/real-api';
 
 type NavPage = 'home' | 'order' | 'tracking' | 'profile' | 'admin' | 'partner-dashboard' | 'logistics-dashboard' | 'driver-dashboard' | 'login' | 'register' | 'notifications';
 type IconName = 'logo' | 'wash' | 'iron' | 'shirt' | 'star' | 'check' | 'mapPin' | 'calendar' | 'clock' | 'user' | 'xmark' | 'search' | 'shoppingBag' | 'truck' | 'sparkles' | 'home' | 'bell' | 'pencil' | 'lifebuoy' | 'map' | 'list' | 'chatBubble' | 'bars3' | 'currencyDollar' | 'sun' | 'moon';
@@ -73,10 +74,11 @@ const LanguageSwitcher: React.FC = () => {
 export const Header: React.FC = () => {
   const { setCurrentPage, currentPage, activeOrder, user, logout, t } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isLoggedIn = !!user && realApi.hasAuthSession();
   
   const dashboardPage = useMemo((): Page | null => {
-    if (!user) return null;
-    switch (user.role) {
+    if (!isLoggedIn) return null;
+    switch (user!.role) {
       case 'admin':
       case 'superadmin':
         return 'admin';
@@ -125,7 +127,7 @@ export const Header: React.FC = () => {
           <NavLink currentPage={currentPage} setCurrentPage={setCurrentPage} targetPage="home">{t('header.home')}</NavLink>
           {activeOrder && <NavLink currentPage={currentPage} setCurrentPage={setCurrentPage} targetPage="tracking">{t('header.tracking')}</NavLink>}
           <NavLink currentPage={currentPage} setCurrentPage={setCurrentPage} targetPage="profile" iconName="user" isResponsive>
-            {user ? t('header.profile') : t('header.history')}
+            {isLoggedIn ? t('header.profile') : t('header.history')}
           </NavLink>
           {dashboardPage && <NavLink currentPage={currentPage} setCurrentPage={setCurrentPage} targetPage={dashboardPage} iconName="logo" isResponsive>{dashboardLabel}</NavLink>}
           
@@ -134,7 +136,7 @@ export const Header: React.FC = () => {
           <LanguageSwitcher />
           <ThemeSwitcher />
 
-          {user && (
+          {isLoggedIn && (
             <>
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2"></div>
               <NotificationBell />
@@ -143,11 +145,11 @@ export const Header: React.FC = () => {
 
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2"></div>
 
-          {user ? (
+          {isLoggedIn ? (
             <>
               <div className="flex items-center space-x-2">
                  <Icon name="user" className="w-6 h-6 text-slate-500 dark:text-slate-400"/>
-                 <span className="hidden lg:inline text-sm text-slate-600 dark:text-slate-300 font-medium">{t('header.greeting', {name: user.name?.split(' ')[0] || ''})}</span>
+                 <span className="hidden lg:inline text-sm text-slate-600 dark:text-slate-300 font-medium">{t('header.greeting', {name: user!.name?.split(' ')[0] || ''})}</span>
               </div>
               <button onClick={handleLogout} className="px-4 py-2 rounded-full text-sm font-medium text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
                 {t('header.logout')}
@@ -167,18 +169,7 @@ export const Header: React.FC = () => {
 
         {/* Mobile Nav Button */}
         <div className="md:hidden flex items-center space-x-2">
-            {!user ? (
-                <>
-                    <button onClick={() => setCurrentPage({ name: 'login' })} className="px-2 py-1 rounded-lg text-xs font-medium text-brand-blue hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                        {t('header.login')}
-                    </button>
-                    <button onClick={() => setCurrentPage({ name: 'register' })} className="px-2 py-1 rounded-lg text-xs font-medium bg-brand-orange text-white hover:bg-opacity-90 transition-colors">
-                        {t('header.register')}
-                    </button>
-                </>
-            ) : (
-              <NotificationBell />
-            )}
+            {isLoggedIn && <NotificationBell />}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={t('header.openMenu')} aria-expanded={isMenuOpen}>
                 <Icon name={isMenuOpen ? "xmark" : "bars3"} className="h-7 w-7 text-brand-dark dark:text-slate-200" />
             </button>
@@ -187,40 +178,69 @@ export const Header: React.FC = () => {
 
        {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 animate-fade-in">
-            <div className="px-4 pt-2 pb-4 space-y-2">
-                <button onClick={() => handleMobileNav('home')} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">{t('header.home')}</button>
-                {activeOrder && <button onClick={() => handleMobileNav('tracking')} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">{t('header.tracking')}</button>}
-                <button onClick={() => handleMobileNav('profile')} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">{user ? t('header.profile') : t('header.history')}</button>
-                {dashboardPage && <button onClick={() => handleMobileNav(dashboardPage)} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">{dashboardLabel}</button>}
-                {user && <button onClick={() => handleMobileNav('notifications')} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">{t('notifications.title')}</button>}
-                
-                <hr className="my-2 border-slate-200 dark:border-slate-800"/>
-                
-                <div className="px-4 py-2 flex justify-around items-center">
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 animate-fade-in max-h-[80vh] overflow-y-auto">
+            <div className="px-4 pt-2 pb-4 space-y-1">
+                {isLoggedIn ? (
+                  <div className="flex items-center px-4 py-3 mb-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                    <Icon name="user" className="w-8 h-8 text-brand-blue mr-3"/>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{user!.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{user!.email}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 mb-2">
+                    <button onClick={() => handleMobileNav('login')} className="flex-1 py-3 rounded-xl text-sm font-bold text-brand-blue border-2 border-brand-blue hover:bg-brand-blue/5 transition-colors">
+                      {t('header.login')}
+                    </button>
+                    <button onClick={() => handleMobileNav('register')} className="flex-1 py-3 rounded-xl text-sm font-bold bg-brand-orange text-white hover:bg-brand-orange/90 transition-colors">
+                      {t('header.register')}
+                    </button>
+                  </div>
+                )}
+
+                <hr className="my-1 border-slate-200 dark:border-slate-700"/>
+
+                <button onClick={() => handleMobileNav('home')} className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <Icon name="home" className="w-5 h-5 mr-3 text-slate-400"/>
+                  {t('header.home')}
+                </button>
+                {activeOrder && (
+                  <button onClick={() => handleMobileNav('tracking')} className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <Icon name="truck" className="w-5 h-5 mr-3 text-slate-400"/>
+                    {t('header.tracking')}
+                  </button>
+                )}
+                <button onClick={() => handleMobileNav('profile')} className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <Icon name="user" className="w-5 h-5 mr-3 text-slate-400"/>
+                  {isLoggedIn ? t('header.profile') : t('header.history')}
+                </button>
+                {dashboardPage && (
+                  <button onClick={() => handleMobileNav(dashboardPage)} className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <Icon name="logo" className="w-5 h-5 mr-3 text-slate-400"/>
+                    {dashboardLabel}
+                  </button>
+                )}
+                {isLoggedIn && (
+                  <button onClick={() => handleMobileNav('notifications')} className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <Icon name="bell" className="w-5 h-5 mr-3 text-slate-400"/>
+                    {t('notifications.title')}
+                  </button>
+                )}
+
+                <hr className="my-1 border-slate-200 dark:border-slate-700"/>
+
+                <div className="px-2 py-2 flex items-center gap-3">
                     <LanguageSwitcher />
                     <ThemeSwitcher />
                 </div>
 
-                <hr className="my-2 border-slate-200 dark:border-slate-800"/>
-
-                {user ? (
+                {isLoggedIn && (
                   <>
-                    <div className="flex items-center px-4 py-2 space-x-2">
-                      <Icon name="user" className="w-6 h-6 text-slate-500 dark:text-slate-400"/>
-                      <span className="text-base text-slate-600 dark:text-slate-300 font-medium">{t('header.greeting', {name: user.name?.split(' ')[0] || ''})}</span>
-                    </div>
-                    <button onClick={handleMobileLogout} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20">
+                    <hr className="my-1 border-slate-200 dark:border-slate-700"/>
+                    <button onClick={handleMobileLogout} className="flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      <Icon name="xmark" className="w-5 h-5 mr-3"/>
                       {t('header.logout')}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => handleMobileNav('login')} className="block w-full text-left px-4 py-2 rounded-md text-base font-medium text-brand-blue hover:bg-slate-100 dark:hover:bg-slate-800">
-                      {t('header.login')}
-                    </button>
-                    <button onClick={() => handleMobileNav('register')} className="block w-full text-center px-4 py-2 rounded-md text-base font-medium bg-brand-orange text-white hover:bg-opacity-90">
-                      {t('header.register')}
                     </button>
                   </>
                 )}

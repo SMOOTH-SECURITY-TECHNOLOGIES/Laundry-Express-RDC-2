@@ -504,7 +504,7 @@ const MissionHistoryChart: React.FC<{ data: MissionChartPoint[]; range: string; 
         <Legend color="#64748B" label="Rejetées" />
       </div>
       <div className="mt-3 overflow-x-auto">
-        <svg viewBox={`0 0 ${width} ${height}`} className="min-w-[720px]">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-0">
           {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
             <g key={pct}>
               <line x1={pad.left} x2={width - pad.right} y1={pad.top + chartH - pct * chartH} y2={pad.top + chartH - pct * chartH} stroke="#e8f0fb" strokeDasharray="4 4" />

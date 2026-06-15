@@ -86,69 +86,130 @@ input[type="radio"]:focus-visible {
   outline-offset: 2px;
 }
 
-/* Admin control center — after Tailwind utilities so dark remaps win over bg-white */
-html.dark .admin-shell .bg-white {
+/* Scrollbar hide utility for horizontal scroll strips */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   DARK MODE — Cross-shell utilities
+   Applies to .admin-shell, .driver-shell, .logistics-shell,
+   .partner-shell — reduces duplication across all dashboards.
+   ============================================================ */
+
+/* Shell base reset */
+.driver-shell,
+.logistics-shell,
+.partner-shell {
+  background-color: var(--le-bg-page);
+  color: var(--le-text);
+}
+
+/* --- Shared: backgrounds → tokens --- */
+html.dark .admin-shell .bg-white,
+html.dark .driver-shell .bg-white,
+html.dark .logistics-shell .bg-white,
+html.dark .partner-shell .bg-white {
   background-color: var(--le-bg-card);
 }
 
 html.dark .admin-shell .bg-gray-50,
 html.dark .admin-shell .bg-slate-50,
-html.dark .admin-shell .bg-gray-100 {
+html.dark .driver-shell .bg-gray-50,
+html.dark .driver-shell .bg-slate-50,
+html.dark .logistics-shell .bg-gray-50,
+html.dark .logistics-shell .bg-slate-50,
+html.dark .partner-shell .bg-gray-50,
+html.dark .partner-shell .bg-slate-50 {
   background-color: var(--le-bg-muted);
 }
 
-html.dark .admin-shell .border-gray-50,
-html.dark .admin-shell .border-gray-100,
-html.dark .admin-shell .border-gray-200,
-html.dark .admin-shell .border-gray-300 {
-  border-color: var(--le-border);
+html.dark .admin-shell .bg-gray-100,
+html.dark .admin-shell .bg-slate-100,
+html.dark .driver-shell .bg-gray-100,
+html.dark .driver-shell .bg-slate-100,
+html.dark .logistics-shell .bg-gray-100,
+html.dark .logistics-shell .bg-slate-100,
+html.dark .partner-shell .bg-gray-100,
+html.dark .partner-shell .bg-slate-100 {
+  background-color: var(--le-bg-muted);
 }
 
-html.dark .admin-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-html.dark .admin-shell .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
-html.dark .admin-shell .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--le-border);
+html.dark .admin-shell .bg-gray-200,
+html.dark .partner-shell .bg-slate-200 {
+  background-color: var(--le-bg-muted);
 }
 
+/* Driver-specific hex bg overrides */
+html.dark .driver-shell .bg-\[\#f8fbff\],
+html.dark .driver-shell .bg-\[\#f7fbff\],
+html.dark .driver-shell .bg-\[\#eef6ff\],
+html.dark .driver-shell [class*='bg-[#f8'],
+html.dark .driver-shell [class*='bg-[#eef'] {
+  background-color: var(--le-bg-muted);
+}
+
+/* --- Shared: text → tokens --- */
 html.dark .admin-shell .text-gray-900,
 html.dark .admin-shell .text-gray-800,
-html.dark .admin-shell .text-gray-700 {
+html.dark .admin-shell .text-gray-700,
+html.dark .driver-shell .text-gray-900,
+html.dark .driver-shell .text-gray-800,
+html.dark .driver-shell .text-gray-700,
+html.dark .logistics-shell .text-gray-900,
+html.dark .logistics-shell .text-gray-800,
+html.dark .logistics-shell .text-gray-700,
+html.dark .partner-shell .text-gray-900,
+html.dark .partner-shell .text-gray-800,
+html.dark .partner-shell .text-gray-700,
+html.dark .driver-shell .text-brand-dark,
+html.dark .logistics-shell .text-brand-dark,
+html.dark .partner-shell .text-brand-dark,
+html.dark .driver-shell .text-slate-900,
+html.dark .logistics-shell .text-slate-900,
+html.dark .partner-shell .text-slate-900,
+html.dark .driver-shell .text-\[\#0A1628\],
+html.dark .driver-shell .text-\[\#06105f\],
+html.dark .partner-shell .text-\[\#0F172A\] {
   color: var(--le-text);
 }
 
 html.dark .admin-shell .text-gray-600,
-html.dark .admin-shell .text-gray-500 {
+html.dark .admin-shell .text-gray-500,
+html.dark .admin-shell .text-gray-400,
+html.dark .admin-shell .text-gray-300,
+html.dark .driver-shell .text-gray-600,
+html.dark .driver-shell .text-gray-500,
+html.dark .driver-shell .text-gray-400,
+html.dark .logistics-shell .text-gray-600,
+html.dark .logistics-shell .text-gray-500,
+html.dark .logistics-shell .text-gray-400,
+html.dark .partner-shell .text-gray-600,
+html.dark .partner-shell .text-gray-500,
+html.dark .partner-shell .text-gray-400,
+html.dark .driver-shell .text-slate-600,
+html.dark .logistics-shell .text-slate-600,
+html.dark .partner-shell .text-slate-600,
+html.dark .partner-shell .text-slate-500,
+html.dark .partner-shell .text-slate-400,
+html.dark .driver-shell .text-\[\#52607f\],
+html.dark .driver-shell .text-\[\#20314d\],
+html.dark .driver-shell .text-\[\#6c7894\] {
   color: var(--le-text-muted);
 }
 
-html.dark .admin-shell .text-gray-400 {
-  color: var(--le-text-muted);
-}
-
-html.dark .admin-shell .hover\:bg-gray-50:hover,
-html.dark .admin-shell .hover\:bg-slate-50:hover {
-  background-color: var(--le-bg-muted);
-}
-
-html.dark .admin-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
-html.dark .admin-shell select,
-html.dark .admin-shell textarea {
-  background-color: var(--le-bg-muted);
-  border-color: var(--le-border);
-  color: var(--le-text);
-}
-
-html.dark .admin-shell input::placeholder,
-html.dark .admin-shell textarea::placeholder {
+html.dark .admin-shell .text-slate-500,
+html.dark .admin-shell .text-slate-400,
+html.dark .partner-shell .text-slate-300,
+html.dark .partner-shell .text-slate-200 {
   color: var(--le-text-faint);
 }
 
-html.dark .admin-shell .shadow-sm,
-html.dark .admin-shell .shadow {
-  box-shadow: var(--le-shadow-card);
-}
-
-/* Slate palette (used heavily in admin pages like PartnerManagement) */
+/* Slate palette (admin PartnerManagement) */
 html.dark .admin-shell .text-slate-950,
 html.dark .admin-shell .text-slate-900,
 html.dark .admin-shell .text-slate-800 {
@@ -160,19 +221,69 @@ html.dark .admin-shell .text-slate-600 {
   color: var(--le-text-muted);
 }
 
-html.dark .admin-shell .text-slate-500,
-html.dark .admin-shell .text-slate-400 {
-  color: var(--le-text-faint);
-}
-
+/* --- Shared: borders → tokens --- */
+html.dark .admin-shell .border-gray-50,
+html.dark .admin-shell .border-gray-100,
+html.dark .admin-shell .border-gray-200,
+html.dark .admin-shell .border-gray-300,
+html.dark .driver-shell .border-gray-200,
+html.dark .logistics-shell .border-gray-50,
+html.dark .logistics-shell .border-gray-100,
+html.dark .logistics-shell .border-gray-200,
+html.dark .partner-shell .border-gray-50,
+html.dark .partner-shell .border-gray-100,
+html.dark .partner-shell .border-gray-200,
 html.dark .admin-shell .border-slate-100,
 html.dark .admin-shell .border-slate-200,
-html.dark .admin-shell .border-slate-300 {
+html.dark .admin-shell .border-slate-300,
+html.dark .driver-shell .border-slate-200,
+html.dark .logistics-shell .border-slate-200,
+html.dark .partner-shell .border-slate-100,
+html.dark .partner-shell .border-slate-200,
+html.dark .admin-shell .border-yellow-200,
+html.dark .admin-shell .border-orange-200,
+html.dark .driver-shell .border-\[\#e4edf9\],
+html.dark .driver-shell .border-\[\#dbe7fb\],
+html.dark .driver-shell .border-\[\#b8cce6\] {
   border-color: var(--le-border);
 }
 
-html.dark .admin-shell .bg-slate-50,
-html.dark .admin-shell .bg-slate-100 {
+html.dark .admin-shell .border-blue-100,
+html.dark .driver-shell .border-blue-100,
+html.dark .logistics-shell .border-blue-100,
+html.dark .partner-shell .border-blue-100,
+html.dark .driver-shell .border-green-100,
+html.dark .logistics-shell .border-green-100,
+html.dark .partner-shell .border-green-100,
+html.dark .driver-shell .border-orange-100,
+html.dark .logistics-shell .border-orange-100,
+html.dark .partner-shell .border-orange-100,
+html.dark .driver-shell .border-violet-100,
+html.dark .logistics-shell .border-violet-100,
+html.dark .partner-shell .border-violet-100,
+html.dark .admin-shell .border-green-200,
+html.dark .admin-shell .border-red-200,
+html.dark .admin-shell .border-purple-200 {
+  border-color: rgb(71 85 105 / 0.6);
+}
+
+/* --- Shared: divide --- */
+html.dark .admin-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .admin-shell .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .admin-shell .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .admin-shell .divide-gray-50 > :not([hidden]) ~ :not([hidden]),
+html.dark .driver-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .logistics-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .partner-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--le-border);
+}
+
+/* --- Shared: hovers --- */
+html.dark .admin-shell .hover\:bg-gray-50:hover,
+html.dark .admin-shell .hover\:bg-slate-50:hover,
+html.dark .driver-shell .hover\:bg-gray-50:hover,
+html.dark .logistics-shell .hover\:bg-gray-50:hover,
+html.dark .partner-shell .hover\:bg-gray-50:hover {
   background-color: var(--le-bg-muted);
 }
 
@@ -181,90 +292,313 @@ html.dark .admin-shell .hover\:bg-slate-100:hover {
   background-color: var(--le-bg-elevated);
 }
 
-html.dark .admin-shell .hover\:text-slate-950:hover {
-  color: var(--le-text);
-}
-
-html.dark .admin-shell .bg-white\/90 {
-  background-color: color-mix(in srgb, var(--le-bg-card) 92%, transparent);
-}
-
-/* Status / KPI tint cards */
-html.dark .admin-shell .bg-emerald-50 { background-color: rgb(6 78 59 / 0.35); }
-html.dark .admin-shell .bg-blue-50 { background-color: rgb(30 58 138 / 0.35); }
-html.dark .admin-shell .bg-orange-50 { background-color: rgb(124 45 18 / 0.35); }
-html.dark .admin-shell .bg-red-50 { background-color: rgb(127 29 29 / 0.35); }
-html.dark .admin-shell .bg-purple-50 { background-color: rgb(88 28 135 / 0.35); }
-html.dark .admin-shell .bg-amber-50 { background-color: rgb(120 53 15 / 0.35); }
-
-html.dark .admin-shell .text-emerald-600,
-html.dark .admin-shell .text-emerald-700 { color: #6ee7b7; }
-html.dark .admin-shell .text-blue-600,
-html.dark .admin-shell .text-blue-700 { color: #93c5fd; }
-html.dark .admin-shell .text-orange-600,
-html.dark .admin-shell .text-orange-700 { color: #fdba74; }
-html.dark .admin-shell .text-red-600,
-html.dark .admin-shell .text-red-700 { color: #fca5a5; }
-html.dark .admin-shell .text-purple-600,
-html.dark .admin-shell .text-purple-700 { color: #c4b5fd; }
-
-html.dark .admin-shell .border-blue-100 { border-color: rgb(59 130 246 / 0.35); }
-
-html.dark .admin-shell .from-blue-50.via-emerald-50.to-orange-50 {
-  background-image: linear-gradient(to bottom right, rgb(30 58 138 / 0.25), rgb(6 78 59 / 0.2), rgb(124 45 18 / 0.2));
-}
-
-html.dark .admin-shell table thead {
-  color: var(--le-text-faint);
-}
-
-/* Badge backgrounds (-100) used in services tables */
-html.dark .admin-shell .bg-green-100 { background-color: rgb(6 78 59 / 0.45); }
-html.dark .admin-shell .bg-emerald-100 { background-color: rgb(6 78 59 / 0.45); }
-html.dark .admin-shell .bg-blue-100 { background-color: rgb(30 58 138 / 0.45); }
-html.dark .admin-shell .bg-yellow-100 { background-color: rgb(113 63 18 / 0.45); }
-html.dark .admin-shell .bg-amber-100 { background-color: rgb(120 53 15 / 0.45); }
-html.dark .admin-shell .bg-orange-100 { background-color: rgb(124 45 18 / 0.45); }
-html.dark .admin-shell .bg-purple-100 { background-color: rgb(88 28 135 / 0.45); }
-html.dark .admin-shell .bg-indigo-100 { background-color: rgb(49 46 129 / 0.45); }
-html.dark .admin-shell .bg-yellow-50 { background-color: rgb(113 63 18 / 0.35); }
-html.dark .admin-shell .bg-amber-50 { background-color: rgb(120 53 15 / 0.35); }
-
-html.dark .admin-shell .text-green-800,
-html.dark .admin-shell .text-green-600 { color: #6ee7b7; }
-html.dark .admin-shell .text-emerald-100 { color: #6ee7b7; }
-html.dark .admin-shell .text-blue-800 { color: #93c5fd; }
-html.dark .admin-shell .text-yellow-800,
-html.dark .admin-shell .text-yellow-600 { color: #fde047; }
-html.dark .admin-shell .text-amber-800,
-html.dark .admin-shell .text-amber-100 { color: #fde68a; }
-html.dark .admin-shell .text-orange-800 { color: #fdba74; }
-html.dark .admin-shell .text-purple-800 { color: #c4b5fd; }
-html.dark .admin-shell .text-indigo-800 { color: #a5b4fc; }
-html.dark .admin-shell .text-red-800,
-html.dark .admin-shell .text-red-100 { color: #fca5a5; }
-
-html.dark .admin-shell .border-yellow-200,
-html.dark .admin-shell .border-orange-200,
-html.dark .admin-shell .border-gray-200 { border-color: var(--le-border); }
-
 html.dark .admin-shell .hover\:bg-gray-100:hover {
   background-color: var(--le-bg-elevated);
 }
 
-html.dark .admin-shell .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--le-border);
+html.dark .admin-shell .hover\:text-slate-950:hover {
+  color: var(--le-text);
 }
 
-html.dark .admin-shell .bg-gray-200 {
+html.dark .partner-shell .hover\:bg-slate-100:hover {
   background-color: var(--le-bg-muted);
 }
 
-html.dark .admin-shell .text-gray-300 {
-  color: var(--le-text-muted);
+/* --- Shared: inputs --- */
+html.dark .admin-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark .admin-shell select,
+html.dark .admin-shell textarea,
+html.dark .partner-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark .partner-shell select,
+html.dark .partner-shell textarea {
+  background-color: var(--le-bg-muted);
+  border-color: var(--le-border);
+  color: var(--le-text);
 }
 
-/* Admin alert banners — plain CSS so dark mode always works (no Tailwind JIT dependency) */
+html.dark .admin-shell input::placeholder,
+html.dark .admin-shell textarea::placeholder,
+html.dark .partner-shell input::placeholder,
+html.dark .partner-shell textarea::placeholder {
+  color: var(--le-text-faint);
+}
+
+html.dark .partner-shell input::placeholder,
+html.dark .partner-shell textarea::placeholder {
+  opacity: 1;
+}
+
+html.dark .partner-shell select option {
+  background-color: var(--le-bg-card);
+  color: var(--le-text);
+}
+
+/* --- Shared: shadows --- */
+html.dark .admin-shell .shadow-sm,
+html.dark .admin-shell .shadow {
+  box-shadow: var(--le-shadow-card);
+}
+
+/* --- Shared: aside (dashboard sidebars) --- */
+html.dark .admin-shell aside,
+html.dark .driver-shell aside,
+html.dark .logistics-shell aside,
+html.dark .partner-shell aside {
+  background-color: var(--le-bg-card);
+  border-color: var(--le-border);
+}
+
+/* --- Shared: table thead --- */
+html.dark .admin-shell table thead {
+  color: var(--le-text-faint);
+}
+
+/* ============================================================
+   DARK MODE — Tinted backgrounds (status / KPI cards)
+   CSS custom properties for easy maintenance.
+   ============================================================ */
+html.dark {
+  --le-tint-blue: rgb(30 58 138 / 0.35);
+  --le-tint-blue-strong: rgb(30 58 138 / 0.45);
+  --le-tint-green: rgb(6 78 59 / 0.35);
+  --le-tint-green-strong: rgb(6 78 59 / 0.45);
+  --le-tint-emerald: rgb(6 78 59 / 0.35);
+  --le-tint-orange: rgb(124 45 18 / 0.35);
+  --le-tint-orange-strong: rgb(124 45 18 / 0.45);
+  --le-tint-red: rgb(127 29 29 / 0.35);
+  --le-tint-purple: rgb(88 28 135 / 0.35);
+  --le-tint-violet: rgb(76 29 149 / 0.35);
+  --le-tint-violet-strong: rgb(76 29 149 / 0.45);
+  --le-tint-yellow: rgb(113 63 18 / 0.35);
+  --le-tint-amber: rgb(120 53 15 / 0.35);
+  --le-tint-indigo: rgb(49 46 129 / 0.45);
+  --le-tint-teal: rgb(19 78 74 / 0.35);
+}
+
+/* -50 tint backgrounds */
+html.dark .admin-shell .bg-emerald-50,
+html.dark .admin-shell .bg-blue-50,
+html.dark .admin-shell .bg-orange-50,
+html.dark .admin-shell .bg-red-50,
+html.dark .admin-shell .bg-purple-50,
+html.dark .admin-shell .bg-amber-50,
+html.dark .admin-shell .bg-green-50,
+html.dark .admin-shell .bg-violet-50,
+html.dark .admin-shell .bg-teal-50,
+html.dark .admin-shell .bg-yellow-50,
+html.dark .driver-shell .bg-blue-50,
+html.dark .logistics-shell .bg-blue-50,
+html.dark .partner-shell .bg-blue-50,
+html.dark .driver-shell .bg-green-50,
+html.dark .logistics-shell .bg-green-50,
+html.dark .partner-shell .bg-green-50,
+html.dark .driver-shell .bg-orange-50,
+html.dark .logistics-shell .bg-orange-50,
+html.dark .partner-shell .bg-orange-50,
+html.dark .driver-shell .bg-red-50,
+html.dark .logistics-shell .bg-red-50,
+html.dark .partner-shell .bg-red-50,
+html.dark .driver-shell .bg-violet-50,
+html.dark .driver-shell .bg-purple-50,
+html.dark .logistics-shell .bg-violet-50,
+html.dark .logistics-shell .bg-purple-50,
+html.dark .partner-shell .bg-violet-50,
+html.dark .partner-shell .bg-purple-50,
+html.dark .driver-shell .bg-yellow-50,
+html.dark .logistics-shell .bg-yellow-50,
+html.dark .partner-shell .bg-yellow-50,
+html.dark .partner-shell .bg-amber-50 {
+  background-color: var(--le-tint-blue);
+}
+
+/* Specific overrides for non-blue tints */
+html.dark .admin-shell .bg-emerald-50,
+html.dark .admin-shell .bg-green-50 { background-color: var(--le-tint-green); }
+html.dark .admin-shell .bg-orange-50 { background-color: var(--le-tint-orange); }
+html.dark .admin-shell .bg-red-50 { background-color: var(--le-tint-red); }
+html.dark .admin-shell .bg-purple-50 { background-color: var(--le-tint-purple); }
+html.dark .admin-shell .bg-amber-50,
+html.dark .admin-shell .bg-yellow-50 { background-color: var(--le-tint-amber); }
+html.dark .admin-shell .bg-violet-50 { background-color: var(--le-tint-violet); }
+html.dark .admin-shell .bg-teal-50 { background-color: var(--le-tint-teal); }
+
+/* Partner purple override */
+html.dark .partner-shell .bg-purple-50 { background-color: var(--le-tint-purple); }
+
+/* -100 badge backgrounds */
+html.dark .admin-shell .bg-green-100,
+html.dark .admin-shell .bg-emerald-100 { background-color: var(--le-tint-green-strong); }
+html.dark .admin-shell .bg-blue-100 { background-color: var(--le-tint-blue-strong); }
+html.dark .admin-shell .bg-yellow-100,
+html.dark .admin-shell .bg-amber-100 { background-color: var(--le-tint-amber); }
+html.dark .admin-shell .bg-orange-100 { background-color: var(--le-tint-orange-strong); }
+html.dark .admin-shell .bg-purple-100,
+html.dark .admin-shell .bg-violet-100 { background-color: var(--le-tint-violet-strong); }
+html.dark .admin-shell .bg-indigo-100 { background-color: var(--le-tint-indigo); }
+
+html.dark .driver-shell .bg-blue-100,
+html.dark .logistics-shell .bg-blue-100,
+html.dark .partner-shell .bg-blue-100 { background-color: var(--le-tint-blue-strong); }
+html.dark .driver-shell .bg-green-100,
+html.dark .logistics-shell .bg-green-100,
+html.dark .partner-shell .bg-green-100 { background-color: var(--le-tint-green-strong); }
+html.dark .driver-shell .bg-orange-100,
+html.dark .logistics-shell .bg-orange-100,
+html.dark .partner-shell .bg-orange-100 { background-color: var(--le-tint-orange-strong); }
+html.dark .driver-shell .bg-violet-100,
+html.dark .logistics-shell .bg-violet-100,
+html.dark .partner-shell .bg-violet-100 { background-color: var(--le-tint-violet-strong); }
+html.dark .partner-shell .bg-amber-100,
+html.dark .partner-shell .bg-yellow-100 { background-color: var(--le-tint-yellow); }
+
+/* --- Tinted text colors --- */
+html.dark .admin-shell .text-emerald-600,
+html.dark .admin-shell .text-emerald-700,
+html.dark .admin-shell .text-green-800,
+html.dark .admin-shell .text-green-600,
+html.dark .admin-shell .text-green-700,
+html.dark .admin-shell .text-emerald-100 { color: #6ee7b7; }
+
+html.dark .admin-shell .text-blue-600,
+html.dark .admin-shell .text-blue-700,
+html.dark .admin-shell .text-blue-800 { color: #93c5fd; }
+
+html.dark .admin-shell .text-orange-600,
+html.dark .admin-shell .text-orange-700,
+html.dark .admin-shell .text-orange-800 { color: #fdba74; }
+
+html.dark .admin-shell .text-red-600,
+html.dark .admin-shell .text-red-700,
+html.dark .admin-shell .text-red-800,
+html.dark .admin-shell .text-red-100 { color: #fca5a5; }
+
+html.dark .admin-shell .text-purple-600,
+html.dark .admin-shell .text-purple-700,
+html.dark .admin-shell .text-purple-800,
+html.dark .admin-shell .text-violet-600 { color: #c4b5fd; }
+
+html.dark .admin-shell .text-yellow-800,
+html.dark .admin-shell .text-yellow-600 { color: #fde047; }
+
+html.dark .admin-shell .text-amber-800,
+html.dark .admin-shell .text-amber-100,
+html.dark .admin-shell .text-amber-600 { color: #fde68a; }
+
+html.dark .admin-shell .text-indigo-800,
+html.dark .admin-shell .text-indigo-600 { color: #a5b4fc; }
+
+html.dark .admin-shell .text-teal-600 { color: #5eead4; }
+
+/* Cross-shell status text */
+html.dark .driver-shell .text-green-700,
+html.dark .logistics-shell .text-green-700,
+html.dark .partner-shell .text-green-700 { color: #bbf7d0; }
+
+html.dark .driver-shell .text-green-600,
+html.dark .logistics-shell .text-green-600,
+html.dark .partner-shell .text-green-600 { color: #86efac; }
+
+html.dark .driver-shell .text-orange-600,
+html.dark .logistics-shell .text-orange-600,
+html.dark .partner-shell .text-orange-600 { color: #fdba74; }
+
+html.dark .driver-shell .text-orange-700,
+html.dark .logistics-shell .text-orange-700,
+html.dark .partner-shell .text-orange-700 { color: #fed7aa; }
+
+html.dark .driver-shell .text-red-600,
+html.dark .logistics-shell .text-red-600,
+html.dark .partner-shell .text-red-600 { color: #fca5a5; }
+
+html.dark .driver-shell .text-red-700,
+html.dark .logistics-shell .text-red-700,
+html.dark .partner-shell .text-red-700 { color: #fecaca; }
+
+html.dark .driver-shell .text-yellow-600,
+html.dark .logistics-shell .text-yellow-600,
+html.dark .partner-shell .text-yellow-600 { color: #fde68a; }
+
+html.dark .driver-shell .text-yellow-700,
+html.dark .logistics-shell .text-yellow-700,
+html.dark .partner-shell .text-yellow-700 { color: #fef08a; }
+
+html.dark .driver-shell .text-violet-600,
+html.dark .logistics-shell .text-violet-600,
+html.dark .partner-shell .text-violet-600,
+html.dark .driver-shell .text-purple-600,
+html.dark .logistics-shell .text-purple-600,
+html.dark .partner-shell .text-purple-600 { color: #c4b5fd; }
+
+html.dark .driver-shell .text-content-faint,
+html.dark .logistics-shell .text-content-faint,
+html.dark .partner-shell .text-content-faint { color: var(--le-text-faint); }
+
+/* Badge text on tinted backgrounds */
+html.dark .driver-shell .bg-blue-50.text-brand-blue,
+html.dark .logistics-shell .bg-blue-50.text-brand-blue,
+html.dark .partner-shell .bg-blue-50.text-brand-blue,
+html.dark .driver-shell .bg-blue-50 .text-brand-blue,
+html.dark .logistics-shell .bg-blue-50 .text-brand-blue,
+html.dark .partner-shell .bg-blue-50 .text-brand-blue { color: #93c5fd; }
+
+/* --- Attribution match borders (driver/logistics attribute selectors) --- */
+html.dark .driver-shell [class*='bg-red-50'],
+html.dark .logistics-shell [class*='bg-red-50'] {
+  background-color: rgb(127 29 29 / 0.32);
+  border-color: rgb(248 113 113 / 0.35);
+}
+
+html.dark .driver-shell [class*='bg-orange-50'],
+html.dark .logistics-shell [class*='bg-orange-50'] {
+  background-color: rgb(124 45 18 / 0.32);
+  border-color: rgb(251 146 60 / 0.35);
+}
+
+html.dark .driver-shell [class*='bg-green-50'],
+html.dark .logistics-shell [class*='bg-green-50'] {
+  border-color: rgb(74 222 128 / 0.25);
+}
+
+html.dark .driver-shell [class*='bg-yellow-50'],
+html.dark .logistics-shell [class*='bg-yellow-50'] {
+  background-color: rgb(113 63 18 / 0.32);
+  border-color: rgb(250 204 21 / 0.3);
+}
+
+html.dark .driver-shell [class*='border-red-100'],
+html.dark .logistics-shell [class*='border-red-100'] {
+  border-color: rgb(248 113 113 / 0.35);
+}
+
+html.dark .driver-shell [class*='border-orange-100'],
+html.dark .logistics-shell [class*='border-orange-100'] {
+  border-color: rgb(251 146 60 / 0.35);
+}
+
+html.dark .driver-shell [class*='border-green-100'],
+html.dark .logistics-shell [class*='border-green-100'] {
+  border-color: rgb(74 222 128 / 0.3);
+}
+
+/* --- Admin: gradient override --- */
+html.dark .admin-shell .from-blue-50.via-emerald-50.to-orange-50 {
+  background-image: linear-gradient(to bottom right, rgb(30 58 138 / 0.25), rgb(6 78 59 / 0.2), rgb(124 45 18 / 0.2));
+}
+
+/* --- Admin: transparent bg override --- */
+html.dark .admin-shell [class*='bg-[#F8FAFC]'],
+html.dark .admin-shell .bg-\[\#F8FAFC\] {
+  background-color: transparent;
+}
+
+/* --- Admin: opacity bg override --- */
+html.dark .admin-shell .bg-white\/90 {
+  background-color: color-mix(in srgb, var(--le-bg-card) 92%, transparent);
+}
+
+/* ============================================================
+   DARK MODE — Admin alert banners
+   ============================================================ */
 .admin-status-banner {
   display: flex;
   align-items: flex-start;
@@ -303,471 +637,43 @@ html.dark .admin-status-banner--info {
   color: #dbeafe;
 }
 
-.admin-status-banner__icon--warning {
-  color: #d97706;
-}
+.admin-status-banner__icon--warning { color: #d97706; }
+html.dark .admin-status-banner__icon--warning { color: #fbbf24; }
 
-html.dark .admin-status-banner__icon--warning {
-  color: #fbbf24;
-}
+.admin-status-banner__icon--info { color: #2563eb; }
+html.dark .admin-status-banner__icon--info { color: #93c5fd; }
 
-.admin-status-banner__icon--info {
-  color: #2563eb;
-}
-
-html.dark .admin-status-banner__icon--info {
-  color: #93c5fd;
-}
-
-html.dark .admin-shell .bg-green-50 {
-  background-color: rgb(6 78 59 / 0.35);
-}
-
-html.dark .admin-shell .bg-violet-50 {
-  background-color: rgb(76 29 149 / 0.35);
-}
-
-html.dark .admin-shell .bg-teal-50 {
-  background-color: rgb(19 78 74 / 0.35);
-}
-
-html.dark .admin-shell .bg-violet-100 {
-  background-color: rgb(76 29 149 / 0.45);
-}
-
-html.dark .admin-shell .text-violet-600 {
-  color: #c4b5fd;
-}
-
-html.dark .admin-shell .text-teal-600 {
-  color: #5eead4;
-}
-
-html.dark .admin-shell .text-indigo-600 {
-  color: #a5b4fc;
-}
-
-html.dark .admin-shell .text-amber-600 {
-  color: #fcd34d;
-}
-
-html.dark .admin-shell .text-green-700 {
-  color: #6ee7b7;
-}
-
-html.dark .admin-shell .border-green-200,
-html.dark .admin-shell .border-red-200,
-html.dark .admin-shell .border-purple-200,
-html.dark .admin-shell .border-blue-200 {
-  border-color: rgb(71 85 105 / 0.6);
-}
-
-html.dark .admin-shell [class*='bg-[#F8FAFC]'],
-html.dark .admin-shell .bg-\[\#F8FAFC\] {
-  background-color: transparent;
-}
-
-/* Driver dashboard — force theme tokens even if cached bundles still emit bg-white */
-.driver-shell {
-  background-color: var(--le-bg-page);
-  color: var(--le-text);
-}
-
-html.dark .driver-shell .bg-white,
-html.dark .driver-shell .bg-slate-50,
-html.dark .driver-shell .bg-gray-50 {
-  background-color: var(--le-bg-card) !important;
-}
-
-html.dark .driver-shell .bg-\[\#f8fbff\],
-html.dark .driver-shell .bg-\[\#f7fbff\],
-html.dark .driver-shell .bg-\[\#eef6ff\],
-html.dark .driver-shell [class*='bg-[#f8'],
-html.dark .driver-shell [class*='bg-[#eef'] {
-  background-color: var(--le-bg-muted) !important;
-}
-
-html.dark .driver-shell .text-\[\#0A1628\],
-html.dark .driver-shell .text-\[\#06105f\],
-html.dark .driver-shell .text-gray-900,
-html.dark .driver-shell .text-slate-900 {
-  color: var(--le-text) !important;
-}
-
-html.dark .driver-shell .text-\[\#52607f\],
-html.dark .driver-shell .text-\[\#20314d\],
-html.dark .driver-shell .text-\[\#6c7894\],
-html.dark .driver-shell .text-gray-600,
-html.dark .driver-shell .text-gray-500,
-html.dark .driver-shell .text-slate-600 {
-  color: var(--le-text-muted) !important;
-}
-
-html.dark .driver-shell .border-\[\#e4edf9\],
-html.dark .driver-shell .border-\[\#dbe7fb\],
-html.dark .driver-shell .border-\[\#b8cce6\],
-html.dark .driver-shell .border-gray-200,
-html.dark .driver-shell .border-slate-200 {
-  border-color: var(--le-border) !important;
-}
-
-html.dark .driver-shell aside {
-  background-color: var(--le-bg-card);
-  border-color: var(--le-border);
-}
-
-/* Logistics + driver dashboards — dark mode compat for legacy Tailwind grays */
-.logistics-shell {
-  background-color: var(--le-bg-page);
-  color: var(--le-text);
-}
-
-html.dark .driver-shell .bg-white,
-html.dark .logistics-shell .bg-white,
-html.dark .partner-shell .bg-white,
-html.dark .driver-shell .bg-gray-50,
-html.dark .logistics-shell .bg-gray-50,
-html.dark .partner-shell .bg-gray-50,
-html.dark .driver-shell .bg-slate-50,
-html.dark .logistics-shell .bg-slate-50,
-html.dark .partner-shell .bg-slate-50 {
-  background-color: var(--le-bg-card) !important;
-}
-
-html.dark .driver-shell .bg-gray-100,
-html.dark .logistics-shell .bg-gray-100,
-html.dark .partner-shell .bg-gray-100,
-html.dark .driver-shell .bg-slate-100,
-html.dark .logistics-shell .bg-slate-100,
-html.dark .partner-shell .bg-slate-100 {
-  background-color: var(--le-bg-muted) !important;
-}
-
-html.dark .driver-shell .bg-blue-50,
-html.dark .logistics-shell .bg-blue-50,
-html.dark .partner-shell .bg-blue-50 {
-  background-color: rgb(30 58 138 / 0.35) !important;
-}
-
-html.dark .driver-shell .bg-blue-100,
-html.dark .logistics-shell .bg-blue-100,
-html.dark .partner-shell .bg-blue-100 {
-  background-color: rgb(30 58 138 / 0.45) !important;
-}
-
-html.dark .driver-shell .bg-green-50,
-html.dark .logistics-shell .bg-green-50,
-html.dark .partner-shell .bg-green-50 {
-  background-color: rgb(6 78 59 / 0.35) !important;
-}
-
-html.dark .driver-shell .bg-green-100,
-html.dark .logistics-shell .bg-green-100,
-html.dark .partner-shell .bg-green-100 {
-  background-color: rgb(6 78 59 / 0.45) !important;
-}
-
-html.dark .driver-shell .bg-orange-50,
-html.dark .logistics-shell .bg-orange-50,
-html.dark .partner-shell .bg-orange-50 {
-  background-color: rgb(124 45 18 / 0.35) !important;
-}
-
-html.dark .driver-shell .bg-orange-100,
-html.dark .logistics-shell .bg-orange-100,
-html.dark .partner-shell .bg-orange-100 {
-  background-color: rgb(124 45 18 / 0.45) !important;
-}
-
-html.dark .driver-shell .bg-violet-50,
-html.dark .logistics-shell .bg-violet-50,
-html.dark .partner-shell .bg-violet-50,
-html.dark .driver-shell .bg-purple-50,
-html.dark .logistics-shell .bg-purple-50,
-html.dark .partner-shell .bg-purple-50 {
-  background-color: rgb(76 29 149 / 0.35) !important;
-}
-
-html.dark .driver-shell .bg-violet-100,
-html.dark .logistics-shell .bg-violet-100,
-html.dark .partner-shell .bg-violet-100 {
-  background-color: rgb(76 29 149 / 0.45) !important;
-}
-
-html.dark .driver-shell .bg-yellow-50,
-html.dark .logistics-shell .bg-yellow-50,
-html.dark .partner-shell .bg-yellow-50 {
-  background-color: rgb(113 63 18 / 0.35) !important;
-}
-
-html.dark .driver-shell .bg-red-50,
-html.dark .logistics-shell .bg-red-50,
-html.dark .partner-shell .bg-red-50 {
-  background-color: rgb(127 29 29 / 0.35) !important;
-}
-
-html.dark .driver-shell .text-gray-900,
-html.dark .logistics-shell .text-gray-900,
-html.dark .partner-shell .text-gray-900,
-html.dark .driver-shell .text-brand-dark,
-html.dark .logistics-shell .text-brand-dark,
-html.dark .partner-shell .text-brand-dark,
-html.dark .driver-shell .text-slate-900,
-html.dark .logistics-shell .text-slate-900,
-html.dark .partner-shell .text-slate-900,
-html.dark .driver-shell .text-gray-800,
-html.dark .logistics-shell .text-gray-800,
-html.dark .partner-shell .text-gray-800,
-html.dark .driver-shell .text-gray-700,
-html.dark .logistics-shell .text-gray-700,
-html.dark .partner-shell .text-gray-700 {
-  color: var(--le-text) !important;
-}
-
-html.dark .driver-shell .text-gray-500,
-html.dark .logistics-shell .text-gray-500,
-html.dark .partner-shell .text-gray-500,
-html.dark .driver-shell .text-gray-600,
-html.dark .logistics-shell .text-gray-600,
-html.dark .partner-shell .text-gray-600,
-html.dark .driver-shell .text-slate-600,
-html.dark .logistics-shell .text-slate-600,
-html.dark .partner-shell .text-slate-600 {
-  color: var(--le-text-muted) !important;
-}
-
-html.dark .driver-shell .text-gray-400,
-html.dark .logistics-shell .text-gray-400,
-html.dark .partner-shell .text-gray-400,
-html.dark .driver-shell .text-slate-500,
-html.dark .logistics-shell .text-slate-500,
-html.dark .partner-shell .text-slate-500 {
-  color: var(--le-text-faint) !important;
-}
-
-html.dark .driver-shell .border-gray-50,
-html.dark .logistics-shell .border-gray-50,
-html.dark .partner-shell .border-gray-50,
-html.dark .driver-shell .border-gray-100,
-html.dark .logistics-shell .border-gray-100,
-html.dark .partner-shell .border-gray-100,
-html.dark .driver-shell .border-gray-200,
-html.dark .logistics-shell .border-gray-200,
-html.dark .partner-shell .border-gray-200,
-html.dark .driver-shell .border-slate-200,
-html.dark .logistics-shell .border-slate-200,
-html.dark .partner-shell .border-slate-200 {
-  border-color: var(--le-border) !important;
-}
-
-html.dark .driver-shell .border-blue-100,
-html.dark .logistics-shell .border-blue-100,
-html.dark .partner-shell .border-blue-100,
-html.dark .driver-shell .border-green-100,
-html.dark .logistics-shell .border-green-100,
-html.dark .partner-shell .border-green-100,
-html.dark .driver-shell .border-orange-100,
-html.dark .logistics-shell .border-orange-100,
-html.dark .partner-shell .border-orange-100,
-html.dark .driver-shell .border-violet-100,
-html.dark .logistics-shell .border-violet-100,
-html.dark .partner-shell .border-violet-100 {
-  border-color: rgb(71 85 105 / 0.6) !important;
-}
-
-html.dark .driver-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-html.dark .logistics-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-html.dark .partner-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--le-border) !important;
-}
-
-html.dark .driver-shell .hover\:bg-gray-50:hover,
-html.dark .logistics-shell .hover\:bg-gray-50:hover,
-html.dark .partner-shell .hover\:bg-gray-50:hover {
-  background-color: var(--le-bg-muted) !important;
-}
-
-html.dark .driver-shell .text-green-700,
-html.dark .logistics-shell .text-green-700,
-html.dark .partner-shell .text-green-700 {
-  color: #bbf7d0 !important;
-}
-
-html.dark .driver-shell .text-green-600,
-html.dark .logistics-shell .text-green-600,
-html.dark .partner-shell .text-green-600 {
-  color: #86efac !important;
-}
-
-html.dark .driver-shell .text-orange-600,
-html.dark .logistics-shell .text-orange-600,
-html.dark .partner-shell .text-orange-600 {
-  color: #fdba74 !important;
-}
-
-html.dark .driver-shell .text-orange-700,
-html.dark .logistics-shell .text-orange-700,
-html.dark .partner-shell .text-orange-700 {
-  color: #fed7aa !important;
-}
-
-html.dark .driver-shell .text-red-600,
-html.dark .logistics-shell .text-red-600,
-html.dark .partner-shell .text-red-600 {
-  color: #fca5a5 !important;
-}
-
-html.dark .driver-shell .text-red-700,
-html.dark .logistics-shell .text-red-700,
-html.dark .partner-shell .text-red-700 {
-  color: #fecaca !important;
-}
-
-html.dark .driver-shell .text-yellow-600,
-html.dark .logistics-shell .text-yellow-600,
-html.dark .partner-shell .text-yellow-600 {
-  color: #fde68a !important;
-}
-
-html.dark .driver-shell .text-yellow-700,
-html.dark .logistics-shell .text-yellow-700,
-html.dark .partner-shell .text-yellow-700 {
-  color: #fef08a !important;
-}
-
-html.dark .driver-shell .text-violet-600,
-html.dark .logistics-shell .text-violet-600,
-html.dark .partner-shell .text-violet-600,
-html.dark .driver-shell .text-purple-600,
-html.dark .logistics-shell .text-purple-600,
-html.dark .partner-shell .text-purple-600 {
-  color: #c4b5fd !important;
-}
-
-html.dark .driver-shell .text-content-faint,
-html.dark .logistics-shell .text-content-faint,
-html.dark .partner-shell .text-content-faint {
-  color: var(--le-text-faint) !important;
-}
-
-/* Badges & pills: brighter label on tinted dark backgrounds */
-html.dark .driver-shell .bg-blue-50.text-brand-blue,
-html.dark .logistics-shell .bg-blue-50.text-brand-blue,
-html.dark .partner-shell .bg-blue-50.text-brand-blue,
-html.dark .driver-shell .bg-blue-50 .text-brand-blue,
-html.dark .logistics-shell .bg-blue-50 .text-brand-blue,
-html.dark .partner-shell .bg-blue-50 .text-brand-blue {
-  color: #93c5fd !important;
-}
-
-html.dark .driver-shell [class*='bg-red-50'],
-html.dark .logistics-shell [class*='bg-red-50'] {
-  background-color: rgb(127 29 29 / 0.32) !important;
-  border-color: rgb(248 113 113 / 0.35) !important;
-}
-
-html.dark .driver-shell [class*='bg-orange-50'],
-html.dark .logistics-shell [class*='bg-orange-50'] {
-  background-color: rgb(124 45 18 / 0.32) !important;
-  border-color: rgb(251 146 60 / 0.35) !important;
-}
-
-html.dark .driver-shell [class*='bg-green-50'],
-html.dark .logistics-shell [class*='bg-green-50'] {
-  border-color: rgb(74 222 128 / 0.25) !important;
-}
-
-html.dark .driver-shell [class*='bg-yellow-50'],
-html.dark .logistics-shell [class*='bg-yellow-50'] {
-  background-color: rgb(113 63 18 / 0.32) !important;
-  border-color: rgb(250 204 21 / 0.3) !important;
-}
-
-html.dark .driver-shell [class*='border-red-100'],
-html.dark .logistics-shell [class*='border-red-100'] {
-  border-color: rgb(248 113 113 / 0.35) !important;
-}
-
-html.dark .driver-shell [class*='border-orange-100'],
-html.dark .logistics-shell [class*='border-orange-100'] {
-  border-color: rgb(251 146 60 / 0.35) !important;
-}
-
-html.dark .driver-shell [class*='border-green-100'],
-html.dark .logistics-shell [class*='border-green-100'] {
-  border-color: rgb(74 222 128 / 0.3) !important;
-}
-
-html.dark .logistics-shell aside,
-html.dark .driver-shell aside,
-html.dark .partner-shell aside {
-  background-color: var(--le-bg-card);
-  border-color: var(--le-border);
-}
-
-/* Partner dashboard — dark mode */
+/* ============================================================
+   DARK MODE — Partner dashboard specifics
+   ============================================================ */
 .partner-shell {
   background-color: var(--le-bg-page);
   color: var(--le-text);
 }
 
-html.dark .partner-shell .bg-white,
-html.dark .partner-shell .bg-slate-50 {
-  background-color: var(--le-bg-card) !important;
-}
-
-html.dark .partner-shell .bg-slate-100,
-html.dark .partner-shell .bg-slate-200 {
-  background-color: var(--le-bg-muted) !important;
-}
-
-html.dark .partner-shell .text-\[\#0F172A\] {
-  color: var(--le-text) !important;
-}
-
-html.dark .partner-shell .text-slate-400,
-html.dark .partner-shell .text-slate-500,
-html.dark .partner-shell .text-slate-600,
-html.dark .partner-shell .text-slate-700 {
-  color: var(--le-text-muted) !important;
-}
-
-html.dark .partner-shell .text-slate-300,
-html.dark .partner-shell .text-slate-200 {
-  color: var(--le-text-faint) !important;
-}
-
-html.dark .partner-shell .border-slate-100,
-html.dark .partner-shell .border-slate-200 {
-  border-color: var(--le-border) !important;
-}
-
-html.dark .partner-shell .bg-blue-50,
-html.dark .partner-shell .bg-green-50,
-html.dark .partner-shell .bg-yellow-50,
-html.dark .partner-shell .bg-orange-50,
-html.dark .partner-shell .bg-purple-50 {
-  background-color: rgb(30 58 138 / 0.35) !important;
-}
-
-html.dark .partner-shell .bg-purple-50 {
-  background-color: rgb(76 29 149 / 0.35) !important;
-}
-
-html.dark .partner-shell .bg-amber-100,
-html.dark .partner-shell .bg-yellow-100 {
-  background-color: rgb(113 63 18 / 0.35) !important;
+html.dark .partner-shell .bg-white\/90 {
+  background-color: rgb(30 41 59 / 0.94);
+  color: var(--le-text-muted);
 }
 
 html.dark .partner-shell .bg-green-50\/50,
 html.dark .partner-shell .border-green-200 {
-  background-color: rgb(6 78 59 / 0.25) !important;
-  border-color: rgb(74 222 128 / 0.3) !important;
+  background-color: rgb(6 78 59 / 0.25);
+  border-color: rgb(74 222 128 / 0.3);
 }
 
-html.dark .partner-shell .hover\:bg-slate-100:hover {
-  background-color: var(--le-bg-muted) !important;
+html.dark .partner-shell .bg-red-50 {
+  background-color: rgb(127 29 29 / 0.28);
 }
+
+html.dark .partner-shell .border-red-100 {
+  border-color: rgb(248 113 113 / 0.35);
+}
+
+html.dark .partner-shell .text-red-700 { color: #fca5a5; }
+
+html.dark .partner-shell .bg-green-50.text-\[\#22C55E\],
+html.dark .partner-shell .bg-green-50 .text-\[\#22C55E\] { color: #86efac; }
 
 html.dark .partner-shell .from-blue-50 {
   --tw-gradient-from: rgb(30 58 138 / 0.35) var(--tw-gradient-from-position);
@@ -779,58 +685,11 @@ html.dark .partner-shell .to-purple-50 {
   --tw-gradient-to: rgb(76 29 149 / 0.35) var(--tw-gradient-to-position);
 }
 
-/* Partner forms, modals & tables — dark readability */
-html.dark .partner-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
-html.dark .partner-shell select,
-html.dark .partner-shell textarea {
-  background-color: var(--le-bg-muted);
-  border-color: var(--le-border);
-  color: var(--le-text);
-}
-
-html.dark .partner-shell input::placeholder,
-html.dark .partner-shell textarea::placeholder {
-  color: var(--le-text-faint);
-  opacity: 1;
-}
-
-html.dark .partner-shell select option {
-  background-color: var(--le-bg-card);
-  color: var(--le-text);
-}
-
-html.dark .partner-shell .text-gray-400,
-html.dark .partner-shell .text-slate-400 {
-  color: var(--le-text-muted) !important;
-}
-
-html.dark .partner-shell .bg-red-50 {
-  background-color: rgb(127 29 29 / 0.28) !important;
-}
-
-html.dark .partner-shell .border-red-100 {
-  border-color: rgb(248 113 113 / 0.35) !important;
-}
-
-html.dark .partner-shell .text-red-700 {
-  color: #fca5a5 !important;
-}
-
-html.dark .partner-shell .bg-white\/90 {
-  background-color: rgb(30 41 59 / 0.94) !important;
-  color: var(--le-text-muted);
-}
-
-html.dark .partner-shell .bg-green-50.text-\[\#22C55E\],
-html.dark .partner-shell .bg-green-50 .text-\[\#22C55E\] {
-  color: #86efac !important;
-}
-
 html.dark .partner-shell .partner-cta-light {
-  background-color: #ffffff !important;
-  color: #0066cc !important;
+  background-color: #ffffff;
+  color: #0066cc;
 }
 
 html.dark .partner-shell .partner-cta-light:hover {
-  background-color: rgb(255 255 255 / 0.9) !important;
+  background-color: rgb(255 255 255 / 0.9);
 }

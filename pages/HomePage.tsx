@@ -267,7 +267,7 @@ export const HomePage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setCurrentPage({ name: 'tracking' })}
-                      className="p-1.5 hover:bg-surface-muted rounded-lg transition"
+                      className="p-2 hover:bg-surface-muted rounded-lg transition min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                       <Icon name="magnifying-glass-plus" className="w-4 h-4 text-content-faint" />
                     </button>
