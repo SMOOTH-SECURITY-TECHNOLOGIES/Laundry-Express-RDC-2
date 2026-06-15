@@ -6,6 +6,7 @@
  *
  * Checklist:
  *  1-3  Truth E2E (customer, loyalty/referral, promotions) — opt-in
+ *  3.5  Growth Engine V1.1 contract/actions truth E2E — opt-in
  *  4    VITE_USE_MOCK_API=false validated (static)
  *  5    No critical localStorage/auth mock fallback (static)
  *  6    Admin premium hidden in pilot (static)
@@ -56,6 +57,13 @@ const steps = [
     name: 'Promotions truth E2E',
     command: 'python',
     args: ['scripts/validate_promotion_truth.py'],
+    truth: true,
+  },
+  {
+    id: '3.5',
+    name: 'Growth Engine V1.1 truth E2E',
+    command: 'python',
+    args: ['scripts/validate_growth_engine_truth.py'],
     truth: true,
   },
   {

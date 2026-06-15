@@ -173,3 +173,79 @@ class CampaignAnalyticsResponse(BaseModel):
 class CampaignExportRequest(BaseModel):
     format: str = "csv"
     scope: str = "campaigns"
+
+
+class RfmSegmentResponse(BaseModel):
+    segment: str
+    segment_key: str
+    audience_size: int
+    recency_score: int
+    frequency_score: int
+    monetary_score: int
+    recommended_action: str
+
+
+class GrowthAutomationRuleResponse(BaseModel):
+    key: str
+    name: str
+    trigger: str
+    channels: list[str] = Field(default_factory=list)
+    eligible_customers: int
+    status: str
+    next_action: str
+
+
+class PromoFraudRiskResponse(BaseModel):
+    promo_code: str
+    risk_score: int
+    severity: str
+    signals: list[str] = Field(default_factory=list)
+    recommended_action: str
+
+
+class TrendingOfferResponse(BaseModel):
+    id: str
+    title: str
+    offer_type: str
+    score: float
+    ctr: float
+    conversion_rate: float
+    revenue: float
+    placements: list[str] = Field(default_factory=list)
+
+
+class GrowthRoiResponse(BaseModel):
+    promo_revenue: float
+    loyalty_revenue: float
+    referral_revenue: float
+    remarketing_revenue: float
+    reactivation_revenue: float
+    estimated_cac: float
+    estimated_ltv: float
+    estimated_roi: float
+
+
+class GrowthDashboardResponse(BaseModel):
+    acquisition: int
+    activation: int
+    conversion: int
+    retention: int
+    referral: int
+    revenue: float
+    rfm_segments: list[RfmSegmentResponse] = Field(default_factory=list)
+    automations: list[GrowthAutomationRuleResponse] = Field(default_factory=list)
+    promo_fraud_risks: list[PromoFraudRiskResponse] = Field(default_factory=list)
+    trending_offers: list[TrendingOfferResponse] = Field(default_factory=list)
+    roi: GrowthRoiResponse
+    source: str = "backend"
+
+
+class GrowthActionRequest(BaseModel):
+    note: str | None = None
+
+
+class GrowthActionResponse(BaseModel):
+    status: str
+    action: str
+    resource_id: str | None = None
+    message: str

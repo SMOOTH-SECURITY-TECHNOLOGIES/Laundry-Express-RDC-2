@@ -47,7 +47,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex items-center justify-center p-6">
       <div className="bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-8 max-w-md w-full text-center">
         <Icon name="warning" className="w-8 h-8 text-red-600 mx-auto mb-4" />
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Impossible de charger le Growth & Promotions Center.</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Impossible de charger le Promotions Center.</h2>
         <button type="button" onClick={onRetry} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium">Réessayer</button>
       </div>
     </div>

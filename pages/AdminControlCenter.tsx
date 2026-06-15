@@ -7,6 +7,7 @@ import { ControlCenterSidebar, controlCenterSections } from '../components/admin
 import { ControlCenterHeader } from '../components/admin/ControlCenterHeader';
 import { TechFooter } from '../components/admin/TechFooter';
 import { Icon } from '../components/Icon';
+import { isAdminModuleVisible } from '../config/pilot';
 
 // Real pages - PILOTAGE
 import { TruthDashboard } from './ops/TruthDashboard';
@@ -93,6 +94,7 @@ const legacySectionMap: Record<string, string> = {
   orders: 'Commandes',
   drivers: 'Chauffeurs',
   promotions: 'Promotions',
+  growth: 'Growth Engine',
   advertisements: 'Publicités',
   loyalty: 'Fidélité',
   referral: 'Parrainage',
@@ -294,6 +296,8 @@ export const AdminControlCenter: React.FC = () => {
         return <LoyaltyControlCenter />;
       case 'Parrainage':
         return <ReferralsControlCenter />;
+      case 'Growth Engine':
+        return <CampaignsControlCenter mode="growth" />;
       case 'Campagnes':
         return <CampaignsControlCenter />;
 
@@ -354,7 +358,7 @@ export const AdminControlCenter: React.FC = () => {
 
   const selfHeaderSections = new Set([
     'Litiges', 'Commandes', 'Abonnements', 'Cockpit Dispatcher', 'Missions', 'Chauffeurs', 'Zones', 'SLA Center',
-    'Revenus', 'Commissions', 'Remboursements', 'Paiements', 'Revenue Leakage', 'Promotions',
+    'Revenus', 'Commissions', 'Remboursements', 'Paiements', 'Revenue Leakage', 'Promotions', 'Growth Engine',
     'Pages & CMS', 'Blog', 'Notifications', 'Passerelles paiement', 'WhatsApp', 'SMS', 'Email', 'API & Webhooks', 'Gestion Admin', 'Permissions', 'Journal admin', 'Réclamations', 'Publicités', 'Fidélité', 'Parrainage', 'Campagnes', 'Support', 'Avis & Notes',
   ]);
 
@@ -380,7 +384,7 @@ export const AdminControlCenter: React.FC = () => {
           >
             {controlCenterSections.map((section) => (
               <optgroup key={section.title} label={section.title}>
-                {section.items.map((item) => (
+                {section.items.filter((item) => isAdminModuleVisible(item.label)).map((item) => (
                   <option key={item.label} value={item.label}>
                     {item.label}
                   </option>

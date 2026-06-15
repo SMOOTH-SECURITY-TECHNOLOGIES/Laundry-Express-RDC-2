@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   fetchCampaignsBundle, invalidateCampaignsCache, createCampaign, updateCampaign,
   deleteCampaign, pauseCampaign, resumeCampaign, duplicateCampaign,
-  getCampaignAnalytics, exportCampaignsData,
+  getCampaignAnalytics, exportCampaignsData, fetchGrowthDashboard,
+  prepareGrowthAutomation, reviewGrowthPromoRisk, suspendGrowthPromo,
 } from '../lib/admin/campaigns-api';
 import type {
   CampaignKpis, Campaign, CampaignChannelPerformance, CampaignFunnelStep,
   CampaignTrendPoint, CampaignSegment, CampaignAutomation, CampaignCalendarEvent,
-  CampaignROI, CampaignWatchlistItem, CampaignAnalytics,
+  CampaignROI, CampaignWatchlistItem, CampaignAnalytics, GrowthDashboardSummary,
 } from '../lib/admin/campaigns-types';
 
 export default function useCampaignsCenter(initialDays = 7) {
@@ -22,6 +23,7 @@ export default function useCampaignsCenter(initialDays = 7) {
   const [calendar, setCalendar] = useState<CampaignCalendarEvent[]>([]);
   const [roi, setRoi] = useState<CampaignROI | null>(null);
   const [watchlist, setWatchlist] = useState<CampaignWatchlistItem[]>([]);
+  const [growth, setGrowth] = useState<GrowthDashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState('backend');
@@ -46,7 +48,12 @@ export default function useCampaignsCenter(initialDays = 7) {
     setLoading(true);
     setError(null);
     try {
-      applyBundle(await fetchCampaignsBundle(d));
+      const [bundle, growthBundle] = await Promise.all([
+        fetchCampaignsBundle(d),
+        fetchGrowthDashboard(),
+      ]);
+      applyBundle(bundle);
+      setGrowth(growthBundle);
     } catch {
       setError('Impossible de charger les campagnes.');
     } finally {
@@ -77,7 +84,7 @@ export default function useCampaignsCenter(initialDays = 7) {
 
   return {
     kpis, campaigns, channels, funnel, trends, topCampaigns, segments,
-    automations, calendar, roi, watchlist, loading, error, source, days, refresh,
+    automations, calendar, roi, watchlist, growth, loading, error, source, days, refresh,
     handleCreate: async (data: Parameters<typeof createCampaign>[0]) => { const r = await createCampaign(data); await reload(); return r; },
     handleUpdate: async (id: string, data: Record<string, unknown>) => { await updateCampaign(id, data); await reload(); },
     handleDelete: async (id: string) => { await deleteCampaign(id); await reload(); },
@@ -94,5 +101,8 @@ export default function useCampaignsCenter(initialDays = 7) {
       };
     },
     handleExport: exportCampaignsData,
+    handlePrepareGrowthAutomation: async (key: string) => { const msg = await prepareGrowthAutomation(key); await reload(); return msg; },
+    handleReviewGrowthPromoRisk: async (promoCode: string) => { const msg = await reviewGrowthPromoRisk(promoCode); await reload(); return msg; },
+    handleSuspendGrowthPromo: async (promoCode: string) => { const msg = await suspendGrowthPromo(promoCode); await reload(); return msg; },
   };
 }

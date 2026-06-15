@@ -73,6 +73,7 @@ export const controlCenterSections: NavSection[] = [
     title: 'CROISSANCE',
     items: [
       { label: 'Promotions', icon: 'gift', isNew: true },
+      { label: 'Growth Engine', icon: 'chartBar', isNew: true },
       { label: 'Publicités', icon: 'megaphone' },
       { label: 'Fidélité', icon: 'heart' },
       { label: 'Parrainage', icon: 'users' },

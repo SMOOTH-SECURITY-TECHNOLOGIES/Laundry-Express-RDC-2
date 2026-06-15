@@ -32,7 +32,7 @@ describe('PromotionsControlCenter', () => {
   it('renders header and KPI strip', () => {
     mockHook();
     const { container } = renderComponent(<PromotionsControlCenter />);
-    expect(byText(container, 'Growth & Promotions Center')).toBeTruthy();
+    expect(byText(container, 'Promotions Center')).toBeTruthy();
     expect(byText(container, 'Promotions actives')).toBeTruthy();
     expect(container.textContent?.replace(/\s/g, '')).toContain('42500');
   });
@@ -64,9 +64,9 @@ describe('PromotionsControlCenter', () => {
   });
 
   it('shows error state', () => {
-    mockHook({ error: 'Impossible de charger le Growth & Promotions Center.', kpis: null });
+    mockHook({ error: 'Impossible de charger le Promotions Center.', kpis: null });
     const { container } = renderComponent(<PromotionsControlCenter />);
-    expect(byText(container, 'Impossible de charger le Growth & Promotions Center.')).toBeTruthy();
+    expect(byText(container, 'Impossible de charger le Promotions Center.')).toBeTruthy();
   });
 
   it('does not render undefined placeholders', () => {

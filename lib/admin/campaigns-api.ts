@@ -1,16 +1,20 @@
 import { features } from '../../config/features';
-import { realApi, type BackendCampaignDashboardResponse } from '../../services/real-api';
-import type { CampaignDashboardSummary } from './campaigns-types';
+import { realApi, type BackendCampaignDashboardResponse, type BackendGrowthDashboardResponse } from '../../services/real-api';
+import type { CampaignDashboardSummary, GrowthDashboardSummary } from './campaigns-types';
 
 export const CAMPAIGNS_WRITE_ENABLED = import.meta.env.VITE_CAMPAIGNS_WRITE_ENABLED !== 'false';
 
 let cached: CampaignDashboardSummary | null = null;
 let promise: Promise<CampaignDashboardSummary> | null = null;
 let cachedDays = 7;
+let cachedGrowth: GrowthDashboardSummary | null = null;
+let growthPromise: Promise<GrowthDashboardSummary> | null = null;
 
 export function invalidateCampaignsCache(): void {
   cached = null;
   promise = null;
+  cachedGrowth = null;
+  growthPromise = null;
 }
 
 function map(raw: BackendCampaignDashboardResponse): CampaignDashboardSummary {
@@ -54,6 +58,63 @@ function map(raw: BackendCampaignDashboardResponse): CampaignDashboardSummary {
   };
 }
 
+function mapGrowth(raw: BackendGrowthDashboardResponse): GrowthDashboardSummary {
+  return {
+    acquisition: raw.acquisition,
+    activation: raw.activation,
+    conversion: raw.conversion,
+    retention: raw.retention,
+    referral: raw.referral,
+    revenue: raw.revenue,
+    rfmSegments: raw.rfm_segments.map((s) => ({
+      segment: s.segment,
+      segmentKey: s.segment_key,
+      audienceSize: s.audience_size,
+      recencyScore: s.recency_score,
+      frequencyScore: s.frequency_score,
+      monetaryScore: s.monetary_score,
+      recommendedAction: s.recommended_action,
+    })),
+    automations: raw.automations.map((a) => ({
+      key: a.key,
+      name: a.name,
+      trigger: a.trigger,
+      channels: a.channels,
+      eligibleCustomers: a.eligible_customers,
+      status: a.status,
+      nextAction: a.next_action,
+    })),
+    promoFraudRisks: raw.promo_fraud_risks.map((r) => ({
+      promoCode: r.promo_code,
+      riskScore: r.risk_score,
+      severity: r.severity,
+      signals: r.signals,
+      recommendedAction: r.recommended_action,
+    })),
+    trendingOffers: raw.trending_offers.map((o) => ({
+      id: o.id,
+      title: o.title,
+      offerType: o.offer_type,
+      score: o.score,
+      ctr: o.ctr,
+      conversionRate: o.conversion_rate,
+      revenue: o.revenue,
+      placements: o.placements,
+    })),
+    roi: {
+      promoRevenue: raw.roi.promo_revenue,
+      loyaltyRevenue: raw.roi.loyalty_revenue,
+      referralRevenue: raw.roi.referral_revenue,
+      remarketingRevenue: raw.roi.remarketing_revenue,
+      reactivationRevenue: raw.roi.reactivation_revenue,
+      estimatedCac: raw.roi.estimated_cac,
+      estimatedLtv: raw.roi.estimated_ltv,
+      estimatedRoi: raw.roi.estimated_roi,
+    },
+    source: raw.source,
+  };
+}
+
 export async function fetchCampaignsBundle(days = 7): Promise<CampaignDashboardSummary> {
   if (cached && cachedDays === days) return cached;
   if (features.useMockApi || import.meta.env.VITE_USE_MOCK_API === 'true') {
@@ -64,6 +125,35 @@ export async function fetchCampaignsBundle(days = 7): Promise<CampaignDashboardS
     promise = realApi.getCampaignDashboard(days).then((raw) => { cached = map(raw); return cached; });
   }
   return promise;
+}
+
+export async function fetchGrowthDashboard(): Promise<GrowthDashboardSummary> {
+  if (cachedGrowth) return cachedGrowth;
+  if (features.useMockApi || import.meta.env.VITE_USE_MOCK_API === 'true') {
+    throw new Error('Le module Growth nécessite le backend.');
+  }
+  if (!growthPromise) {
+    growthPromise = realApi.getGrowthDashboard().then((raw) => { cachedGrowth = mapGrowth(raw); return cachedGrowth; });
+  }
+  return growthPromise;
+}
+
+export async function reviewGrowthPromoRisk(promoCode: string): Promise<string> {
+  const result = await realApi.reviewGrowthPromoRisk(promoCode, 'review requested from Growth Engine UI');
+  invalidateCampaignsCache();
+  return result.message;
+}
+
+export async function suspendGrowthPromo(promoCode: string): Promise<string> {
+  const result = await realApi.suspendGrowthPromo(promoCode, 'suspended from Growth Engine UI');
+  invalidateCampaignsCache();
+  return result.message;
+}
+
+export async function prepareGrowthAutomation(automationKey: string): Promise<string> {
+  const result = await realApi.prepareGrowthAutomation(automationKey, 'prepared from Growth Engine UI');
+  invalidateCampaignsCache();
+  return result.message;
 }
 
 export async function createCampaign(data: { name: string; channel: string; audience: string; content: string; budget: number; scheduledAt?: string }): Promise<{ id: string }> {

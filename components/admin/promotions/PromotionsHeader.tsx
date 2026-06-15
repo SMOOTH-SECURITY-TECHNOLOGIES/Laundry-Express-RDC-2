@@ -16,8 +16,8 @@ export function PromotionsHeader(props: Props) {
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Growth & Promotions Center</h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Acquisition • Fidélisation • Réactivation • Conversion</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Promotions Center</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Coupons • Remises • Réactivation • Conversion promo</p>
           </div>
           {props.wsConnected && (
             <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-[10px] font-bold">
