@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { DispatchTask, Driver } from '../../components/logistics/logistics-types';
+import { getDispatchTasks, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
 interface LogisticsDispatchProps {
@@ -178,6 +179,19 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
 }) => {
   const [tasks, setTasks] = useState<DispatchTask[]>(initialTasks);
   const [matchingTaskId, setMatchingTaskId] = useState<string | null>(null);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+
+  useEffect(() => {
+    let mounted = true;
+    getDispatchTasks(initialTasks).then((result) => {
+      if (!mounted) return;
+      setTasks(result.data);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const hasFocus = Boolean(focusMissionId || focusAlertTitle || focusType || focusZone);
   const visibleTasks = useMemo(
@@ -233,6 +247,14 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Données dispatch connectées au backend' : 'Mode dégradé — données dispatch partielles'}
+      </div>
+
       {hasFocus && (
         <div className="rounded-2xl border border-red-400/60 bg-red-500/10 p-4 text-sm text-content-primary">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

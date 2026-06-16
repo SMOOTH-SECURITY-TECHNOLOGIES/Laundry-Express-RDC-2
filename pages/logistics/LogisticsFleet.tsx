@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { Vehicle } from '../../components/logistics/logistics-types';
+import { getVehicles, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
 type VehicleForm = Pick<
@@ -156,6 +157,7 @@ const toForm = (vehicle: Vehicle): VehicleForm => ({
 
 export const LogisticsFleet: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
   const [assigningVehicleId, setAssigningVehicleId] = useState<string | null>(null);
@@ -172,6 +174,18 @@ export const LogisticsFleet: React.FC = () => {
       unavailable: vehicles.filter((vehicle) => vehicle.status === 'failed' || vehicle.status === 'cancelled').length,
     };
   }, [vehicles]);
+
+  useEffect(() => {
+    let mounted = true;
+    getVehicles(initialVehicles).then((result) => {
+      if (!mounted) return;
+      setVehicles(result.data);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const openCreateForm = () => {
     setEditingVehicleId(null);
@@ -225,6 +239,14 @@ export const LogisticsFleet: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Données véhicules connectées au backend' : 'Mode dégradé — données véhicules locales'}
+      </div>
+
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: 'Total véhicules', value: kpis.total, icon: 'truck' as const },

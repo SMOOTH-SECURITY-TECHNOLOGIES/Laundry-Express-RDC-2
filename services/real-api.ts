@@ -1831,6 +1831,83 @@ export interface LogisticsDriverListResponse {
   page_size: number;
 }
 
+export interface LogisticsVehicle {
+  id: string;
+  plate: string;
+  type: 'moto' | 'car' | 'van';
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'delayed' | 'failed' | 'cancelled';
+  driverId?: string;
+  assignedDriverName?: string;
+  zone: string;
+  location: string;
+  lastKnownLocation?: string;
+  mileageKm: number;
+  insuranceExpiresAt: string;
+  maintenance: {
+    status: 'ok' | 'scheduled' | 'in_progress' | 'overdue';
+    nextServiceAtKm: number;
+    notes?: string;
+  };
+}
+
+export interface LogisticsVehicleListResponse {
+  vehicles: LogisticsVehicle[];
+}
+
+export interface LogisticsTrip {
+  id: string;
+  taskId: string;
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'delayed' | 'failed' | 'cancelled';
+  origin: string;
+  destination: string;
+  customerName?: string;
+  driverName?: string;
+  vehiclePlate?: string;
+  estimatedDurationMinutes?: number;
+  etaMinutes?: number;
+  distanceKm?: number;
+}
+
+export interface LogisticsTripListResponse {
+  trips: LogisticsTrip[];
+}
+
+export interface LogisticsTrackingPoint {
+  id: string;
+  tripId: string;
+  kind: 'vehicle' | 'driver' | 'pickup' | 'delivery';
+  label: string;
+  latitude: number;
+  longitude: number;
+  recordedAt: string;
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'delayed' | 'failed' | 'cancelled';
+  driverName?: string;
+  vehiclePlate?: string;
+}
+
+export interface LogisticsTrackingPointListResponse {
+  tracking_points: LogisticsTrackingPoint[];
+}
+
+export interface LogisticsMaintenanceEvent {
+  id: string;
+  vehicleId: string;
+  vehiclePlate?: string;
+  title: string;
+  type: 'insurance' | 'repair' | 'preventive' | 'inspection';
+  status: 'scheduled' | 'in_progress' | 'done' | 'overdue';
+  dueDate: string;
+  cost: number;
+  nextControlAt: string;
+  alert?: 'insurance_expired' | 'vehicle_broken' | 'maintenance_overdue';
+  vehicleAvailable: boolean;
+  costEstimate?: number;
+}
+
+export interface LogisticsMaintenanceEventListResponse {
+  maintenance_events: LogisticsMaintenanceEvent[];
+}
+
 export interface MarketplaceCompany {
   id: string;
   name: string;
@@ -3413,6 +3490,22 @@ class ApiClient {
     const query = params ? new URLSearchParams(params as Record<string, string>).toString() : '';
     const endpoint = query ? `/logistics/drivers?${query}` : '/logistics/drivers';
     return this.request<LogisticsDriverListResponse>(endpoint);
+  }
+
+  async getVehicles(): Promise<LogisticsVehicleListResponse> {
+    return this.request<LogisticsVehicleListResponse>('/logistics/vehicles');
+  }
+
+  async getTrips(): Promise<LogisticsTripListResponse> {
+    return this.request<LogisticsTripListResponse>('/logistics/trips');
+  }
+
+  async getTrackingPoints(): Promise<LogisticsTrackingPointListResponse> {
+    return this.request<LogisticsTrackingPointListResponse>('/logistics/tracking-points');
+  }
+
+  async getMaintenanceEvents(): Promise<LogisticsMaintenanceEventListResponse> {
+    return this.request<LogisticsMaintenanceEventListResponse>('/logistics/maintenance-events');
   }
 
   async updateDriverAvailability(available: boolean): Promise<{ available: boolean }> {

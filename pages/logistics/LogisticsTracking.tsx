@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { LogisticsStatus, TrackingPoint, Trip, TripTimelineEvent } from '../../components/logistics/logistics-types';
+import { getTrackingPoints, getTrips, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
 type TrackingStatus = 'available' | 'busy' | 'delayed' | 'offline';
@@ -14,7 +15,7 @@ interface LiveTrip extends Trip {
   trackingStatus: TrackingStatus;
 }
 
-const liveTrips: LiveTrip[] = [
+const fallbackLiveTrips: LiveTrip[] = [
   {
     id: 'trip-001',
     taskId: 'MSN-004',
@@ -90,7 +91,7 @@ const timelineEvents: TripTimelineEvent[] = [
   { id: 'tl-010', tripId: 'trip-002', label: 'delivered', title: 'Livré', timestamp: 'ETA 10:42', completed: false },
 ];
 
-const trackingPoints: TrackingPoint[] = [
+const fallbackTrackingPoints: TrackingPoint[] = [
   {
     id: 'pt-veh-001',
     tripId: 'trip-001',
@@ -226,11 +227,47 @@ const pointIcon: Record<TrackingPoint['kind'], React.ComponentProps<typeof Icon>
   delivery: 'check',
 };
 
+const toLiveTrip = (trip: Trip): LiveTrip => {
+  const trackingStatus = statusToTracking(trip.status);
+  return {
+    ...trip,
+    customerName: trip.customerName || 'Client Laundry',
+    driverName: trip.driverName || 'Chauffeur à assigner',
+    vehiclePlate: trip.vehiclePlate || 'Véhicule à confirmer',
+    estimatedDurationMinutes: trip.estimatedDurationMinutes ?? 30,
+    statusLabel: statusConfig[trackingStatus].label,
+    trackingStatus,
+  };
+};
+
 export const LogisticsTracking: React.FC = () => {
   const [activeTripId, setActiveTripId] = useState('trip-001');
+  const [liveTrips, setLiveTrips] = useState<LiveTrip[]>(fallbackLiveTrips);
+  const [trackingPoints, setTrackingPoints] = useState<TrackingPoint[]>(fallbackTrackingPoints);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [geoAvailable, setGeoAvailable] = useState(() => typeof navigator !== 'undefined' && 'geolocation' in navigator);
   const [tripOverrides, setTripOverrides] = useState<Record<string, LogisticsStatus>>({});
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([
+      getTrips(fallbackLiveTrips),
+      getTrackingPoints(fallbackTrackingPoints),
+    ]).then(([tripResult, pointResult]) => {
+      if (!mounted) return;
+      const nextTrips = tripResult.data.map(toLiveTrip);
+      setLiveTrips(nextTrips);
+      setTrackingPoints(pointResult.data);
+      setDataMode(tripResult.mode === 'backend' || pointResult.mode === 'backend' ? 'backend' : 'degraded');
+      if (nextTrips.length > 0 && !nextTrips.some((trip) => trip.id === activeTripId)) {
+        setActiveTripId(nextTrips[0].id);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const activeTripBase = liveTrips.find((trip) => trip.id === activeTripId) ?? liveTrips[0];
   const activeTrip = {
@@ -251,6 +288,13 @@ export const LogisticsTracking: React.FC = () => {
   return (
     <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.45fr_0.75fr]">
       <section className={`${logisticsCard} overflow-hidden`}>
+        <div className={`border-b px-4 py-3 text-sm font-bold ${
+          dataMode === 'backend'
+            ? 'border-green-200 bg-green-50 text-green-700'
+            : 'border-orange-200 bg-orange-50 text-orange-700'
+        }`}>
+          {dataMode === 'backend' ? 'Tracking connecté au backend' : 'Mode dégradé — dernières positions locales'}
+        </div>
         <div className="flex flex-col gap-4 border-b border-surface-border-subtle p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">

@@ -58,8 +58,12 @@ const mocks = vi.hoisted(() => {
   };
 
   const realApi = {
-    getLogisticsTasks: vi.fn(async () => ({ tasks: [task], total: 1, page: 1, page_size: 200 })),
+    getLogisticsTasks: vi.fn(async () => ({ tasks: [], total: 0, page: 1, page_size: 200 })),
     getLogisticsDrivers: vi.fn(async () => ({ drivers: [driver], total: 1, page: 1, page_size: 200 })),
+    getVehicles: vi.fn(async () => ({ vehicles: [] })),
+    getTrips: vi.fn(async () => ({ trips: [] })),
+    getTrackingPoints: vi.fn(async () => ({ tracking_points: [] })),
+    getMaintenanceEvents: vi.fn(async () => ({ maintenance_events: [] })),
     assignLogisticsTask: vi.fn(async () => ({ ...task, status: 'driver_assigned', driver_id: driver.id })),
   };
 

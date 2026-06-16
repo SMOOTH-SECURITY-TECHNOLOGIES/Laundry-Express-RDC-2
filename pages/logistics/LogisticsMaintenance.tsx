@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { MaintenanceEvent } from '../../components/logistics/logistics-types';
+import { getMaintenanceEvents, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
 const maintenanceEvents: MaintenanceEvent[] = [
@@ -85,15 +86,37 @@ const statusStyle: Record<MaintenanceEvent['status'], string> = {
 };
 
 export const LogisticsMaintenance: React.FC = () => {
-  const alerts = maintenanceEvents.filter((event) => event.alert);
-  const unavailableVehicles = maintenanceEvents.filter((event) => !event.vehicleAvailable).length;
+  const [events, setEvents] = useState<MaintenanceEvent[]>(maintenanceEvents);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  useEffect(() => {
+    let mounted = true;
+    getMaintenanceEvents(maintenanceEvents).then((result) => {
+      if (!mounted) return;
+      setEvents(result.data);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const alerts = events.filter((event) => event.alert);
+  const unavailableVehicles = events.filter((event) => !event.vehicleAvailable).length;
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Données maintenance connectées au backend' : 'Mode dégradé — données maintenance locales'}
+      </div>
+
       <section className="grid gap-3 sm:grid-cols-3">
         <article className={`${logisticsCard} p-4`}>
           <p className="text-xs font-bold uppercase text-content-muted">Entretiens suivis</p>
-          <p className="mt-2 text-2xl font-black text-content-primary">{maintenanceEvents.length}</p>
+          <p className="mt-2 text-2xl font-black text-content-primary">{events.length}</p>
         </article>
         <article className={`${logisticsCard} p-4`}>
           <p className="text-xs font-bold uppercase text-content-muted">Alertes maintenance</p>
@@ -142,7 +165,7 @@ export const LogisticsMaintenance: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-border-subtle">
-              {maintenanceEvents.map((event) => (
+              {events.map((event) => (
                 <tr key={event.id}>
                   <td className="px-5 py-4">
                     <p className="font-black text-content-primary">{event.vehiclePlate}</p>
