@@ -27,6 +27,14 @@ const driverLoad: Record<string, number> = {
   'drv-005': 3,
 };
 
+const vehicleAvailability: Record<string, { available: boolean; reason?: string }> = {
+  'veh-001': { available: true },
+  'veh-002': { available: true },
+  'veh-003': { available: false, reason: 'véhicule indisponible: maintenance overdue' },
+  'veh-004': { available: true },
+  'veh-005': { available: true },
+};
+
 const initialTasks: DispatchTask[] = [
   {
     id: 'MSN-004',
@@ -151,6 +159,8 @@ const focusMatchesTask = (
 };
 
 const scoreDriver = (task: DispatchTask, driver: Driver) => {
+  const vehicleStatus = driver.vehicleId ? vehicleAvailability[driver.vehicleId] : null;
+  if (vehicleStatus && !vehicleStatus.available) return -1;
   const load = driverLoad[driver.id] ?? 0;
   const zoneScore = driver.zone === task.pickupZone ? 45 : 18;
   const availabilityScore = driver.status === 'available' ? 35 : 8;
@@ -369,20 +379,30 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                       {matchingTaskId === task.id && (
                         <div className="mt-3 space-y-2 rounded-lg bg-surface-card p-2">
                           <p className="text-[11px] font-black uppercase text-content-muted">Matching chauffeur</p>
-                          {rankedDrivers.slice(0, 3).map(({ driver, score }) => (
+                          {rankedDrivers.slice(0, 5).map(({ driver, score }) => (
                             <button
                               key={driver.id}
                               type="button"
-                              onClick={() => assignDriver(task, driver)}
-                              className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-xs hover:bg-surface-muted"
+                              disabled={score < 0}
+                              onClick={() => {
+                                if (score >= 0) assignDriver(task, driver);
+                              }}
+                              className={`flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-xs ${
+                                score < 0 ? 'cursor-not-allowed opacity-60' : 'hover:bg-surface-muted'
+                              }`}
                             >
                               <span>
                                 <span className="font-black text-content-primary">{driver.name}</span>
                                 <span className="block text-content-muted">
                                   {driver.zone} · {driver.status} · charge {driverLoad[driver.id] ?? 0}
                                 </span>
+                                {score < 0 && (
+                                  <span className="block font-bold text-red-600">
+                                    Assignation bloquée: {vehicleAvailability[driver.vehicleId ?? '']?.reason}
+                                  </span>
+                                )}
                               </span>
-                              <span className="font-black text-brand-blue">{score}</span>
+                              <span className="font-black text-brand-blue">{score < 0 ? 'Bloqué' : score}</span>
                             </button>
                           ))}
                         </div>

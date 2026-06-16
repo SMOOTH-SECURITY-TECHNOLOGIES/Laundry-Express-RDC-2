@@ -133,8 +133,14 @@ export interface TrackingPoint {
 export interface MaintenanceEvent {
   id: string;
   vehicleId: string;
+  vehiclePlate?: string;
   title: string;
+  type: 'insurance' | 'repair' | 'preventive' | 'inspection';
   status: 'scheduled' | 'in_progress' | 'done' | 'overdue';
   dueDate: string;
+  cost: number;
+  nextControlAt: string;
+  alert?: 'insurance_expired' | 'vehicle_broken' | 'maintenance_overdue';
+  vehicleAvailable: boolean;
   costEstimate?: number;
 }

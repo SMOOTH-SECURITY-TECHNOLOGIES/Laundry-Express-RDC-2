@@ -155,8 +155,9 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Chauffeur: Kabongo M.')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Réassigner$/)!);
-    view.click(buttonByText(view.container, /Mutombo P\./)!);
-    expect(byText(view.container, 'Chauffeur: Mutombo P.')).not.toBeNull();
+    expect(byText(view.container, 'Assignation bloquée: véhicule indisponible: maintenance overdue')).not.toBeNull();
+    view.click(buttonByText(view.container, /Kalonji S\./)!);
+    expect(byText(view.container, 'Chauffeur: Kalonji S.')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Prioriser$/)!);
     expect(byText(view.container, 'Urgent')).not.toBeNull();
@@ -310,6 +311,36 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Désactivé')).not.toBeNull();
 
     view.unmount();
+  });
+
+  it('tracks vehicle maintenance alerts and blocks unavailable vehicles from dispatch assignment', async () => {
+    window.history.replaceState(null, '', '/#maintenance');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Suivi entretien véhicules')).not.toBeNull();
+    expect(byText(view.container, 'Entretiens suivis')).not.toBeNull();
+    expect(byText(view.container, 'Alertes maintenance')).not.toBeNull();
+    expect(byText(view.container, 'Véhicules indisponibles')).not.toBeNull();
+    expect(byText(view.container, 'Assurance expirée')).not.toBeNull();
+    expect(byText(view.container, 'Véhicule en panne')).not.toBeNull();
+    expect(byText(view.container, 'Maintenance overdue')).not.toBeNull();
+    expect(byText(view.container, 'Type entretien')).not.toBeNull();
+    expect(byText(view.container, 'Prochain contrôle')).not.toBeNull();
+    expect(byText(view.container, 'Indisponible')).not.toBeNull();
+    view.unmount();
+
+    window.history.replaceState(null, '', '/#dispatch');
+    const dispatchView = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    dispatchView.click(buttonByText(dispatchView.container, /^Assigner chauffeur$/)!);
+    expect(byText(dispatchView.container, 'Assignation bloquée: véhicule indisponible: maintenance overdue')).not.toBeNull();
+    dispatchView.unmount();
   });
 
   it('routes logistics alert actions to the section that can handle them', async () => {
