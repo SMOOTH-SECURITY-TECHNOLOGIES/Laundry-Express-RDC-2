@@ -58,10 +58,10 @@ const REPORTS: Array<{
 ];
 
 const KPI_DATA = [
-  { label: 'Missions exportées', value: '540', sub: '320 livrées · 150 transit', icon: 'truck' as const },
-  { label: 'SLA livraison', value: '96.5%', sub: 'Objectif 95%', icon: 'clock' as const },
-  { label: 'Incidents ouverts', value: '15', sub: '5 retards · 4 attente · 3 paiement', icon: 'warning' as const },
-  { label: 'Revenu logistique', value: '12 470 $', sub: '+8% vs semaine passée', icon: 'currencyDollar' as const },
+  { label: 'On-time delivery', value: '96.5%', sub: 'Objectif 95%', icon: 'clock' as const },
+  { label: 'Missions / jour', value: '77', sub: '540 missions sur 7 jours', icon: 'truck' as const },
+  { label: 'Temps moyen', value: '23 min', sub: '-3 min vs semaine passée', icon: 'clock-history' as const },
+  { label: 'Coût logistique', value: '2.45 $', sub: 'Coût moyen par mission', icon: 'currencyDollar' as const },
 ];
 
 const GENERATED_REPORTS = [
@@ -77,6 +77,16 @@ const INCIDENTS = [
   { type: 'Inactivité chauffeur', volume: 3, owner: 'Drivers', action: 'Contacter chauffeur' },
 ];
 
+const VOLUME_DATA = [
+  { day: 'Lun', deliveries: 72, delays: 4 },
+  { day: 'Mar', deliveries: 68, delays: 5 },
+  { day: 'Mer', deliveries: 84, delays: 3 },
+  { day: 'Jeu', deliveries: 76, delays: 6 },
+  { day: 'Ven', deliveries: 91, delays: 4 },
+  { day: 'Sam', deliveries: 86, delays: 5 },
+  { day: 'Dim', deliveries: 63, delays: 2 },
+];
+
 const ZONE_PERFORMANCE = [
   { zone: 'Gombe', missions: 148, onTime: '97.8%', revenue: '4 250 $' },
   { zone: 'Lingwala', missions: 112, onTime: '94.1%', revenue: '2 980 $' },
@@ -84,14 +94,75 @@ const ZONE_PERFORMANCE = [
   { zone: 'Barumbu', missions: 74, onTime: '95.9%', revenue: '1 890 $' },
 ];
 
+const TOP_DRIVERS = [
+  { name: 'Kabongo M.', missions: 92, onTime: '98.2%', incidents: 1 },
+  { name: 'Kalonji S.', missions: 84, onTime: '96.4%', incidents: 2 },
+  { name: 'Tshimanga A.', missions: 79, onTime: '94.8%', incidents: 3 },
+  { name: 'Ngoy L.', missions: 66, onTime: '92.1%', incidents: 4 },
+];
+
+const VEHICLE_REPORTS = [
+  { plate: 'KIN-042-MT', type: 'Moto', missions: 124, status: 'Actif', cost: '280 $' },
+  { plate: 'KIN-118-VN', type: 'Camionnette', missions: 88, status: 'Actif', cost: '410 $' },
+  { plate: 'KIN-207-MT', type: 'Moto', missions: 56, status: 'Maintenance', cost: '190 $' },
+];
+
 const buildCsv = (reportTitle: string) =>
   [
-    'rapport,kpi,valeur',
-    `${reportTitle},missions_exportees,540`,
-    `${reportTitle},sla_livraison,96.5%`,
-    `${reportTitle},incidents_ouverts,15`,
-    `${reportTitle},revenu_logistique,12470`,
+    'rapport,type,dimension,valeur',
+    `${reportTitle},kpi,on_time_delivery,96.5%`,
+    `${reportTitle},kpi,missions_par_jour,77`,
+    `${reportTitle},kpi,temps_moyen,23min`,
+    `${reportTitle},kpi,cout_logistique,2.45`,
+    `${reportTitle},livraisons,total,540`,
+    `${reportTitle},retards,total,29`,
+    `${reportTitle},chauffeurs,top,Kabongo M.`,
+    `${reportTitle},vehicules,maintenance,KIN-207-MT`,
+    `${reportTitle},zones,top,Gombe`,
   ].join('\n');
+
+const BarSeriesChart: React.FC = () => {
+  const maxValue = Math.max(...VOLUME_DATA.map((item) => item.deliveries));
+
+  return (
+    <div className="space-y-3">
+      {VOLUME_DATA.map((item) => (
+        <div key={item.day} className="grid grid-cols-[42px_1fr_48px] items-center gap-3 text-xs">
+          <span className="font-bold text-content-muted">{item.day}</span>
+          <div className="h-7 overflow-hidden rounded-full bg-surface-muted">
+            <div
+              className="flex h-full items-center justify-end rounded-full bg-brand-blue pr-2 text-[10px] font-black text-white"
+              style={{ width: `${(item.deliveries / maxValue) * 100}%` }}
+            >
+              {item.deliveries}
+            </div>
+          </div>
+          <span className="font-bold text-brand-orange">{item.delays} ret.</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ZonePerformanceChart: React.FC = () => {
+  const maxMissions = Math.max(...ZONE_PERFORMANCE.map((zone) => zone.missions));
+
+  return (
+    <div className="space-y-3">
+      {ZONE_PERFORMANCE.map((zone) => (
+        <div key={zone.zone} className="space-y-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-black text-content-primary">{zone.zone}</span>
+            <span className="font-bold text-content-muted">{zone.onTime}</span>
+          </div>
+          <div className="h-3 overflow-hidden rounded-full bg-surface-muted">
+            <div className="h-full rounded-full bg-green-500" style={{ width: `${(zone.missions / maxMissions) * 100}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const LogisticsReports: React.FC<LogisticsReportsProps> = ({ focusAlertTitle, focusMissionId, onClearFocus }) => {
   const [selectedReportId, setSelectedReportId] = useState<ReportId>('daily');
@@ -117,6 +188,28 @@ export const LogisticsReports: React.FC<LogisticsReportsProps> = ({ focusAlertTi
 
     if (typeof document === 'undefined' || typeof URL === 'undefined' || !URL.createObjectURL) return;
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePdfExport = () => {
+    const filename = `${selectedReport.id}-logistics-report-2026-06-16.pdf`;
+    setLastAction(`Export PDF prêt: ${filename}`);
+
+    if (typeof document === 'undefined' || typeof URL === 'undefined' || !URL.createObjectURL) return;
+    const content = [
+      'Laundry Express - Transport Management System',
+      selectedReport.title,
+      'On-time delivery: 96.5%',
+      'Missions / jour: 77',
+      'Temps moyen: 23 min',
+      'Coût logistique: 2.45 $',
+    ].join('\n');
+    const blob = new Blob([content], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -184,14 +277,24 @@ export const LogisticsReports: React.FC<LogisticsReportsProps> = ({ focusAlertTi
               <h2 className="text-lg font-black text-content-primary">Générateur de rapports</h2>
               <p className="text-sm text-content-muted">Dernière action: {lastAction}</p>
             </div>
-            <button
-              type="button"
-              onClick={handleCsvExport}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700"
-            >
-              <Icon name="arrow-down-tray" className="h-4 w-4" />
-              Exporter CSV
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleCsvExport}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700"
+              >
+                <Icon name="arrow-down-tray" className="h-4 w-4" />
+                Exporter CSV
+              </button>
+              <button
+                type="button"
+                onClick={handlePdfExport}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-2 text-sm font-black text-content-primary hover:bg-surface-muted"
+              >
+                <Icon name="document-arrow-down" className="h-4 w-4" />
+                Exporter PDF
+              </button>
+            </div>
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -265,6 +368,50 @@ export const LogisticsReports: React.FC<LogisticsReportsProps> = ({ focusAlertTi
         </div>
       </section>
 
+      <section className="grid gap-4 xl:grid-cols-3">
+        <div className={`${logisticsCard} p-5`}>
+          <div className="flex items-center gap-2">
+            <Icon name="chartBar" className="h-5 w-5 text-brand-blue" />
+            <h2 className="text-lg font-black text-content-primary">Graphique volume</h2>
+          </div>
+          <p className="mt-1 text-sm text-content-muted">Livraisons et retards par jour.</p>
+          <div className="mt-5">
+            <BarSeriesChart />
+          </div>
+        </div>
+
+        <div className={`${logisticsCard} p-5`}>
+          <div className="flex items-center gap-2">
+            <Icon name="mapPin" className="h-5 w-5 text-green-600" />
+            <h2 className="text-lg font-black text-content-primary">Graphique zones</h2>
+          </div>
+          <p className="mt-1 text-sm text-content-muted">Performance zones par volume et ponctualité.</p>
+          <div className="mt-5">
+            <ZonePerformanceChart />
+          </div>
+        </div>
+
+        <div className={`${logisticsCard} p-5`}>
+          <div className="flex items-center gap-2">
+            <Icon name="user" className="h-5 w-5 text-brand-orange" />
+            <h2 className="text-lg font-black text-content-primary">Top chauffeurs</h2>
+          </div>
+          <div className="mt-4 space-y-3">
+            {TOP_DRIVERS.map((driver, index) => (
+              <div key={driver.name} className="rounded-xl bg-surface-muted p-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-black text-content-primary">#{index + 1} {driver.name}</span>
+                  <span className="font-bold text-green-600">{driver.onTime}</span>
+                </div>
+                <p className="mt-1 text-xs text-content-muted">
+                  {driver.missions} missions · {driver.incidents} incident{driver.incidents > 1 ? 's' : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-2">
         <div className={`${logisticsCard} overflow-hidden`}>
           <div className="border-b border-surface-border-subtle p-5">
@@ -322,6 +469,37 @@ export const LogisticsReports: React.FC<LogisticsReportsProps> = ({ focusAlertTi
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <section className={`${logisticsCard} overflow-hidden`}>
+        <div className="border-b border-surface-border-subtle p-5">
+          <h2 className="text-lg font-black text-content-primary">Rapports véhicules</h2>
+          <p className="text-sm text-content-muted">Utilisation, statut et coût par véhicule.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-[720px] w-full text-left text-sm">
+            <thead className="bg-surface-muted text-xs uppercase text-content-muted">
+              <tr>
+                <th className="px-5 py-3">Véhicule</th>
+                <th className="px-5 py-3">Type</th>
+                <th className="px-5 py-3">Missions</th>
+                <th className="px-5 py-3">Statut</th>
+                <th className="px-5 py-3">Coût</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-border-subtle">
+              {VEHICLE_REPORTS.map((vehicle) => (
+                <tr key={vehicle.plate}>
+                  <td className="px-5 py-4 font-black text-content-primary">{vehicle.plate}</td>
+                  <td className="px-5 py-4 text-content-muted">{vehicle.type}</td>
+                  <td className="px-5 py-4 text-content-muted">{vehicle.missions}</td>
+                  <td className="px-5 py-4 text-content-muted">{vehicle.status}</td>
+                  <td className="px-5 py-4 text-content-muted">{vehicle.cost}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>

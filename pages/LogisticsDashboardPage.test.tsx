@@ -351,17 +351,26 @@ describe('LogisticsDashboardPage', () => {
     });
 
     expect(byText(view.container, 'Reports & Analytics')).not.toBeNull();
-    expect(byText(view.container, 'Missions exportées')).not.toBeNull();
-    expect(byText(view.container, 'SLA livraison')).not.toBeNull();
+    expect(byText(view.container, 'On-time delivery')).not.toBeNull();
+    expect(byText(view.container, 'Missions / jour')).not.toBeNull();
+    expect(byText(view.container, 'Temps moyen')).not.toBeNull();
+    expect(byText(view.container, 'Coût logistique')).not.toBeNull();
     expect(byText(view.container, 'Générateur de rapports')).not.toBeNull();
+    expect(byText(view.container, 'Graphique volume')).not.toBeNull();
+    expect(byText(view.container, 'Graphique zones')).not.toBeNull();
+    expect(byText(view.container, 'Top chauffeurs')).not.toBeNull();
     expect(byText(view.container, 'Incidents à reporter')).not.toBeNull();
     expect(byText(view.container, 'Performance par zone')).not.toBeNull();
+    expect(byText(view.container, 'Rapports véhicules')).not.toBeNull();
 
     view.click(buttonByText(view.container, /Générer rapport hebdomadaire/)!);
     expect(byText(view.container, 'Rapport généré: Rapport hebdomadaire')).not.toBeNull();
     expect(byText(view.container, 'Rapport actif')).not.toBeNull();
     expect(byText(view.container, 'Rapport hebdomadaire')).not.toBeNull();
     expect(buttonByText(view.container, /^Exporter CSV$/)).not.toBeNull();
+    expect(buttonByText(view.container, /^Exporter PDF$/)).not.toBeNull();
+    expect(byText(view.container, 'Kabongo M.')).not.toBeNull();
+    expect(byText(view.container, 'KIN-207-MT')).not.toBeNull();
 
     view.unmount();
   });
