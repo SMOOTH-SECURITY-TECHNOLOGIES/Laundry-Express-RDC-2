@@ -180,7 +180,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-5 py-2.5 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90 flex items-center gap-2"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white hover:bg-brand-blue/90 sm:w-auto sm:py-2.5"
         >
           <Icon name="plus" className="w-4 h-4" />
           Ajouter un chauffeur
@@ -234,13 +234,13 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
       </div>
 
       <div className={`${logisticsCard} overflow-hidden`}>
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex flex-wrap gap-2 mb-4">
+        <div className="border-b border-gray-100 p-4 sm:p-6">
+          <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
             {FILTER_TABS.map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-4 py-3 text-sm font-medium transition-colors sm:py-2 ${
                   activeFilter === tab.key
                     ? 'bg-brand-blue text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -267,7 +267,88 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="grid gap-3 p-4 md:hidden">
+          {filteredDrivers.length === 0 ? (
+            <div className="py-10 text-center">
+              <Icon name="users" className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+              <p className="text-sm font-medium text-gray-500">Aucun chauffeur trouvé</p>
+            </div>
+          ) : (
+            filteredDrivers.map((driver, index) => (
+              <article key={driver.id} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${getAvatarColor(index)} text-sm font-bold text-white`}>
+                    {getInitials(driver.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-black text-content-primary">{driver.name}</p>
+                        <p className="mt-0.5 text-xs text-content-muted">{driver.phone}</p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-bold ${STATUS_STYLES[driver.status] || 'bg-gray-100 text-gray-700'}`}>
+                        {driver.status}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-xl bg-surface-muted p-2">
+                        <p className="text-content-muted">Véhicule</p>
+                        <p className="mt-1 font-bold text-content-primary">{driver.vehicle}</p>
+                      </div>
+                      <div className="rounded-xl bg-surface-muted p-2">
+                        <p className="text-content-muted">Zone</p>
+                        <p className="mt-1 font-bold text-content-primary">{driver.commune}</p>
+                      </div>
+                      <div className="rounded-xl bg-surface-muted p-2">
+                        <p className="text-content-muted">Missions</p>
+                        <p className="mt-1 font-bold text-content-primary">{driver.missionsCompleted}</p>
+                      </div>
+                      <div className="rounded-xl bg-surface-muted p-2">
+                        <p className="text-content-muted">Note</p>
+                        <p className="mt-1 font-bold text-content-primary">{driver.rating.toFixed(1)}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDriverId(driver.id)}
+                        className="rounded-xl bg-brand-blue px-2 py-3 text-xs font-black text-white"
+                      >
+                        Profil
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDriverId(driver.id);
+                          setActionMessage(`Appel chauffeur: ${driver.phone}`);
+                        }}
+                        className="rounded-xl border border-green-200 px-2 py-3 text-xs font-black text-green-600"
+                      >
+                        Appel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingDriver(driver)}
+                        className="rounded-xl border border-orange-200 px-2 py-3 text-xs font-black text-brand-orange"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => (driver.status === 'Suspendu' ? handleReactivate(driver.id) : handleSuspend(driver.id))}
+                        className="rounded-xl border border-red-200 px-2 py-3 text-xs font-black text-red-600"
+                      >
+                        {driver.status === 'Suspendu' ? 'Actif' : 'Stop'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
@@ -371,7 +452,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
       </div>
 
       {selectedDriver && (
-        <section className={`${logisticsCard} p-6`}>
+        <section className={`${logisticsCard} p-4 sm:p-6`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="flex items-center gap-4">
@@ -390,18 +471,18 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
                 </p>
               )}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
               <button
                 type="button"
                 onClick={() => setActionMessage(`Appel chauffeur: ${selectedDriver.phone}`)}
-                className="rounded-xl bg-brand-blue px-3 py-2 text-xs font-black text-white"
+                className="rounded-xl bg-brand-blue px-3 py-3 text-xs font-black text-white sm:py-2"
               >
                 Appeler
               </button>
               <button
                 type="button"
                 onClick={() => setActionMessage(`Message envoyé à ${selectedDriver.name}`)}
-                className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+                className="rounded-xl border border-surface-border-subtle px-3 py-3 text-xs font-black text-content-primary hover:bg-surface-muted sm:py-2"
               >
                 Message
               </button>
@@ -409,7 +490,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
                 <button
                   type="button"
                   onClick={() => handleReactivate(selectedDriver.id)}
-                  className="rounded-xl border border-green-200 px-3 py-2 text-xs font-black text-green-600 hover:bg-green-50"
+                  className="rounded-xl border border-green-200 px-3 py-3 text-xs font-black text-green-600 hover:bg-green-50 sm:py-2"
                 >
                   Réactiver
                 </button>
@@ -417,7 +498,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
                 <button
                   type="button"
                   onClick={() => handleSuspend(selectedDriver.id)}
-                  className="rounded-xl border border-red-200 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50"
+                  className="rounded-xl border border-red-200 px-3 py-3 text-xs font-black text-red-600 hover:bg-red-50 sm:py-2"
                 >
                   Suspendre
                 </button>
@@ -425,7 +506,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
               <button
                 type="button"
                 onClick={() => handleAssignMission(selectedDriver)}
-                className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+                className="col-span-2 rounded-xl border border-surface-border-subtle px-3 py-3 text-xs font-black text-content-primary hover:bg-surface-muted sm:col-span-1 sm:py-2"
               >
                 Assigner mission
               </button>

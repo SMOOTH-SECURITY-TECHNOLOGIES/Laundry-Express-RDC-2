@@ -249,9 +249,9 @@ export const LogisticsTracking: React.FC = () => {
   };
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.45fr_0.75fr]">
+    <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.45fr_0.75fr]">
       <section className={`${logisticsCard} overflow-hidden`}>
-        <div className="flex flex-col gap-4 border-b border-surface-border-subtle p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 border-b border-surface-border-subtle p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2">
               <Icon name="map" className="h-5 w-5 text-brand-blue" />
@@ -259,9 +259,9 @@ export const LogisticsTracking: React.FC = () => {
             </div>
             <p className="mt-1 text-sm text-content-muted">Véhicules, chauffeurs, missions et points pickup/delivery.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
             {Object.entries(statusConfig).map(([status, config]) => (
-              <span key={status} className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black ${config.bg} ${config.text}`}>
+              <span key={status} className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-black sm:py-1 ${config.bg} ${config.text}`}>
                 <span className={`h-2 w-2 rounded-full ${config.dot}`} />
                 {config.label}
               </span>
@@ -275,8 +275,8 @@ export const LogisticsTracking: React.FC = () => {
           </div>
         )}
 
-        <div className="p-5">
-          <div className="relative min-h-[420px] overflow-hidden rounded-2xl border border-surface-border-subtle bg-slate-100 dark:bg-slate-900">
+        <div className="p-3 sm:p-5">
+          <div className="relative min-h-[310px] overflow-hidden rounded-2xl border border-surface-border-subtle bg-slate-100 sm:min-h-[420px] dark:bg-slate-900">
             <div className="absolute inset-0 opacity-70">
               <div className="absolute left-[12%] top-[18%] h-[68%] w-[2px] rotate-[24deg] bg-white/70 dark:bg-white/10" />
               <div className="absolute left-[28%] top-[10%] h-[82%] w-[2px] -rotate-[18deg] bg-white/70 dark:bg-white/10" />
@@ -303,7 +303,7 @@ export const LogisticsTracking: React.FC = () => {
                   key={point.id}
                   type="button"
                   onClick={() => setActiveTripId(point.tripId)}
-                  className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border px-2 py-1 text-xs font-black shadow-lg transition ${
+                  className={`absolute flex min-h-9 -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border px-3 py-2 text-xs font-black shadow-lg transition sm:min-h-0 sm:px-2 sm:py-1 ${
                     isActive
                       ? 'scale-110 border-white bg-brand-blue text-white ring-4 ring-brand-blue/20'
                       : `border-white ${config.bg} ${config.text}`
@@ -317,11 +317,11 @@ export const LogisticsTracking: React.FC = () => {
               );
             })}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
             <button
               type="button"
               onClick={() => setGeoAvailable((current) => !current)}
-              className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-muted hover:bg-surface-muted"
+              className="rounded-xl border border-surface-border-subtle px-3 py-3 text-xs font-black text-content-muted hover:bg-surface-muted sm:py-2"
             >
               Basculer fallback géolocalisation
             </button>
@@ -333,7 +333,7 @@ export const LogisticsTracking: React.FC = () => {
       </section>
 
       <aside className="space-y-6">
-        <section className={`${logisticsCard} p-5`}>
+        <section className={`${logisticsCard} p-4 sm:p-5`}>
           <h2 className="text-lg font-black text-content-primary">Mission active</h2>
           <div className="mt-4 rounded-xl bg-surface-muted p-4">
             <div className="flex items-start justify-between gap-3">
@@ -366,7 +366,7 @@ export const LogisticsTracking: React.FC = () => {
           </div>
         </section>
 
-        <section className={`${logisticsCard} p-5`}>
+        <section className={`${logisticsCard} p-4 sm:p-5`}>
           <div className="flex items-center gap-2">
             <Icon name="document-text" className="h-5 w-5 text-brand-blue" />
             <h2 className="text-lg font-black text-content-primary">Détail trajet</h2>
@@ -419,28 +419,28 @@ export const LogisticsTracking: React.FC = () => {
             <button
               type="button"
               onClick={() => updateTripStatus(activeTrip.status === 'delivered' ? 'in_transit' : 'delivered')}
-              className="rounded-xl bg-brand-blue px-3 py-2 text-xs font-black text-white"
+              className="rounded-xl bg-brand-blue px-3 py-3 text-sm font-black text-white sm:py-2 sm:text-xs"
             >
               Update status
             </button>
             <button
               type="button"
               onClick={() => setActionMessage(`Contact chauffeur: ${activeTrip.driverName}`)}
-              className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+              className="rounded-xl border border-surface-border-subtle px-3 py-3 text-sm font-black text-content-primary hover:bg-surface-muted sm:py-2 sm:text-xs"
             >
               Contacter chauffeur
             </button>
             <button
               type="button"
               onClick={() => setActionMessage(`Contact client: ${activeTrip.customerName}`)}
-              className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+              className="rounded-xl border border-surface-border-subtle px-3 py-3 text-sm font-black text-content-primary hover:bg-surface-muted sm:py-2 sm:text-xs"
             >
               Contacter client
             </button>
             <button
               type="button"
               onClick={() => updateTripStatus('failed')}
-              className="rounded-xl border border-red-200 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50"
+              className="rounded-xl border border-red-200 px-3 py-3 text-sm font-black text-red-600 hover:bg-red-50 sm:py-2 sm:text-xs"
             >
               Signaler incident
             </button>
@@ -453,15 +453,15 @@ export const LogisticsTracking: React.FC = () => {
           )}
         </section>
 
-        <section className={`${logisticsCard} p-5`}>
+        <section className={`${logisticsCard} p-4 sm:p-5`}>
           <h2 className="text-lg font-black text-content-primary">Missions suivies</h2>
-          <div className="mt-4 space-y-3">
+          <div className="-mx-1 mt-4 flex gap-3 overflow-x-auto px-1 pb-1 lg:mx-0 lg:block lg:space-y-3 lg:px-0 lg:pb-0">
             {liveTrips.map((trip) => (
               <button
                 key={trip.id}
                 type="button"
                 onClick={() => setActiveTripId(trip.id)}
-                className={`w-full rounded-xl p-4 text-left text-sm transition ${
+                className={`min-w-[230px] rounded-xl p-4 text-left text-sm transition lg:w-full lg:min-w-0 ${
                   trip.id === activeTrip.id ? 'bg-brand-blue text-white' : 'bg-surface-muted text-content-primary hover:bg-surface-page'
                 }`}
               >

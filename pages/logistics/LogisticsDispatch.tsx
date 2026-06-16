@@ -292,11 +292,11 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-4">
+      <section className="-mx-1 grid gap-4 sm:mx-0 xl:grid-cols-4">
         {columns.map((column) => {
           const columnTasks = visibleTasks.filter((task) => task.status === column.status);
           return (
-            <div key={column.status} className={`${logisticsCard} min-h-[360px] p-4`}>
+            <div key={column.status} className={`${logisticsCard} min-h-[260px] p-3 sm:min-h-[360px] sm:p-4`}>
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-sm font-black text-content-primary">{column.title}</h2>
                 <span className="rounded-full bg-surface-muted px-2 py-1 text-xs font-black text-content-muted">
@@ -328,12 +328,12 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                         </p>
                       )}
 
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                         {task.status === 'pending' && (
                           <button
                             type="button"
                             onClick={() => setMatchingTaskId(matchingTaskId === task.id ? null : task.id)}
-                            className="rounded-lg bg-brand-blue px-2 py-1 text-xs font-bold text-white"
+                            className="col-span-2 rounded-lg bg-brand-blue px-3 py-3 text-xs font-bold text-white sm:col-span-1 sm:py-1"
                           >
                             Assigner chauffeur
                           </button>
@@ -343,14 +343,14 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                             <button
                               type="button"
                               onClick={() => setMatchingTaskId(matchingTaskId === task.id ? null : task.id)}
-                              className="rounded-lg border border-surface-border-subtle px-2 py-1 text-xs font-bold text-content-primary"
+                              className="rounded-lg border border-surface-border-subtle px-3 py-3 text-xs font-bold text-content-primary sm:py-1"
                             >
                               Réassigner
                             </button>
                             <button
                               type="button"
                               onClick={() => moveToTransit(task.id)}
-                              className="rounded-lg bg-green-600 px-2 py-1 text-xs font-bold text-white"
+                              className="rounded-lg bg-green-600 px-3 py-3 text-xs font-bold text-white sm:py-1"
                             >
                               Démarrer
                             </button>
@@ -361,14 +361,14 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                             <button
                               type="button"
                               onClick={() => prioritizeTask(task.id)}
-                              className="rounded-lg border border-orange-200 px-2 py-1 text-xs font-bold text-brand-orange"
+                              className="rounded-lg border border-orange-200 px-3 py-3 text-xs font-bold text-brand-orange sm:py-1"
                             >
                               Prioriser
                             </button>
                             <button
                               type="button"
                               onClick={() => cancelTask(task.id)}
-                              className="rounded-lg border border-red-200 px-2 py-1 text-xs font-bold text-red-600"
+                              className="rounded-lg border border-red-200 px-3 py-3 text-xs font-bold text-red-600 sm:py-1"
                             >
                               Annuler
                             </button>
@@ -387,7 +387,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                               onClick={() => {
                                 if (score >= 0) assignDriver(task, driver);
                               }}
-                              className={`flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-xs ${
+                              className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-xs sm:px-2 sm:py-2 ${
                                 score < 0 ? 'cursor-not-allowed opacity-60' : 'hover:bg-surface-muted'
                               }`}
                             >

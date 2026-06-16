@@ -453,32 +453,32 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
   return (
     <div className="space-y-6">
-      <div className={`${logisticsCard} p-6`}>
+      <div className={`${logisticsCard} p-4 sm:p-6`}>
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
             <p className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-1">COCKPIT DISPATCHER</p>
             <h1 className="text-2xl font-extrabold text-content-primary">Cockpit logistique universel</h1>
             <p className="text-sm text-content-muted mt-1">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
             <button
               type="button"
               onClick={handleRefresh}
-              className="px-4 py-2 rounded-xl border border-surface-border-subtle text-sm font-semibold text-content-primary hover:bg-surface-muted flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-semibold text-content-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2"
             >
               <Icon name="arrow-path" className="w-4 h-4" /> Rafraîchir
             </button>
             <button
               type="button"
               onClick={handleAutoDispatch}
-              className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-4 py-3 text-sm font-semibold text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 sm:py-2"
             >
               <Icon name="sparkles" className="w-4 h-4" /> Auto-dispatch
             </button>
             <button
               type="button"
               onClick={onExport}
-              className="px-4 py-2 rounded-xl border border-surface-border-subtle text-sm font-semibold text-content-primary hover:bg-surface-muted flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-semibold text-content-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2"
             >
               <Icon name="arrow-down-tray" className="w-4 h-4" /> Exporter CSV
             </button>
@@ -495,16 +495,16 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
         {KPI_CARDS.map((kpi) => (
-          <div key={kpi.label} className={`${logisticsCard} p-5`}>
-            <div className="flex items-center gap-4">
-              <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${kpi.tone}`}>
-                <Icon name={kpi.icon} className="h-6 w-6" />
+          <div key={kpi.label} className={`${logisticsCard} p-4 sm:p-5`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-14 sm:w-14 ${kpi.tone}`}>
+                <Icon name={kpi.icon} className="h-5 w-5 sm:h-6 sm:w-6" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-content-muted">{kpi.label}</p>
-                <p className="mt-1 text-3xl font-extrabold tracking-tight text-content-primary">{kpi.value}</p>
+                <p className="mt-1 break-words text-xl font-extrabold tracking-tight text-content-primary sm:text-3xl">{kpi.value}</p>
                 <p className="mt-1 text-xs font-medium text-content-muted">{kpi.sub}</p>
               </div>
             </div>
@@ -513,7 +513,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       </div>
 
       <div>
-        <nav className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-surface-muted p-1" role="tablist" aria-label="Sections logistiques">
+        <nav className="-mx-4 mb-6 flex gap-1 overflow-x-auto bg-surface-muted px-4 py-1 sm:mx-0 sm:rounded-xl sm:p-1" role="tablist" aria-label="Sections logistiques">
           {TABS.map((tab) => (
             <button
               type="button"
@@ -521,7 +521,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
               role="tab"
               aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2 ${
                 activeTab === tab.key
                   ? 'bg-surface-card text-content-primary shadow-sm'
                   : 'text-content-muted hover:text-content-primary'
