@@ -112,7 +112,7 @@ def main() -> int:
     # 9. Alembic single head
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "alembic", "heads"],
+            ["alembic", "heads"],
             cwd=str(API_DIR),
             capture_output=True,
             text=True,
