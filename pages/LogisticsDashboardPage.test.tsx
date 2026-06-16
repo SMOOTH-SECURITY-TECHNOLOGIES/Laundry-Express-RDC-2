@@ -82,6 +82,9 @@ vi.mock('../services/real-api', async (importOriginal) => {
   };
 });
 
+const linkByText = (container: HTMLElement, text: RegExp) =>
+  Array.from(container.querySelectorAll('a')).find((link) => text.test(link.textContent || '')) as HTMLAnchorElement | undefined;
+
 describe('LogisticsDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -127,7 +130,10 @@ describe('LogisticsDashboardPage', () => {
 
     expect(byText(view.container, 'Alertes opérationnelles')).not.toBeNull();
 
-    view.click(buttonByText(view.container, /^Voir$/)!);
+    const delayAction = linkByText(view.container, /^Voir$/);
+    expect(delayAction).not.toBeUndefined();
+    expect(delayAction?.getAttribute('href')).toBe('#missions');
+    view.click(delayAction!);
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
     expect(window.location.hash).toBe('#missions');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard.', 'info');
@@ -136,7 +142,10 @@ describe('LogisticsDashboardPage', () => {
     window.history.replaceState(null, '', '/#alerts');
     const driversView = renderComponent(<LogisticsDashboardPage />);
     driversView.click(buttonByText(driversView.container, /Inactifs/)!);
-    driversView.click(buttonByText(driversView.container, /^Contacter$/)!);
+    const contactAction = linkByText(driversView.container, /^Contacter$/);
+    expect(contactAction).not.toBeUndefined();
+    expect(contactAction?.getAttribute('href')).toBe('#drivers');
+    driversView.click(contactAction!);
     expect(byText(driversView.container, 'Gestion des chauffeurs')).not.toBeNull();
     expect(window.location.hash).toBe('#drivers');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des chauffeurs pour prise de contact.', 'info');
@@ -145,7 +154,10 @@ describe('LogisticsDashboardPage', () => {
     window.history.replaceState(null, '', '/#alerts');
     const reportsView = renderComponent(<LogisticsDashboardPage />);
     reportsView.click(buttonByText(reportsView.container, /Paiements/)!);
-    reportsView.click(buttonByText(reportsView.container, /^Résoudre$/)!);
+    const paymentAction = linkByText(reportsView.container, /^Résoudre$/);
+    expect(paymentAction).not.toBeUndefined();
+    expect(paymentAction?.getAttribute('href')).toBe('#reports');
+    reportsView.click(paymentAction!);
     expect(byText(reportsView.container, 'Rapports')).not.toBeNull();
     expect(window.location.hash).toBe('#reports');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des rapports pour suivi paiement.', 'info');

@@ -159,16 +159,17 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => {
+                    <a
+                      href={`#${action.section}`}
+                      onClick={(event) => {
+                        event.preventDefault();
                         onActionFeedback?.(action.feedback);
                         onNavigate(action.section);
                       }}
                       className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold ${actionClass}`}
                     >
                       {action.label}
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
