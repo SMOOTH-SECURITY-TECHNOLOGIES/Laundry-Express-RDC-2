@@ -41,6 +41,7 @@ class DriverResponse(BaseModel):
     user_name: Optional[str] = None
     user_email: Optional[str] = None
     user_phone: Optional[str] = None
+    avatar_url: Optional[str] = None
     vehicle_type: Optional[str]
     license_number: Optional[str]
     status: DriverStatus

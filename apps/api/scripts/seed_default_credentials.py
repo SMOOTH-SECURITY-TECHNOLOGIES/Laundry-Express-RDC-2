@@ -52,6 +52,7 @@ class SeedUser:
     is_phone_verified: bool = True
     preferred_language: str = "fr"
     loyalty_points: int = 0
+    avatar_url: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -181,6 +182,7 @@ def ensure_user(db, auth_service: AuthService, seed: SeedUser, reserved_phones: 
         profile.last_name = last_name
         profile.preferred_language = seed.preferred_language
         profile.theme_preference = "light"
+        profile.avatar_url = seed.avatar_url
     else:
         db.add(
             UserProfile(
@@ -189,6 +191,7 @@ def ensure_user(db, auth_service: AuthService, seed: SeedUser, reserved_phones: 
                 last_name=last_name,
                 preferred_language=seed.preferred_language,
                 theme_preference="light",
+                avatar_url=seed.avatar_url,
             )
         )
 
@@ -437,6 +440,7 @@ def seed_default_credentials() -> bool:
                 name="Driver Kabila",
                 password=os.getenv("SEED_DRIVER_1_PASSWORD") or "driverpass123",
                 role=UserRole.DRIVER,
+                avatar_url="/images/drivers/driver-1.svg",
             ),
             SeedUser(
                 email="driver2@kinexpress.cd",
@@ -444,6 +448,7 @@ def seed_default_credentials() -> bool:
                 name="Driver Mfumu",
                 password=os.getenv("SEED_DRIVER_2_PASSWORD") or "driverpass123",
                 role=UserRole.DRIVER,
+                avatar_url="/images/drivers/driver-2.svg",
             ),
             SeedUser(
                 email="driver3@kinexpress.cd",
@@ -451,6 +456,7 @@ def seed_default_credentials() -> bool:
                 name="Driver Tshisekedi",
                 password=os.getenv("SEED_DRIVER_3_PASSWORD") or "driverpass123",
                 role=UserRole.DRIVER,
+                avatar_url="/images/drivers/driver-3.svg",
             ),
         ]
         driver_profiles = {

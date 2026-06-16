@@ -1807,6 +1807,7 @@ export interface LogisticsDriver {
   user_name?: string | null;
   user_email?: string | null;
   user_phone?: string | null;
+  avatar_url?: string | null;
   vehicle_type?: string | null;
   license_number?: string | null;
   status: 'active' | 'inactive' | 'suspended';

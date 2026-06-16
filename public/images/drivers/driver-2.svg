@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="Driver Mfumu">
+  <rect width="160" height="160" rx="80" fill="#123524"/>
+  <circle cx="80" cy="64" r="34" fill="#9bd6b5"/>
+  <path d="M29 146c9-35 31-53 51-53s42 18 51 53" fill="#16a34a"/>
+  <path d="M47 55c10-22 30-32 49-23 13 6 21 18 21 33-20-9-43-12-70-10z" fill="#1f2937"/>
+  <circle cx="67" cy="68" r="4" fill="#0f172a"/>
+  <circle cx="94" cy="68" r="4" fill="#0f172a"/>
+  <path d="M69 84c7 6 16 6 23 0" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+</svg>

@@ -5,6 +5,7 @@ interface DriverData {
   id: string;
   name: string;
   phone: string;
+  avatarUrl?: string;
   vehicle: string;
   vehiclePlate: string;
   commune: string;
@@ -91,6 +92,16 @@ export const EditDriverModal: React.FC<EditDriverModalProps> = ({ isOpen, driver
               type="tel"
               value={form.phone || ''}
               onChange={(e) => handleChange('phone', e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Photo URL (optionnel)</label>
+            <input
+              type="url"
+              value={form.avatarUrl || ''}
+              onChange={(e) => handleChange('avatarUrl', e.target.value)}
+              placeholder="Ex: /images/drivers/driver-1.svg"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
             />
           </div>

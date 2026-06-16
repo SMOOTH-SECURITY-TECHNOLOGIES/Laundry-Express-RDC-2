@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Icon } from '../../components/Icon';
 import { logisticsCard } from './logistics-ui';
 import { AddDriverModal } from '../../components/logistics/AddDriverModal';
@@ -8,6 +8,7 @@ interface Driver {
   id: string;
   name: string;
   phone: string;
+  avatarUrl?: string;
   vehicle: string;
   vehiclePlate: string;
   commune: string;
@@ -27,9 +28,9 @@ interface Driver {
 }
 
 const MOCK_DRIVERS: Driver[] = [
-  { id: 'D-001', name: 'Kabongo Mutombo', phone: '+243 812 345 001', vehicle: 'Moto', vehiclePlate: 'CD-1234-KIN', commune: 'Gombe', email: 'kabongo.m@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 234, rating: 4.8, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 96, delays: 3, cancellations: 1, revenue: 12450 } },
-  { id: 'D-002', name: 'Tshimanga Amisi', phone: '+243 812 345 002', vehicle: 'Moto', vehiclePlate: 'CD-5678-KIN', commune: 'Lingwala', email: 'tshimanga.a@mail.cd', notes: 'Vétéran du réseau', status: 'Occupé', missionsCompleted: 187, rating: 4.5, availability: '2 missions', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 91, delays: 8, cancellations: 2, revenue: 9800 } },
-  { id: 'D-003', name: 'Mutombo Patrick', phone: '+243 812 345 003', vehicle: 'Voiture', vehiclePlate: 'CD-9012-KIN', commune: 'Barumbu', email: '', notes: '', status: 'Disponible', missionsCompleted: 312, rating: 4.9, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 98, delays: 2, cancellations: 0, revenue: 16800 } },
+  { id: 'D-001', name: 'Kabongo Mutombo', phone: '+243 812 345 001', avatarUrl: '/images/drivers/driver-1.svg', vehicle: 'Moto', vehiclePlate: 'CD-1234-KIN', commune: 'Gombe', email: 'kabongo.m@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 234, rating: 4.8, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 96, delays: 3, cancellations: 1, revenue: 12450 } },
+  { id: 'D-002', name: 'Tshimanga Amisi', phone: '+243 812 345 002', avatarUrl: '/images/drivers/driver-2.svg', vehicle: 'Moto', vehiclePlate: 'CD-5678-KIN', commune: 'Lingwala', email: 'tshimanga.a@mail.cd', notes: 'Vétéran du réseau', status: 'Occupé', missionsCompleted: 187, rating: 4.5, availability: '2 missions', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 91, delays: 8, cancellations: 2, revenue: 9800 } },
+  { id: 'D-003', name: 'Mutombo Patrick', phone: '+243 812 345 003', avatarUrl: '/images/drivers/driver-3.svg', vehicle: 'Voiture', vehiclePlate: 'CD-9012-KIN', commune: 'Barumbu', email: '', notes: '', status: 'Disponible', missionsCompleted: 312, rating: 4.9, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 98, delays: 2, cancellations: 0, revenue: 16800 } },
   { id: 'D-004', name: 'Kalonji Samy', phone: '+243 812 345 004', vehicle: 'Voiture', vehiclePlate: 'CD-3456-KIN', commune: 'Kinshasa', email: 'kalonji.s@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 156, rating: 4.3, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'expired' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 88, delays: 11, cancellations: 3, revenue: 7450 } },
   { id: 'D-005', name: 'Ngoy Lubobo', phone: '+243 812 345 005', vehicle: 'Moto', vehiclePlate: 'CD-7890-KIN', commune: 'Ngiri-Ngiri', email: '', notes: 'Rapide, fiable', status: 'Pause', missionsCompleted: 198, rating: 4.6, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'missing' }], performance: { punctuality: 93, delays: 5, cancellations: 1, revenue: 10200 } },
   { id: 'D-006', name: 'Ilunga Bosco', phone: '+243 812 345 006', vehicle: 'Camionnette', vehiclePlate: 'CD-2345-KIN', commune: 'Bandalungwa', email: 'ilunga.b@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 89, rating: 4.2, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }], performance: { punctuality: 90, delays: 6, cancellations: 2, revenue: 6200 } },
@@ -91,6 +92,13 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [selectedDriverId, setSelectedDriverId] = useState<string>('D-001');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedDriverId) {
+      profileRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedDriverId]);
 
   const stats = useMemo(() => ({
     total: drivers.length,
@@ -133,7 +141,20 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
   const getInitials = (name: string) =>
     name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
-  const getAvatarColor = (index: number) => AVATAR_COLORS[index % AVATAR_COLORS.length];
+  const getAvatarColor = (index: number) => AVATAR_COLORS[Math.max(0, index) % AVATAR_COLORS.length];
+
+  const renderAvatar = (driver: Driver, index: number, className = 'h-10 w-10', textClassName = 'text-sm') =>
+    driver.avatarUrl ? (
+      <img
+        src={driver.avatarUrl}
+        alt={`Photo de ${driver.name}`}
+        className={`${className} shrink-0 rounded-full object-cover ring-1 ring-surface-border-subtle`}
+      />
+    ) : (
+      <div className={`${className} ${getAvatarColor(index)} flex shrink-0 items-center justify-center rounded-full ${textClassName} font-bold text-white`}>
+        {getInitials(driver.name)}
+      </div>
+    );
 
   const getFilterCount = (filter: string) => {
     if (filter === 'Tous') return drivers.length;
@@ -277,9 +298,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
             filteredDrivers.map((driver, index) => (
               <article key={driver.id} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-4">
                 <div className="flex items-start gap-3">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${getAvatarColor(index)} text-sm font-bold text-white`}>
-                    {getInitials(driver.name)}
-                  </div>
+                  {renderAvatar(driver, index, 'h-11 w-11')}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -375,9 +394,7 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
                 filteredDrivers.map((driver, index) => (
                   <tr key={driver.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className={`w-10 h-10 rounded-full ${getAvatarColor(index)} flex items-center justify-center text-white text-sm font-bold`}>
-                        {getInitials(driver.name)}
-                      </div>
+                      {renderAvatar(driver, index)}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{driver.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{driver.phone}</td>
@@ -452,13 +469,11 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
       </div>
 
       {selectedDriver && (
-        <section className={`${logisticsCard} p-4 sm:p-6`}>
+        <section ref={profileRef} className={`${logisticsCard} p-4 sm:p-6 scroll-mt-24`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-blue text-lg font-black text-white">
-                  {getInitials(selectedDriver.name)}
-                </div>
+                {renderAvatar(selectedDriver, drivers.findIndex(driver => driver.id === selectedDriver.id), 'h-14 w-14', 'text-lg')}
                 <div>
                   <h2 className="text-xl font-black text-content-primary">Profil chauffeur</h2>
                   <p className="mt-1 text-lg font-extrabold text-content-primary">{selectedDriver.name}</p>

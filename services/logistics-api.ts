@@ -41,6 +41,7 @@ export const mapLogisticsDriver = (driver: LogisticsDriver): Driver => ({
   id: driver.id,
   name: driver.user_name || driver.user_email || `Driver ${driver.id.slice(0, 6)}`,
   phone: driver.user_phone || '',
+  avatarUrl: driver.avatar_url || undefined,
   status: driverStatus(driver),
   zone: 'Kinshasa',
   vehicleId: driver.license_number ? `vehicle-${driver.license_number}` : undefined,

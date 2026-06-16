@@ -62,6 +62,7 @@ export interface Driver {
   id: string;
   name: string;
   phone: string;
+  avatarUrl?: string;
   status: 'available' | 'busy' | 'offline' | 'suspended';
   zone: string;
   vehicleId?: string;

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, get_sync_db, get_current_admin, is_admin_user
 from app.repositories.order_repository import OrderRepository
-from app.models.user import User, UserRole
+from app.models.user import User, UserProfile, UserRole
 from app.schemas.logistics import (
     DriverCreate,
     DriverUpdate,
@@ -135,12 +135,14 @@ def _notify_task_progress(db: Session, task, event: str) -> None:
 
 def _build_driver_response(driver, db: Session) -> DriverResponse:
     user = db.query(User).filter(User.id == driver.user_id).first()
+    profile = db.query(UserProfile).filter(UserProfile.user_id == driver.user_id).first()
     return DriverResponse(
         id=driver.id,
         user_id=driver.user_id,
         user_name=getattr(user, "name", None),
         user_email=getattr(user, "email", None),
         user_phone=getattr(user, "phone", None),
+        avatar_url=getattr(profile, "avatar_url", None),
         vehicle_type=driver.vehicle_type,
         license_number=driver.license_number,
         status=driver.status,
