@@ -56,7 +56,15 @@ const AVATAR_COLORS = [
   'bg-teal-500', 'bg-indigo-500', 'bg-red-500', 'bg-cyan-500', 'bg-amber-500',
 ];
 
-export const LogisticsDrivers: React.FC = () => {
+interface LogisticsDriversProps {
+  focusDriverName?: string | null;
+  onClearFocus?: () => void;
+}
+
+const normalize = (value: string) =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverName, onClearFocus }) => {
   const [activeFilter, setActiveFilter] = useState('Tous');
   const [searchQuery, setSearchQuery] = useState('');
   const [drivers, setDrivers] = useState<Driver[]>(MOCK_DRIVERS);
@@ -72,6 +80,14 @@ export const LogisticsDrivers: React.FC = () => {
 
   const filteredDrivers = useMemo(() => {
     let result = drivers;
+    if (focusDriverName) {
+      const focus = normalize(focusDriverName.replace(/\.$/, ''));
+      result = result.filter(d => {
+        const fullName = normalize(d.name);
+        return fullName.includes(focus) || focus.split(/\s+/).every(part => fullName.includes(part));
+      });
+      return result;
+    }
     if (activeFilter !== 'Tous') {
       result = result.filter(d => d.status === activeFilter);
     }
@@ -86,7 +102,7 @@ export const LogisticsDrivers: React.FC = () => {
       );
     }
     return result;
-  }, [drivers, activeFilter, searchQuery]);
+  }, [drivers, activeFilter, searchQuery, focusDriverName]);
 
   const getInitials = (name: string) =>
     name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -137,6 +153,31 @@ export const LogisticsDrivers: React.FC = () => {
           Ajouter un chauffeur
         </button>
       </div>
+
+      {focusDriverName && (
+        <div className="rounded-2xl border border-green-400/60 bg-green-500/10 p-4 text-sm text-content-primary">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-extrabold">Chauffeur ciblé depuis l’alerte: {focusDriverName}</p>
+              <p className="mt-1 text-content-muted">
+                {filteredDrivers.length > 0
+                  ? 'La liste est filtrée sur le chauffeur à contacter.'
+                  : 'Aucun chauffeur correspondant trouvé dans les données actuelles.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.removeItem('logisticsFocusDriverName');
+                onClearFocus?.();
+              }}
+              className="self-start rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-bold text-content-primary hover:bg-surface-muted sm:self-center"
+            >
+              Voir tous les chauffeurs
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[

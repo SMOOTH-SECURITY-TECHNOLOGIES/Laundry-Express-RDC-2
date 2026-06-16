@@ -33,13 +33,45 @@ const REPORTS = [
   },
 ];
 
-export const LogisticsReports: React.FC = () => {
+interface LogisticsReportsProps {
+  focusAlertTitle?: string | null;
+  focusMissionId?: string | null;
+  onClearFocus?: () => void;
+}
+
+export const LogisticsReports: React.FC<LogisticsReportsProps> = ({ focusAlertTitle, focusMissionId, onClearFocus }) => {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-content-primary">Rapports</h1>
         <p className="text-sm text-content-muted mt-1">Générez et téléchargez vos rapports d'opération</p>
       </div>
+
+      {focusAlertTitle && (
+        <div className="rounded-2xl border border-purple-400/60 bg-purple-500/10 p-4 text-sm text-content-primary">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-extrabold">Rapport ciblé depuis l’alerte: {focusAlertTitle}</p>
+              <p className="mt-1 text-content-muted">
+                {focusMissionId
+                  ? `Contrôler le paiement lié à ${focusMissionId} avant de générer un rapport global.`
+                  : 'Contrôler cette alerte avant de générer un rapport global.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.removeItem('logisticsFocusReportAlert');
+                sessionStorage.removeItem('logisticsFocusMissionId');
+                onClearFocus?.();
+              }}
+              className="self-start rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-bold text-content-primary hover:bg-surface-muted sm:self-center"
+            >
+              Voir tous les rapports
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {REPORTS.map(report => (

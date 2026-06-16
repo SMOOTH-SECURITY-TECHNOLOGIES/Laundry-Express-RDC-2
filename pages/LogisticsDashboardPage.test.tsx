@@ -137,7 +137,7 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Mission ciblée depuis l’alerte: MSN-004')).not.toBeNull();
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
     expect(window.location.hash).toBe('#missions');
-    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004.', 'info');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004. Chauffeur cible: Tshimanga A.', 'info');
     view.unmount();
 
     window.history.replaceState(null, '', '/#alerts');
@@ -147,9 +147,10 @@ describe('LogisticsDashboardPage', () => {
     expect(contactAction).not.toBeUndefined();
     expect(contactAction?.getAttribute('href')).toBe('#drivers');
     driversView.click(contactAction!);
+    expect(byText(driversView.container, 'Chauffeur ciblé depuis l’alerte: Mbuyi T.')).not.toBeNull();
     expect(byText(driversView.container, 'Gestion des chauffeurs')).not.toBeNull();
     expect(window.location.hash).toBe('#drivers');
-    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des chauffeurs pour prise de contact.', 'info');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des chauffeurs pour prise de contact. Chauffeur cible: Mbuyi T.', 'info');
     driversView.unmount();
 
     window.history.replaceState(null, '', '/#alerts');
@@ -159,6 +160,7 @@ describe('LogisticsDashboardPage', () => {
     expect(paymentAction).not.toBeUndefined();
     expect(paymentAction?.getAttribute('href')).toBe('#reports');
     reportsView.click(paymentAction!);
+    expect(byText(reportsView.container, 'Rapport ciblé depuis l’alerte: Paiement échoué MSN-007')).not.toBeNull();
     expect(byText(reportsView.container, 'Rapports')).not.toBeNull();
     expect(window.location.hash).toBe('#reports');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des rapports pour suivi paiement. Mission cible: MSN-007.', 'info');

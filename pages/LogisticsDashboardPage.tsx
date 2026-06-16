@@ -83,28 +83,65 @@ export const LogisticsDashboardPage: React.FC = () => {
   const [missionFocusId, setMissionFocusId] = useState<string | null>(() =>
     sessionStorage.getItem('logisticsFocusMissionId')
   );
+  const [driverFocusName, setDriverFocusName] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusDriverName')
+  );
+  const [reportFocusAlert, setReportFocusAlert] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusReportAlert')
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleRefresh = () => addNotification('Données actualisées', 'success');
   const handleAutoDispatch = () => addNotification('Auto-dispatch terminé : 12 missions assignées', 'success');
   const handleExport = () => addNotification('Export CSV généré', 'success');
 
-  const handleSectionChange = useCallback((section: string, options?: { missionId?: string }) => {
+  const clearFocus = useCallback(() => {
+    setMissionFocusId(null);
+    setDriverFocusName(null);
+    setReportFocusAlert(null);
+    sessionStorage.removeItem('logisticsFocusMissionId');
+    sessionStorage.removeItem('logisticsFocusDriverName');
+    sessionStorage.removeItem('logisticsFocusReportAlert');
+  }, []);
+
+  const handleSectionChange = useCallback((section: string, options?: { missionId?: string; driverName?: string; alertTitle?: string }) => {
     if (!isLogisticsSection(section)) return;
     if (section === 'missions') {
       const nextMissionId = options?.missionId ?? null;
       setMissionFocusId(nextMissionId);
       if (nextMissionId) sessionStorage.setItem('logisticsFocusMissionId', nextMissionId);
       else sessionStorage.removeItem('logisticsFocusMissionId');
-    } else {
+      setDriverFocusName(null);
+      setReportFocusAlert(null);
+      sessionStorage.removeItem('logisticsFocusDriverName');
+      sessionStorage.removeItem('logisticsFocusReportAlert');
+    } else if (section === 'drivers') {
+      const nextDriverName = options?.driverName ?? null;
+      setDriverFocusName(nextDriverName);
+      if (nextDriverName) sessionStorage.setItem('logisticsFocusDriverName', nextDriverName);
+      else sessionStorage.removeItem('logisticsFocusDriverName');
       setMissionFocusId(null);
+      setReportFocusAlert(null);
       sessionStorage.removeItem('logisticsFocusMissionId');
+      sessionStorage.removeItem('logisticsFocusReportAlert');
+    } else if (section === 'reports') {
+      const nextAlert = options?.alertTitle ?? null;
+      setReportFocusAlert(nextAlert);
+      if (nextAlert) sessionStorage.setItem('logisticsFocusReportAlert', nextAlert);
+      else sessionStorage.removeItem('logisticsFocusReportAlert');
+      setMissionFocusId(options?.missionId ?? null);
+      if (options?.missionId) sessionStorage.setItem('logisticsFocusMissionId', options.missionId);
+      else sessionStorage.removeItem('logisticsFocusMissionId');
+      setDriverFocusName(null);
+      sessionStorage.removeItem('logisticsFocusDriverName');
+    } else {
+      clearFocus();
     }
     setActiveSection(section);
     const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
     window.history.replaceState(null, '', nextUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [clearFocus]);
 
   useEffect(() => {
     const onHashChange = () => {
@@ -112,6 +149,8 @@ export const LogisticsDashboardPage: React.FC = () => {
       if (isLogisticsSection(hash)) {
         setActiveSection(hash);
         if (hash === 'missions') setMissionFocusId(sessionStorage.getItem('logisticsFocusMissionId'));
+        else if (hash === 'drivers') setDriverFocusName(sessionStorage.getItem('logisticsFocusDriverName'));
+        else if (hash === 'reports') setReportFocusAlert(sessionStorage.getItem('logisticsFocusReportAlert'));
         else setMissionFocusId(null);
       }
     };
@@ -147,15 +186,15 @@ export const LogisticsDashboardPage: React.FC = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'missions':
-        return <LogisticsMissions focusMissionId={missionFocusId} onClearFocus={() => setMissionFocusId(null)} />;
+        return <LogisticsMissions focusMissionId={missionFocusId} onClearFocus={clearFocus} />;
       case 'drivers':
-        return <LogisticsDrivers />;
+        return <LogisticsDrivers focusDriverName={driverFocusName} onClearFocus={clearFocus} />;
       case 'performance':
         return <LogisticsPerformance />;
       case 'alerts':
         return <LogisticsAlerts onNavigate={handleSectionChange} onActionFeedback={(message) => addNotification(message, 'info')} />;
       case 'reports':
-        return <LogisticsReports />;
+        return <LogisticsReports focusAlertTitle={reportFocusAlert} focusMissionId={missionFocusId} onClearFocus={clearFocus} />;
       case 'settings':
         return <LogisticsSettings />;
       case 'dashboard':
