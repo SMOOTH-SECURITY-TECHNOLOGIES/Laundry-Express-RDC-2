@@ -124,16 +124,17 @@ password = os.getenv("SEED_CUSTOMER_PASSWORD")
 
 ## 🚚 **4. LOGISTIQUE (CHAUFFEURS)**
 
-### **Driver credentials** :
+### **Driver credentials Kin Express** :
 ```python
 # Rôle: DRIVER
-User(
-    email="driver@laundryexpress.cd",
-    phone="+243810000003",
-    name="Test Driver",
-    role=UserRole.DRIVER,
-    status="active"
-)
+drivers = [
+    ("driver1@kinexpress.cd", "Driver Kabila", "+243831111111"),
+    ("driver2@kinexpress.cd", "Driver Mfumu", "+243832222222"),
+    ("driver3@kinexpress.cd", "Driver Tshisekedi", "+243833333333"),
+]
+
+# Mot de passe local par defaut: driverpass123
+# Chaque compte est relie au profil backend Driver et a Kin Express Logistics.
 
 # Application mobile chauffeur:
 # - Endpoint: /api/v1/logistics/drivers/

@@ -89,8 +89,12 @@ Le backend supporte réellement ces rôles:
 | `CUSTOMER` | `new@example.com` | `SEED_NEW_CUSTOMER_PASSWORD` via env | Compte client supplémentaire |
 | `PARTNER_OWNER` | `owner@partner.com` | `SEED_PARTNER_OWNER_PASSWORD` via env | Relié au partenaire de test |
 | `PARTNER_STAFF` | `staff@partner.com` | `SEED_PARTNER_STAFF_PASSWORD` via env | Relié au partenaire de test |
-| `DRIVER` | `driver@laundryexpress.cd` | `SEED_DRIVER_PASSWORD` via env | Chauffeur local |
+| `DRIVER` | `driver1@kinexpress.cd` | `driverpass123` ou `SEED_DRIVER_1_PASSWORD` via env | Chauffeur Kin Express relié à la logistique |
+| `DRIVER` | `driver2@kinexpress.cd` | `driverpass123` ou `SEED_DRIVER_2_PASSWORD` via env | Chauffeur Kin Express relié à la logistique |
+| `DRIVER` | `driver3@kinexpress.cd` | `driverpass123` ou `SEED_DRIVER_3_PASSWORD` via env | Chauffeur Kin Express relié à la logistique |
 | `LOGISTICS_MANAGER` | `logistics@laundryexpress.cd` | `SEED_LOGISTICS_PASSWORD` via env | Manager logistique local |
+
+Les trois chauffeurs Kin Express sont aussi reliés au profil backend `Driver` et à la compagnie de livraison `Kin Express Logistics`.
 
 ## Partenaire seedé
 

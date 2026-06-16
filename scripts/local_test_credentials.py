@@ -51,8 +51,8 @@ def load_local_test_credentials() -> dict[str, dict[str, str]]:
             "password": require_env("SEED_PARTNER_STAFF_PASSWORD"),
         },
         "driver": {
-            "email": optional_env("SEED_DRIVER_EMAIL", "driver@laundryexpress.cd"),
-            "password": require_env("SEED_DRIVER_PASSWORD"),
+            "email": optional_env("SEED_DRIVER_EMAIL", "driver1@kinexpress.cd"),
+            "password": optional_env("SEED_DRIVER_PASSWORD", "driverpass123"),
         },
         "logistics_manager": {
             "email": optional_env("SEED_LOGISTICS_EMAIL", "logistics@laundryexpress.cd"),

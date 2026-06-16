@@ -33,6 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
 from app.core.config import settings
+from app.models.logistics import Driver, DriverStatus
+from app.models.marketplace import CompanyDriver, CompanyServiceZone, DeliveryCompany, DeliveryCompanyStatus
 from app.models.partner import Partner, PartnerStaff, PartnerStatus, PartnerType
 from app.models.user import User, UserProfile, UserRole, UserStatus
 from app.services.auth_service import AuthService
@@ -50,6 +52,16 @@ class SeedUser:
     is_phone_verified: bool = True
     preferred_language: str = "fr"
     loyalty_points: int = 0
+
+
+@dataclass(frozen=True)
+class SeedDriverProfile:
+    email: str
+    vehicle_type: str
+    license_number: str
+    is_available: bool = True
+    rating_avg: float = 4.8
+    rating_count: int = 12
 
 
 def require_env(name: str) -> str:
@@ -240,6 +252,113 @@ def ensure_partner_staff_link(db, partner: Partner, user: User, role: str) -> No
     print(f"  - partner_staff created: {user.email} -> {role}")
 
 
+def ensure_driver_profile(db, user: User, profile: SeedDriverProfile) -> Driver:
+    driver = db.execute(select(Driver).where(Driver.user_id == user.id)).scalar_one_or_none()
+
+    if driver:
+        driver.status = DriverStatus.ACTIVE
+        driver.is_available = profile.is_available
+        driver.vehicle_type = profile.vehicle_type
+        driver.license_number = profile.license_number
+        driver.rating_avg = profile.rating_avg
+        driver.rating_count = profile.rating_count
+        action = "updated"
+    else:
+        driver = Driver(
+            user_id=user.id,
+            status=DriverStatus.ACTIVE,
+            is_available=profile.is_available,
+            vehicle_type=profile.vehicle_type,
+            license_number=profile.license_number,
+            rating_avg=profile.rating_avg,
+            rating_count=profile.rating_count,
+        )
+        db.add(driver)
+        db.flush()
+        action = "created"
+
+    print(f"  - driver profile {action}: {user.email}")
+    return driver
+
+
+def ensure_delivery_company(db) -> DeliveryCompany:
+    company = db.execute(select(DeliveryCompany).where(DeliveryCompany.slug == "kin-express-logistics")).scalar_one_or_none()
+
+    if company:
+        company.name = "Kin Express Logistics"
+        company.phone = "+243810000010"
+        company.email = "logistics@laundryexpress.cd"
+        company.status = DeliveryCompanyStatus.ACTIVE
+        company.is_active = True
+        company.supports_pickup = True
+        company.supports_delivery = True
+        company.rating_avg = 4.8
+        company.rating_count = 57
+        print("  - delivery company updated: Kin Express Logistics")
+        return company
+
+    company = DeliveryCompany(
+        name="Kin Express Logistics",
+        slug="kin-express-logistics",
+        phone="+243810000010",
+        email="logistics@laundryexpress.cd",
+        status=DeliveryCompanyStatus.ACTIVE,
+        is_active=True,
+        supports_pickup=True,
+        supports_delivery=True,
+        rating_avg=4.8,
+        rating_count=57,
+    )
+    db.add(company)
+    db.flush()
+    print("  - delivery company created: Kin Express Logistics")
+    return company
+
+
+def ensure_company_driver_link(db, company: DeliveryCompany, driver: Driver, email: str) -> None:
+    link = db.execute(
+        select(CompanyDriver).where(
+            CompanyDriver.company_id == company.id,
+            CompanyDriver.driver_id == driver.id,
+        )
+    ).scalar_one_or_none()
+
+    if link:
+        link.is_active = True
+        print(f"  - company driver updated: {email} -> Kin Express Logistics")
+        return
+
+    db.add(CompanyDriver(company_id=company.id, driver_id=driver.id, is_active=True))
+    print(f"  - company driver created: {email} -> Kin Express Logistics")
+
+
+def ensure_company_service_zone(db, company: DeliveryCompany, commune: str) -> None:
+    zone = db.execute(
+        select(CompanyServiceZone).where(
+            CompanyServiceZone.company_id == company.id,
+            CompanyServiceZone.city == "Kinshasa",
+            CompanyServiceZone.commune == commune,
+        )
+    ).scalar_one_or_none()
+
+    if zone:
+        zone.zone = commune
+        zone.is_active = True
+        print(f"  - company zone updated: Kinshasa / {commune}")
+        return
+
+    db.add(
+        CompanyServiceZone(
+            company_id=company.id,
+            city="Kinshasa",
+            commune=commune,
+            zone=commune,
+            is_active=True,
+        )
+    )
+    print(f"  - company zone created: Kinshasa / {commune}")
+
+
 def seed_default_credentials() -> bool:
     database_url_sync = resolve_database_url_sync()
     print("Seeding default local credentials...")
@@ -311,13 +430,52 @@ def seed_default_credentials() -> bool:
             password=require_env("SEED_NEW_CUSTOMER_PASSWORD"),
             role=UserRole.CUSTOMER,
         )
-        driver_seed = SeedUser(
-            email="driver@laundryexpress.cd",
-            phone="+243810000003",
-            name="Test Driver",
-            password=require_env("SEED_DRIVER_PASSWORD"),
-            role=UserRole.DRIVER,
-        )
+        driver_seeds = [
+            SeedUser(
+                email="driver1@kinexpress.cd",
+                phone="+243831111111",
+                name="Driver Kabila",
+                password=os.getenv("SEED_DRIVER_1_PASSWORD") or "driverpass123",
+                role=UserRole.DRIVER,
+            ),
+            SeedUser(
+                email="driver2@kinexpress.cd",
+                phone="+243832222222",
+                name="Driver Mfumu",
+                password=os.getenv("SEED_DRIVER_2_PASSWORD") or "driverpass123",
+                role=UserRole.DRIVER,
+            ),
+            SeedUser(
+                email="driver3@kinexpress.cd",
+                phone="+243833333333",
+                name="Driver Tshisekedi",
+                password=os.getenv("SEED_DRIVER_3_PASSWORD") or "driverpass123",
+                role=UserRole.DRIVER,
+            ),
+        ]
+        driver_profiles = {
+            "driver1@kinexpress.cd": SeedDriverProfile(
+                email="driver1@kinexpress.cd",
+                vehicle_type="moto",
+                license_number="KIN-DRV-001",
+                rating_avg=4.8,
+                rating_count=24,
+            ),
+            "driver2@kinexpress.cd": SeedDriverProfile(
+                email="driver2@kinexpress.cd",
+                vehicle_type="moto",
+                license_number="KIN-DRV-002",
+                rating_avg=4.7,
+                rating_count=18,
+            ),
+            "driver3@kinexpress.cd": SeedDriverProfile(
+                email="driver3@kinexpress.cd",
+                vehicle_type="voiture",
+                license_number="KIN-DRV-003",
+                rating_avg=4.6,
+                rating_count=15,
+            ),
+        }
         logistics_seed = SeedUser(
             email="logistics@laundryexpress.cd",
             phone="+243810000004",
@@ -341,10 +499,22 @@ def seed_default_credentials() -> bool:
         customer = ensure_user(db, auth_service, customer_seed, reserved_phones)
         inactive_customer = ensure_user(db, auth_service, inactive_customer_seed, reserved_phones)
         new_customer = ensure_user(db, auth_service, new_customer_seed, reserved_phones)
-        driver = ensure_user(db, auth_service, driver_seed, reserved_phones)
+        drivers = [ensure_user(db, auth_service, seed, reserved_phones) for seed in driver_seeds]
         logistics_manager = ensure_user(db, auth_service, logistics_seed, reserved_phones)
         partner_owner = ensure_user(db, auth_service, partner_owner_seed, reserved_phones)
         partner_staff = ensure_user(db, auth_service, partner_staff_seed, reserved_phones)
+
+        print("Drivers:")
+        driver_records = []
+        for driver_user in drivers:
+            driver_records.append((driver_user, ensure_driver_profile(db, driver_user, driver_profiles[driver_user.email])))
+
+        print("Delivery company:")
+        delivery_company = ensure_delivery_company(db)
+        for commune in ["Lingwala", "Kintambo", "Ngaliema", "Gombe", "Limete"]:
+            ensure_company_service_zone(db, delivery_company, commune)
+        for driver_user, driver_record in driver_records:
+            ensure_company_driver_link(db, delivery_company, driver_record, driver_user.email)
 
         print("Partner:")
         partner = ensure_partner(db)
@@ -365,7 +535,8 @@ def seed_default_credentials() -> bool:
         print(f"  CUSTOMER_NEW: {new_customer.email}")
         print(f"  PARTNER_OWNER: {partner_owner.email}")
         print(f"  PARTNER_STAFF: {partner_staff.email}")
-        print(f"  DRIVER: {driver.email}")
+        for driver_user in drivers:
+            print(f"  DRIVER: {driver_user.email}")
         print(f"  LOGISTICS_MANAGER: {logistics_manager.email}")
         print(f"  PARTNER: {partner.email} / no direct login (Partner is a business entity)")
         print(
