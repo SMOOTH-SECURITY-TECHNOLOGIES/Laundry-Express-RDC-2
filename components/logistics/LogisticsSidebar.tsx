@@ -17,13 +17,16 @@ const navItems: {
   label: string;
   badge?: number;
 }[] = [
-  { target: 'dashboard', icon: 'logo', label: 'Centre logistique' },
-  { target: 'missions', icon: 'shoppingBag', label: 'Missions' },
-  { target: 'drivers', icon: 'user', label: 'Chauffeurs' },
-  { target: 'performance', icon: 'chartBar', label: 'Performance' },
+  { target: 'dashboard', icon: 'home', label: 'Dashboard' },
+  { target: 'fleet', icon: 'truck', label: 'Fleet' },
+  { target: 'drivers', icon: 'user', label: 'Drivers' },
+  { target: 'dispatch', icon: 'shoppingBag', label: 'Dispatch' },
+  { target: 'tracking', icon: 'map', label: 'Tracking' },
+  { target: 'shipments', icon: 'archive-box', label: 'Shipments' },
   { target: 'alerts', icon: 'bell', label: 'Alertes', badge: 5 },
-  { target: 'reports', icon: 'document-text', label: 'Rapports' },
-  { target: 'settings', icon: 'settings', label: 'Paramètres' },
+  { target: 'maintenance', icon: 'settings', label: 'Maintenance' },
+  { target: 'reports', icon: 'document-text', label: 'Reports' },
+  { target: 'settings', icon: 'settings', label: 'Settings' },
 ];
 
 export const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({

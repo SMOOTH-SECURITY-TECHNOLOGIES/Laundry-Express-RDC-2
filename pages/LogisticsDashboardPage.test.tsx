@@ -99,24 +99,51 @@ describe('LogisticsDashboardPage', () => {
     });
 
     expect(byText(view.container, 'Centre logistique Laundry Express')).not.toBeNull();
+    expect(byText(view.container, 'Fleet')).not.toBeNull();
+    expect(byText(view.container, 'Drivers')).not.toBeNull();
+    expect(byText(view.container, 'Dispatch')).not.toBeNull();
+    expect(byText(view.container, 'Tracking')).not.toBeNull();
+    expect(byText(view.container, 'Shipments')).not.toBeNull();
+    expect(byText(view.container, 'Maintenance')).not.toBeNull();
     expect(byText(view.container, 'Auto-dispatch')).not.toBeNull();
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
 
     view.unmount();
   });
 
-  it('navigates to the missions section from the sidebar', async () => {
+  it('navigates to the dispatch section from the sidebar', async () => {
     const view = renderComponent(<LogisticsDashboardPage />);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    const missionsButton = buttonByText(view.container, /^Missions$/);
-    expect(missionsButton).not.toBeNull();
-    view.click(missionsButton!);
+    const dispatchButton = buttonByText(view.container, /^Dispatch$/);
+    expect(dispatchButton).not.toBeNull();
+    view.click(dispatchButton!);
 
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
     expect(byText(view.container, 'Cockpit logistique universel')).toBeNull();
+
+    view.unmount();
+  });
+
+  it('opens the new TMS foundation sections from the sidebar', async () => {
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    view.click(buttonByText(view.container, /^Fleet$/)!);
+    expect(byText(view.container, 'Fleet Management')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Tracking$/)!);
+    expect(byText(view.container, 'Live Tracking')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Shipments$/)!);
+    expect(byText(view.container, 'shp-001')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Maintenance$/)!);
+    expect(byText(view.container, 'Contrôle freinage moto')).not.toBeNull();
 
     view.unmount();
   });
@@ -132,11 +159,11 @@ describe('LogisticsDashboardPage', () => {
 
     const delayAction = linkByText(view.container, /^Voir$/);
     expect(delayAction).not.toBeUndefined();
-    expect(delayAction?.getAttribute('href')).toBe('#missions');
+    expect(delayAction?.getAttribute('href')).toBe('#dispatch');
     view.click(delayAction!);
     expect(byText(view.container, 'Mission ciblée depuis l’alerte: MSN-004')).not.toBeNull();
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
-    expect(window.location.hash).toBe('#missions');
+    expect(window.location.hash).toBe('#dispatch');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004. Chauffeur cible: Tshimanga A.', 'info');
     view.unmount();
 
@@ -172,7 +199,7 @@ describe('LogisticsDashboardPage', () => {
     const lateGroupActions = Array.from(lateGroupView.container.querySelectorAll('a')).filter((link) => /^Voir$/.test(link.textContent || ''));
     lateGroupView.click(lateGroupActions[lateGroupActions.length - 1]);
     expect(byText(lateGroupView.container, 'Alerte missions ciblée: 3 missions avec retard > 20 min')).not.toBeNull();
-    expect(window.location.hash).toBe('#missions');
+    expect(window.location.hash).toBe('#dispatch');
     lateGroupView.unmount();
 
     window.history.replaceState(null, '', '/#alerts');
@@ -182,7 +209,7 @@ describe('LogisticsDashboardPage', () => {
     waitingGroupView.click(waitingActions[waitingActions.length - 1]);
     expect(byText(waitingGroupView.container, 'Alerte missions ciblée: File d\'attente Limete bloquée')).not.toBeNull();
     expect(byText(waitingGroupView.container, 'Zone ciblée: Limete')).not.toBeNull();
-    expect(window.location.hash).toBe('#missions');
+    expect(window.location.hash).toBe('#dispatch');
     waitingGroupView.unmount();
   });
 

@@ -50,12 +50,12 @@ const FILTER_MAP: Record<string, string | null> = {
 const ACTION_TARGETS: Record<Alert['type'], { label: string; section: LogisticsSection; feedback: string }> = {
   retard: {
     label: 'Voir',
-    section: 'missions',
+    section: 'dispatch',
     feedback: 'Ouverture des missions pour analyser le retard.',
   },
   attente: {
     label: 'Résoudre',
-    section: 'missions',
+    section: 'dispatch',
     feedback: 'Ouverture du backlog missions pour assignation.',
   },
   inactif: {
@@ -165,7 +165,7 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
             const driverName = findDriverName(alert);
             const zone = findZone(alert);
             const focusType = missionFocusType(alert);
-            const missionAlertTitle = action.section === 'missions' && !missionId ? alert.title : null;
+            const missionAlertTitle = (action.section === 'missions' || action.section === 'dispatch') && !missionId ? alert.title : null;
             const actionClass = alert.type === 'retard'
               ? 'bg-brand-blue hover:bg-brand-blue/90'
               : alert.type === 'inactif'

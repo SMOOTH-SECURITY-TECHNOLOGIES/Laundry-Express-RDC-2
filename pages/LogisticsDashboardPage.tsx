@@ -7,11 +7,16 @@ import { isLogisticsSection, LogisticsSection } from '../components/logistics/lo
 import { useAppContext } from '../context/AppContext';
 import { LogisticsAlerts } from './logistics/LogisticsAlerts';
 import { LogisticsDrivers } from './logistics/LogisticsDrivers';
+import { LogisticsDispatch } from './logistics/LogisticsDispatch';
+import { LogisticsFleet } from './logistics/LogisticsFleet';
+import { LogisticsMaintenance } from './logistics/LogisticsMaintenance';
 import { LogisticsMissions } from './logistics/LogisticsMissions';
 import { LogisticsOverview } from './logistics/LogisticsOverview';
 import { LogisticsPerformance } from './logistics/LogisticsPerformance';
 import { LogisticsReports } from './logistics/LogisticsReports';
 import { LogisticsSettings } from './logistics/LogisticsSettings';
+import { LogisticsShipments } from './logistics/LogisticsShipments';
+import { LogisticsTracking } from './logistics/LogisticsTracking';
 
 const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string }> = {
   dashboard: {
@@ -22,9 +27,25 @@ const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string
     title: 'Missions',
     subtitle: 'Backlog, missions actives et assignation chauffeur.',
   },
+  fleet: {
+    title: 'Fleet',
+    subtitle: 'Véhicules, plaques, zones et disponibilité.',
+  },
   drivers: {
     title: 'Chauffeurs',
     subtitle: 'Disponibilité, performance et gestion du réseau.',
+  },
+  dispatch: {
+    title: 'Dispatch',
+    subtitle: 'File d’attente, assignation et priorités opérationnelles.',
+  },
+  tracking: {
+    title: 'Tracking',
+    subtitle: 'Carte temps réel, trajets et ETA.',
+  },
+  shipments: {
+    title: 'Shipments',
+    subtitle: 'Livraisons rattachées aux commandes Laundry.',
   },
   performance: {
     title: 'Performance',
@@ -37,6 +58,10 @@ const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string
   reports: {
     title: 'Rapports',
     subtitle: 'Exports quotidiens, hebdomadaires et personnalisés.',
+  },
+  maintenance: {
+    title: 'Maintenance',
+    subtitle: 'Entretien véhicules, incidents et disponibilité.',
   },
   settings: {
     title: 'Paramètres',
@@ -121,7 +146,7 @@ export const LogisticsDashboardPage: React.FC = () => {
 
   const handleSectionChange = useCallback((section: string, options?: { missionId?: string; driverName?: string; alertTitle?: string; missionAlertTitle?: string; missionFocusType?: string; zone?: string }) => {
     if (!isLogisticsSection(section)) return;
-    if (section === 'missions') {
+    if (section === 'missions' || section === 'dispatch') {
       const nextMissionId = options?.missionId ?? null;
       const nextMissionAlert = options?.missionAlertTitle ?? null;
       const nextMissionType = options?.missionFocusType ?? null;
@@ -184,7 +209,7 @@ export const LogisticsDashboardPage: React.FC = () => {
       const hash = window.location.hash.replace('#', '');
       if (isLogisticsSection(hash)) {
         setActiveSection(hash);
-        if (hash === 'missions') {
+        if (hash === 'missions' || hash === 'dispatch') {
           setMissionFocusId(sessionStorage.getItem('logisticsFocusMissionId'));
           setMissionFocusAlert(sessionStorage.getItem('logisticsFocusMissionAlert'));
           setMissionFocusType(sessionStorage.getItem('logisticsFocusMissionType'));
@@ -241,6 +266,18 @@ export const LogisticsDashboardPage: React.FC = () => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'fleet':
+        return <LogisticsFleet />;
+      case 'dispatch':
+        return (
+          <LogisticsDispatch
+            focusMissionId={missionFocusId}
+            focusAlertTitle={missionFocusAlert}
+            focusType={missionFocusType}
+            focusZone={missionFocusZone}
+            onClearFocus={clearFocus}
+          />
+        );
       case 'missions':
         return (
           <LogisticsMissions
@@ -255,8 +292,14 @@ export const LogisticsDashboardPage: React.FC = () => {
         return <LogisticsDrivers focusDriverName={driverFocusName} onClearFocus={clearFocus} />;
       case 'performance':
         return <LogisticsPerformance />;
+      case 'tracking':
+        return <LogisticsTracking />;
+      case 'shipments':
+        return <LogisticsShipments />;
       case 'alerts':
         return <LogisticsAlerts onNavigate={handleSectionChange} onActionFeedback={(message) => addNotification(message, 'info')} />;
+      case 'maintenance':
+        return <LogisticsMaintenance />;
       case 'reports':
         return <LogisticsReports focusAlertTitle={reportFocusAlert} focusMissionId={missionFocusId} onClearFocus={clearFocus} />;
       case 'settings':
