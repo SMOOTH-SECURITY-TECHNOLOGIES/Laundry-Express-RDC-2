@@ -137,7 +137,7 @@ export const LogisticsDashboardPage: React.FC = () => {
       case 'performance':
         return <LogisticsPerformance />;
       case 'alerts':
-        return <LogisticsAlerts />;
+        return <LogisticsAlerts onNavigate={handleSectionChange} onActionFeedback={(message) => addNotification(message, 'info')} />;
       case 'reports':
         return <LogisticsReports />;
       case 'settings':

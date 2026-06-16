@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
+import type { LogisticsSection } from '../../components/logistics/logistics-types';
 import { logisticsCard } from './logistics-ui';
 
 interface Alert {
@@ -46,7 +47,35 @@ const FILTER_MAP: Record<string, string | null> = {
   'Paiements': 'paiement',
 };
 
-export const LogisticsAlerts: React.FC = () => {
+const ACTION_TARGETS: Record<Alert['type'], { label: string; section: LogisticsSection; feedback: string }> = {
+  retard: {
+    label: 'Voir',
+    section: 'missions',
+    feedback: 'Ouverture des missions pour analyser le retard.',
+  },
+  attente: {
+    label: 'Résoudre',
+    section: 'missions',
+    feedback: 'Ouverture du backlog missions pour assignation.',
+  },
+  inactif: {
+    label: 'Contacter',
+    section: 'drivers',
+    feedback: 'Ouverture des chauffeurs pour prise de contact.',
+  },
+  paiement: {
+    label: 'Résoudre',
+    section: 'reports',
+    feedback: 'Ouverture des rapports pour suivi paiement.',
+  },
+};
+
+interface LogisticsAlertsProps {
+  onNavigate: (section: LogisticsSection) => void;
+  onActionFeedback?: (message: string) => void;
+}
+
+export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, onActionFeedback }) => {
   const [activeFilter, setActiveFilter] = useState<string>('Toutes');
 
   const filteredAlerts = useMemo(() => {
@@ -73,6 +102,7 @@ export const LogisticsAlerts: React.FC = () => {
       <div className="flex flex-wrap gap-2">
         {FILTERS.map(filter => (
           <button
+            type="button"
             key={filter}
             onClick={() => setActiveFilter(filter)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -101,6 +131,12 @@ export const LogisticsAlerts: React.FC = () => {
         <div className="space-y-3">
           {filteredAlerts.map(alert => {
             const config = TYPE_CONFIG[alert.type];
+            const action = ACTION_TARGETS[alert.type];
+            const actionClass = alert.type === 'retard'
+              ? 'bg-brand-blue hover:bg-brand-blue/90'
+              : alert.type === 'inactif'
+                ? 'bg-green-500 hover:bg-green-600'
+                : 'bg-brand-orange hover:bg-orange-600';
             return (
               <div key={alert.id} className={`${logisticsCard} p-5 transition-shadow hover:shadow-md`}>
                 <div className="flex items-start gap-4">
@@ -123,21 +159,16 @@ export const LogisticsAlerts: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {alert.type === 'retard' && (
-                      <button className="px-3 py-1.5 rounded-lg bg-brand-blue text-white text-xs font-semibold hover:bg-brand-blue/90">
-                        Voir
-                      </button>
-                    )}
-                    {alert.type === 'inactif' && (
-                      <button className="px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-semibold hover:bg-green-600">
-                        Contacter
-                      </button>
-                    )}
-                    {(alert.type === 'attente' || alert.type === 'paiement') && (
-                      <button className="px-3 py-1.5 rounded-lg bg-brand-orange text-white text-xs font-semibold hover:bg-orange-600">
-                        Résoudre
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onActionFeedback?.(action.feedback);
+                        onNavigate(action.section);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold ${actionClass}`}
+                    >
+                      {action.label}
+                    </button>
                   </div>
                 </div>
               </div>

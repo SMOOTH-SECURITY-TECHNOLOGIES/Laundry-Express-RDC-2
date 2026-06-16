@@ -86,6 +86,7 @@ describe('LogisticsDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.context.user = { ...mocks.context.user, role: 'logistics-manager' };
+    window.history.replaceState(null, '', '/#dashboard');
   });
 
   it('renders the dispatcher cockpit and logistics controls', async () => {
@@ -115,6 +116,40 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Cockpit logistique universel')).toBeNull();
 
     view.unmount();
+  });
+
+  it('routes logistics alert actions to the section that can handle them', async () => {
+    window.history.replaceState(null, '', '/#alerts');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Alertes opérationnelles')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Voir$/)!);
+    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(window.location.hash).toBe('#missions');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard.', 'info');
+    view.unmount();
+
+    window.history.replaceState(null, '', '/#alerts');
+    const driversView = renderComponent(<LogisticsDashboardPage />);
+    driversView.click(buttonByText(driversView.container, /Inactifs/)!);
+    driversView.click(buttonByText(driversView.container, /^Contacter$/)!);
+    expect(byText(driversView.container, 'Gestion des chauffeurs')).not.toBeNull();
+    expect(window.location.hash).toBe('#drivers');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des chauffeurs pour prise de contact.', 'info');
+    driversView.unmount();
+
+    window.history.replaceState(null, '', '/#alerts');
+    const reportsView = renderComponent(<LogisticsDashboardPage />);
+    reportsView.click(buttonByText(reportsView.container, /Paiements/)!);
+    reportsView.click(buttonByText(reportsView.container, /^Résoudre$/)!);
+    expect(byText(reportsView.container, 'Rapports')).not.toBeNull();
+    expect(window.location.hash).toBe('#reports');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des rapports pour suivi paiement.', 'info');
+    reportsView.unmount();
   });
 
   it('protects the page for non logistics managers', () => {
