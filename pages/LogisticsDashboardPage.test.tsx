@@ -129,8 +129,40 @@ describe('LogisticsDashboardPage', () => {
     expect(dispatchButton).not.toBeNull();
     view.click(dispatchButton!);
 
-    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Nouvelles missions')).not.toBeNull();
+    expect(byText(view.container, 'Assignées')).not.toBeNull();
+    expect(byText(view.container, 'En cours')).not.toBeNull();
+    expect(byText(view.container, 'Terminées')).not.toBeNull();
     expect(byText(view.container, 'Cockpit logistique universel')).toBeNull();
+
+    view.unmount();
+  });
+
+  it('manages dispatch tasks with matching and operational actions', async () => {
+    window.history.replaceState(null, '', '/#dispatch');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Missions urgentes')).not.toBeNull();
+    expect(byText(view.container, 'Files d’attente')).not.toBeNull();
+    expect(byText(view.container, 'MSN-004')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Assigner chauffeur$/)!);
+    expect(byText(view.container, 'Matching chauffeur')).not.toBeNull();
+    view.click(buttonByText(view.container, /Kabongo M\./)!);
+    expect(byText(view.container, 'Chauffeur: Kabongo M.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Réassigner$/)!);
+    view.click(buttonByText(view.container, /Mutombo P\./)!);
+    expect(byText(view.container, 'Chauffeur: Mutombo P.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Prioriser$/)!);
+    expect(byText(view.container, 'Urgent')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Annuler$/)!);
+    expect(byText(view.container, 'Monique V.')).toBeNull();
 
     view.unmount();
   });
@@ -209,7 +241,7 @@ describe('LogisticsDashboardPage', () => {
     expect(delayAction?.getAttribute('href')).toBe('#dispatch');
     view.click(delayAction!);
     expect(byText(view.container, 'Mission ciblée depuis l’alerte: MSN-004')).not.toBeNull();
-    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Nouvelles missions')).not.toBeNull();
     expect(window.location.hash).toBe('#dispatch');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004. Chauffeur cible: Tshimanga A.', 'info');
     view.unmount();

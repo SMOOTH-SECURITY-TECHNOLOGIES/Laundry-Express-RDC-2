@@ -72,10 +72,17 @@ export interface DispatchTask {
   orderId: string;
   shipmentId: string;
   status: LogisticsStatus;
+  customerName: string;
+  pickupAddress: string;
   pickupZone: string;
   deliveryZone: string;
+  distanceKm: number;
+  queueMinutes: number;
+  priority: 'normal' | 'high' | 'urgent';
   driverId?: string;
+  driverName?: string;
   vehicleId?: string;
+  currentDriverLoad?: number;
 }
 
 export interface Trip {
