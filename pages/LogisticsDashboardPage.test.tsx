@@ -343,6 +343,29 @@ describe('LogisticsDashboardPage', () => {
     dispatchView.unmount();
   });
 
+  it('generates logistics reports with operational analytics', async () => {
+    window.history.replaceState(null, '', '/#reports');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Reports & Analytics')).not.toBeNull();
+    expect(byText(view.container, 'Missions exportées')).not.toBeNull();
+    expect(byText(view.container, 'SLA livraison')).not.toBeNull();
+    expect(byText(view.container, 'Générateur de rapports')).not.toBeNull();
+    expect(byText(view.container, 'Incidents à reporter')).not.toBeNull();
+    expect(byText(view.container, 'Performance par zone')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /Générer rapport hebdomadaire/)!);
+    expect(byText(view.container, 'Rapport généré: Rapport hebdomadaire')).not.toBeNull();
+    expect(byText(view.container, 'Rapport actif')).not.toBeNull();
+    expect(byText(view.container, 'Rapport hebdomadaire')).not.toBeNull();
+    expect(buttonByText(view.container, /^Exporter CSV$/)).not.toBeNull();
+
+    view.unmount();
+  });
+
   it('routes logistics alert actions to the section that can handle them', async () => {
     window.history.replaceState(null, '', '/#alerts');
     const view = renderComponent(<LogisticsDashboardPage />);
