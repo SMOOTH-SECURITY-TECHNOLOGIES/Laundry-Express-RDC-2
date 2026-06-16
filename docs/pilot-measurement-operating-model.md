@@ -86,6 +86,56 @@ Each KPI must return one pilot decision state:
 | Revenu plateforme | >= 100 $ | 1-99 $ | 0 $ | STOP: verifier paiement, commission et pricing. WATCH: suivre marge. GO: continuer. |
 | Revenu partenaires | >= 500 $ | 1-499 $ | 0 $ | STOP: verifier demande et economie partenaire. WATCH: interviewer partenaires. GO: continuer. |
 
+## Pilot Governance
+
+The pilot dashboard must have explicit operating ownership. A metric without an owner is only decoration.
+
+| Frequency | Action | Owner | Output |
+| --- | --- | --- | --- |
+| Daily | Check the 10 pilot KPIs | Pilot lead | GO/WATCH/STOP snapshot |
+| Weekly | Review pilot learnings and incidents | Product + Operations + Support | Decisions, blockers and next actions |
+| Monthly | Decide GO / HOLD / SCALE | Leadership | Scale decision based on field data |
+
+Pilot decisions:
+
+- GO: continue the controlled pilot corridor.
+- HOLD: keep pilot running but stop expansion until the weak signal is fixed.
+- SCALE: expand only when completion, repeat orders and partner revenue are healthy together.
+
+KPI ownership:
+
+| KPI | Primary owner | Decision responsibility |
+| --- | --- | --- |
+| Nouveaux clients | Growth | Validate acquisition quality before increasing spend. |
+| Premieres commandes | Product | Remove onboarding and first-order blockers. |
+| Taux de completion | Product | Protect the order-payment-delivery corridor. |
+| Temps attribution | Operations | Maintain marketplace liquidity. |
+| Temps collecte | Operations | Prevent driver capacity bottlenecks. |
+| Temps livraison | Operations | Protect SLA and customer trust. |
+| Reclamations | Support / Quality | Classify causes and trigger service correction. |
+| Taux de reachat | Product + Growth | Validate retention before scaling acquisition. |
+| Revenu plateforme | Finance | Validate commission capture and payment reliability. |
+| Revenu partenaires | Partner Success | Confirm partners earn enough to stay active. |
+
+Incident categories:
+
+- Product
+- Operations
+- Partner
+- Driver
+- Payment
+- Customer
+
+Every incident must be assigned one category before the weekly review. Uncategorized incidents do not create pilot learning.
+
+Feature request rule:
+
+```text
+Feature request -> backlog -> pilot metric justification -> later prioritization
+```
+
+No feature request should move directly from pilot feedback into development during the freeze.
+
 ## Success Signal
 
 The pilot is healthy when:
