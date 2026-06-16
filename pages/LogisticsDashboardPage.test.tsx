@@ -206,11 +206,30 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'KIN-042-MT')).not.toBeNull();
     expect(byText(view.container, 'Pickup Gombe')).not.toBeNull();
     expect(byText(view.container, 'Delivery Lingwala')).not.toBeNull();
+    expect(byText(view.container, 'Détail trajet')).not.toBeNull();
+    expect(byText(view.container, 'Mama Jeanne')).not.toBeNull();
+    expect(byText(view.container, 'Durée estimée')).not.toBeNull();
+    expect(byText(view.container, 'Créé')).not.toBeNull();
+    expect(byText(view.container, 'Ramassage')).not.toBeNull();
+    expect(byText(view.container, 'Livré')).not.toBeNull();
     expect(byText(view.container, 'Géolocalisation indisponible')).not.toBeNull();
 
     view.click(buttonByText(view.container, /MSN-014/)!);
     expect(byText(view.container, 'Mutombo P.')).not.toBeNull();
     expect(byText(view.container, 'KIN-118-VN')).not.toBeNull();
+    expect(byText(view.container, 'Sarah K.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Update status$/)!);
+    expect(byText(view.container, 'Statut mis à jour: Livré')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Contacter chauffeur$/)!);
+    expect(byText(view.container, 'Contact chauffeur: Mutombo P.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Contacter client$/)!);
+    expect(byText(view.container, 'Contact client: Sarah K.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Signaler incident$/)!);
+    expect(byText(view.container, 'Statut mis à jour: Incident')).not.toBeNull();
 
     view.click(buttonByText(view.container, /Basculer fallback géolocalisation/)!);
     expect(byText(view.container, 'Géolocalisation indisponible')).toBeNull();

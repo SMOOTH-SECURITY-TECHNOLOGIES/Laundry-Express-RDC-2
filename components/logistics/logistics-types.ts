@@ -91,8 +91,21 @@ export interface Trip {
   status: LogisticsStatus;
   origin: string;
   destination: string;
+  customerName?: string;
+  driverName?: string;
+  vehiclePlate?: string;
+  estimatedDurationMinutes?: number;
   etaMinutes?: number;
   distanceKm?: number;
+}
+
+export interface TripTimelineEvent {
+  id: string;
+  tripId: string;
+  label: 'created' | 'assigned' | 'pickup' | 'in_transit' | 'delivered';
+  title: string;
+  timestamp: string;
+  completed: boolean;
 }
 
 export interface Shipment {

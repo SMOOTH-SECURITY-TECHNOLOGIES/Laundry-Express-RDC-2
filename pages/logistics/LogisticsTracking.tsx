@@ -1,13 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
-import type { LogisticsStatus, TrackingPoint, Trip } from '../../components/logistics/logistics-types';
+import type { LogisticsStatus, TrackingPoint, Trip, TripTimelineEvent } from '../../components/logistics/logistics-types';
 import { logisticsCard } from './logistics-ui';
 
 type TrackingStatus = 'available' | 'busy' | 'delayed' | 'offline';
 
 interface LiveTrip extends Trip {
+  customerName: string;
   driverName: string;
   vehiclePlate: string;
+  estimatedDurationMinutes: number;
   statusLabel: string;
   trackingStatus: TrackingStatus;
 }
@@ -23,6 +25,8 @@ const liveTrips: LiveTrip[] = [
     destination: 'Lingwala',
     etaMinutes: 18,
     distanceKm: 3.4,
+    estimatedDurationMinutes: 32,
+    customerName: 'Mama Jeanne',
     driverName: 'Tshimanga A.',
     vehiclePlate: 'KIN-042-MT',
   },
@@ -36,6 +40,8 @@ const liveTrips: LiveTrip[] = [
     destination: 'Gombe',
     etaMinutes: 24,
     distanceKm: 6.1,
+    estimatedDurationMinutes: 41,
+    customerName: 'Sarah K.',
     driverName: 'Mutombo P.',
     vehiclePlate: 'KIN-118-VN',
   },
@@ -49,6 +55,8 @@ const liveTrips: LiveTrip[] = [
     destination: 'Gombe',
     etaMinutes: 12,
     distanceKm: 2.2,
+    estimatedDurationMinutes: 22,
+    customerName: 'David M.',
     driverName: 'Kalonji S.',
     vehiclePlate: 'KIN-207-MT',
   },
@@ -62,9 +70,24 @@ const liveTrips: LiveTrip[] = [
     destination: 'Limete',
     etaMinutes: 0,
     distanceKm: 0,
+    estimatedDurationMinutes: 0,
+    customerName: 'Grace N.',
     driverName: 'Ngoy L.',
     vehiclePlate: 'KIN-301-CR',
   },
+];
+
+const timelineEvents: TripTimelineEvent[] = [
+  { id: 'tl-001', tripId: 'trip-001', label: 'created', title: 'Créé', timestamp: '10:02', completed: true },
+  { id: 'tl-002', tripId: 'trip-001', label: 'assigned', title: 'Assigné', timestamp: '10:05', completed: true },
+  { id: 'tl-003', tripId: 'trip-001', label: 'pickup', title: 'Ramassage', timestamp: '10:12', completed: true },
+  { id: 'tl-004', tripId: 'trip-001', label: 'in_transit', title: 'En route', timestamp: '10:15', completed: true },
+  { id: 'tl-005', tripId: 'trip-001', label: 'delivered', title: 'Livré', timestamp: 'ETA 10:33', completed: false },
+  { id: 'tl-006', tripId: 'trip-002', label: 'created', title: 'Créé', timestamp: '09:58', completed: true },
+  { id: 'tl-007', tripId: 'trip-002', label: 'assigned', title: 'Assigné', timestamp: '10:04', completed: true },
+  { id: 'tl-008', tripId: 'trip-002', label: 'pickup', title: 'Ramassage', timestamp: '10:10', completed: true },
+  { id: 'tl-009', tripId: 'trip-002', label: 'in_transit', title: 'En route', timestamp: '10:18', completed: true },
+  { id: 'tl-010', tripId: 'trip-002', label: 'delivered', title: 'Livré', timestamp: 'ETA 10:42', completed: false },
 ];
 
 const trackingPoints: TrackingPoint[] = [
@@ -165,6 +188,16 @@ const statusConfig: Record<TrackingStatus, { label: string; bg: string; text: st
   },
 };
 
+const tripStatusLabels: Record<LogisticsStatus, string> = {
+  pending: 'En attente',
+  assigned: 'Assigné',
+  in_transit: 'En route',
+  delivered: 'Livré',
+  delayed: 'Retard',
+  failed: 'Incident',
+  cancelled: 'Annulé',
+};
+
 const statusToTracking = (status: LogisticsStatus): TrackingStatus => {
   if (status === 'assigned') return 'available';
   if (status === 'in_transit') return 'busy';
@@ -196,12 +229,24 @@ const pointIcon: Record<TrackingPoint['kind'], React.ComponentProps<typeof Icon>
 export const LogisticsTracking: React.FC = () => {
   const [activeTripId, setActiveTripId] = useState('trip-001');
   const [geoAvailable, setGeoAvailable] = useState(() => typeof navigator !== 'undefined' && 'geolocation' in navigator);
+  const [tripOverrides, setTripOverrides] = useState<Record<string, LogisticsStatus>>({});
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
-  const activeTrip = liveTrips.find((trip) => trip.id === activeTripId) ?? liveTrips[0];
+  const activeTripBase = liveTrips.find((trip) => trip.id === activeTripId) ?? liveTrips[0];
+  const activeTrip = {
+    ...activeTripBase,
+    status: tripOverrides[activeTripBase.id] ?? activeTripBase.status,
+  };
   const activePoints = useMemo(
     () => trackingPoints.filter((point) => point.tripId === activeTrip.id),
     [activeTrip.id]
   );
+  const activeTimeline = timelineEvents.filter((event) => event.tripId === activeTrip.id);
+
+  const updateTripStatus = (status: LogisticsStatus) => {
+    setTripOverrides((current) => ({ ...current, [activeTrip.id]: status }));
+    setActionMessage(`Statut mis à jour: ${tripStatusLabels[status]}`);
+  };
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.45fr_0.75fr]">
@@ -319,6 +364,93 @@ export const LogisticsTracking: React.FC = () => {
               </div>
             </dl>
           </div>
+        </section>
+
+        <section className={`${logisticsCard} p-5`}>
+          <div className="flex items-center gap-2">
+            <Icon name="document-text" className="h-5 w-5 text-brand-blue" />
+            <h2 className="text-lg font-black text-content-primary">Détail trajet</h2>
+          </div>
+          <div className="mt-4 rounded-xl bg-surface-muted p-4">
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-content-muted">Origine</dt>
+                <dd className="font-black text-content-primary">{activeTrip.origin}</dd>
+              </div>
+              <div>
+                <dt className="text-content-muted">Destination</dt>
+                <dd className="font-black text-content-primary">{activeTrip.destination}</dd>
+              </div>
+              <div>
+                <dt className="text-content-muted">Distance</dt>
+                <dd className="font-black text-content-primary">{activeTrip.distanceKm} km</dd>
+              </div>
+              <div>
+                <dt className="text-content-muted">Durée estimée</dt>
+                <dd className="font-black text-content-primary">{activeTrip.estimatedDurationMinutes} min</dd>
+              </div>
+              <div>
+                <dt className="text-content-muted">Client</dt>
+                <dd className="font-black text-content-primary">{activeTrip.customerName}</dd>
+              </div>
+              <div>
+                <dt className="text-content-muted">Statut</dt>
+                <dd className="font-black text-content-primary">{tripStatusLabels[activeTrip.status]}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="mt-5">
+            <h3 className="text-sm font-black text-content-primary">Timeline</h3>
+            <ol className="mt-3 space-y-3">
+              {activeTimeline.map((event) => (
+                <li key={event.id} className="flex gap-3 text-sm">
+                  <span className={`mt-1 h-3 w-3 rounded-full ${event.completed ? 'bg-green-500' : 'bg-surface-border-subtle'}`} />
+                  <span>
+                    <span className="block font-black text-content-primary">{event.title}</span>
+                    <span className="text-xs text-content-muted">{event.timestamp}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => updateTripStatus(activeTrip.status === 'delivered' ? 'in_transit' : 'delivered')}
+              className="rounded-xl bg-brand-blue px-3 py-2 text-xs font-black text-white"
+            >
+              Update status
+            </button>
+            <button
+              type="button"
+              onClick={() => setActionMessage(`Contact chauffeur: ${activeTrip.driverName}`)}
+              className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+            >
+              Contacter chauffeur
+            </button>
+            <button
+              type="button"
+              onClick={() => setActionMessage(`Contact client: ${activeTrip.customerName}`)}
+              className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+            >
+              Contacter client
+            </button>
+            <button
+              type="button"
+              onClick={() => updateTripStatus('failed')}
+              className="rounded-xl border border-red-200 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50"
+            >
+              Signaler incident
+            </button>
+          </div>
+
+          {actionMessage && (
+            <p className="mt-4 rounded-xl bg-brand-blue/10 px-3 py-2 text-sm font-bold text-brand-blue">
+              {actionMessage}
+            </p>
+          )}
         </section>
 
         <section className={`${logisticsCard} p-5`}>
