@@ -23,11 +23,21 @@ from app.schemas.logistics import (
     TaskCompleteRequest,
     TaskFailRequest,
     TaskCancelRequest,
-    AvailableDriverResponse
+    AvailableDriverResponse,
+    VehicleCreate,
+    VehicleUpdate,
+    VehicleResponse,
+    VehicleListResponse,
+    TripResponse,
+    TripListResponse,
+    TrackingPointResponse,
+    TrackingPointListResponse,
+    MaintenanceEventResponse,
+    MaintenanceEventListResponse,
 )
 from app.services.dispatch_service import DispatchService
 from app.services.notification_service import NotificationService
-from app.models.logistics import Driver, DriverStatus, TaskType, DeliveryTaskStatus
+from app.models.logistics import Driver, DriverStatus, TaskType, DeliveryTask, DeliveryTaskStatus, Vehicle, VehicleStatus, DriverLocation, VehicleMaintenanceStatus
 
 router = APIRouter(prefix="/logistics", tags=["logistics"])
 
@@ -152,6 +162,13 @@ def _build_driver_response(driver, db: Session) -> DriverResponse:
         created_at=driver.created_at,
         updated_at=driver.updated_at,
     )
+
+
+def _driver_display_name(driver: Optional[Driver], db: Session) -> Optional[str]:
+    if not driver:
+        return None
+    user = db.query(User).filter(User.id == driver.user_id).first()
+    return getattr(user, "name", None) or getattr(user, "email", None)
 
 
 def _format_address_line(address) -> Optional[str]:
@@ -714,3 +731,352 @@ def cancel_task(
     db.commit()
     db.refresh(task)
     return task
+
+
+# ===== Vehicle Routes =====
+
+def _build_vehicle_response(vehicle: Vehicle) -> VehicleResponse:
+    return VehicleResponse(
+        id=vehicle.id,
+        plate=vehicle.plate,
+        type=vehicle.type,
+        status=vehicle.status,
+        driver_id=vehicle.driver_id,
+        assigned_driver_name=vehicle.assigned_driver_name,
+        zone=vehicle.zone or "",
+        location=vehicle.location or "",
+        last_known_location=vehicle.last_known_location,
+        mileage_km=vehicle.mileage_km,
+        insurance_expires_at=vehicle.insurance_expires_at,
+        maintenance={
+            "status": vehicle.maintenance_status,
+            "nextServiceAtKm": vehicle.maintenance_next_service_km,
+            "notes": vehicle.maintenance_notes,
+        },
+        created_at=vehicle.created_at,
+        updated_at=vehicle.updated_at,
+    )
+
+
+@router.get("/vehicles", response_model=VehicleListResponse)
+def list_vehicles(
+    status: Optional[VehicleStatus] = Query(None, description="Filtrer par statut"),
+    type: Optional[str] = Query(None, description="Filtrer par type"),
+    zone: Optional[str] = Query(None, description="Filtrer par zone"),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lister les véhicules de la flotte"""
+    _ensure_logistics_operator(current_user)
+    skip = (page - 1) * page_size
+
+    query = db.query(Vehicle)
+    if status:
+        query = query.filter(Vehicle.status == status)
+    if type:
+        query = query.filter(Vehicle.type == type)
+    if zone:
+        query = query.filter(Vehicle.zone == zone)
+
+    total = query.count()
+    vehicles = query.order_by(Vehicle.created_at.desc()).offset(skip).limit(page_size).all()
+
+    return VehicleListResponse(
+        vehicles=[_build_vehicle_response(v) for v in vehicles],
+    )
+
+
+@router.get("/vehicles/{vehicle_id}", response_model=VehicleResponse)
+def get_vehicle(
+    vehicle_id: UUID,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Obtenir un véhicule par son ID"""
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Véhicule non trouvé"
+        )
+    return _build_vehicle_response(vehicle)
+
+
+@router.post("/vehicles", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
+def create_vehicle(
+    vehicle_data: VehicleCreate,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Créer un nouveau véhicule"""
+    _ensure_logistics_operator(current_user)
+
+    existing = db.query(Vehicle).filter(Vehicle.plate == vehicle_data.plate).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Un véhicule avec cette immatriculation existe déjà"
+        )
+
+    vehicle = Vehicle(
+        plate=vehicle_data.plate,
+        type=vehicle_data.type,
+        status=vehicle_data.status,
+        driver_id=vehicle_data.driver_id,
+        assigned_driver_name=vehicle_data.assigned_driver_name,
+        zone=vehicle_data.zone,
+        location=vehicle_data.location,
+        last_known_location=vehicle_data.last_known_location,
+        mileage_km=vehicle_data.mileage_km,
+        insurance_expires_at=vehicle_data.insurance_expires_at,
+        maintenance_status=vehicle_data.maintenance_status,
+        maintenance_next_service_km=vehicle_data.maintenance_next_service_km,
+        maintenance_notes=vehicle_data.maintenance_notes,
+    )
+    db.add(vehicle)
+    db.commit()
+    db.refresh(vehicle)
+    return _build_vehicle_response(vehicle)
+
+
+@router.patch("/vehicles/{vehicle_id}", response_model=VehicleResponse)
+def update_vehicle(
+    vehicle_id: UUID,
+    vehicle_data: VehicleUpdate,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Mettre à jour un véhicule"""
+    _ensure_logistics_operator(current_user)
+
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Véhicule non trouvé"
+        )
+
+    update_data = vehicle_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(vehicle, field, value)
+
+    db.commit()
+    db.refresh(vehicle)
+    return _build_vehicle_response(vehicle)
+
+
+@router.delete("/vehicles/{vehicle_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_vehicle(
+    vehicle_id: UUID,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Supprimer un véhicule"""
+    _ensure_logistics_operator(current_user)
+
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Véhicule non trouvé"
+        )
+
+    db.delete(vehicle)
+    db.commit()
+
+
+# ===== Trip Routes =====
+
+def _map_task_status_to_logistics(task_status) -> str:
+    mapping = {
+        DeliveryTaskStatus.PENDING: "pending",
+        DeliveryTaskStatus.OPEN_MARKET: "pending",
+        DeliveryTaskStatus.CLAIMED: "assigned",
+        DeliveryTaskStatus.DRIVER_ASSIGNED: "assigned",
+        DeliveryTaskStatus.ACCEPTED: "assigned",
+        DeliveryTaskStatus.IN_PROGRESS: "in_transit",
+        DeliveryTaskStatus.COMPLETED: "delivered",
+        DeliveryTaskStatus.FAILED: "failed",
+        DeliveryTaskStatus.CANCELLED: "cancelled",
+        DeliveryTaskStatus.EXPIRED: "cancelled",
+    }
+    return mapping.get(task_status, "pending")
+
+
+def _task_statuses_for_logistics_status(logistics_status: str) -> list[DeliveryTaskStatus]:
+    mapping = {
+        "pending": [DeliveryTaskStatus.PENDING, DeliveryTaskStatus.OPEN_MARKET],
+        "assigned": [
+            DeliveryTaskStatus.CLAIMED,
+            DeliveryTaskStatus.DRIVER_ASSIGNED,
+            DeliveryTaskStatus.ACCEPTED,
+        ],
+        "in_transit": [DeliveryTaskStatus.IN_PROGRESS],
+        "delivered": [DeliveryTaskStatus.COMPLETED],
+        "failed": [DeliveryTaskStatus.FAILED],
+        "cancelled": [DeliveryTaskStatus.CANCELLED, DeliveryTaskStatus.EXPIRED],
+    }
+    return mapping.get(logistics_status, [])
+
+
+def _build_trip_response(task, db: Session) -> TripResponse:
+    order = OrderRepository(db).get_by_id(task.order_id)
+    driver = None
+    vehicle = None
+    if task.driver_id:
+        driver = db.query(Driver).filter(Driver.id == task.driver_id).first()
+        if driver:
+            vehicle = db.query(Vehicle).filter(Vehicle.driver_id == driver.id).first()
+
+    pickup_commune = getattr(order, "pickup_commune", None) or ""
+    delivery_commune = getattr(getattr(order, "delivery_address", None), "commune", None) or ""
+
+    return TripResponse(
+        id=task.id,
+        taskId=task.id,
+        status=_map_task_status_to_logistics(task.status),
+        origin=pickup_commune or "N/A",
+        destination=delivery_commune or "N/A",
+        customerName=getattr(order, "customer_name", None),
+        driverName=_driver_display_name(driver, db),
+        vehiclePlate=getattr(vehicle, "plate", None) if vehicle else None,
+        estimatedDurationMinutes=25,
+        etaMinutes=15,
+        distanceKm=5.0,
+    )
+
+
+@router.get("/trips", response_model=TripListResponse)
+def list_trips(
+    status: Optional[str] = Query(None, description="Filtrer par statut"),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    page_size: int = Query(50, ge=1, le=200, description="Taille de page"),
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lister les trajets (dérivés des tâches de livraison)"""
+    _ensure_logistics_operator(current_user)
+    skip = (page - 1) * page_size
+
+    query = db.query(DeliveryTask)
+    if status:
+        task_statuses = _task_statuses_for_logistics_status(status)
+        if task_statuses:
+            query = query.filter(DeliveryTask.status.in_(task_statuses))
+        else:
+            query = query.filter(DeliveryTask.status == status)
+
+    total = query.count()
+    tasks = query.order_by(DeliveryTask.created_at.desc()).offset(skip).limit(page_size).all()
+
+    return TripListResponse(
+        trips=[_build_trip_response(task, db) for task in tasks],
+    )
+
+
+# ===== Tracking Point Routes =====
+
+@router.get("/tracking-points", response_model=TrackingPointListResponse)
+def list_tracking_points(
+    trip_id: Optional[UUID] = Query(None, description="Filtrer par trajet"),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    page_size: int = Query(100, ge=1, le=500, description="Taille de page"),
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lister les points de suivi (dérivés des localisations chauffeur)"""
+    _ensure_logistics_operator(current_user)
+    skip = (page - 1) * page_size
+
+    locations = db.query(DriverLocation).order_by(DriverLocation.recorded_at.desc()).offset(skip).limit(page_size).all()
+
+    tracking_points = []
+    for loc in locations:
+        driver = db.query(Driver).filter(Driver.id == loc.driver_id).first()
+        vehicle = None
+        if driver:
+            vehicle = db.query(Vehicle).filter(Vehicle.driver_id == driver.id).first()
+
+        tracking_points.append(TrackingPointResponse(
+            id=loc.id,
+            tripId=loc.driver_id,
+            kind="driver",
+            label=f"Position chauffeur",
+            latitude=loc.latitude,
+            longitude=loc.longitude,
+            recordedAt=loc.recorded_at.isoformat() if loc.recorded_at else "",
+            status="in_transit",
+            driverName=_driver_display_name(driver, db),
+            vehiclePlate=getattr(vehicle, "plate", None) if vehicle else None,
+        ))
+
+    return TrackingPointListResponse(
+        tracking_points=tracking_points,
+    )
+
+
+# ===== Maintenance Event Routes =====
+
+def _build_maintenance_response(vehicle: Vehicle) -> Optional[MaintenanceEventResponse]:
+    if vehicle.maintenance_status == VehicleMaintenanceStatus.OK and not vehicle.insurance_expires_at:
+        return None
+
+    maintenance_status_map = {
+        VehicleMaintenanceStatus.OK: "done",
+        VehicleMaintenanceStatus.SCHEDULED: "scheduled",
+        VehicleMaintenanceStatus.IN_PROGRESS: "in_progress",
+        VehicleMaintenanceStatus.OVERDUE: "overdue",
+    }
+
+    from datetime import datetime, timezone
+    alert = None
+    if vehicle.insurance_expires_at and vehicle.insurance_expires_at < datetime.now(timezone.utc):
+        alert = "insurance_expired"
+    elif vehicle.maintenance_status == VehicleMaintenanceStatus.OVERDUE:
+        alert = "maintenance_overdue"
+
+    return MaintenanceEventResponse(
+        id=vehicle.id,
+        vehicleId=vehicle.id,
+        vehiclePlate=vehicle.plate,
+        title=f"Maintenance {vehicle.plate}",
+        type="preventive",
+        status=maintenance_status_map.get(vehicle.maintenance_status, "scheduled"),
+        dueDate=vehicle.insurance_expires_at.isoformat() if vehicle.insurance_expires_at else "",
+        cost=0.0,
+        nextControlAt=vehicle.insurance_expires_at.isoformat() if vehicle.insurance_expires_at else "",
+        alert=alert,
+        vehicleAvailable=vehicle.status not in [VehicleStatus.IN_TRANSIT, VehicleStatus.DELAYED],
+        costEstimate=0.0,
+    )
+
+
+@router.get("/maintenance-events", response_model=MaintenanceEventListResponse)
+def list_maintenance_events(
+    vehicle_id: Optional[UUID] = Query(None, description="Filtrer par véhicule"),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    page_size: int = Query(50, ge=1, le=200, description="Taille de page"),
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lister les événements de maintenance (dérivés des véhicules)"""
+    _ensure_logistics_operator(current_user)
+    skip = (page - 1) * page_size
+
+    query = db.query(Vehicle)
+    if vehicle_id:
+        query = query.filter(Vehicle.id == vehicle_id)
+
+    vehicles = query.order_by(Vehicle.created_at.desc()).offset(skip).limit(page_size).all()
+
+    events = []
+    for v in vehicles:
+        event = _build_maintenance_response(v)
+        if event:
+            events.append(event)
+
+    return MaintenanceEventListResponse(
+        maintenance_events=events,
+    )

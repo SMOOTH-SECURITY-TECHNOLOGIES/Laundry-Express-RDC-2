@@ -9,8 +9,16 @@ from app.models.logistics import (
     DriverStatus,
     TaskType,
     DeliveryTaskStatus,
-    LocationType
+    LocationType,
+    VehicleType,
+    VehicleStatus,
+    VehicleMaintenanceStatus
 )
+
+
+def _to_camel(s: str) -> str:
+    parts = s.split("_")
+    return parts[0] + "".join(w.capitalize() for w in parts[1:])
 
 
 # ===== Driver Schemas =====
@@ -198,3 +206,145 @@ class TaskAssignmentResult(BaseModel):
     driver: DriverResponse
     success: bool
     message: Optional[str] = None
+
+
+# ===== Vehicle Schemas =====
+
+class VehicleCreate(BaseModel):
+    """Schéma pour créer un véhicule"""
+    plate: str = Field(..., max_length=50)
+    type: VehicleType
+    status: VehicleStatus = VehicleStatus.PENDING
+    driver_id: Optional[UUID] = None
+    assigned_driver_name: Optional[str] = Field(None, max_length=200)
+    zone: Optional[str] = Field(None, max_length=100)
+    location: Optional[str] = Field(None, max_length=200)
+    last_known_location: Optional[str] = Field(None, max_length=200)
+    mileage_km: int = Field(0, ge=0)
+    insurance_expires_at: Optional[datetime] = None
+    maintenance_status: VehicleMaintenanceStatus = VehicleMaintenanceStatus.OK
+    maintenance_next_service_km: int = Field(0, ge=0)
+    maintenance_notes: Optional[str] = None
+
+
+class VehicleUpdate(BaseModel):
+    """Schéma pour mettre à jour un véhicule"""
+    plate: Optional[str] = Field(None, max_length=50)
+    type: Optional[VehicleType] = None
+    status: Optional[VehicleStatus] = None
+    driver_id: Optional[UUID] = None
+    assigned_driver_name: Optional[str] = Field(None, max_length=200)
+    zone: Optional[str] = Field(None, max_length=100)
+    location: Optional[str] = Field(None, max_length=200)
+    last_known_location: Optional[str] = Field(None, max_length=200)
+    mileage_km: Optional[int] = Field(None, ge=0)
+    insurance_expires_at: Optional[datetime] = None
+    maintenance_status: Optional[VehicleMaintenanceStatus] = None
+    maintenance_next_service_km: Optional[int] = Field(None, ge=0)
+    maintenance_notes: Optional[str] = None
+
+
+class VehicleMaintenanceResponse(BaseModel):
+    """Schéma de réponse pour la maintenance d'un véhicule"""
+    status: VehicleMaintenanceStatus
+    next_service_at_km: int = Field(alias="nextServiceAtKm")
+    notes: Optional[str] = None
+
+    model_config = {"alias_generator": _to_camel, "populate_by_name": True}
+
+
+class VehicleResponse(BaseModel):
+    """Schéma de réponse pour un véhicule"""
+    id: UUID
+    plate: str
+    type: VehicleType
+    status: VehicleStatus
+    driver_id: Optional[UUID] = Field(None, alias="driverId")
+    assigned_driver_name: Optional[str] = Field(None, alias="assignedDriverName")
+    zone: str = ""
+    location: str = ""
+    last_known_location: Optional[str] = Field(None, alias="lastKnownLocation")
+    mileage_km: int = Field(0, alias="mileageKm")
+    insurance_expires_at: Optional[datetime] = Field(None, alias="insuranceExpiresAt")
+    maintenance: VehicleMaintenanceResponse
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True, "alias_generator": _to_camel, "populate_by_name": True}
+
+
+class VehicleListResponse(BaseModel):
+    """Schéma de réponse pour la liste des véhicules"""
+    vehicles: List[VehicleResponse]
+
+
+# ===== Trip Schemas =====
+
+class TripResponse(BaseModel):
+    """Schéma de réponse pour un trajet"""
+    id: UUID
+    taskId: UUID = Field(alias="taskId")
+    status: str
+    origin: str = ""
+    destination: str = ""
+    customerName: Optional[str] = Field(None, alias="customerName")
+    driverName: Optional[str] = Field(None, alias="driverName")
+    vehiclePlate: Optional[str] = Field(None, alias="vehiclePlate")
+    estimatedDurationMinutes: Optional[int] = Field(None, alias="estimatedDurationMinutes")
+    etaMinutes: Optional[int] = Field(None, alias="etaMinutes")
+    distanceKm: Optional[float] = Field(None, alias="distanceKm")
+
+    model_config = {"from_attributes": True, "alias_generator": _to_camel, "populate_by_name": True}
+
+
+class TripListResponse(BaseModel):
+    """Schéma de réponse pour la liste des trajets"""
+    trips: List[TripResponse]
+
+
+# ===== Tracking Point Schemas =====
+
+class TrackingPointResponse(BaseModel):
+    """Schéma de réponse pour un point de suivi"""
+    id: UUID
+    tripId: UUID = Field(alias="tripId")
+    kind: str
+    label: str = ""
+    latitude: float = 0.0
+    longitude: float = 0.0
+    recordedAt: str = Field(alias="recordedAt")
+    status: str
+    driverName: Optional[str] = Field(None, alias="driverName")
+    vehiclePlate: Optional[str] = Field(None, alias="vehiclePlate")
+
+    model_config = {"from_attributes": True, "alias_generator": _to_camel, "populate_by_name": True}
+
+
+class TrackingPointListResponse(BaseModel):
+    """Schéma de réponse pour la liste des points de suivi"""
+    tracking_points: List[TrackingPointResponse]
+
+
+# ===== Maintenance Event Schemas =====
+
+class MaintenanceEventResponse(BaseModel):
+    """Schéma de réponse pour un événement de maintenance"""
+    id: UUID
+    vehicleId: UUID = Field(alias="vehicleId")
+    vehiclePlate: Optional[str] = Field(None, alias="vehiclePlate")
+    title: str = ""
+    type: str
+    status: str
+    dueDate: str = Field(alias="dueDate")
+    cost: float = 0.0
+    nextControlAt: str = Field(alias="nextControlAt")
+    alert: Optional[str] = None
+    vehicleAvailable: bool = Field(True, alias="vehicleAvailable")
+    costEstimate: Optional[float] = Field(None, alias="costEstimate")
+
+    model_config = {"from_attributes": True, "alias_generator": _to_camel, "populate_by_name": True}
+
+
+class MaintenanceEventListResponse(BaseModel):
+    """Schéma de réponse pour la liste des événements de maintenance"""
+    maintenance_events: List[MaintenanceEventResponse]

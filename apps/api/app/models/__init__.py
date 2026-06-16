@@ -26,6 +26,7 @@ from app.models.logistics import (
     Driver,
     DriverLocation,
     DeliveryTask,
+    Vehicle,
 )
 from app.models.payment import (
     PaymentMethod,
@@ -288,6 +289,7 @@ __all__ = [
     "Driver",
     "DriverLocation",
     "DeliveryTask",
+    "Vehicle",
     "PaymentMethod",
     "PaymentStatus",
     "PaymentIntentStatus",
