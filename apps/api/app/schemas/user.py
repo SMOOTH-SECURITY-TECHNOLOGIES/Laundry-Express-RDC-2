@@ -120,6 +120,12 @@ class CustomerAddressBase(BaseModel):
     instructions: Optional[str] = None
     is_default: bool = False
 
+    @validator('contact_name', 'contact_phone', 'address_line_2', 'zone', pre=True)
+    def empty_str_to_none(cls, v):
+        if v is not None and isinstance(v, str) and v.strip() == '':
+            return None
+        return v
+
 
 class CustomerAddressCreate(CustomerAddressBase):
     """Schéma pour création d'adresse"""
@@ -140,6 +146,12 @@ class CustomerAddressUpdate(BaseModel):
     longitude: Optional[float] = Field(None, ge=-180, le=180)
     instructions: Optional[str] = None
     is_default: Optional[bool] = None
+
+    @validator('label', 'contact_name', 'contact_phone', 'address_line_1', 'address_line_2', 'commune', 'zone', pre=True)
+    def empty_str_to_none(cls, v):
+        if v is not None and isinstance(v, str) and v.strip() == '':
+            return None
+        return v
 
 
 class CustomerAddressResponse(CustomerAddressBase):
