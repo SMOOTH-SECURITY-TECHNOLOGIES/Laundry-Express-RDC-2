@@ -129,9 +129,9 @@ const SuggestedDispatchTable: React.FC<{
   onApplySuggestion: (label: string) => void;
 }> = ({ onAutoDispatch, onApplySuggestion }) => (
   <div className={`${logisticsCard} overflow-hidden`}>
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-surface-border-subtle">
+    <div className="flex flex-col gap-3 border-b border-surface-border-subtle px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
       <div>
-        <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-base font-extrabold text-content-primary sm:text-lg">
           <Icon name="sparkles" className="w-5 h-5 text-brand-orange" />
           Suggestions auto-dispatch
         </h2>
@@ -140,12 +140,39 @@ const SuggestedDispatchTable: React.FC<{
       <button
         type="button"
         onClick={onAutoDispatch}
-        className="px-4 py-2 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+        className="min-h-11 rounded-xl bg-brand-blue px-4 py-3 text-sm font-semibold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:min-h-0 sm:py-2"
       >
         Appliquer les meilleures suggestions
       </button>
     </div>
-    <div className="overflow-x-auto">
+    <div className="space-y-3 p-4 sm:hidden">
+      {DISPATCH_SUGGESTIONS.map((row) => (
+        <article key={row.missionId} className="rounded-xl border border-surface-border-subtle bg-surface-muted/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-mono text-sm font-bold text-content-primary">#{row.missionId}</p>
+              <p className="mt-1 text-sm font-semibold text-content-primary">{row.client}</p>
+              <p className="text-xs text-content-muted">{row.time} · {row.distance} km</p>
+            </div>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-brand-blue">{row.score}%</span>
+          </div>
+          <div className="mt-3 rounded-lg bg-surface-card p-3">
+            <p className="text-sm font-semibold text-content-primary">{row.driver}</p>
+            <p className={`text-xs ${row.driverStatus === 'dispo' ? 'text-green-600' : 'text-orange-600'}`}>
+              {row.driverStatus === 'dispo' ? 'Disponible maintenant' : 'À planifier après mission'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onApplySuggestion(`${row.action} ${row.missionId} à ${row.driver}`)}
+            className="mt-3 min-h-11 w-full rounded-xl border border-brand-blue px-4 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+          >
+            {row.action}
+          </button>
+        </article>
+      ))}
+    </div>
+    <div className="hidden overflow-x-auto sm:block">
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50 text-xs uppercase text-content-muted">
           <tr>
@@ -194,18 +221,18 @@ const SuggestedDispatchTable: React.FC<{
 );
 
 const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpenTour }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
     {ACTIVE_TOURS.map((tour) => (
-      <article key={tour.id} className={`${logisticsCard} p-5`}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <article key={tour.id} className={`${logisticsCard} p-4 sm:p-5`}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <p className="font-mono text-xs font-bold text-brand-blue">#{tour.id}</p>
             <h3 className="mt-1 text-lg font-extrabold text-content-primary">{tour.driver}</h3>
             <p className="mt-1 text-sm text-content-muted">Prochain arrêt : {tour.nextStop}</p>
           </div>
-          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">{tour.status}</span>
+          <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">{tour.status}</span>
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-5 text-center">
+        <div className="mt-5 grid grid-cols-3 gap-2 text-center sm:gap-3">
           <div className="rounded-xl bg-blue-50 p-3">
             <p className="text-xl font-extrabold text-brand-blue">{tour.pickups}</p>
             <p className="text-[11px] text-content-muted">Collectes</p>
@@ -231,7 +258,7 @@ const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpen
         <button
           type="button"
           onClick={() => onOpenTour(tour.id)}
-          className="mt-5 w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+          className="mt-5 min-h-11 w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
         >
           Ouvrir la tournée
         </button>
@@ -247,25 +274,25 @@ const ALERT_TONE_CLASS: Record<string, string> = {
 };
 
 const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }> = ({ onAlertAction }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
     {ACTIONABLE_ALERTS.map((alert) => {
       const tone = ALERT_TONE_CLASS[alert.tone] || ALERT_TONE_CLASS.green;
       return (
         <article key={alert.id} className={`rounded-2xl border p-4 ${tone}`}>
           <h3 className="text-sm font-extrabold text-content-primary">{alert.title}</h3>
           <p className="mt-1 min-h-[40px] text-sm text-content-muted">{alert.detail}</p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
               onClick={() => onAlertAction(`${alert.primary} - ${alert.title}`)}
-              className="rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="min-h-10 rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-2 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.primary}
             </button>
             <button
               type="button"
               onClick={() => onAlertAction(`${alert.secondary} - ${alert.title}`)}
-              className="rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="min-h-10 rounded-lg px-3 py-2 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.secondary}
             </button>
@@ -278,13 +305,42 @@ const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }
 
 const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> = ({ onDriverAction }) => (
   <div className={`${logisticsCard} overflow-hidden`}>
-    <div className="px-5 py-4 border-b border-surface-border-subtle">
-      <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
+    <div className="border-b border-surface-border-subtle px-4 py-4 sm:px-5">
+      <h2 className="flex items-center gap-2 text-base font-extrabold text-content-primary sm:text-lg">
         <Icon name="trophy" className="w-5 h-5 text-brand-orange" />
         Performance chauffeur individuelle
       </h2>
     </div>
-    <div className="overflow-x-auto">
+    <div className="space-y-3 p-4 sm:hidden">
+      {DRIVER_RANKING.map((driver) => (
+        <article key={driver.name} className="rounded-xl border border-surface-border-subtle bg-surface-muted/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-bold text-content-primary">{driver.name}</p>
+              <p className="mt-1 text-xs text-content-muted">{driver.missions} missions · {driver.delays} retards</p>
+            </div>
+            <span className="flex items-center gap-1 font-bold text-content-primary">
+              <Icon name="star" className="h-3.5 w-3.5 text-yellow-500" />
+              {driver.rating}
+            </span>
+          </div>
+          <div className="mt-3 rounded-lg bg-surface-card p-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-content-muted">À temps</span>
+              <span className={`font-bold ${driver.onTime >= 90 ? 'text-green-600' : 'text-orange-600'}`}>{driver.onTime}%</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onDriverAction(`${driver.coaching ? 'Coaching' : 'Statistiques'} - ${driver.name}`)}
+            className={`mt-3 min-h-11 w-full rounded-xl px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${driver.coaching ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-brand-blue'}`}
+          >
+            {driver.coaching ? 'Coaching' : 'Voir stats'}
+          </button>
+        </article>
+      ))}
+    </div>
+    <div className="hidden overflow-x-auto sm:block">
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50 text-xs uppercase text-content-muted">
           <tr>
@@ -416,7 +472,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
                 <button
                   type="button"
                   onClick={() => announceAction('Optimisation lancée pour les tournées multi-arrêts.')}
-                  className="rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                  className="min-h-11 w-full rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:w-auto"
                 >
                   Optimiser les tournées
                 </button>
@@ -454,13 +510,13 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
   return (
     <div className="space-y-6">
       <div className={`${logisticsCard} p-4 sm:p-6`}>
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
+        <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">
+          <div className="min-w-0">
             <p className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-1">COCKPIT DISPATCHER</p>
-            <h1 className="text-2xl font-extrabold text-content-primary">Cockpit logistique universel</h1>
-            <p className="text-sm text-content-muted mt-1">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
+            <h1 className="text-xl font-extrabold leading-tight text-content-primary sm:text-2xl">Cockpit logistique universel</h1>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-content-muted">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
           </div>
-          <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
+          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 lg:w-auto">
             <button
               type="button"
               onClick={handleRefresh}
@@ -495,7 +551,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
         {KPI_CARDS.map((kpi) => (
           <div key={kpi.label} className={`${logisticsCard} p-4 sm:p-5`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -503,7 +559,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
                 <Icon name={kpi.icon} className="h-5 w-5 sm:h-6 sm:w-6" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-content-muted">{kpi.label}</p>
+                <p className="text-xs font-semibold text-content-muted sm:text-sm">{kpi.label}</p>
                 <p className="mt-1 break-words text-xl font-extrabold tracking-tight text-content-primary sm:text-3xl">{kpi.value}</p>
                 <p className="mt-1 text-xs font-medium text-content-muted">{kpi.sub}</p>
               </div>
@@ -513,7 +569,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       </div>
 
       <div>
-        <nav className="-mx-4 mb-6 flex gap-1 overflow-x-auto bg-surface-muted px-4 py-1 sm:mx-0 sm:rounded-xl sm:p-1" role="tablist" aria-label="Sections logistiques">
+        <nav className="-mx-3 mb-5 flex gap-2 overflow-x-auto bg-surface-muted px-3 py-2 sm:mx-0 sm:mb-6 sm:rounded-xl sm:p-1" role="tablist" aria-label="Sections logistiques">
           {TABS.map((tab) => (
             <button
               type="button"
@@ -521,7 +577,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
               role="tab"
               aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2 ${
+              className={`flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:min-h-0 sm:py-2 ${
                 activeTab === tab.key
                   ? 'bg-surface-card text-content-primary shadow-sm'
                   : 'text-content-muted hover:text-content-primary'

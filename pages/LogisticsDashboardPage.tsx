@@ -347,8 +347,8 @@ export const LogisticsDashboardPage: React.FC = () => {
 
       <LogisticsTopbar title={sectionMeta.title} onMenuClick={() => setIsSidebarOpen(true)} />
 
-      <main className="relative z-0 px-4 pb-8 pt-[88px] md:ml-[260px] md:px-8 md:pt-6">
-        <div key={activeSection} className="mx-auto max-w-[1500px] space-y-6">
+      <main className="relative z-0 px-3 pb-8 pt-[88px] sm:px-4 md:ml-[260px] md:px-8 md:pt-6">
+        <div key={activeSection} className="mx-auto max-w-[1500px] space-y-5 sm:space-y-6">
           <LogisticsDesktopBar userName={userName} />
 
           {!isDashboard && (
@@ -363,8 +363,8 @@ export const LogisticsDashboardPage: React.FC = () => {
           )}
 
           <section>
-            <h1 className="text-3xl font-black text-content-primary">{sectionMeta.title}</h1>
-            <p className="mt-2 text-content-muted">{sectionMeta.subtitle}</p>
+            <h1 className="text-2xl font-black leading-tight text-content-primary sm:text-3xl">{sectionMeta.title}</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-content-muted sm:text-base">{sectionMeta.subtitle}</p>
           </section>
 
           {renderContent()}
