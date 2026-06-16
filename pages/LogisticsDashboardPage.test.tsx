@@ -134,9 +134,10 @@ describe('LogisticsDashboardPage', () => {
     expect(delayAction).not.toBeUndefined();
     expect(delayAction?.getAttribute('href')).toBe('#missions');
     view.click(delayAction!);
+    expect(byText(view.container, 'Mission ciblée depuis l’alerte: MSN-004')).not.toBeNull();
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
     expect(window.location.hash).toBe('#missions');
-    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard.', 'info');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004.', 'info');
     view.unmount();
 
     window.history.replaceState(null, '', '/#alerts');
@@ -160,7 +161,7 @@ describe('LogisticsDashboardPage', () => {
     reportsView.click(paymentAction!);
     expect(byText(reportsView.container, 'Rapports')).not.toBeNull();
     expect(window.location.hash).toBe('#reports');
-    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des rapports pour suivi paiement.', 'info');
+    expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des rapports pour suivi paiement. Mission cible: MSN-007.', 'info');
     reportsView.unmount();
   });
 

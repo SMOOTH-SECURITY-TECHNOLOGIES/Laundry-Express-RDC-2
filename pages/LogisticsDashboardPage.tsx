@@ -80,14 +80,26 @@ export const LogisticsDashboardPage: React.FC = () => {
     const hash = window.location.hash.replace('#', '');
     return isLogisticsSection(hash) ? hash : 'dashboard';
   });
+  const [missionFocusId, setMissionFocusId] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusMissionId')
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleRefresh = () => addNotification('Données actualisées', 'success');
   const handleAutoDispatch = () => addNotification('Auto-dispatch terminé : 12 missions assignées', 'success');
   const handleExport = () => addNotification('Export CSV généré', 'success');
 
-  const handleSectionChange = useCallback((section: string) => {
+  const handleSectionChange = useCallback((section: string, options?: { missionId?: string }) => {
     if (!isLogisticsSection(section)) return;
+    if (section === 'missions') {
+      const nextMissionId = options?.missionId ?? null;
+      setMissionFocusId(nextMissionId);
+      if (nextMissionId) sessionStorage.setItem('logisticsFocusMissionId', nextMissionId);
+      else sessionStorage.removeItem('logisticsFocusMissionId');
+    } else {
+      setMissionFocusId(null);
+      sessionStorage.removeItem('logisticsFocusMissionId');
+    }
     setActiveSection(section);
     const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
     window.history.replaceState(null, '', nextUrl);
@@ -97,7 +109,11 @@ export const LogisticsDashboardPage: React.FC = () => {
   useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (isLogisticsSection(hash)) setActiveSection(hash);
+      if (isLogisticsSection(hash)) {
+        setActiveSection(hash);
+        if (hash === 'missions') setMissionFocusId(sessionStorage.getItem('logisticsFocusMissionId'));
+        else setMissionFocusId(null);
+      }
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -131,7 +147,7 @@ export const LogisticsDashboardPage: React.FC = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'missions':
-        return <LogisticsMissions />;
+        return <LogisticsMissions focusMissionId={missionFocusId} onClearFocus={() => setMissionFocusId(null)} />;
       case 'drivers':
         return <LogisticsDrivers />;
       case 'performance':

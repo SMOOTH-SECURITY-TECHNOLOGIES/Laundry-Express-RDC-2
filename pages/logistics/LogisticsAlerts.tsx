@@ -71,9 +71,12 @@ const ACTION_TARGETS: Record<Alert['type'], { label: string; section: LogisticsS
 };
 
 interface LogisticsAlertsProps {
-  onNavigate: (section: LogisticsSection) => void;
+  onNavigate: (section: LogisticsSection, options?: { missionId?: string }) => void;
   onActionFeedback?: (message: string) => void;
 }
+
+const findMissionId = (alert: Alert) =>
+  `${alert.title} ${alert.description}`.match(/\bMSN-\d{3}\b/)?.[0] ?? null;
 
 export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, onActionFeedback }) => {
   const [activeFilter, setActiveFilter] = useState<string>('Toutes');
@@ -132,6 +135,7 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
           {filteredAlerts.map(alert => {
             const config = TYPE_CONFIG[alert.type];
             const action = ACTION_TARGETS[alert.type];
+            const missionId = findMissionId(alert);
             const actionClass = alert.type === 'retard'
               ? 'bg-brand-blue hover:bg-brand-blue/90'
               : alert.type === 'inactif'
@@ -162,8 +166,11 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
                     <a
                       href={`#${action.section}`}
                       onClick={() => {
-                        onNavigate(action.section);
-                        onActionFeedback?.(action.feedback);
+                        if (missionId) {
+                          sessionStorage.setItem('logisticsFocusMissionId', missionId);
+                        }
+                        onNavigate(action.section, { missionId: missionId ?? undefined });
+                        onActionFeedback?.(missionId ? `${action.feedback} Mission cible: ${missionId}.` : action.feedback);
                       }}
                       className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold ${actionClass}`}
                     >
