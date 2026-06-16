@@ -17,21 +17,28 @@ interface Driver {
   missionsCompleted: number;
   rating: number;
   availability: string;
+  documents?: { label: string; status: 'valid' | 'expired' | 'missing' }[];
+  performance?: {
+    punctuality: number;
+    delays: number;
+    cancellations: number;
+    revenue: number;
+  };
 }
 
 const MOCK_DRIVERS: Driver[] = [
-  { id: 'D-001', name: 'Kabongo Mutombo', phone: '+243 812 345 001', vehicle: 'Moto', vehiclePlate: 'CD-1234-KIN', commune: 'Gombe', email: 'kabongo.m@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 234, rating: 4.8, availability: 'Libre' },
-  { id: 'D-002', name: 'Tshimanga Amisi', phone: '+243 812 345 002', vehicle: 'Moto', vehiclePlate: 'CD-5678-KIN', commune: 'Lingwala', email: 'tshimanga.a@mail.cd', notes: 'Vétéran du réseau', status: 'Occupé', missionsCompleted: 187, rating: 4.5, availability: '2 missions' },
-  { id: 'D-003', name: 'Mutombo Patrick', phone: '+243 812 345 003', vehicle: 'Voiture', vehiclePlate: 'CD-9012-KIN', commune: 'Barumbu', email: '', notes: '', status: 'Disponible', missionsCompleted: 312, rating: 4.9, availability: 'Libre' },
-  { id: 'D-004', name: 'Kalonji Samy', phone: '+243 812 345 004', vehicle: 'Voiture', vehiclePlate: 'CD-3456-KIN', commune: 'Kinshasa', email: 'kalonji.s@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 156, rating: 4.3, availability: 'Libre' },
-  { id: 'D-005', name: 'Ngoy Lubobo', phone: '+243 812 345 005', vehicle: 'Moto', vehiclePlate: 'CD-7890-KIN', commune: 'Ngiri-Ngiri', email: '', notes: 'Rapide, fiable', status: 'Pause', missionsCompleted: 198, rating: 4.6, availability: 'Libre' },
-  { id: 'D-006', name: 'Ilunga Bosco', phone: '+243 812 345 006', vehicle: 'Camionnette', vehiclePlate: 'CD-2345-KIN', commune: 'Bandalungwa', email: 'ilunga.b@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 89, rating: 4.2, availability: 'Libre' },
-  { id: 'D-007', name: 'Kasongo Robert', phone: '+243 812 345 007', vehicle: 'Moto', vehiclePlate: 'CD-6789-KIN', commune: 'Kalamu', email: '', notes: '', status: 'Occupé', missionsCompleted: 267, rating: 4.7, availability: '1 mission' },
-  { id: 'D-008', name: 'Mbuyi Tshilomba', phone: '+243 812 345 008', vehicle: 'Moto', vehiclePlate: 'CD-0123-KIN', commune: 'Matete', email: 'mbuyi.t@mail.cd', notes: 'À surveiller - retard fréquent', status: 'Hors ligne', missionsCompleted: 45, rating: 3.8, availability: 'Libre' },
-  { id: 'D-009', name: 'Kanda Fulbert', phone: '+243 812 345 009', vehicle: 'Voiture', vehiclePlate: 'CD-4567-KIN', commune: 'Kimbanseke', email: '', notes: '', status: 'Disponible', missionsCompleted: 178, rating: 4.4, availability: 'Libre' },
-  { id: 'D-010', name: 'Mukendi Jean', phone: '+243 812 345 010', vehicle: 'Moto', vehiclePlate: 'CD-8901-KIN', commune: 'Masina', email: 'mukendi.j@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 112, rating: 4.1, availability: 'Libre' },
-  { id: 'D-011', name: 'Kapenda Nsunga', phone: '+243 812 345 011', vehicle: 'Moto', vehiclePlate: 'CD-2346-KIN', commune: 'Limete', email: '', notes: 'Nouveau chauffeur', status: 'Occupé', missionsCompleted: 34, rating: 4.0, availability: '1 mission' },
-  { id: 'D-012', name: 'Kalala Chantal', phone: '+243 812 345 012', vehicle: 'Camionnette', vehiclePlate: 'CD-6780-KIN', commune: 'Ngaliema', email: 'kalala.c@mail.cd', notes: '', status: 'Suspendu', missionsCompleted: 67, rating: 3.5, availability: 'Libre' },
+  { id: 'D-001', name: 'Kabongo Mutombo', phone: '+243 812 345 001', vehicle: 'Moto', vehiclePlate: 'CD-1234-KIN', commune: 'Gombe', email: 'kabongo.m@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 234, rating: 4.8, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 96, delays: 3, cancellations: 1, revenue: 12450 } },
+  { id: 'D-002', name: 'Tshimanga Amisi', phone: '+243 812 345 002', vehicle: 'Moto', vehiclePlate: 'CD-5678-KIN', commune: 'Lingwala', email: 'tshimanga.a@mail.cd', notes: 'Vétéran du réseau', status: 'Occupé', missionsCompleted: 187, rating: 4.5, availability: '2 missions', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 91, delays: 8, cancellations: 2, revenue: 9800 } },
+  { id: 'D-003', name: 'Mutombo Patrick', phone: '+243 812 345 003', vehicle: 'Voiture', vehiclePlate: 'CD-9012-KIN', commune: 'Barumbu', email: '', notes: '', status: 'Disponible', missionsCompleted: 312, rating: 4.9, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 98, delays: 2, cancellations: 0, revenue: 16800 } },
+  { id: 'D-004', name: 'Kalonji Samy', phone: '+243 812 345 004', vehicle: 'Voiture', vehiclePlate: 'CD-3456-KIN', commune: 'Kinshasa', email: 'kalonji.s@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 156, rating: 4.3, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'expired' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 88, delays: 11, cancellations: 3, revenue: 7450 } },
+  { id: 'D-005', name: 'Ngoy Lubobo', phone: '+243 812 345 005', vehicle: 'Moto', vehiclePlate: 'CD-7890-KIN', commune: 'Ngiri-Ngiri', email: '', notes: 'Rapide, fiable', status: 'Pause', missionsCompleted: 198, rating: 4.6, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'missing' }], performance: { punctuality: 93, delays: 5, cancellations: 1, revenue: 10200 } },
+  { id: 'D-006', name: 'Ilunga Bosco', phone: '+243 812 345 006', vehicle: 'Camionnette', vehiclePlate: 'CD-2345-KIN', commune: 'Bandalungwa', email: 'ilunga.b@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 89, rating: 4.2, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }], performance: { punctuality: 90, delays: 6, cancellations: 2, revenue: 6200 } },
+  { id: 'D-007', name: 'Kasongo Robert', phone: '+243 812 345 007', vehicle: 'Moto', vehiclePlate: 'CD-6789-KIN', commune: 'Kalamu', email: '', notes: '', status: 'Occupé', missionsCompleted: 267, rating: 4.7, availability: '1 mission', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }], performance: { punctuality: 94, delays: 4, cancellations: 1, revenue: 13200 } },
+  { id: 'D-008', name: 'Mbuyi Tshilomba', phone: '+243 812 345 008', vehicle: 'Moto', vehiclePlate: 'CD-0123-KIN', commune: 'Matete', email: 'mbuyi.t@mail.cd', notes: 'À surveiller - retard fréquent', status: 'Hors ligne', missionsCompleted: 45, rating: 3.8, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'expired' }], performance: { punctuality: 71, delays: 18, cancellations: 6, revenue: 2800 } },
+  { id: 'D-009', name: 'Kanda Fulbert', phone: '+243 812 345 009', vehicle: 'Voiture', vehiclePlate: 'CD-4567-KIN', commune: 'Kimbanseke', email: '', notes: '', status: 'Disponible', missionsCompleted: 178, rating: 4.4, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }], performance: { punctuality: 89, delays: 9, cancellations: 2, revenue: 8300 } },
+  { id: 'D-010', name: 'Mukendi Jean', phone: '+243 812 345 010', vehicle: 'Moto', vehiclePlate: 'CD-8901-KIN', commune: 'Masina', email: 'mukendi.j@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 112, rating: 4.1, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }], performance: { punctuality: 86, delays: 10, cancellations: 4, revenue: 5100 } },
+  { id: 'D-011', name: 'Kapenda Nsunga', phone: '+243 812 345 011', vehicle: 'Moto', vehiclePlate: 'CD-2346-KIN', commune: 'Limete', email: '', notes: 'Nouveau chauffeur', status: 'Occupé', missionsCompleted: 34, rating: 4.0, availability: '1 mission', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }], performance: { punctuality: 84, delays: 7, cancellations: 2, revenue: 1900 } },
+  { id: 'D-012', name: 'Kalala Chantal', phone: '+243 812 345 012', vehicle: 'Camionnette', vehiclePlate: 'CD-6780-KIN', commune: 'Ngaliema', email: 'kalala.c@mail.cd', notes: '', status: 'Suspendu', missionsCompleted: 67, rating: 3.5, availability: 'Libre', documents: [{ label: 'Permis', status: 'expired' }, { label: 'Assurance', status: 'missing' }], performance: { punctuality: 68, delays: 16, cancellations: 8, revenue: 2400 } },
 ];
 
 const STATUS_STYLES: Record<string, string> = {
@@ -56,6 +63,18 @@ const AVATAR_COLORS = [
   'bg-teal-500', 'bg-indigo-500', 'bg-red-500', 'bg-cyan-500', 'bg-amber-500',
 ];
 
+const DOCUMENT_STYLES: Record<NonNullable<Driver['documents']>[number]['status'], string> = {
+  valid: 'bg-green-100 text-green-700',
+  expired: 'bg-orange-100 text-orange-700',
+  missing: 'bg-red-100 text-red-700',
+};
+
+const DOCUMENT_LABELS: Record<NonNullable<Driver['documents']>[number]['status'], string> = {
+  valid: 'Valide',
+  expired: 'Expiré',
+  missing: 'Manquant',
+};
+
 interface LogisticsDriversProps {
   focusDriverName?: string | null;
   onClearFocus?: () => void;
@@ -70,6 +89,8 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
   const [drivers, setDrivers] = useState<Driver[]>(MOCK_DRIVERS);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('D-001');
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const stats = useMemo(() => ({
     total: drivers.length,
@@ -104,6 +125,11 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
     return result;
   }, [drivers, activeFilter, searchQuery, focusDriverName]);
 
+  const selectedDriver = useMemo(() => {
+    if (focusDriverName && filteredDrivers[0]) return filteredDrivers[0];
+    return drivers.find(d => d.id === selectedDriverId) ?? filteredDrivers[0] ?? drivers[0];
+  }, [drivers, filteredDrivers, focusDriverName, selectedDriverId]);
+
   const getInitials = (name: string) =>
     name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
@@ -132,10 +158,17 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
 
   const handleSuspend = (driverId: string) => {
     setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, status: 'Suspendu' } : d));
+    setActionMessage('Chauffeur suspendu');
   };
 
   const handleReactivate = (driverId: string) => {
     setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, status: 'Disponible' } : d));
+    setActionMessage('Chauffeur réactivé');
+  };
+
+  const handleAssignMission = (driver: Driver) => {
+    setDrivers(prev => prev.map(d => d.id === driver.id ? { ...d, status: 'Occupé', availability: '1 mission' } : d));
+    setActionMessage(`Mission assignée à ${driver.name}`);
   };
 
   return (
@@ -286,10 +319,21 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="p-1.5 text-brand-blue hover:bg-blue-50 rounded-lg transition-colors" title="Voir profil">
+                        <button
+                          onClick={() => setSelectedDriverId(driver.id)}
+                          className="p-1.5 text-brand-blue hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Voir profil"
+                        >
                           <Icon name="user" className="w-4 h-4" />
                         </button>
-                        <button className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Contacter">
+                        <button
+                          onClick={() => {
+                            setSelectedDriverId(driver.id);
+                            setActionMessage(`Appel chauffeur: ${driver.phone}`);
+                          }}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Contacter"
+                        >
                           <Icon name="phone" className="w-4 h-4" />
                         </button>
                         <button
@@ -325,6 +369,108 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
           </table>
         </div>
       </div>
+
+      {selectedDriver && (
+        <section className={`${logisticsCard} p-6`}>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-blue text-lg font-black text-white">
+                  {getInitials(selectedDriver.name)}
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-content-primary">Profil chauffeur</h2>
+                  <p className="mt-1 text-lg font-extrabold text-content-primary">{selectedDriver.name}</p>
+                  <p className="text-sm text-content-muted">{selectedDriver.phone} · {selectedDriver.commune}</p>
+                </div>
+              </div>
+              {actionMessage && (
+                <p className="mt-4 rounded-xl bg-brand-blue/10 px-3 py-2 text-sm font-bold text-brand-blue">
+                  {actionMessage}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActionMessage(`Appel chauffeur: ${selectedDriver.phone}`)}
+                className="rounded-xl bg-brand-blue px-3 py-2 text-xs font-black text-white"
+              >
+                Appeler
+              </button>
+              <button
+                type="button"
+                onClick={() => setActionMessage(`Message envoyé à ${selectedDriver.name}`)}
+                className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+              >
+                Message
+              </button>
+              {selectedDriver.status === 'Suspendu' ? (
+                <button
+                  type="button"
+                  onClick={() => handleReactivate(selectedDriver.id)}
+                  className="rounded-xl border border-green-200 px-3 py-2 text-xs font-black text-green-600 hover:bg-green-50"
+                >
+                  Réactiver
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSuspend(selectedDriver.id)}
+                  className="rounded-xl border border-red-200 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50"
+                >
+                  Suspendre
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => handleAssignMission(selectedDriver)}
+                className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary hover:bg-surface-muted"
+              >
+                Assigner mission
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-xl bg-surface-muted p-4">
+              <h3 className="text-sm font-black text-content-primary">Infos</h3>
+              <dl className="mt-3 space-y-3 text-sm">
+                <div className="flex justify-between gap-3"><dt className="text-content-muted">Véhicule</dt><dd className="font-bold text-content-primary">{selectedDriver.vehicle}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-content-muted">Plaque</dt><dd className="font-bold text-content-primary">{selectedDriver.vehiclePlate}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-content-muted">Zone</dt><dd className="font-bold text-content-primary">{selectedDriver.commune}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-content-muted">Statut</dt><dd className="font-bold text-content-primary">{selectedDriver.status}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-content-muted">Note</dt><dd className="font-bold text-content-primary">{selectedDriver.rating.toFixed(1)}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-content-muted">Missions terminées</dt><dd className="font-bold text-content-primary">{selectedDriver.missionsCompleted}</dd></div>
+              </dl>
+            </div>
+
+            <div className="rounded-xl bg-surface-muted p-4">
+              <h3 className="text-sm font-black text-content-primary">Documents</h3>
+              <div className="mt-3 space-y-2">
+                {(selectedDriver.documents ?? []).map(doc => (
+                  <div key={doc.label} className="flex items-center justify-between rounded-lg bg-surface-card px-3 py-2 text-sm">
+                    <span className="font-bold text-content-primary">{doc.label}</span>
+                    <span className={`rounded-full px-2 py-1 text-xs font-black ${DOCUMENT_STYLES[doc.status]}`}>
+                      {DOCUMENT_LABELS[doc.status]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-surface-muted p-4">
+              <h3 className="text-sm font-black text-content-primary">Performance</h3>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-surface-card p-3"><dt className="text-content-muted">Ponctualité</dt><dd className="mt-1 font-black text-content-primary">{selectedDriver.performance?.punctuality ?? 0}%</dd></div>
+                <div className="rounded-lg bg-surface-card p-3"><dt className="text-content-muted">Retards</dt><dd className="mt-1 font-black text-content-primary">{selectedDriver.performance?.delays ?? 0}</dd></div>
+                <div className="rounded-lg bg-surface-card p-3"><dt className="text-content-muted">Annulations</dt><dd className="mt-1 font-black text-content-primary">{selectedDriver.performance?.cancellations ?? 0}</dd></div>
+                <div className="rounded-lg bg-surface-card p-3"><dt className="text-content-muted">Revenus</dt><dd className="mt-1 font-black text-content-primary">{(selectedDriver.performance?.revenue ?? 0).toLocaleString('fr-FR')} $</dd></div>
+              </dl>
+            </div>
+          </div>
+        </section>
+      )}
 
       <AddDriverModal
         isOpen={showAddModal}

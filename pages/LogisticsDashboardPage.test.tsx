@@ -237,6 +237,42 @@ describe('LogisticsDashboardPage', () => {
     view.unmount();
   });
 
+  it('shows complete driver profile and handles driver actions', async () => {
+    window.history.replaceState(null, '', '/#drivers');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Profil chauffeur')).not.toBeNull();
+    expect(byText(view.container, 'Kabongo Mutombo')).not.toBeNull();
+    expect(byText(view.container, 'CD-1234-KIN')).not.toBeNull();
+    expect(byText(view.container, 'Documents')).not.toBeNull();
+    expect(byText(view.container, 'Permis')).not.toBeNull();
+    expect(byText(view.container, 'Performance')).not.toBeNull();
+    expect(byText(view.container, 'Ponctualité')).not.toBeNull();
+    expect(byText(view.container, 'Revenus')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Appeler$/)!);
+    expect(byText(view.container, 'Appel chauffeur: +243 812 345 001')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Message$/)!);
+    expect(byText(view.container, 'Message envoyé à Kabongo Mutombo')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Suspendre$/)!);
+    expect(byText(view.container, 'Chauffeur suspendu')).not.toBeNull();
+    expect(byText(view.container, 'Suspendu')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Réactiver$/)!);
+    expect(byText(view.container, 'Chauffeur réactivé')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Assigner mission$/)!);
+    expect(byText(view.container, 'Mission assignée à Kabongo Mutombo')).not.toBeNull();
+    expect(byText(view.container, '1 mission')).not.toBeNull();
+
+    view.unmount();
+  });
+
   it('manages fleet vehicles with create, assign, edit and disable actions', async () => {
     window.history.replaceState(null, '', '/#fleet');
     const view = renderComponent(<LogisticsDashboardPage />);
