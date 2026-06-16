@@ -85,6 +85,14 @@ vi.mock('../services/real-api', async (importOriginal) => {
 const linkByText = (container: HTMLElement, text: RegExp) =>
   Array.from(container.querySelectorAll('a')).find((link) => text.test(link.textContent || '')) as HTMLAnchorElement | undefined;
 
+const changeInput = (input: HTMLInputElement, value: string) => {
+  act(() => {
+    const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    valueSetter?.call(input, value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+};
+
 describe('LogisticsDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -144,6 +152,45 @@ describe('LogisticsDashboardPage', () => {
 
     view.click(buttonByText(view.container, /^Maintenance$/)!);
     expect(byText(view.container, 'Contrôle freinage moto')).not.toBeNull();
+
+    view.unmount();
+  });
+
+  it('manages fleet vehicles with create, assign, edit and disable actions', async () => {
+    window.history.replaceState(null, '', '/#fleet');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Total véhicules')).not.toBeNull();
+    expect(byText(view.container, 'Actifs')).not.toBeNull();
+    expect(byText(view.container, 'En maintenance')).not.toBeNull();
+    expect(byText(view.container, 'Indisponibles')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /Ajouter véhicule/)!);
+    const plateInput = view.container.querySelector('input[placeholder="KIN-000-MT"]') as HTMLInputElement;
+    expect(plateInput).not.toBeNull();
+    changeInput(plateInput, 'KIN-999-MT');
+    changeInput(Array.from(view.container.querySelectorAll('input')).find((input) => input.placeholder === 'Dépôt Gombe')!, 'Dépôt Gombe');
+    view.click(buttonByText(view.container, /^Enregistrer$/)!);
+    expect(byText(view.container, 'KIN-999-MT')).not.toBeNull();
+
+    const assignButtons = Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === 'Assigner');
+    view.click(assignButtons[0]);
+    view.click(buttonByText(view.container, /^Ngoy L\.$/)!);
+    expect(byText(view.container, 'Ngoy L.')).not.toBeNull();
+
+    const editButtons = Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === 'Modifier');
+    view.click(editButtons[0]);
+    const editPlateInput = view.container.querySelector('input[placeholder="KIN-000-MT"]') as HTMLInputElement;
+    changeInput(editPlateInput, 'KIN-998-MT');
+    view.click(buttonByText(view.container, /^Enregistrer$/)!);
+    expect(byText(view.container, 'KIN-998-MT')).not.toBeNull();
+
+    const disableButtons = Array.from(view.container.querySelectorAll('button')).filter((button) => button.textContent === 'Désactiver');
+    view.click(disableButtons[0]);
+    expect(byText(view.container, 'Désactivé')).not.toBeNull();
 
     view.unmount();
   });

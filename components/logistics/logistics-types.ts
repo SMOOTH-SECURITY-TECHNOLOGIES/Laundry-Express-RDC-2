@@ -42,11 +42,20 @@ export type LogisticsStatus =
 export interface Vehicle {
   id: string;
   plate: string;
-  type: 'moto' | 'car' | 'van' | 'truck';
+  type: 'moto' | 'car' | 'van';
   status: LogisticsStatus;
   driverId?: string;
+  assignedDriverName?: string;
   zone: string;
+  location: string;
   lastKnownLocation?: string;
+  mileageKm: number;
+  insuranceExpiresAt: string;
+  maintenance: {
+    status: 'ok' | 'scheduled' | 'in_progress' | 'overdue';
+    nextServiceAtKm: number;
+    notes?: string;
+  };
 }
 
 export interface Driver {
