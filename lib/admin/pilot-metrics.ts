@@ -2,6 +2,7 @@ import { Order, OrderStatus, SupportTicket, User } from '../../types';
 
 export type PilotMetricDirection = 'up' | 'down' | 'stable';
 export type PilotMetricHealth = 'good' | 'watch' | 'risk';
+export type PilotDecisionState = 'GO' | 'WATCH' | 'STOP';
 
 export interface PilotMetric {
   key: string;
@@ -11,6 +12,13 @@ export interface PilotMetric {
   direction: PilotMetricDirection;
   health: PilotMetricHealth;
   question: string;
+  decisionState: PilotDecisionState;
+  thresholds: {
+    go: string;
+    watch: string;
+    stop: string;
+  };
+  action: string;
 }
 
 export interface PilotDashboardSummary {
@@ -66,9 +74,12 @@ function metric(
   value: string,
   question: string,
   health: PilotMetricHealth,
+  thresholds: PilotMetric['thresholds'],
+  action: string,
   direction: PilotMetricDirection = 'stable',
 ): PilotMetric {
-  return { key, label, rawValue, value, question, health, direction };
+  const decisionState: PilotDecisionState = health === 'good' ? 'GO' : health === 'watch' ? 'WATCH' : 'STOP';
+  return { key, label, rawValue, value, question, health, direction, decisionState, thresholds, action };
 }
 
 export function buildPilotDashboardSummary(input: BuildPilotMetricsInput): PilotDashboardSummary {
@@ -118,16 +129,116 @@ export function buildPilotDashboardSummary(input: BuildPilotMetricsInput): Pilot
       rule: 'Freeze features, keep instrumentation open.',
     },
     metrics: [
-      metric('new_clients', 'Nouveaux clients', newClients, String(newClients), 'Les clients entrent-ils dans le systeme ?', newClients > 0 ? 'good' : 'watch', 'up'),
-      metric('first_orders', 'Premieres commandes', firstOrders, String(firstOrders), 'Les clients passent-ils une premiere commande ?', firstOrders > 0 ? 'good' : 'risk', 'up'),
-      metric('completion_rate', 'Taux de completion', completionRate, `${completionRate}%`, 'Les clients terminent-ils leur premiere commande ?', completionRate >= 70 ? 'good' : completionRate >= 45 ? 'watch' : 'risk', 'up'),
-      metric('attribution_time', 'Temps attribution', avgAttribution, avgAttribution ? `${avgAttribution} min` : 'n/a', 'Une commande trouve-t-elle rapidement un partenaire ?', avgAttribution > 0 && avgAttribution <= 30 ? 'good' : avgAttribution <= 60 ? 'watch' : 'risk', 'down'),
-      metric('pickup_time', 'Temps collecte', avgPickup, avgPickup ? `${avgPickup} min` : 'n/a', 'La collecte devient-elle un goulot operationnel ?', avgPickup > 0 && avgPickup <= 45 ? 'good' : avgPickup <= 90 ? 'watch' : 'risk', 'down'),
-      metric('delivery_time', 'Temps livraison', avgDelivery, avgDelivery ? `${avgDelivery} min` : 'n/a', 'La livraison reste-t-elle sous controle ?', avgDelivery > 0 && avgDelivery <= 60 ? 'good' : avgDelivery <= 120 ? 'watch' : 'risk', 'down'),
-      metric('claims', 'Reclamations', claims, String(claims), 'Les frictions client remontent-elles ?', claims <= Math.max(1, orders.length * 0.05) ? 'good' : claims <= Math.max(2, orders.length * 0.12) ? 'watch' : 'risk', 'down'),
-      metric('repeat_order_rate', 'Taux de reachat', repeatOrderRate, `${repeatOrderRate}%`, 'Les clients reviennent-ils ?', repeatOrderRate >= 25 ? 'good' : repeatOrderRate >= 10 ? 'watch' : 'risk', 'up'),
-      metric('platform_revenue', 'Revenu plateforme', platformRevenue, money(platformRevenue), 'La plateforme capture-t-elle de la valeur ?', platformRevenue > 0 ? 'good' : 'watch', 'up'),
-      metric('partner_revenue', 'Revenu partenaires', partnerRevenue, money(partnerRevenue), 'Les partenaires gagnent-ils plus ?', partnerRevenue > 0 ? 'good' : 'risk', 'up'),
+      metric(
+        'new_clients',
+        'Nouveaux clients',
+        newClients,
+        String(newClients),
+        'Les clients entrent-ils dans le systeme ?',
+        newClients >= 10 ? 'good' : newClients >= 3 ? 'watch' : 'risk',
+        { go: '>= 10 nouveaux clients', watch: '3-9 nouveaux clients', stop: '< 3 nouveaux clients' },
+        'STOP: revoir acquisition terrain et canaux. WATCH: renforcer activation locale. GO: continuer le pilote.',
+        'up',
+      ),
+      metric(
+        'first_orders',
+        'Premieres commandes',
+        firstOrders,
+        String(firstOrders),
+        'Les clients passent-ils une premiere commande ?',
+        firstOrders >= 8 ? 'good' : firstOrders >= 3 ? 'watch' : 'risk',
+        { go: '>= 8 premieres commandes', watch: '3-7 premieres commandes', stop: '< 3 premieres commandes' },
+        'STOP: simplifier onboarding et offre premiere commande. WATCH: observer les abandons. GO: maintenir.',
+        'up',
+      ),
+      metric(
+        'completion_rate',
+        'Taux de completion',
+        completionRate,
+        `${completionRate}%`,
+        'Les clients terminent-ils leur premiere commande ?',
+        completionRate >= 70 ? 'good' : completionRate >= 50 ? 'watch' : 'risk',
+        { go: '> 70%', watch: '50-70%', stop: '< 50%' },
+        'STOP: arreter les ajouts produit et corriger le corridor commande-paiement-livraison. WATCH: auditer les abandons. GO: continuer.',
+        'up',
+      ),
+      metric(
+        'attribution_time',
+        'Temps attribution',
+        avgAttribution,
+        avgAttribution ? `${avgAttribution} min` : 'n/a',
+        'Une commande trouve-t-elle rapidement un partenaire ?',
+        avgAttribution > 0 && avgAttribution <= 30 ? 'good' : avgAttribution > 0 && avgAttribution <= 60 ? 'watch' : 'risk',
+        { go: '<= 30 min', watch: '31-60 min', stop: '> 60 min ou n/a' },
+        'STOP: reduire zone, ajouter partenaires disponibles ou revoir dispatch. WATCH: suivre refus/reassignations. GO: maintenir.',
+        'down',
+      ),
+      metric(
+        'pickup_time',
+        'Temps collecte',
+        avgPickup,
+        avgPickup ? `${avgPickup} min` : 'n/a',
+        'La collecte devient-elle un goulot operationnel ?',
+        avgPickup > 0 && avgPickup <= 45 ? 'good' : avgPickup > 0 && avgPickup <= 90 ? 'watch' : 'risk',
+        { go: '<= 45 min', watch: '46-90 min', stop: '> 90 min ou n/a' },
+        'STOP: limiter volumes ou renforcer chauffeurs. WATCH: optimiser zones et horaires. GO: maintenir.',
+        'down',
+      ),
+      metric(
+        'delivery_time',
+        'Temps livraison',
+        avgDelivery,
+        avgDelivery ? `${avgDelivery} min` : 'n/a',
+        'La livraison reste-t-elle sous controle ?',
+        avgDelivery > 0 && avgDelivery <= 60 ? 'good' : avgDelivery > 0 && avgDelivery <= 120 ? 'watch' : 'risk',
+        { go: '<= 60 min', watch: '61-120 min', stop: '> 120 min ou n/a' },
+        'STOP: traiter le goulot livraison avant croissance. WATCH: surveiller SLA. GO: maintenir.',
+        'down',
+      ),
+      metric(
+        'claims',
+        'Reclamations',
+        claims,
+        String(claims),
+        'Les frictions client remontent-elles ?',
+        claims <= Math.max(1, orders.length * 0.05) ? 'good' : claims <= Math.max(2, orders.length * 0.12) ? 'watch' : 'risk',
+        { go: '<= 5% des commandes', watch: '5-12% des commandes', stop: '> 12% des commandes' },
+        'STOP: corriger qualite/service avant acquisition. WATCH: classifier causes. GO: maintenir.',
+        'down',
+      ),
+      metric(
+        'repeat_order_rate',
+        'Taux de reachat',
+        repeatOrderRate,
+        `${repeatOrderRate}%`,
+        'Les clients reviennent-ils ?',
+        repeatOrderRate >= 25 ? 'good' : repeatOrderRate >= 10 ? 'watch' : 'risk',
+        { go: '>= 25%', watch: '10-24%', stop: '< 10%' },
+        'STOP: revoir experience, prix et relance post-commande. WATCH: lancer reactivation mesuree. GO: augmenter retention.',
+        'up',
+      ),
+      metric(
+        'platform_revenue',
+        'Revenu plateforme',
+        platformRevenue,
+        money(platformRevenue),
+        'La plateforme capture-t-elle de la valeur ?',
+        platformRevenue >= 100 ? 'good' : platformRevenue > 0 ? 'watch' : 'risk',
+        { go: '>= 100 $', watch: '1-99 $', stop: '0 $' },
+        'STOP: verifier paiement, commission et pricing. WATCH: suivre marge. GO: continuer.',
+        'up',
+      ),
+      metric(
+        'partner_revenue',
+        'Revenu partenaires',
+        partnerRevenue,
+        money(partnerRevenue),
+        'Les partenaires gagnent-ils plus ?',
+        partnerRevenue >= 500 ? 'good' : partnerRevenue > 0 ? 'watch' : 'risk',
+        { go: '>= 500 $', watch: '1-499 $', stop: '0 $' },
+        'STOP: verifier demande et economie partenaire. WATCH: interviewer partenaires. GO: continuer.',
+        'up',
+      ),
     ],
   };
 }

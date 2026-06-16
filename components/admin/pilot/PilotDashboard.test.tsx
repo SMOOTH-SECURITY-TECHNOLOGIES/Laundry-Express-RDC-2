@@ -59,9 +59,15 @@ describe('PilotDashboard', () => {
     expect(byText(container, 'Features freeze: ON')).not.toBeNull();
     expect(byText(container, 'Instrumentation: OPEN')).not.toBeNull();
     expect(byText(container, 'Taux de completion')).not.toBeNull();
+    expect(byText(container, 'GO')).not.toBeNull();
+    expect(byText(container, 'WATCH')).not.toBeNull();
+    expect(byText(container, 'STOP')).not.toBeNull();
+    expect(byText(container, '> 70%')).not.toBeNull();
+    expect(byText(container, 'STOP: arreter les ajouts produit et corriger le corridor commande-paiement-livraison. WATCH: auditer les abandons. GO: continuer.')).not.toBeNull();
     expect(byText(container, 'Taux de reachat')).not.toBeNull();
     expect(byText(container, 'Revenu partenaires')).not.toBeNull();
     expect(summary.metrics).toHaveLength(10);
+    expect(summary.metrics.every((metric) => metric.decisionState && metric.thresholds && metric.action)).toBe(true);
 
     unmount();
   });
