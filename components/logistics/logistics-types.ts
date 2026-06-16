@@ -107,10 +107,14 @@ export interface Shipment {
 export interface TrackingPoint {
   id: string;
   tripId: string;
+  kind: 'vehicle' | 'driver' | 'pickup' | 'delivery';
+  label: string;
   latitude: number;
   longitude: number;
   recordedAt: string;
   status: LogisticsStatus;
+  driverName?: string;
+  vehiclePlate?: string;
 }
 
 export interface MaintenanceEvent {

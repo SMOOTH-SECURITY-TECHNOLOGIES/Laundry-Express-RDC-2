@@ -188,6 +188,36 @@ describe('LogisticsDashboardPage', () => {
     view.unmount();
   });
 
+  it('shows live tracking map, active mission panel and geolocation fallback', async () => {
+    window.history.replaceState(null, '', '/#tracking');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Live Tracking')).not.toBeNull();
+    expect(byText(view.container, 'Disponible')).not.toBeNull();
+    expect(byText(view.container, 'Occupé')).not.toBeNull();
+    expect(byText(view.container, 'Retard')).not.toBeNull();
+    expect(byText(view.container, 'Hors ligne')).not.toBeNull();
+    expect(byText(view.container, 'Mission active')).not.toBeNull();
+    expect(byText(view.container, 'MSN-004')).not.toBeNull();
+    expect(byText(view.container, 'Tshimanga A.')).not.toBeNull();
+    expect(byText(view.container, 'KIN-042-MT')).not.toBeNull();
+    expect(byText(view.container, 'Pickup Gombe')).not.toBeNull();
+    expect(byText(view.container, 'Delivery Lingwala')).not.toBeNull();
+    expect(byText(view.container, 'Géolocalisation indisponible')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /MSN-014/)!);
+    expect(byText(view.container, 'Mutombo P.')).not.toBeNull();
+    expect(byText(view.container, 'KIN-118-VN')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /Basculer fallback géolocalisation/)!);
+    expect(byText(view.container, 'Géolocalisation indisponible')).toBeNull();
+
+    view.unmount();
+  });
+
   it('manages fleet vehicles with create, assign, edit and disable actions', async () => {
     window.history.replaceState(null, '', '/#fleet');
     const view = renderComponent(<LogisticsDashboardPage />);
