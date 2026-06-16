@@ -933,3 +933,242 @@ export const apiUpdateLogisticsPartner = async (partner: LogisticsPartner) => {
 export const apiDeleteLogisticsPartner = async (partnerId: string) => {
     DB.deleteItem('logisticsPartners', partnerId);
 };
+
+export const apiAnalyzeFabric = async (imageData: string) => {
+    const ai = getAI();
+    if (!ai) return { fabricType: 'unavailable', confidence: 0, treatment: 'AI not configured', washMethod: 'unknown', temperature: 'unknown', serviceSuggestion: 'PRESSING' };
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [
+            { inlineData: { mimeType: 'image/jpeg', data: imageData } },
+            { text: "Analyze this garment image. Detect the fabric type (cotton, silk, linen, polyester, wool, denim, synthetic blend, other). Identify the best wash method, temperature, and whether it needs pressing (dry cleaning) or laundry. Return JSON." }
+        ],
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    fabricType: { type: Type.STRING },
+                    confidence: { type: Type.NUMBER },
+                    treatment: { type: Type.STRING },
+                    washMethod: { type: Type.STRING },
+                    temperature: { type: Type.STRING },
+                    serviceSuggestion: { type: Type.STRING, enum: ['PRESSING', 'BLANCHISSERIE', 'CORDONNERIE'] }
+                },
+                required: ["fabricType", "confidence", "treatment", "washMethod", "temperature", "serviceSuggestion"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{}');
+};
+
+export const apiSmartPricingAdvice = async (partnerId: string) => {
+    const ai = getAI();
+    if (!ai) return { suggestions: [], reasoning: 'AI not configured' };
+    const partner = DB.get('partners').find((p: any) => p.id === partnerId);
+    const orders = DB.get('orderHistory').filter((o: any) => o.partner?.id === partnerId);
+    const recentOrders = orders.slice(-30);
+    const avgOrdersPerDay = recentOrders.length / 30;
+    const completedOrders = recentOrders.filter((o: any) => o.status === 'COMPLETED');
+
+    const context = `Partner: ${partner?.name}. Rating: ${partner?.rating}/5. Total orders: ${orders.length}. Recent 30 orders: ${recentOrders.length}. Avg/day: ${avgOrdersPerDay.toFixed(1)}. Completed: ${completedOrders.length}. Recent statuses: ${recentOrders.slice(-10).map((o: any) => o.status).join(', ')}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze this partner's business data and suggest pricing strategies: ${context}. Consider demand level, completion rate, and rating. Return JSON with pricing suggestions.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    suggestions: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                type: { type: Type.STRING, enum: ['increase', 'decrease', 'promotion', 'express_premium'] },
+                                description: { type: Type.STRING },
+                                estimatedImpact: { type: Type.STRING },
+                                urgency: { type: Type.STRING, enum: ['high', 'medium', 'low'] }
+                            },
+                            required: ["type", "description", "estimatedImpact", "urgency"]
+                        }
+                    },
+                    reasoning: { type: Type.STRING }
+                },
+                required: ["suggestions", "reasoning"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"suggestions": [], "reasoning": "Could not analyze"}');
+};
+
+export const apiGenerateBirthdayReward = async (userName: string, orderCount: number) => {
+    const ai = getAI();
+    if (!ai) return { message: `Joyeux anniversaire ${userName} !`, rewardType: 'discount', rewardValue: 10 };
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Generate a personalized birthday reward for a customer named "${userName}" who has placed ${orderCount} orders. Create a warm, personal birthday message and an appropriate reward based on their loyalty. Return JSON.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    message: { type: Type.STRING },
+                    rewardType: { type: Type.STRING, enum: ['discount', 'free_delivery', 'bonus_points', 'free_item'] },
+                    rewardValue: { type: Type.NUMBER },
+                    pointsBonus: { type: Type.NUMBER }
+                },
+                required: ["message", "rewardType", "rewardValue"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{}');
+};
+
+export const apiCheckCapacity = async () => {
+    const ai = getAI();
+    if (!ai) return { prediction: 'normal', load: 50, recommendation: 'AI not configured' };
+    const partners = DB.get('partners');
+    const orders = DB.get('orderHistory');
+    const today = new Date().toISOString().split('T')[0];
+    const todayOrders = orders.filter((o: any) => o.createdAt?.startsWith(today));
+    const activePartners = partners.filter((p: any) => p.isFeatured);
+
+    const context = `Today's orders: ${todayOrders.length}. Active partners: ${activePartners.length}. Pending orders: ${todayOrders.filter((o: any) => ['AWAITING_CONFIRMATION', 'CONFIRMED', 'READY_FOR_PICKUP'].includes(o.status)).length}. Processing: ${todayOrders.filter((o: any) => o.status === 'PROCESSING').length}. Completed today: ${todayOrders.filter((o: any) => o.status === 'COMPLETED').length}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze capacity and predict potential overload for this laundry platform: ${context}. Return JSON with prediction, load percentage, and recommendations.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    prediction: { type: Type.STRING, enum: ['low', 'normal', 'high', 'overloaded'] },
+                    load: { type: Type.NUMBER },
+                    recommendation: { type: Type.STRING },
+                    estimatedSaturation: { type: Type.STRING },
+                    suggestedActions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["prediction", "load", "recommendation"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{}');
+};
+
+export const apiSmartPriceEstimate = async (params: { serviceType: string; commune: string; volume: number; garmentTypes?: string[] }) => {
+    const ai = getAI();
+    if (!ai) return { minPrice: 0, avgPrice: 0, maxPrice: 0, breakdown: [], confidence: 0, reasoning: 'AI not configured' };
+    const partners = DB.get('partners');
+    const orders = DB.get('orderHistory');
+    const matchingPartners = partners.filter((p: any) => p.address?.toLowerCase().includes(params.commune.toLowerCase()));
+    const matchingOrders = orders.filter((o: any) => o.partner?.address?.toLowerCase().includes(params.commune.toLowerCase()));
+
+    const avgPartnerRating = matchingPartners.length
+        ? matchingPartners.reduce((s: number, p: any) => s + (p.rating || 0), 0) / matchingPartners.length
+        : 4.5;
+
+    const context = `Service: ${params.serviceType}. Commune: ${params.commune}. Volume: ${params.volume} items. Garment types: ${(params.garmentTypes || []).join(', ') || 'mixed'}. Partners in zone: ${matchingPartners.length}. Avg rating: ${avgPartnerRating.toFixed(1)}. Historical orders in zone: ${matchingOrders.length}. Average order value in zone: $${matchingOrders.length ? (matchingOrders.reduce((s: number, o: any) => s + (o.totalPrice || 0), 0) / matchingOrders.length).toFixed(2) : '10.00'}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Estimate laundry service prices in Kinshasa for this request: ${context}. Consider partner ratings, zone, garment types and volume. Return JSON with price range and breakdown.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    minPrice: { type: Type.NUMBER },
+                    avgPrice: { type: Type.NUMBER },
+                    maxPrice: { type: Type.NUMBER },
+                    breakdown: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                garment: { type: Type.STRING },
+                                min: { type: Type.NUMBER },
+                                max: { type: Type.NUMBER }
+                            },
+                            required: ["garment", "min", "max"]
+                        }
+                    },
+                    confidence: { type: Type.NUMBER },
+                    reasoning: { type: Type.STRING }
+                },
+                required: ["minPrice", "avgPrice", "maxPrice", "confidence", "reasoning"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"minPrice": 0, "avgPrice": 0, "maxPrice": 0, "breakdown": [], "confidence": 0, "reasoning": "Could not estimate"}');
+};
+
+export const apiGenerateChurnCoupon = async (customerId: string, orderCount: number, lastOrderDays: number) => {
+    const ai = getAI();
+    if (!ai) return { couponCode: '', discount: 15, message: '', urgency: 'medium', reason: 'AI not configured' };
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `A customer hasn't ordered in ${lastOrderDays} days. They have ${orderCount} total orders. Generate a churn prevention coupon. Return JSON with coupon code, discount percentage, personalized message, urgency level, and reasoning.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    couponCode: { type: Type.STRING },
+                    discount: { type: Type.NUMBER },
+                    message: { type: Type.STRING },
+                    urgency: { type: Type.STRING, enum: ['high', 'medium', 'low'] },
+                    reason: { type: Type.STRING }
+                },
+                required: ["couponCode", "discount", "message", "urgency", "reason"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"couponCode": "", "discount": 15, "message": "", "urgency": "medium", "reason": "Could not generate"}');
+};
+
+export const apiDetectFraud = async () => {
+    const ai = getAI();
+    if (!ai) return { risks: [], summary: 'AI not configured' };
+    const users = DB.get('users');
+    const orders = DB.get('orderHistory');
+    const promoUsage = DB.get('promoCodes');
+
+    const phoneGroups: Record<string, any[]> = {};
+    users.forEach((u: any) => { if (u.phone) { phoneGroups[u.phone] = phoneGroups[u.phone] || []; phoneGroups[u.phone].push(u); } });
+    const multiAccountPhones = Object.entries(phoneGroups).filter(([, users]) => users.length > 1);
+
+    const context = `Total users: ${users.length}. Total orders: ${orders.length}. Phones with multiple accounts: ${multiAccountPhones.length}. Promos: ${promoUsage.length}. Rejected/refunded orders: ${orders.filter((o: any) => o.status === 'REJECTED').length}. Suspicious patterns: orders < $2 from same IP, rapid promo stacking.`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze this marketplace for fraud patterns: ${context}. Detect: multiple accounts, promo abuse, suspicious payment patterns. Return JSON with risk list and summary.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    risks: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                type: { type: Type.STRING, enum: ['multi_account', 'promo_abuse', 'suspicious_payment', 'suspicious_behavior'] },
+                                severity: { type: Type.STRING, enum: ['high', 'medium', 'low'] },
+                                description: { type: Type.STRING },
+                                affectedCount: { type: Type.NUMBER },
+                                recommendation: { type: Type.STRING }
+                            },
+                            required: ["type", "severity", "description", "affectedCount", "recommendation"]
+                        }
+                    },
+                    summary: { type: Type.STRING }
+                },
+                required: ["risks", "summary"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"risks": [], "summary": "Could not analyze"}');
+};

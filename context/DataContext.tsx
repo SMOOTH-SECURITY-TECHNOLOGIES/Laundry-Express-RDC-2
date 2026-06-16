@@ -814,6 +814,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const suggestReassignment = useCallback((order: Order, partners: Partner[], services: Service[]) => api.apiSuggestReassignment(order, partners, services), []);
   const optimizeRoutes = useCallback((logisticsPartnerId: string) => api.apiOptimizeRoutes(logisticsPartnerId), []);
   const confirmOptimizedRoutes = useCallback((routes: OptimizedRoute[]) => api.apiConfirmOptimizedRoutes(routes), []);
+  const analyzeFabric = useCallback((imageData: string) => api.apiAnalyzeFabric(imageData), []);
+  const smartPricingAdvice = useCallback((partnerId: string) => api.apiSmartPricingAdvice(partnerId), []);
+  const generateBirthdayReward = useCallback((userName: string, orderCount: number) => api.apiGenerateBirthdayReward(userName, orderCount), []);
+  const checkCapacity = useCallback(() => api.apiCheckCapacity(), []);
+  const smartPriceEstimate = useCallback((params: { serviceType: string; commune: string; volume: number; garmentTypes?: string[] }) => api.apiSmartPriceEstimate(params), []);
+  const generateChurnCoupon = useCallback((customerId: string, orderCount: number, lastOrderDays: number) => api.apiGenerateChurnCoupon(customerId, orderCount, lastOrderDays), []);
+  const detectFraud = useCallback(() => api.apiDetectFraud(), []);
   
   const addAdmin = useCallback(async (adminData: any) => { 
       try {
@@ -940,6 +947,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     suggestReassignment,
     optimizeRoutes,
     confirmOptimizedRoutes,
+    analyzeFabric,
+    smartPricingAdvice,
+    generateBirthdayReward,
+    checkCapacity,
+    smartPriceEstimate,
+    generateChurnCoupon,
+    detectFraud,
     addAdmin,
     apiUpdateUserPermissions,
     addService,
