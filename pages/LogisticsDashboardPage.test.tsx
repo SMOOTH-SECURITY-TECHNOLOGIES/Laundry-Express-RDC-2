@@ -165,6 +165,25 @@ describe('LogisticsDashboardPage', () => {
     expect(window.location.hash).toBe('#reports');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des rapports pour suivi paiement. Mission cible: MSN-007.', 'info');
     reportsView.unmount();
+
+    window.history.replaceState(null, '', '/#alerts');
+    const lateGroupView = renderComponent(<LogisticsDashboardPage />);
+    lateGroupView.click(buttonByText(lateGroupView.container, /Retards/)!);
+    const lateGroupActions = Array.from(lateGroupView.container.querySelectorAll('a')).filter((link) => /^Voir$/.test(link.textContent || ''));
+    lateGroupView.click(lateGroupActions[lateGroupActions.length - 1]);
+    expect(byText(lateGroupView.container, 'Alerte missions ciblée: 3 missions avec retard > 20 min')).not.toBeNull();
+    expect(window.location.hash).toBe('#missions');
+    lateGroupView.unmount();
+
+    window.history.replaceState(null, '', '/#alerts');
+    const waitingGroupView = renderComponent(<LogisticsDashboardPage />);
+    waitingGroupView.click(buttonByText(waitingGroupView.container, /En attente/)!);
+    const waitingActions = Array.from(waitingGroupView.container.querySelectorAll('a')).filter((link) => /^Résoudre$/.test(link.textContent || ''));
+    waitingGroupView.click(waitingActions[waitingActions.length - 1]);
+    expect(byText(waitingGroupView.container, 'Alerte missions ciblée: File d\'attente Limete bloquée')).not.toBeNull();
+    expect(byText(waitingGroupView.container, 'Zone ciblée: Limete')).not.toBeNull();
+    expect(window.location.hash).toBe('#missions');
+    waitingGroupView.unmount();
   });
 
   it('protects the page for non logistics managers', () => {

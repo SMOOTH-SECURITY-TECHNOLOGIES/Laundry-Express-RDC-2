@@ -71,7 +71,10 @@ const ACTION_TARGETS: Record<Alert['type'], { label: string; section: LogisticsS
 };
 
 interface LogisticsAlertsProps {
-  onNavigate: (section: LogisticsSection, options?: { missionId?: string; driverName?: string; alertTitle?: string }) => void;
+  onNavigate: (
+    section: LogisticsSection,
+    options?: { missionId?: string; driverName?: string; alertTitle?: string; missionAlertTitle?: string; missionFocusType?: string; zone?: string }
+  ) => void;
   onActionFeedback?: (message: string) => void;
 }
 
@@ -89,6 +92,15 @@ const findDriverName = (alert: Alert) => {
     const match = source.match(pattern);
     if (match?.[1]) return match[1].replace(/\.+$/, '.');
   }
+  return null;
+};
+
+const findZone = (alert: Alert) =>
+  `${alert.title} ${alert.description}`.match(/\bzone\s+([A-Za-zÀ-ÿ-]+)/i)?.[1] ?? null;
+
+const missionFocusType = (alert: Alert) => {
+  if (alert.type === 'retard') return 'late';
+  if (alert.type === 'attente') return 'waiting';
   return null;
 };
 
@@ -151,6 +163,9 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
             const action = ACTION_TARGETS[alert.type];
             const missionId = findMissionId(alert);
             const driverName = findDriverName(alert);
+            const zone = findZone(alert);
+            const focusType = missionFocusType(alert);
+            const missionAlertTitle = action.section === 'missions' && !missionId ? alert.title : null;
             const actionClass = alert.type === 'retard'
               ? 'bg-brand-blue hover:bg-brand-blue/90'
               : alert.type === 'inactif'
@@ -184,6 +199,15 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
                         if (missionId) {
                           sessionStorage.setItem('logisticsFocusMissionId', missionId);
                         }
+                        if (missionAlertTitle) {
+                          sessionStorage.setItem('logisticsFocusMissionAlert', missionAlertTitle);
+                        }
+                        if (focusType) {
+                          sessionStorage.setItem('logisticsFocusMissionType', focusType);
+                        }
+                        if (zone) {
+                          sessionStorage.setItem('logisticsFocusZone', zone);
+                        }
                         if (driverName) {
                           sessionStorage.setItem('logisticsFocusDriverName', driverName);
                         }
@@ -194,9 +218,14 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
                           missionId: missionId ?? undefined,
                           driverName: driverName ?? undefined,
                           alertTitle: alert.type === 'paiement' ? alert.title : undefined,
+                          missionAlertTitle: missionAlertTitle ?? undefined,
+                          missionFocusType: focusType ?? undefined,
+                          zone: zone ?? undefined,
                         });
                         const target = [
                           missionId ? `Mission cible: ${missionId}.` : '',
+                          missionAlertTitle ? `Alerte cible: ${missionAlertTitle}.` : '',
+                          zone ? `Zone cible: ${zone}.` : '',
                           driverName ? `Chauffeur cible: ${driverName}` : '',
                         ].filter(Boolean).join(' ');
                         onActionFeedback?.(target ? `${action.feedback} ${target}` : action.feedback);
