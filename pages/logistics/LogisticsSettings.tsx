@@ -199,7 +199,7 @@ export const LogisticsSettings: React.FC = () => {
       </div>
 
       <div className="flex justify-end">
-        <button className="px-6 py-2.5 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90">
+        <button className="min-h-[44px] w-full rounded-xl bg-brand-blue px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-blue/90 sm:w-auto">
           Enregistrer les modifications
         </button>
       </div>

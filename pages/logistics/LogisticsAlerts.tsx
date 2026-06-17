@@ -172,27 +172,27 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
                 ? 'bg-green-500 hover:bg-green-600'
                 : 'bg-brand-orange hover:bg-orange-600';
             return (
-              <div key={alert.id} className={`${logisticsCard} p-5 transition-shadow hover:shadow-md`}>
-                <div className="flex items-start gap-4">
+              <div key={alert.id} className={`${logisticsCard} p-4 transition-shadow hover:shadow-md sm:p-5`}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.bg}`}>
                     <Icon name={config.icon} className={`h-5 w-5 ${config.color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-brand-dark">{alert.title}</h3>
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <h3 className="min-w-0 text-sm font-bold text-brand-dark">{alert.title}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${config.bg} ${config.color}`}>
                         {config.label}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{alert.description}</p>
-                    <div className="flex items-center gap-4 mt-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
                       {alert.count > 1 && (
                         <span className="text-xs font-bold text-brand-orange">{alert.count} éléments</span>
                       )}
                       <span className="text-xs text-gray-400">{alert.timestamp}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex shrink-0 items-center gap-2 sm:justify-end">
                     <a
                       href={`#${action.section}`}
                       onClick={() => {
@@ -230,7 +230,7 @@ export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, on
                         ].filter(Boolean).join(' ');
                         onActionFeedback?.(target ? `${action.feedback} ${target}` : action.feedback);
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold ${actionClass}`}
+                      className={`min-h-[40px] w-full rounded-lg px-3 py-2 text-center text-xs font-semibold text-white sm:w-auto sm:py-1.5 ${actionClass}`}
                     >
                       {action.label}
                     </a>

@@ -198,6 +198,41 @@ describe('LogisticsDashboardPage', () => {
     view.unmount();
   });
 
+  it('opens every logistics section from the mobile menu', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const menuButton = view.container.querySelector('button[aria-label="Ouvrir le menu logistique"]');
+    expect(menuButton).not.toBeNull();
+    view.click(menuButton!);
+
+    const mobileSections: Array<[RegExp, string]> = [
+      [/^Dashboard$/, 'Auto-dispatch'],
+      [/^Fleet$/, 'Fleet Management'],
+      [/^Drivers$/, 'Profil chauffeur'],
+      [/^Dispatch$/, 'Nouvelles missions'],
+      [/^Tracking$/, 'Live Tracking'],
+      [/^Trip Details$/, 'Timeline trajet'],
+      [/^Shipments$/, 'shp-001'],
+      [/^Alertes/, 'Alertes opérationnelles'],
+      [/^Maintenance$/, 'Suivi entretien véhicules'],
+      [/^Reports$/, 'Reports & Analytics'],
+      [/^Settings$/, 'Notifications'],
+    ];
+
+    for (const [label, expectedText] of mobileSections) {
+      const button = buttonByText(view.container, label);
+      expect(button).not.toBeNull();
+      view.click(button!);
+      expect(byText(view.container, expectedText)).not.toBeNull();
+    }
+
+    view.unmount();
+  });
+
   it('shows dedicated trip details and handles trip actions', async () => {
     window.history.replaceState(null, '', '/#trip-details');
     const view = renderComponent(<LogisticsDashboardPage />);
