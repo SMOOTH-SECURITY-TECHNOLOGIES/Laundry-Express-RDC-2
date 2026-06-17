@@ -135,7 +135,7 @@ const timelineForTrip = (trip: DetailedTrip): TripTimelineEvent[] => {
 
 export const LogisticsTripDetails: React.FC = () => {
   const [trips, setTrips] = useState<DetailedTrip[]>(fallbackTrips);
-  const [selectedTripId, setSelectedTripId] = useState(fallbackTrips[0].id);
+  const [selectedTripId, setSelectedTripId] = useState(() => sessionStorage.getItem('logisticsFocusTripId') || fallbackTrips[0].id);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [activityLog, setActivityLog] = useState<string[]>(['Trip Details prêt: statut, contacts et incident tracking disponibles.']);
@@ -145,8 +145,13 @@ export const LogisticsTripDetails: React.FC = () => {
     getTrips(fallbackTrips).then((result) => {
       if (!mounted) return;
       const nextTrips = result.data.map(mapTrip);
+      const focusedTripId = sessionStorage.getItem('logisticsFocusTripId');
       setTrips(nextTrips);
-      setSelectedTripId(nextTrips[0]?.id ?? '');
+      setSelectedTripId(
+        focusedTripId && nextTrips.some((trip) => trip.id === focusedTripId)
+          ? focusedTripId
+          : nextTrips[0]?.id ?? ''
+      );
       setDataMode(result.mode);
     });
     return () => {
@@ -306,7 +311,10 @@ export const LogisticsTripDetails: React.FC = () => {
               <button
                 key={trip.id}
                 type="button"
-                onClick={() => setSelectedTripId(trip.id)}
+                onClick={() => {
+                  setSelectedTripId(trip.id);
+                  sessionStorage.setItem('logisticsFocusTripId', trip.id);
+                }}
                 className={`w-full rounded-2xl p-4 text-left text-sm ${
                   trip.id === selectedTrip.id ? 'bg-brand-blue text-white' : 'bg-surface-muted text-content-primary hover:bg-surface-page'
                 }`}

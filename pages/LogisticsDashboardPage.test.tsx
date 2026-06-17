@@ -235,6 +235,9 @@ describe('LogisticsDashboardPage', () => {
     });
 
     expect(byText(view.container, 'Live Tracking')).not.toBeNull();
+    expect(byText(view.container, 'Missions suivies')).not.toBeNull();
+    expect(byText(view.container, 'Retards live')).not.toBeNull();
+    expect(byText(view.container, 'ETA moyen')).not.toBeNull();
     expect(byText(view.container, 'Disponible')).not.toBeNull();
     expect(byText(view.container, 'Occupé')).not.toBeNull();
     expect(byText(view.container, 'Retard')).not.toBeNull();
@@ -269,6 +272,15 @@ describe('LogisticsDashboardPage', () => {
 
     view.click(buttonByText(view.container, /^Signaler incident$/)!);
     expect(byText(view.container, 'Statut mis à jour: Incident')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Marquer retard$/)!);
+    expect(byText(view.container, 'Statut mis à jour: Retard')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Actualiser positions$/)!);
+    expect(byText(view.container, 'Positions actualisées')).not.toBeNull();
+
+    const tripDetailsLink = Array.from(view.container.querySelectorAll('a')).find((link) => link.textContent === 'Ouvrir Trip Details');
+    expect(tripDetailsLink?.getAttribute('href')).toBe('#trip-details');
 
     view.click(buttonByText(view.container, /Basculer fallback géolocalisation/)!);
     expect(byText(view.container, 'Géolocalisation indisponible')).toBeNull();

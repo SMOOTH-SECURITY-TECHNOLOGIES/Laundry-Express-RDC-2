@@ -5,6 +5,7 @@ import { getTrackingPoints, getTrips, type DataMode } from '../../services/logis
 import { logisticsCard } from './logistics-ui';
 
 type TrackingStatus = 'available' | 'busy' | 'delayed' | 'offline';
+type TrackingFilter = 'all' | TrackingStatus;
 
 interface LiveTrip extends Trip {
   customerName: string;
@@ -241,13 +242,15 @@ const toLiveTrip = (trip: Trip): LiveTrip => {
 };
 
 export const LogisticsTracking: React.FC = () => {
-  const [activeTripId, setActiveTripId] = useState('trip-001');
+  const [activeTripId, setActiveTripId] = useState(() => sessionStorage.getItem('logisticsFocusTripId') || 'trip-001');
   const [liveTrips, setLiveTrips] = useState<LiveTrip[]>(fallbackLiveTrips);
   const [trackingPoints, setTrackingPoints] = useState<TrackingPoint[]>(fallbackTrackingPoints);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [geoAvailable, setGeoAvailable] = useState(() => typeof navigator !== 'undefined' && 'geolocation' in navigator);
   const [tripOverrides, setTripOverrides] = useState<Record<string, LogisticsStatus>>({});
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [trackingFilter, setTrackingFilter] = useState<TrackingFilter>('all');
+  const [lastSyncAt, setLastSyncAt] = useState('10:19');
 
   useEffect(() => {
     let mounted = true;
@@ -262,6 +265,7 @@ export const LogisticsTracking: React.FC = () => {
       setDataMode(tripResult.mode === 'backend' || pointResult.mode === 'backend' ? 'backend' : 'degraded');
       if (nextTrips.length > 0 && !nextTrips.some((trip) => trip.id === activeTripId)) {
         setActiveTripId(nextTrips[0].id);
+        sessionStorage.setItem('logisticsFocusTripId', nextTrips[0].id);
       }
     });
     return () => {
@@ -270,19 +274,70 @@ export const LogisticsTracking: React.FC = () => {
   }, []);
 
   const activeTripBase = liveTrips.find((trip) => trip.id === activeTripId) ?? liveTrips[0];
+  const activeStatus = tripOverrides[activeTripBase.id] ?? activeTripBase.status;
+  const activeTrackingStatus = statusToTracking(activeStatus);
   const activeTrip = {
     ...activeTripBase,
-    status: tripOverrides[activeTripBase.id] ?? activeTripBase.status,
+    status: activeStatus,
+    statusLabel: statusConfig[activeTrackingStatus].label,
+    trackingStatus: activeTrackingStatus,
   };
   const activePoints = useMemo(
     () => trackingPoints.filter((point) => point.tripId === activeTrip.id),
-    [activeTrip.id]
+    [trackingPoints, activeTrip.id]
   );
   const activeTimeline = timelineEvents.filter((event) => event.tripId === activeTrip.id);
+  const filteredTrips = useMemo(
+    () =>
+      liveTrips
+        .map((trip) => {
+          const status = tripOverrides[trip.id] ?? trip.status;
+          const trackingStatus = statusToTracking(status);
+          return { ...trip, status, trackingStatus, statusLabel: statusConfig[trackingStatus].label };
+        })
+        .filter((trip) => trackingFilter === 'all' || trip.trackingStatus === trackingFilter),
+    [liveTrips, trackingFilter, tripOverrides]
+  );
+  const visibleTripIds = new Set(filteredTrips.map((trip) => trip.id));
+  const visiblePoints = trackingPoints.filter((point) => visibleTripIds.has(point.tripId));
+  const trackingMetrics = {
+    tracked: liveTrips.length,
+    delayed: liveTrips.filter((trip) => statusToTracking(tripOverrides[trip.id] ?? trip.status) === 'delayed').length,
+    offline: liveTrips.filter((trip) => statusToTracking(tripOverrides[trip.id] ?? trip.status) === 'offline').length,
+    averageEta: Math.round(
+      liveTrips.reduce((total, trip) => total + (trip.etaMinutes ?? 0), 0) / Math.max(1, liveTrips.length)
+    ),
+  };
+  const filterCounts: Record<TrackingFilter, number> = {
+    all: liveTrips.length,
+    available: liveTrips.filter((trip) => statusToTracking(tripOverrides[trip.id] ?? trip.status) === 'available').length,
+    busy: liveTrips.filter((trip) => statusToTracking(tripOverrides[trip.id] ?? trip.status) === 'busy').length,
+    delayed: trackingMetrics.delayed,
+    offline: trackingMetrics.offline,
+  };
+  const activeRoutePoints = activePoints
+    .map((point) => pointPosition(point))
+    .map((position) => `${parseFloat(position.left)},${parseFloat(position.top)}`)
+    .join(' ');
 
   const updateTripStatus = (status: LogisticsStatus) => {
     setTripOverrides((current) => ({ ...current, [activeTrip.id]: status }));
     setActionMessage(`Statut mis à jour: ${tripStatusLabels[status]}`);
+  };
+
+  const focusTrip = (tripId: string) => {
+    setActiveTripId(tripId);
+    sessionStorage.setItem('logisticsFocusTripId', tripId);
+  };
+
+  const refreshTracking = () => {
+    const nextSync = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    setLastSyncAt(nextSync);
+    setActionMessage(`Positions actualisées à ${nextSync}`);
+  };
+
+  const openTripDetails = () => {
+    sessionStorage.setItem('logisticsFocusTripId', activeTrip.id);
   };
 
   return (
@@ -313,6 +368,42 @@ export const LogisticsTracking: React.FC = () => {
           </div>
         </div>
 
+        <div className="grid gap-3 border-b border-surface-border-subtle p-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Missions suivies', trackingMetrics.tracked],
+            ['Retards live', trackingMetrics.delayed],
+            ['Hors ligne', trackingMetrics.offline],
+            ['ETA moyen', `${trackingMetrics.averageEta} min`],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl bg-surface-muted p-4">
+              <p className="text-xs font-bold text-content-muted">{label}</p>
+              <p className="mt-2 text-2xl font-black text-content-primary">{value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="-mx-1 flex gap-2 overflow-x-auto border-b border-surface-border-subtle px-5 py-4">
+          {([
+            ['all', 'Toutes'],
+            ['available', 'Disponibles'],
+            ['busy', 'Occupés'],
+            ['delayed', 'Retards'],
+            ['offline', 'Hors ligne'],
+          ] as [TrackingFilter, string][]).map(([filter, label]) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => setTrackingFilter(filter)}
+              className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-black ${
+                trackingFilter === filter ? 'bg-brand-blue text-white' : 'bg-surface-muted text-content-muted hover:bg-surface-page'
+              }`}
+            >
+              {label}
+              <span className={trackingFilter === filter ? 'text-white/80' : 'text-content-muted'}>{filterCounts[filter]}</span>
+            </button>
+          ))}
+        </div>
+
         {!geoAvailable && (
           <div className="mx-5 mt-5 rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800 dark:border-orange-900/50 dark:bg-orange-950/20 dark:text-orange-200">
             Géolocalisation indisponible. Affichage fallback sur les dernières positions connues.
@@ -328,6 +419,19 @@ export const LogisticsTracking: React.FC = () => {
               <div className="absolute left-[18%] top-[64%] h-[2px] w-[68%] rotate-[-10deg] bg-white/70 dark:bg-white/10" />
             </div>
 
+            {activeRoutePoints && (
+              <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <polyline
+                  points={activeRoutePoints}
+                  fill="none"
+                  stroke="rgb(37 99 235)"
+                  strokeDasharray="4 3"
+                  strokeLinecap="round"
+                  strokeWidth="1.2"
+                />
+              </svg>
+            )}
+
             <div className="absolute left-[8%] top-[12%] rounded-full bg-white/80 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800 dark:text-slate-300">
               Gombe
             </div>
@@ -338,7 +442,7 @@ export const LogisticsTracking: React.FC = () => {
               Limete
             </div>
 
-            {trackingPoints.map((point) => {
+            {visiblePoints.map((point) => {
               const pointStatus = statusToTracking(point.status);
               const config = statusConfig[pointStatus];
               const isActive = point.tripId === activeTrip.id;
@@ -346,7 +450,7 @@ export const LogisticsTracking: React.FC = () => {
                 <button
                   key={point.id}
                   type="button"
-                  onClick={() => setActiveTripId(point.tripId)}
+                  onClick={() => focusTrip(point.tripId)}
                   className={`absolute flex min-h-9 -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border px-3 py-2 text-xs font-black shadow-lg transition sm:min-h-0 sm:px-2 sm:py-1 ${
                     isActive
                       ? 'scale-110 border-white bg-brand-blue text-white ring-4 ring-brand-blue/20'
@@ -369,8 +473,15 @@ export const LogisticsTracking: React.FC = () => {
             >
               Basculer fallback géolocalisation
             </button>
+            <button
+              type="button"
+              onClick={refreshTracking}
+              className="rounded-xl bg-brand-blue px-3 py-3 text-xs font-black text-white hover:bg-brand-blue-700 sm:py-2"
+            >
+              Actualiser positions
+            </button>
             <span className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">
-              {trackingPoints.length} points live · dernière synchro 10:19
+              {visiblePoints.length} points visibles · dernière synchro {lastSyncAt}
             </span>
           </div>
         </div>
@@ -488,6 +599,20 @@ export const LogisticsTracking: React.FC = () => {
             >
               Signaler incident
             </button>
+            <button
+              type="button"
+              onClick={() => updateTripStatus('delayed')}
+              className="rounded-xl border border-orange-200 px-3 py-3 text-sm font-black text-orange-600 hover:bg-orange-50 sm:py-2 sm:text-xs"
+            >
+              Marquer retard
+            </button>
+            <a
+              href="#trip-details"
+              onClick={openTripDetails}
+              className="rounded-xl bg-surface-muted px-3 py-3 text-center text-sm font-black text-content-primary hover:bg-surface-page sm:py-2 sm:text-xs"
+            >
+              Ouvrir Trip Details
+            </a>
           </div>
 
           {actionMessage && (
@@ -500,11 +625,11 @@ export const LogisticsTracking: React.FC = () => {
         <section className={`${logisticsCard} p-4 sm:p-5`}>
           <h2 className="text-lg font-black text-content-primary">Missions suivies</h2>
           <div className="-mx-1 mt-4 flex gap-3 overflow-x-auto px-1 pb-1 lg:mx-0 lg:block lg:space-y-3 lg:px-0 lg:pb-0">
-            {liveTrips.map((trip) => (
+            {filteredTrips.map((trip) => (
               <button
                 key={trip.id}
                 type="button"
-                onClick={() => setActiveTripId(trip.id)}
+                onClick={() => focusTrip(trip.id)}
                 className={`min-w-[230px] rounded-xl p-4 text-left text-sm transition lg:w-full lg:min-w-0 ${
                   trip.id === activeTrip.id ? 'bg-brand-blue text-white' : 'bg-surface-muted text-content-primary hover:bg-surface-page'
                 }`}
@@ -515,6 +640,11 @@ export const LogisticsTracking: React.FC = () => {
                 </span>
               </button>
             ))}
+            {filteredTrips.length === 0 && (
+              <p className="rounded-xl bg-surface-muted px-4 py-3 text-sm font-bold text-content-muted">
+                Aucun trajet dans ce filtre.
+              </p>
+            )}
           </div>
         </section>
 
