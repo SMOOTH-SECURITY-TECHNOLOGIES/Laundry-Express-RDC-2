@@ -8,6 +8,15 @@ import DriversTable from './DriversTable';
 import PerformanceDashboard from './PerformanceDashboard';
 import OperationalAlerts from './OperationalAlerts';
 import DispatchMap from './DispatchMap';
+import {
+  driverProfileToReadyDriver,
+  getLogisticsDrivers,
+  getMissionRows,
+  type DataMode,
+  type LogisticsBacklogMission,
+  type LogisticsMissionRow,
+  type LogisticsReadyDriver,
+} from '../../services/logistics-api';
 
 interface LogisticsOverviewProps {
   onRefresh: () => void;
@@ -387,6 +396,10 @@ const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> =
 export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport }) => {
   const [activeTab, setActiveTab] = useState<DispatcherTab>('operations');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  const [backlog, setBacklog] = useState<LogisticsBacklogMission[]>(MOCK_BACKLOG);
+  const [activeMissions, setActiveMissions] = useState<LogisticsMissionRow[]>(MOCK_ACTIVE_MISSIONS);
+  const [readyDrivers, setReadyDrivers] = useState<LogisticsReadyDriver[]>(MOCK_READY_DRIVERS);
   const [loading, setLoading] = useState<Record<DispatcherTab, boolean>>({
     operations: false,
     dispatch: false,
@@ -401,6 +414,39 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
     const timer = setTimeout(() => setLoading((prev) => ({ ...prev, [activeTab]: false })), 800);
     return () => clearTimeout(timer);
   }, [activeTab]);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([
+      getMissionRows(MOCK_BACKLOG, MOCK_ACTIVE_MISSIONS),
+      getLogisticsDrivers([]),
+    ]).then(([missionResult, driverResult]) => {
+      if (!mounted) return;
+      setBacklog(missionResult.data.backlog);
+      setActiveMissions(missionResult.data.missions);
+      if (driverResult.data.length > 0) {
+        setReadyDrivers(driverResult.data.map(driverProfileToReadyDriver));
+      }
+      setDataMode(missionResult.mode === 'backend' || driverResult.mode === 'backend' ? 'backend' : 'degraded');
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const liveOpenMissionsCount = backlog.length;
+  const liveActiveMissionsCount = activeMissions.length;
+  const liveTotalMissionFlow = liveOpenMissionsCount + liveActiveMissionsCount;
+  const liveActiveMissionRate = liveTotalMissionFlow > 0 ? Math.round((liveActiveMissionsCount / liveTotalMissionFlow) * 100) : 0;
+  const liveTotalDriversCount = readyDrivers.length;
+  const liveAvailableDriversCount = readyDrivers.filter((driver) => driver.status === 'Disponible').length;
+  const liveEstimatedBacklogRevenue = backlog.reduce((total, mission) => total + mission.amount, 0);
+  const liveKpiCards = [
+    { label: 'Missions ouvertes', value: String(liveOpenMissionsCount), sub: 'À assigner', icon: 'shoppingBag' as const, tone: 'bg-blue-50 text-brand-blue' },
+    { label: 'Missions actives', value: String(liveActiveMissionsCount), sub: `${liveActiveMissionRate}% du flux`, icon: 'truck' as const, tone: 'bg-violet-50 text-violet-600' },
+    { label: 'Chauffeurs dispo', value: `${liveAvailableDriversCount}/${liveTotalDriversCount}`, sub: 'Réseau actif', icon: 'users' as const, tone: 'bg-green-50 text-green-600' },
+    { label: 'Volume estimé', value: formatCdf(liveEstimatedBacklogRevenue), sub: 'Backlog non assigné', icon: 'currencyDollar' as const, tone: 'bg-orange-50 text-orange-600' },
+  ];
 
   const announceAction = (message: string) => {
     setActionMessage(message);
@@ -437,10 +483,10 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
             <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
             <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
               <div className={`${logisticsCard} p-5`}>
-                <BacklogBoard missions={MOCK_BACKLOG} />
+                <BacklogBoard missions={backlog} />
               </div>
               <div className={`${logisticsCard} p-5`}>
-                <ReadyDriversPanel drivers={MOCK_READY_DRIVERS} />
+                <ReadyDriversPanel drivers={readyDrivers} />
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -484,13 +530,13 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       case 'missions':
         return (
           <div className={`${logisticsCard} p-5`}>
-            <MissionTable missions={MOCK_ACTIVE_MISSIONS} />
+            <MissionTable missions={activeMissions} />
           </div>
         );
       case 'drivers':
         return (
           <div className={`${logisticsCard} p-5`}>
-            <DriversTable drivers={MOCK_READY_DRIVERS} />
+            <DriversTable drivers={readyDrivers} />
           </div>
         );
       case 'performance':
@@ -509,6 +555,14 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Dashboard logistique connecté au backend' : 'Mode dégradé — dashboard local'}
+      </div>
+
       <div className={`${logisticsCard} p-4 sm:p-6`}>
         <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">
           <div className="min-w-0">
@@ -552,7 +606,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
-        {KPI_CARDS.map((kpi) => (
+        {liveKpiCards.map((kpi) => (
           <div key={kpi.label} className={`${logisticsCard} p-4 sm:p-5`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-14 sm:w-14 ${kpi.tone}`}>

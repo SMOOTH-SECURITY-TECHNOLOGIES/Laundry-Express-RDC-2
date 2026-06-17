@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { Shipment } from '../../components/logistics/logistics-types';
+import { getShipments, type DataMode, type LogisticsShipmentRow } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
-const shipments: Shipment[] = [
+const fallbackShipments: LogisticsShipmentRow[] = [
   {
     id: 'shp-001',
     orderId: 'LX-2001',
@@ -40,21 +41,44 @@ const statusLabel: Record<Shipment['status'], string> = {
   cancelled: 'Annulé',
 };
 
-export const LogisticsShipments: React.FC = () => (
-  <section className={`${logisticsCard} overflow-hidden`}>
-    <div className="flex flex-col gap-3 border-b border-surface-border-subtle p-5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-2">
-        <Icon name="archive-box" className="h-5 w-5 text-brand-blue" />
-        <h2 className="text-lg font-black text-content-primary">Shipments</h2>
-      </div>
-      <span className="w-fit rounded-full bg-surface-muted px-3 py-1 text-xs font-black text-content-muted">
-        {shipments.length} livraisons
-      </span>
-    </div>
+export const LogisticsShipments: React.FC = () => {
+  const [shipments, setShipments] = useState<LogisticsShipmentRow[]>(fallbackShipments);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
 
-    <div className="grid gap-3 p-4 sm:hidden">
-      {shipments.map((shipment) => (
-        <article key={shipment.id} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-4">
+  useEffect(() => {
+    let mounted = true;
+    getShipments(fallbackShipments).then((result) => {
+      if (!mounted) return;
+      setShipments(result.data);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <section className={`${logisticsCard} overflow-hidden`}>
+      <div className={`border-b px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Shipments dérivés du backend logistique' : 'Mode dégradé — shipments locaux'}
+      </div>
+      <div className="flex flex-col gap-3 border-b border-surface-border-subtle p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <Icon name="archive-box" className="h-5 w-5 text-brand-blue" />
+          <h2 className="text-lg font-black text-content-primary">Shipments</h2>
+        </div>
+        <span className="w-fit rounded-full bg-surface-muted px-3 py-1 text-xs font-black text-content-muted">
+          {shipments.length} livraisons
+        </span>
+      </div>
+
+      <div className="grid gap-3 p-4 sm:hidden">
+        {shipments.map((shipment) => (
+          <article key={shipment.id} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-base font-black text-content-primary">{shipment.id}</p>
@@ -74,12 +98,12 @@ export const LogisticsShipments: React.FC = () => (
               <p className="mt-1 text-content-primary">{shipment.deliveryZone}</p>
             </div>
           </div>
-        </article>
-      ))}
-    </div>
+          </article>
+        ))}
+      </div>
 
-    <div className="hidden overflow-x-auto sm:block">
-      <table className="min-w-full text-left text-sm">
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="min-w-full text-left text-sm">
         <thead className="bg-surface-muted text-xs uppercase text-content-muted">
           <tr>
             <th className="px-5 py-3">Shipment</th>
@@ -106,7 +130,8 @@ export const LogisticsShipments: React.FC = () => (
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
-  </section>
-);
+        </table>
+      </div>
+    </section>
+  );
+};

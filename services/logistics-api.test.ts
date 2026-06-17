@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getDispatchTasks, mapLogisticsDriver, mapLogisticsTask } from './logistics-api';
+import {
+  getDispatchTasks,
+  getLogisticsDrivers,
+  getMissionRows,
+  getShipments,
+  mapLogisticsDriver,
+  mapLogisticsTask,
+} from './logistics-api';
 import { realApi, type LogisticsDriver, type LogisticsTask } from './real-api';
 
 vi.mock('./real-api', () => ({
@@ -87,6 +94,46 @@ describe('logistics-api contract mappers', () => {
     expect(result.mode).toBe('backend');
     expect(result.data).toHaveLength(1);
     expect(result.data[0].id).toBe('LX-9001');
+  });
+
+  it('derives mission rows and shipment rows from backend dispatch tasks', async () => {
+    vi.mocked(realApi.getLogisticsTasks).mockResolvedValue({ tasks: [backendTask], total: 1, page: 1, page_size: 100 });
+    vi.mocked(realApi.getLogisticsDrivers).mockResolvedValue({ drivers: [backendDriver], total: 1, page: 1, page_size: 100 });
+
+    const missionResult = await getMissionRows([], []);
+    const shipmentResult = await getShipments([]);
+
+    expect(missionResult.mode).toBe('backend');
+    expect(missionResult.data.missions[0]).toMatchObject({
+      id: 'LX-9001',
+      status: 'Assignée',
+      driver: 'Backend Driver',
+      commune: 'Gombe',
+    });
+    expect(shipmentResult.mode).toBe('backend');
+    expect(shipmentResult.data[0]).toMatchObject({
+      id: 'task-backend-1',
+      orderId: 'LX-9001',
+      customerName: 'Client Backend',
+      status: 'assigned',
+    });
+  });
+
+  it('maps backend drivers to complete logistics driver profiles', async () => {
+    vi.mocked(realApi.getLogisticsDrivers).mockResolvedValue({ drivers: [backendDriver], total: 1, page: 1, page_size: 100 });
+
+    const result = await getLogisticsDrivers([]);
+
+    expect(result.mode).toBe('backend');
+    expect(result.data[0]).toMatchObject({
+      id: 'drv-backend-1',
+      name: 'Backend Driver',
+      phone: '+243810000001',
+      vehicle: 'moto',
+      vehiclePlate: 'KIN-001-MT',
+      status: 'Disponible',
+      email: 'driver@laundry.test',
+    });
   });
 
   it('returns degraded mode with fallback when backend dispatch is unavailable', async () => {

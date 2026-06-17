@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import BacklogBoard from './BacklogBoard';
 import MissionTable from './MissionTable';
+import { getMissionRows, type DataMode, type LogisticsBacklogMission, type LogisticsMissionRow } from '../../services/logistics-api';
 
-const MOCK_BACKLOG = Array.from({ length: 24 }, (_, i) => ({
+const MOCK_BACKLOG: LogisticsBacklogMission[] = Array.from({ length: 24 }, (_, i) => ({
   id: `MSN-${String(i + 1).padStart(3, '0')}`,
   client: ['Mama Jeanne', 'Patrick L.', 'Sarah K.', 'David M.', 'Grace N.', 'Paul O.', 'Marie C.', 'Jean B.'][i % 8],
   pickup: ['Av. Lumumba 42', 'Boulevard du 30 Juin', 'Av. Kasavubu 15', 'Rue Kasa-Vubu 8', 'Av. Sendwe 27'][i % 5],
@@ -13,7 +14,7 @@ const MOCK_BACKLOG = Array.from({ length: 24 }, (_, i) => ({
   time: `${String(7 + (i % 12)).padStart(2, '0')}:${String((i * 13) % 60).padStart(2, '0')}`,
 }));
 
-const MOCK_ACTIVE_MISSIONS = Array.from({ length: 38 }, (_, i) => ({
+const MOCK_ACTIVE_MISSIONS: LogisticsMissionRow[] = Array.from({ length: 38 }, (_, i) => ({
   id: `MSN-${String(i + 1).padStart(3, '0')}`,
   status: ['En cours', 'Assignée', 'En attente'][i % 3],
   driver: ['Kabongo M.', 'Tshimanga A.', 'Mutombo P.', 'Kalonji S.', 'Ngoy L.'][i % 5],
@@ -29,24 +30,41 @@ interface LogisticsMissionsProps {
 }
 
 export const LogisticsMissions: React.FC<LogisticsMissionsProps> = ({ focusMissionId, focusAlertTitle, focusType, focusZone, onClearFocus }) => {
+  const [backlog, setBacklog] = useState<LogisticsBacklogMission[]>(MOCK_BACKLOG);
+  const [missions, setMissions] = useState<LogisticsMissionRow[]>(MOCK_ACTIVE_MISSIONS);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+
+  useEffect(() => {
+    let mounted = true;
+    getMissionRows(MOCK_BACKLOG, MOCK_ACTIVE_MISSIONS).then((result) => {
+      if (!mounted) return;
+      setBacklog(result.data.backlog);
+      setMissions(result.data.missions);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const hasFocus = Boolean(focusMissionId || focusAlertTitle || focusType || focusZone);
   const zoneMatch = (commune: string) => !focusZone || commune.toLowerCase() === focusZone.toLowerCase();
   const focusedBacklog = hasFocus
-    ? MOCK_BACKLOG.filter((mission) => {
+    ? backlog.filter((mission) => {
         if (focusMissionId) return mission.id === focusMissionId;
         if (focusType === 'waiting') return zoneMatch(mission.commune);
         if (focusType === 'late') return false;
         return zoneMatch(mission.commune);
       })
-    : MOCK_BACKLOG;
+    : backlog;
   const focusedActive = hasFocus
-    ? MOCK_ACTIVE_MISSIONS.filter((mission) => {
+    ? missions.filter((mission) => {
         if (focusMissionId) return mission.id === focusMissionId;
         if (focusType === 'late') return mission.status === 'En cours' && zoneMatch(mission.commune);
         if (focusType === 'waiting') return mission.status === 'En attente' && zoneMatch(mission.commune);
         return zoneMatch(mission.commune);
       })
-    : MOCK_ACTIVE_MISSIONS;
+    : missions;
   const hasFocusedMission = focusedBacklog.length > 0 || focusedActive.length > 0;
   const focusTitle = focusMissionId
     ? `Mission ciblée depuis l’alerte: ${focusMissionId}`
@@ -54,6 +72,14 @@ export const LogisticsMissions: React.FC<LogisticsMissionsProps> = ({ focusMissi
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Missions connectées au backend' : 'Mode dégradé — missions locales'}
+      </div>
+
       {hasFocus && (
         <div className="rounded-2xl border border-red-400/60 bg-red-500/10 p-4 text-sm text-content-primary">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

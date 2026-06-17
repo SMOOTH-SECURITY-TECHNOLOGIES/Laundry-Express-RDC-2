@@ -1,16 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
 import type { LogisticsSection } from '../../components/logistics/logistics-types';
+import { getLogisticsAlerts, type DataMode, type LogisticsAlertRow } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
-interface Alert {
-  id: string;
-  type: 'retard' | 'attente' | 'inactif' | 'paiement';
-  title: string;
-  description: string;
-  count: number;
-  timestamp: string;
-}
+type Alert = LogisticsAlertRow;
 
 const MOCK_ALERTS: Alert[] = [
   { id: 'ALT-001', type: 'retard', title: 'Mission MSN-004 en retard', description: 'Le chauffeur Tshimanga A. est en retard de 15 min sur la mission #MSN-004', count: 1, timestamp: 'Il y a 5 min' },
@@ -106,25 +100,47 @@ const missionFocusType = (alert: Alert) => {
 
 export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, onActionFeedback }) => {
   const [activeFilter, setActiveFilter] = useState<string>('Toutes');
+  const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+
+  useEffect(() => {
+    let mounted = true;
+    getLogisticsAlerts(MOCK_ALERTS).then((result) => {
+      if (!mounted) return;
+      setAlerts(result.data);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filteredAlerts = useMemo(() => {
     const typeFilter = FILTER_MAP[activeFilter];
-    if (!typeFilter) return MOCK_ALERTS;
-    return MOCK_ALERTS.filter(a => a.type === typeFilter);
-  }, [activeFilter]);
+    if (!typeFilter) return alerts;
+    return alerts.filter(a => a.type === typeFilter);
+  }, [activeFilter, alerts]);
 
   const getFilterCount = (filter: string) => {
     const typeFilter = FILTER_MAP[filter];
-    if (!typeFilter) return MOCK_ALERTS.length;
-    return MOCK_ALERTS.filter(a => a.type === typeFilter).length;
+    if (!typeFilter) return alerts.length;
+    return alerts.filter(a => a.type === typeFilter).length;
   };
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Alertes calculées depuis le backend' : 'Mode dégradé — alertes locales'}
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-brand-dark">Alertes opérationnelles</h1>
-          <p className="text-sm text-gray-500 mt-1">{MOCK_ALERTS.length} alertes actives</p>
+          <p className="text-sm text-gray-500 mt-1">{alerts.length} alertes actives</p>
         </div>
       </div>
 

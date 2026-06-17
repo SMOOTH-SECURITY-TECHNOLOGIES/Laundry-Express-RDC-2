@@ -1851,6 +1851,22 @@ export interface LogisticsVehicle {
   };
 }
 
+export interface LogisticsVehicleUpsertRequest {
+  plate?: string;
+  type?: LogisticsVehicle['type'];
+  status?: LogisticsVehicle['status'];
+  driver_id?: string | null;
+  assigned_driver_name?: string | null;
+  zone?: string;
+  location?: string;
+  last_known_location?: string | null;
+  mileage_km?: number;
+  insurance_expires_at?: string | null;
+  maintenance_status?: LogisticsVehicle['maintenance']['status'];
+  maintenance_next_service_km?: number;
+  maintenance_notes?: string | null;
+}
+
 export interface LogisticsVehicleListResponse {
   vehicles: LogisticsVehicle[];
 }
@@ -3497,6 +3513,26 @@ class ApiClient {
     return this.request<LogisticsVehicleListResponse>('/logistics/vehicles');
   }
 
+  async createVehicle(data: LogisticsVehicleUpsertRequest & { plate: string; type: LogisticsVehicle['type'] }): Promise<LogisticsVehicle> {
+    return this.request<LogisticsVehicle>('/logistics/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateVehicle(vehicleId: string, data: LogisticsVehicleUpsertRequest): Promise<LogisticsVehicle> {
+    return this.request<LogisticsVehicle>(`/logistics/vehicles/${vehicleId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteVehicle(vehicleId: string): Promise<void> {
+    return this.request<void>(`/logistics/vehicles/${vehicleId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getTrips(): Promise<LogisticsTripListResponse> {
     return this.request<LogisticsTripListResponse>('/logistics/trips');
   }
@@ -3536,6 +3572,13 @@ class ApiClient {
     });
   }
 
+  async autoAssignLogisticsTask(taskId: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/auto-assign`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
   async acceptLogisticsTask(taskId: string): Promise<LogisticsTask> {
     return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/accept`, {
       method: 'POST',
@@ -3556,6 +3599,20 @@ class ApiClient {
       body: JSON.stringify({
         proof_note: proofNote || 'Completed from driver dashboard',
       }),
+    });
+  }
+
+  async failLogisticsTask(taskId: string, reason: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/fail`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async cancelLogisticsTask(taskId: string, reason?: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
     });
   }
 

@@ -331,8 +331,8 @@ describe('LogisticsDashboardPage', () => {
     });
 
     expect(byText(view.container, 'Profil chauffeur')).not.toBeNull();
-    expect(byText(view.container, 'Kabongo Mutombo')).not.toBeNull();
-    expect(byText(view.container, 'CD-1234-KIN')).not.toBeNull();
+    expect(byText(view.container, 'Driver Kin')).not.toBeNull();
+    expect(byText(view.container, 'Plaque à confirmer')).not.toBeNull();
     expect(byText(view.container, 'Documents')).not.toBeNull();
     expect(byText(view.container, 'Permis')).not.toBeNull();
     expect(byText(view.container, 'Performance')).not.toBeNull();
@@ -340,10 +340,10 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Revenus')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Appeler$/)!);
-    expect(byText(view.container, 'Appel chauffeur: +243 812 345 001')).not.toBeNull();
+    expect(byText(view.container, 'Appel chauffeur: +243812345678')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Message$/)!);
-    expect(byText(view.container, 'Message envoyé à Kabongo Mutombo')).not.toBeNull();
+    expect(byText(view.container, 'Message envoyé à Driver Kin')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Suspendre$/)!);
     expect(byText(view.container, 'Chauffeur suspendu')).not.toBeNull();
@@ -353,7 +353,7 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Chauffeur réactivé')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Assigner mission$/)!);
-    expect(byText(view.container, 'Mission assignée à Kabongo Mutombo')).not.toBeNull();
+    expect(byText(view.container, 'Mission assignée à Driver Kin')).not.toBeNull();
     expect(byText(view.container, '1 mission')).not.toBeNull();
 
     view.unmount();

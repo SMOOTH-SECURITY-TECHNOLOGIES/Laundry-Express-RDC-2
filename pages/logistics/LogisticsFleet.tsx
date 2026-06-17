@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { Vehicle } from '../../components/logistics/logistics-types';
 import { getVehicles, type DataMode } from '../../services/logistics-api';
+import { realApi, type LogisticsVehicleUpsertRequest } from '../../services/real-api';
 import { logisticsCard } from './logistics-ui';
 
 type VehicleForm = Pick<
@@ -197,6 +198,26 @@ const toForm = (vehicle: Vehicle): VehicleForm => ({
   maintenanceNotes: vehicle.maintenance.notes ?? '',
 });
 
+const toBackendVehiclePayload = (vehicle: Vehicle): LogisticsVehicleUpsertRequest & { plate: string; type: Vehicle['type'] } => {
+  const insuranceDate = vehicle.insuranceExpiresAt
+    ? new Date(`${vehicle.insuranceExpiresAt}T00:00:00.000Z`).toISOString()
+    : null;
+  return {
+    plate: vehicle.plate,
+    type: vehicle.type,
+    status: vehicle.status,
+    assigned_driver_name: vehicle.assignedDriverName ?? null,
+    zone: vehicle.zone,
+    location: vehicle.location,
+    last_known_location: vehicle.lastKnownLocation ?? vehicle.location,
+    mileage_km: vehicle.mileageKm,
+    insurance_expires_at: insuranceDate,
+    maintenance_status: vehicle.maintenance.status,
+    maintenance_next_service_km: vehicle.maintenance.nextServiceAtKm,
+    maintenance_notes: vehicle.maintenance.notes ?? null,
+  };
+};
+
 export const LogisticsFleet: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
@@ -268,7 +289,7 @@ export const LogisticsFleet: React.FC = () => {
     setActionMessage(null);
   };
 
-  const saveVehicle = () => {
+  const saveVehicle = async () => {
     if (!form.plate.trim()) {
       setActionMessage('Plaque obligatoire.');
       return;
@@ -280,22 +301,63 @@ export const LogisticsFleet: React.FC = () => {
 
     if (editingVehicleId) {
       const updated = toVehicle(form, editingVehicleId);
-      setVehicles((current) => current.map((vehicle) => (vehicle.id === editingVehicleId ? updated : vehicle)));
-      setSelectedVehicleId(updated.id);
-      setActionMessage(`Véhicule ${updated.plate} modifié.`);
+      if (dataMode === 'backend') {
+        try {
+          const saved = await realApi.updateVehicle(editingVehicleId, toBackendVehiclePayload(updated));
+          setVehicles((current) => current.map((vehicle) => (vehicle.id === editingVehicleId ? saved : vehicle)));
+          setSelectedVehicleId(saved.id);
+          setActionMessage(`Véhicule ${saved.plate} modifié depuis le backend.`);
+        } catch (error) {
+          setActionMessage(`Backend indisponible, modification locale conservée: ${error instanceof Error ? error.message : 'véhicule'}`);
+          setVehicles((current) => current.map((vehicle) => (vehicle.id === editingVehicleId ? updated : vehicle)));
+          setSelectedVehicleId(updated.id);
+        }
+      } else {
+        setVehicles((current) => current.map((vehicle) => (vehicle.id === editingVehicleId ? updated : vehicle)));
+        setSelectedVehicleId(updated.id);
+        setActionMessage(`Véhicule ${updated.plate} modifié.`);
+      }
     } else {
       const createdId = `veh-${String(vehicles.length + 1).padStart(3, '0')}`;
       const created = toVehicle(form, createdId);
-      setVehicles((current) => [created, ...current]);
-      setSelectedVehicleId(created.id);
-      setActionMessage(`Véhicule ${created.plate} ajouté.`);
+      if (dataMode === 'backend') {
+        try {
+          const saved = await realApi.createVehicle(toBackendVehiclePayload(created));
+          setVehicles((current) => [saved, ...current]);
+          setSelectedVehicleId(saved.id);
+          setActionMessage(`Véhicule ${saved.plate} ajouté depuis le backend.`);
+        } catch (error) {
+          setActionMessage(`Backend indisponible, création locale conservée: ${error instanceof Error ? error.message : 'véhicule'}`);
+          setVehicles((current) => [created, ...current]);
+          setSelectedVehicleId(created.id);
+        }
+      } else {
+        setVehicles((current) => [created, ...current]);
+        setSelectedVehicleId(created.id);
+        setActionMessage(`Véhicule ${created.plate} ajouté.`);
+      }
     }
     setIsFormOpen(false);
     setEditingVehicleId(null);
     setForm(emptyForm);
   };
 
-  const disableVehicle = (vehicleId: string) => {
+  const disableVehicle = async (vehicleId: string) => {
+    if (dataMode === 'backend') {
+      try {
+        const saved = await realApi.updateVehicle(vehicleId, {
+          status: 'cancelled',
+          assigned_driver_name: null,
+          driver_id: null,
+        });
+        setVehicles((current) => current.map((vehicle) => (vehicle.id === vehicleId ? saved : vehicle)));
+        setSelectedVehicleId(saved.id);
+        setActionMessage('Véhicule désactivé côté backend et retiré des assignations.');
+        return;
+      } catch (error) {
+        setActionMessage(`Backend indisponible, désactivation locale conservée: ${error instanceof Error ? error.message : 'véhicule'}`);
+      }
+    }
     setVehicles((current) =>
       current.map((vehicle) =>
         vehicle.id === vehicleId
@@ -307,7 +369,21 @@ export const LogisticsFleet: React.FC = () => {
     setActionMessage('Véhicule désactivé et retiré des assignations.');
   };
 
-  const activateVehicle = (vehicleId: string) => {
+  const activateVehicle = async (vehicleId: string) => {
+    if (dataMode === 'backend') {
+      try {
+        const saved = await realApi.updateVehicle(vehicleId, {
+          status: 'pending',
+          maintenance_status: 'ok',
+        });
+        setVehicles((current) => current.map((vehicle) => (vehicle.id === vehicleId ? saved : vehicle)));
+        setSelectedVehicleId(saved.id);
+        setActionMessage('Véhicule réactivé côté backend et disponible pour assignation.');
+        return;
+      } catch (error) {
+        setActionMessage(`Backend indisponible, réactivation locale conservée: ${error instanceof Error ? error.message : 'véhicule'}`);
+      }
+    }
     setVehicles((current) =>
       current.map((vehicle) =>
         vehicle.id === vehicleId
@@ -319,13 +395,29 @@ export const LogisticsFleet: React.FC = () => {
     setActionMessage('Véhicule réactivé et disponible pour assignation.');
   };
 
-  const assignDriver = (vehicleId: string, driverName: string) => {
+  const assignDriver = async (vehicleId: string, driverName: string) => {
     const vehicle = vehicles.find((item) => item.id === vehicleId);
     if (vehicle && isUnavailable(vehicle)) {
       setActionMessage(`Assignation bloquée: ${vehicle.plate} indisponible.`);
       setAssigningVehicleId(null);
       setSelectedVehicleId(vehicleId);
       return;
+    }
+
+    if (dataMode === 'backend') {
+      try {
+        const saved = await realApi.updateVehicle(vehicleId, {
+          status: vehicle?.status === 'pending' || vehicle?.status === 'delivered' ? 'assigned' : vehicle?.status,
+          assigned_driver_name: driverName,
+        });
+        setVehicles((current) => current.map((item) => (item.id === vehicleId ? saved : item)));
+        setAssigningVehicleId(null);
+        setSelectedVehicleId(saved.id);
+        setActionMessage(`${driverName} assigné au véhicule côté backend.`);
+        return;
+      } catch (error) {
+        setActionMessage(`Backend indisponible, assignation locale conservée: ${error instanceof Error ? error.message : 'véhicule'}`);
+      }
     }
 
     setVehicles((current) =>

@@ -3,29 +3,9 @@ import { Icon } from '../../components/Icon';
 import { logisticsCard } from './logistics-ui';
 import { AddDriverModal } from '../../components/logistics/AddDriverModal';
 import { EditDriverModal } from '../../components/logistics/EditDriverModal';
+import { getLogisticsDrivers, type DataMode, type LogisticsDriverProfile } from '../../services/logistics-api';
 
-interface Driver {
-  id: string;
-  name: string;
-  phone: string;
-  avatarUrl?: string;
-  vehicle: string;
-  vehiclePlate: string;
-  commune: string;
-  email: string;
-  notes: string;
-  status: string;
-  missionsCompleted: number;
-  rating: number;
-  availability: string;
-  documents?: { label: string; status: 'valid' | 'expired' | 'missing' }[];
-  performance?: {
-    punctuality: number;
-    delays: number;
-    cancellations: number;
-    revenue: number;
-  };
-}
+type Driver = LogisticsDriverProfile;
 
 const MOCK_DRIVERS: Driver[] = [
   { id: 'D-001', name: 'Kabongo Mutombo', phone: '+243 812 345 001', avatarUrl: '/images/drivers/driver-1.svg', vehicle: 'Moto', vehiclePlate: 'CD-1234-KIN', commune: 'Gombe', email: 'kabongo.m@mail.cd', notes: '', status: 'Disponible', missionsCompleted: 234, rating: 4.8, availability: 'Libre', documents: [{ label: 'Permis', status: 'valid' }, { label: 'Assurance', status: 'valid' }, { label: 'Carte véhicule', status: 'valid' }], performance: { punctuality: 96, delays: 3, cancellations: 1, revenue: 12450 } },
@@ -88,11 +68,25 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
   const [activeFilter, setActiveFilter] = useState('Tous');
   const [searchQuery, setSearchQuery] = useState('');
   const [drivers, setDrivers] = useState<Driver[]>(MOCK_DRIVERS);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [selectedDriverId, setSelectedDriverId] = useState<string>('D-001');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    getLogisticsDrivers(MOCK_DRIVERS).then((result) => {
+      if (!mounted) return;
+      setDrivers(result.data);
+      setSelectedDriverId(result.data[0]?.id ?? '');
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedDriverId) {
@@ -194,6 +188,14 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Chauffeurs connectés au backend' : 'Mode dégradé — chauffeurs locaux'}
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-content-primary">Gestion des chauffeurs</h1>

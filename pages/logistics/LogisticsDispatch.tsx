@@ -284,23 +284,53 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
     pushLog(`${taskId} priorisée en urgence.`);
   };
 
-  const cancelTask = (taskId: string) => {
+  const cancelTask = async (taskId: string) => {
+    setIsSavingAction(true);
+    if (dataMode === 'backend') {
+      const task = tasks.find((item) => item.id === taskId);
+      try {
+        await realApi.cancelLogisticsTask(task?.shipmentId || taskId, 'Annulé depuis Dispatch Center');
+      } catch (error) {
+        pushLog(`Backend indisponible, annulation conservée localement: ${error instanceof Error ? error.message : 'annulation'}`);
+      }
+    }
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'cancelled' } : task)));
     const nextVisibleTask = tasks.find((task) => task.id !== taskId && task.status !== 'cancelled');
     setSelectedTaskId(nextVisibleTask?.id ?? '');
     pushLog(`${taskId} annulée et retirée du tableau dispatch.`);
+    setIsSavingAction(false);
   };
 
-  const moveToTransit = (taskId: string) => {
+  const moveToTransit = async (taskId: string) => {
+    setIsSavingAction(true);
+    if (dataMode === 'backend') {
+      const task = tasks.find((item) => item.id === taskId);
+      try {
+        await realApi.startLogisticsTask(task?.shipmentId || taskId);
+      } catch (error) {
+        pushLog(`Backend indisponible, démarrage conservé localement: ${error instanceof Error ? error.message : 'démarrage'}`);
+      }
+    }
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'in_transit' } : task)));
     setSelectedTaskId(taskId);
     pushLog(`${taskId} démarrée et déplacée en cours.`);
+    setIsSavingAction(false);
   };
 
-  const completeTask = (taskId: string) => {
+  const completeTask = async (taskId: string) => {
+    setIsSavingAction(true);
+    if (dataMode === 'backend') {
+      const task = tasks.find((item) => item.id === taskId);
+      try {
+        await realApi.completeLogisticsTask(task?.shipmentId || taskId, 'Terminée depuis Dispatch Center');
+      } catch (error) {
+        pushLog(`Backend indisponible, clôture conservée localement: ${error instanceof Error ? error.message : 'clôture'}`);
+      }
+    }
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'delivered' } : task)));
     setSelectedTaskId(taskId);
     pushLog(`${taskId} terminée.`);
+    setIsSavingAction(false);
   };
 
   const focusTitle = focusMissionId
