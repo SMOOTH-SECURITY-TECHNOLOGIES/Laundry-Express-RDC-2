@@ -380,6 +380,21 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Type entretien')).not.toBeNull();
     expect(byText(view.container, 'Prochain contrôle')).not.toBeNull();
     expect(byText(view.container, 'Indisponible')).not.toBeNull();
+    expect(byText(view.container, 'Coût maintenance')).not.toBeNull();
+    expect(byText(view.container, 'Planifier contrôle')).not.toBeNull();
+    expect(byText(view.container, 'Dossier maintenance')).not.toBeNull();
+    expect(byText(view.container, 'Décision dispatch')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Planifier contrôle$/)!);
+    expect(byText(view.container, 'Contrôle préventif planifié')).not.toBeNull();
+    expect(byText(view.container, 'contrôle planifié')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Bloquer assignation$/)!);
+    expect(byText(view.container, 'assignation bloquée')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Rendre disponible$/)!);
+    expect(byText(view.container, 'véhicule disponible')).not.toBeNull();
+
     view.unmount();
 
     window.history.replaceState(null, '', '/#dispatch');
