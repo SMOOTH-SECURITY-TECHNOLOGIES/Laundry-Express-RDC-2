@@ -13,6 +13,8 @@ interface LogisticsDispatchProps {
   onClearFocus?: () => void;
 }
 
+type DispatchMobileFilter = 'all' | 'urgent' | 'pending' | 'assigned' | 'in_transit';
+
 const drivers: Driver[] = [
   { id: 'drv-001', name: 'Kabongo M.', phone: '+243810001', status: 'available', zone: 'Gombe', vehicleId: 'veh-001' },
   { id: 'drv-002', name: 'Tshimanga A.', phone: '+243810002', status: 'busy', zone: 'Lingwala', vehicleId: 'veh-002' },
@@ -157,6 +159,14 @@ const priorityLabel: Record<DispatchTask['priority'], string> = {
   urgent: 'Urgent',
 };
 
+const mobileFilterLabel: Record<DispatchMobileFilter, string> = {
+  all: 'Toutes',
+  urgent: 'Urgentes',
+  pending: 'Nouvelles',
+  assigned: 'Assignées',
+  in_transit: 'En cours',
+};
+
 const focusMatchesTask = (
   task: DispatchTask,
   focusMissionId?: string | null,
@@ -192,6 +202,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
   const [matchingTaskId, setMatchingTaskId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string>(initialTasks[0]?.id ?? '');
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  const [mobileFilter, setMobileFilter] = useState<DispatchMobileFilter>('urgent');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [isSavingAction, setIsSavingAction] = useState(false);
   const [operationLog, setOperationLog] = useState<string[]>([
@@ -220,6 +231,24 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
     [focusMissionId, focusType, focusZone, hasFocus, tasks]
   );
   const urgentTasks = visibleTasks.filter((task) => task.priority === 'urgent' || task.queueMinutes >= 15);
+  const mobileQueue = useMemo(() => {
+    const filtered = visibleTasks.filter((task) => {
+      if (mobileFilter === 'all') return task.status !== 'delivered';
+      if (mobileFilter === 'urgent') return task.priority === 'urgent' || task.queueMinutes >= 15 || task.status === 'delayed';
+      return task.status === mobileFilter;
+    });
+    return [...filtered].sort((a, b) => {
+      const priorityScore = { urgent: 3, high: 2, normal: 1 };
+      return priorityScore[b.priority] - priorityScore[a.priority] || b.queueMinutes - a.queueMinutes;
+    });
+  }, [mobileFilter, visibleTasks]);
+  const mobileFilterCounts: Record<DispatchMobileFilter, number> = {
+    all: visibleTasks.filter((task) => task.status !== 'delivered').length,
+    urgent: urgentTasks.length,
+    pending: visibleTasks.filter((task) => task.status === 'pending').length,
+    assigned: visibleTasks.filter((task) => task.status === 'assigned').length,
+    in_transit: visibleTasks.filter((task) => task.status === 'in_transit').length,
+  };
   const waitingByZone = visibleTasks
     .filter((task) => task.status === 'pending')
     .reduce<Record<string, number>>((acc, task) => {
@@ -331,6 +360,12 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
     setSelectedTaskId(taskId);
     pushLog(`${taskId} terminée.`);
     setIsSavingAction(false);
+  };
+
+  const openTracking = (task: DispatchTask) => {
+    sessionStorage.setItem('logisticsFocusMissionId', task.id);
+    sessionStorage.setItem('logisticsFocusTripId', task.shipmentId);
+    window.location.hash = 'tracking';
   };
 
   const focusTitle = focusMissionId
@@ -454,7 +489,205 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
         </div>
       </section>
 
-      <section className="-mx-1 grid gap-4 sm:mx-0 xl:grid-cols-4">
+      <section className="space-y-4 xl:hidden">
+        <div className={`${logisticsCard} p-4`}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-black text-content-primary">File dispatch mobile</h2>
+              <p className="mt-1 text-sm text-content-muted">Missions triées par urgence, attente et statut opérationnel.</p>
+            </div>
+            <span className="rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-black text-brand-blue">
+              {mobileQueue.length}
+            </span>
+          </div>
+          <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1">
+            {(Object.keys(mobileFilterLabel) as DispatchMobileFilter[]).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setMobileFilter(filter)}
+                className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-full px-4 text-xs font-black ${
+                  mobileFilter === filter
+                    ? 'bg-brand-blue text-white'
+                    : 'bg-surface-muted text-content-muted hover:bg-surface-page'
+                }`}
+              >
+                {mobileFilterLabel[filter]}
+                <span className={mobileFilter === filter ? 'text-white/80' : 'text-content-muted'}>
+                  {mobileFilterCounts[filter]}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {mobileQueue.map((task) => {
+            const rankedDrivers = [...drivers]
+              .map((driver) => ({ driver, score: scoreDriver(task, driver) }))
+              .sort((a, b) => b.score - a.score);
+            return (
+              <article
+                key={`mobile-${task.id}`}
+                className={`rounded-[24px] border p-4 shadow-sm ${
+                  selectedTaskId === task.id
+                    ? 'border-brand-blue bg-brand-blue/5'
+                    : 'border-surface-border-subtle bg-surface-card'
+                }`}
+              >
+                <button type="button" onClick={() => setSelectedTaskId(task.id)} className="w-full text-left">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase text-content-muted">{statusLabel[task.status]}</p>
+                      <h3 className="mt-1 truncate text-xl font-black text-content-primary">{task.id}</h3>
+                      <p className="mt-1 truncate text-sm font-bold text-content-muted">{task.customerName}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-black ${
+                      task.priority === 'urgent'
+                        ? 'bg-red-100 text-red-700'
+                        : task.priority === 'high'
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-blue-100 text-brand-blue'
+                    }`}>
+                      {priorityLabel[task.priority]}
+                    </span>
+                  </div>
+                  <div className="mt-4 rounded-2xl bg-surface-muted p-3 text-sm">
+                    <div className="flex justify-between gap-3">
+                      <span className="text-content-muted">Pickup</span>
+                      <span className="text-right font-black text-content-primary">{task.pickupZone}</span>
+                    </div>
+                    <div className="mt-2 flex justify-between gap-3">
+                      <span className="text-content-muted">Destination</span>
+                      <span className="text-right font-black text-content-primary">{task.deliveryZone}</span>
+                    </div>
+                    <div className="mt-2 flex justify-between gap-3">
+                      <span className="text-content-muted">Attente</span>
+                      <span className="font-black text-content-primary">{task.queueMinutes} min · {task.distanceKm} km</span>
+                    </div>
+                  </div>
+                </button>
+
+                {task.driverName && (
+                  <p className="mt-3 rounded-2xl bg-surface-muted px-3 py-2 text-sm font-black text-content-primary">
+                    Chauffeur: {task.driverName} · charge {task.currentDriverLoad ?? 0}
+                  </p>
+                )}
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {task.status === 'pending' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setMatchingTaskId(matchingTaskId === task.id ? null : task.id);
+                      }}
+                      className="col-span-2 min-h-[48px] rounded-2xl bg-brand-blue px-3 text-sm font-black text-white"
+                    >
+                      Assigner chauffeur
+                    </button>
+                  )}
+                  {task.status === 'assigned' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedTaskId(task.id);
+                          setMatchingTaskId(matchingTaskId === task.id ? null : task.id);
+                        }}
+                        className="min-h-[46px] rounded-2xl border border-surface-border-subtle px-3 text-xs font-black text-content-primary"
+                      >
+                        Réassigner
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveToTransit(task.id)}
+                        className="min-h-[46px] rounded-2xl bg-green-600 px-3 text-xs font-black text-white"
+                      >
+                        Démarrer
+                      </button>
+                    </>
+                  )}
+                  {task.status === 'in_transit' && (
+                    <button
+                      type="button"
+                      onClick={() => completeTask(task.id)}
+                      className="min-h-[46px] rounded-2xl bg-green-600 px-3 text-xs font-black text-white"
+                    >
+                      Terminer
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => prioritizeTask(task.id)}
+                    className="min-h-[46px] rounded-2xl border border-orange-200 px-3 text-xs font-black text-brand-orange"
+                  >
+                    Prioriser
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openTracking(task)}
+                    className="min-h-[46px] rounded-2xl border border-blue-200 px-3 text-xs font-black text-brand-blue"
+                  >
+                    Tracking
+                  </button>
+                  {task.status !== 'delivered' && (
+                    <button
+                      type="button"
+                      onClick={() => cancelTask(task.id)}
+                      className="col-span-2 min-h-[46px] rounded-2xl border border-red-200 px-3 text-xs font-black text-red-600"
+                    >
+                      Annuler
+                    </button>
+                  )}
+                </div>
+
+                {matchingTaskId === task.id && (
+                  <div className="mt-3 space-y-2 rounded-2xl bg-surface-muted p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-black uppercase text-content-muted">Matching chauffeur</p>
+                      {isSavingAction && <span className="text-[11px] font-bold text-brand-blue">Sauvegarde...</span>}
+                    </div>
+                    {rankedDrivers.slice(0, 5).map(({ driver, score }) => (
+                      <button
+                        key={driver.id}
+                        type="button"
+                        disabled={score < 0}
+                        onClick={() => {
+                          if (score >= 0) assignDriver(task, driver);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-2xl bg-surface-card px-3 py-3 text-left text-xs ${
+                          score < 0 ? 'cursor-not-allowed opacity-60' : 'hover:bg-surface-page'
+                        }`}
+                      >
+                        <span>
+                          <span className="font-black text-content-primary">{driver.name}</span>
+                          <span className="block text-content-muted">
+                            {driver.zone} · {driver.status} · charge {driverLoad[driver.id] ?? 0}
+                          </span>
+                          {score < 0 && (
+                            <span className="block font-bold text-red-600">
+                              Assignation bloquée: {vehicleAvailability[driver.vehicleId ?? '']?.reason}
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-black text-brand-blue">{score < 0 ? 'Bloqué' : score}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+          {mobileQueue.length === 0 && (
+            <div className={`${logisticsCard} p-6 text-center text-sm font-bold text-content-muted`}>
+              Aucune mission dans ce filtre.
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="-mx-1 hidden gap-4 sm:mx-0 xl:grid xl:grid-cols-4">
         {columns.map((column) => {
           const columnTasks = visibleTasks.filter((task) => task.status === column.status);
           return (
