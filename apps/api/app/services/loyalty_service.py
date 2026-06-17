@@ -3,13 +3,21 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.loyalty import LoyaltyLedgerEntry, LoyaltySettingsConfig
 from app.models.user import User
+from app.models.order import Order, OrderStatus
 
 
 class LoyaltyService:
+    BEHAVIORAL_BONUS_TIERS = (
+        (15, 3, "bonus_3_orders_15d", "3 commandes en 15 jours", 50),
+        (30, 5, "bonus_5_orders_30d", "5 commandes en 30 jours", 100),
+        (90, 10, "bonus_10_orders_90d", "10 commandes en 90 jours", 250),
+    )
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -54,6 +62,17 @@ class LoyaltyService:
             query = query.filter(LoyaltyLedgerEntry.user_id == user_id)
         return query.first() is not None
 
+    def has_user_entry(self, user_id: UUID, entry_type: str) -> bool:
+        return (
+            self.db.query(LoyaltyLedgerEntry.id)
+            .filter(
+                LoyaltyLedgerEntry.user_id == user_id,
+                LoyaltyLedgerEntry.entry_type == entry_type,
+            )
+            .first()
+            is not None
+        )
+
     def sum_entry_points(self, user_id: UUID, entry_type: str) -> int:
         from sqlalchemy import func
 
@@ -94,7 +113,7 @@ class LoyaltyService:
     ) -> datetime | None:
         if points_delta <= 0:
             return None
-        if entry_type not in {"earn", "referral_bonus", "adjustment"}:
+        if entry_type not in {"earn", "referral_bonus", "adjustment"} and not entry_type.startswith("bonus_"):
             return None
         settings = self._get_settings()
         expiry_days = int(settings.points_expiry_days) if settings and settings.points_expiry_days else 0
@@ -176,3 +195,55 @@ class LoyaltyService:
         )
         self.db.flush()
         return expired_points, expired_entries
+
+    def check_behavioral_bonuses(self, user_id: UUID, as_of: datetime | None = None) -> list[dict[str, object]]:
+        now = as_of or datetime.now(timezone.utc)
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return []
+
+        awarded: list[dict[str, object]] = []
+        current_balance = int(getattr(user, "loyalty_points", 0) or 0)
+
+        for days_window, order_count, entry_type, description, bonus_points in self.BEHAVIORAL_BONUS_TIERS:
+            if self.has_user_entry(user_id, entry_type):
+                continue
+            cutoff = now - timedelta(days=days_window)
+            completed_count = int(
+                self.db.query(func.count(Order.id))
+                .filter(
+                    Order.customer_id == user_id,
+                    Order.status == OrderStatus.COMPLETED,
+                    Order.created_at >= cutoff,
+                )
+                .scalar()
+                or 0
+            )
+            if completed_count < order_count:
+                continue
+
+            current_balance += bonus_points
+            user.loyalty_points = current_balance
+            self.db.add(user)
+            self.record_entry(
+                user_id=user_id,
+                entry_type=entry_type,
+                points_delta=bonus_points,
+                balance_after=current_balance,
+                description=description,
+                as_of=now,
+            )
+            awarded.append(
+                {
+                    "type": entry_type,
+                    "points": bonus_points,
+                    "description": description,
+                    "completed_orders": completed_count,
+                    "window_days": days_window,
+                }
+            )
+
+        if awarded:
+            self.db.flush()
+
+        return awarded

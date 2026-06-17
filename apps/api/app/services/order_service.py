@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import List, Optional, Tuple
 from uuid import UUID, uuid4
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -16,6 +17,7 @@ from app.models.order import (
     PaymentStatus,
 )
 from app.models.user import User
+from app.models.catalog import PartnerService
 from app.models.operational import (
     OperationalProof,
     OperationalTimeline,
@@ -24,6 +26,7 @@ from app.models.operational import (
     TimelineEventType,
     VerificationStatus,
 )
+from app.models.partner import Partner
 from app.repositories.order_repository import OrderRepository
 from app.schemas.order import (
     OrderCreate,
@@ -596,7 +599,123 @@ class OrderService:
             self.db.add(timeline)
 
             self.db.flush()
+
+            # 8. REASSIGNMENT RECOMMENDATION on cancellation
+            if new_status == OrderStatus.CANCELLED and old_status != OrderStatus.CANCELLED:
+                self._record_reassignment_recommendation(order)
+
             return order
+
+    def _record_reassignment_recommendation(self, order: Order) -> None:
+        """Enregistre les meilleurs partenaires alternatifs sans modifier la commande annulée."""
+        required_service_type_ids = self._required_service_type_ids(order)
+        candidates = (
+            self.db.query(Partner)
+            .filter(
+                Partner.id != order.partner_id,
+                Partner.status == "active",
+                Partner.is_accepting_orders.is_(True),
+            )
+            .all()
+        )
+
+        scored_candidates = []
+        for partner in candidates:
+            coverage = self._service_coverage_score(partner.id, required_service_type_ids)
+            if required_service_type_ids and coverage < 1.0:
+                continue
+
+            active_load = self._partner_active_order_count(partner.id)
+            rating_score = min(max(float(partner.rating or 0) / 5.0, 0.0), 1.0)
+            load_score = max(0.0, 1.0 - (active_load * 0.15))
+            score = round((coverage * 0.45) + (rating_score * 0.35) + (load_score * 0.20), 4)
+            scored_candidates.append(
+                {
+                    "partner_id": str(partner.id),
+                    "partner_name": partner.name,
+                    "score": score,
+                    "rating": float(partner.rating or 0),
+                    "active_load": active_load,
+                    "service_coverage": round(coverage, 4),
+                }
+            )
+
+        scored_candidates.sort(key=lambda item: item["score"], reverse=True)
+        top_candidates = scored_candidates[:3]
+        if not top_candidates:
+            return
+
+        self.db.add(
+            OrderEvent(
+                id=uuid4(),
+                order_id=order.id,
+                event_type="REASSIGNMENT_RECOMMENDED",
+                event_data=json.dumps(
+                    {
+                        "from_partner": str(order.partner_id),
+                        "candidates": top_candidates,
+                        "reason": "order_cancelled",
+                    }
+                ),
+                notes="Partenaires alternatifs recommandés après annulation",
+            )
+        )
+        self.db.flush()
+
+    def _required_service_type_ids(self, order: Order) -> set[UUID]:
+        service_ids = [item.service_id for item in getattr(order, "items", []) if getattr(item, "service_id", None)]
+        if not service_ids:
+            service_ids = [
+                service_id
+                for (service_id,) in self.db.query(OrderItem.service_id).filter(OrderItem.order_id == order.id).all()
+            ]
+        if not service_ids:
+            return set()
+
+        rows = (
+            self.db.query(PartnerService.service_type_id)
+            .filter(PartnerService.id.in_(service_ids))
+            .all()
+        )
+        return {service_type_id for (service_type_id,) in rows if service_type_id}
+
+    def _service_coverage_score(self, partner_id: UUID, required_service_type_ids: set[UUID]) -> float:
+        if not required_service_type_ids:
+            return 1.0
+
+        available_rows = (
+            self.db.query(PartnerService.service_type_id)
+            .filter(
+                PartnerService.partner_id == partner_id,
+                PartnerService.service_type_id.in_(required_service_type_ids),
+                PartnerService.is_available.is_(True),
+            )
+            .all()
+        )
+        covered = {service_type_id for (service_type_id,) in available_rows if service_type_id}
+        return len(covered) / len(required_service_type_ids)
+
+    def _partner_active_order_count(self, partner_id: UUID) -> int:
+        active_statuses = [
+            OrderStatus.PENDING_CONFIRMATION,
+            OrderStatus.CONFIRMED,
+            OrderStatus.PICKUP_SCHEDULED,
+            OrderStatus.PICKUP_DRIVER_ASSIGNED,
+            OrderStatus.PICKUP_IN_PROGRESS,
+            OrderStatus.PICKED_UP,
+            OrderStatus.RECEIVED_BY_PARTNER,
+            OrderStatus.CLEANING_IN_PROGRESS,
+            OrderStatus.QUALITY_CHECK,
+            OrderStatus.READY_FOR_DELIVERY,
+            OrderStatus.DELIVERY_DRIVER_ASSIGNED,
+            OrderStatus.DELIVERY_IN_PROGRESS,
+        ]
+        return int(
+            self.db.query(func.count(Order.id))
+            .filter(Order.partner_id == partner_id, Order.status.in_(active_statuses))
+            .scalar()
+            or 0
+        )
 
     def cancel_order(
         self,
