@@ -22,6 +22,7 @@ const navItems: {
   { target: 'drivers', icon: 'user', label: 'Drivers' },
   { target: 'dispatch', icon: 'shoppingBag', label: 'Dispatch' },
   { target: 'tracking', icon: 'map', label: 'Tracking' },
+  { target: 'trip-details', icon: 'document-text', label: 'Trip Details' },
   { target: 'shipments', icon: 'archive-box', label: 'Shipments' },
   { target: 'alerts', icon: 'bell', label: 'Alertes', badge: 5 },
   { target: 'maintenance', icon: 'settings', label: 'Maintenance' },

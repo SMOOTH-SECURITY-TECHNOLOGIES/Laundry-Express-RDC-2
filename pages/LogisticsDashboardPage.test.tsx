@@ -115,6 +115,7 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Drivers')).not.toBeNull();
     expect(byText(view.container, 'Dispatch')).not.toBeNull();
     expect(byText(view.container, 'Tracking')).not.toBeNull();
+    expect(byText(view.container, 'Trip Details')).not.toBeNull();
     expect(byText(view.container, 'Shipments')).not.toBeNull();
     expect(byText(view.container, 'Maintenance')).not.toBeNull();
     expect(byText(view.container, 'Auto-dispatch')).not.toBeNull();
@@ -184,11 +185,44 @@ describe('LogisticsDashboardPage', () => {
     view.click(buttonByText(view.container, /^Tracking$/)!);
     expect(byText(view.container, 'Live Tracking')).not.toBeNull();
 
+    view.click(buttonByText(view.container, /^Trip Details$/)!);
+    expect(byText(view.container, 'Timeline trajet')).not.toBeNull();
+    expect(byText(view.container, 'Actions trajet')).not.toBeNull();
+
     view.click(buttonByText(view.container, /^Shipments$/)!);
     expect(byText(view.container, 'shp-001')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Maintenance$/)!);
     expect(byText(view.container, 'Contrôle freinage moto')).not.toBeNull();
+
+    view.unmount();
+  });
+
+  it('shows dedicated trip details and handles trip actions', async () => {
+    window.history.replaceState(null, '', '/#trip-details');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Trip Details')).not.toBeNull();
+    expect(byText(view.container, 'Origine')).not.toBeNull();
+    expect(byText(view.container, 'Destination')).not.toBeNull();
+    expect(byText(view.container, 'Durée estimée')).not.toBeNull();
+    expect(byText(view.container, 'Timeline trajet')).not.toBeNull();
+    expect(byText(view.container, 'Actions trajet')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Update status$/)!);
+    expect(byText(view.container, 'Statut mis à jour: Livré')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Contacter chauffeur$/)!);
+    expect(byText(view.container, 'Contact chauffeur: Tshimanga A.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Contacter client$/)!);
+    expect(byText(view.container, 'Contact client: Mama Jeanne')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Signaler incident$/)!);
+    expect(byText(view.container, 'Statut mis à jour: Incident')).not.toBeNull();
 
     view.unmount();
   });

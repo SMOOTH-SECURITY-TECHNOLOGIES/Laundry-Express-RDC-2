@@ -5,6 +5,7 @@ export type LogisticsSection =
   | 'drivers'
   | 'dispatch'
   | 'tracking'
+  | 'trip-details'
   | 'shipments'
   | 'performance'
   | 'alerts'
@@ -19,6 +20,7 @@ export const LOGISTICS_SECTIONS: LogisticsSection[] = [
   'drivers',
   'dispatch',
   'tracking',
+  'trip-details',
   'shipments',
   'performance',
   'alerts',

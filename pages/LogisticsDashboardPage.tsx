@@ -17,6 +17,7 @@ import { LogisticsReports } from './logistics/LogisticsReports';
 import { LogisticsSettings } from './logistics/LogisticsSettings';
 import { LogisticsShipments } from './logistics/LogisticsShipments';
 import { LogisticsTracking } from './logistics/LogisticsTracking';
+import { LogisticsTripDetails } from './logistics/LogisticsTripDetails';
 
 const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string }> = {
   dashboard: {
@@ -42,6 +43,10 @@ const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string
   tracking: {
     title: 'Tracking',
     subtitle: 'Carte temps réel, trajets et ETA.',
+  },
+  'trip-details': {
+    title: 'Trip Details',
+    subtitle: 'Détail trajet, timeline, contacts et incidents.',
   },
   shipments: {
     title: 'Shipments',
@@ -294,6 +299,8 @@ export const LogisticsDashboardPage: React.FC = () => {
         return <LogisticsPerformance />;
       case 'tracking':
         return <LogisticsTracking />;
+      case 'trip-details':
+        return <LogisticsTripDetails />;
       case 'shipments':
         return <LogisticsShipments />;
       case 'alerts':
