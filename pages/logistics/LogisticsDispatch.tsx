@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { DispatchTask, Driver } from '../../components/logistics/logistics-types';
 import { getDispatchTasks, type DataMode } from '../../services/logistics-api';
+import { realApi } from '../../services/real-api';
 import { logisticsCard } from './logistics-ui';
 
 interface LogisticsDispatchProps {
@@ -140,6 +141,16 @@ const columns: { status: DispatchTask['status']; title: string }[] = [
   { status: 'delivered', title: 'Terminées' },
 ];
 
+const statusLabel: Record<DispatchTask['status'], string> = {
+  pending: 'Nouvelle',
+  assigned: 'Assignée',
+  in_transit: 'En cours',
+  delivered: 'Terminée',
+  delayed: 'Retard',
+  failed: 'Échec',
+  cancelled: 'Annulée',
+};
+
 const priorityLabel: Record<DispatchTask['priority'], string> = {
   normal: 'Normal',
   high: 'Prioritaire',
@@ -179,13 +190,20 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
 }) => {
   const [tasks, setTasks] = useState<DispatchTask[]>(initialTasks);
   const [matchingTaskId, setMatchingTaskId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string>(initialTasks[0]?.id ?? '');
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isSavingAction, setIsSavingAction] = useState(false);
+  const [operationLog, setOperationLog] = useState<string[]>([
+    'Dispatch Center prêt: matching zone, disponibilité, distance et charge chauffeur.',
+  ]);
 
   useEffect(() => {
     let mounted = true;
     getDispatchTasks(initialTasks).then((result) => {
       if (!mounted) return;
       setTasks(result.data);
+      setSelectedTaskId(result.data[0]?.id ?? '');
       setDataMode(result.mode);
     });
     return () => {
@@ -209,7 +227,35 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
       return acc;
     }, {});
 
-  const assignDriver = (task: DispatchTask, driver: Driver) => {
+  const selectedTaskCandidate = tasks.find((task) => task.id === selectedTaskId);
+  const selectedTask =
+    selectedTaskCandidate && selectedTaskCandidate.status !== 'cancelled'
+      ? selectedTaskCandidate
+      : visibleTasks[0] ?? tasks.find((task) => task.status !== 'cancelled');
+
+  const pushLog = (message: string) => {
+    setOperationLog((current) => [message, ...current].slice(0, 6));
+    setActionMessage(message);
+  };
+
+  const assignDriver = async (task: DispatchTask, driver: Driver) => {
+    const vehicleStatus = driver.vehicleId ? vehicleAvailability[driver.vehicleId] : null;
+    if (vehicleStatus && !vehicleStatus.available) {
+      pushLog(`Assignation bloquée: ${vehicleStatus.reason}`);
+      setMatchingTaskId(task.id);
+      setSelectedTaskId(task.id);
+      return;
+    }
+
+    setIsSavingAction(true);
+    if (dataMode === 'backend') {
+      try {
+        await realApi.assignLogisticsTask(task.shipmentId || task.id, driver.id);
+      } catch (error) {
+        pushLog(`Backend indisponible, action conservée localement: ${error instanceof Error ? error.message : 'assignation'}`);
+      }
+    }
+
     setTasks((current) =>
       current.map((item) =>
         item.id === task.id
@@ -225,20 +271,36 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
       )
     );
     setMatchingTaskId(null);
+    setSelectedTaskId(task.id);
+    pushLog(`${task.id} assignée à ${driver.name}.`);
+    setIsSavingAction(false);
   };
 
   const prioritizeTask = (taskId: string) => {
     setTasks((current) =>
       current.map((task) => (task.id === taskId ? { ...task, priority: 'urgent', queueMinutes: Math.max(task.queueMinutes, 15) } : task))
     );
+    setSelectedTaskId(taskId);
+    pushLog(`${taskId} priorisée en urgence.`);
   };
 
   const cancelTask = (taskId: string) => {
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'cancelled' } : task)));
+    const nextVisibleTask = tasks.find((task) => task.id !== taskId && task.status !== 'cancelled');
+    setSelectedTaskId(nextVisibleTask?.id ?? '');
+    pushLog(`${taskId} annulée et retirée du tableau dispatch.`);
   };
 
   const moveToTransit = (taskId: string) => {
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'in_transit' } : task)));
+    setSelectedTaskId(taskId);
+    pushLog(`${taskId} démarrée et déplacée en cours.`);
+  };
+
+  const completeTask = (taskId: string) => {
+    setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'delivered' } : task)));
+    setSelectedTaskId(taskId);
+    pushLog(`${taskId} terminée.`);
   };
 
   const focusTitle = focusMissionId
@@ -281,7 +343,13 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
         </div>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_0.8fr]">
+      {actionMessage && (
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">
+          {actionMessage}
+        </div>
+      )}
+
+      <section className="grid gap-4 lg:grid-cols-[1.3fr_0.8fr] xl:grid-cols-[1.1fr_0.7fr_0.8fr]">
         <div className={`${logisticsCard} p-5`}>
           <div className="flex items-center gap-2">
             <Icon name="warning" className="h-5 w-5 text-brand-orange" />
@@ -312,6 +380,48 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
             ))}
           </div>
         </div>
+        <div className={`${logisticsCard} p-5`}>
+          <div className="flex items-center gap-2">
+            <Icon name="sparkles" className="h-5 w-5 text-brand-blue" />
+            <h2 className="text-lg font-black text-content-primary">Mission active</h2>
+          </div>
+          {selectedTask ? (
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="rounded-xl bg-surface-muted p-4">
+                <p className="font-black text-content-primary">{selectedTask.id} · {selectedTask.customerName}</p>
+                <p className="mt-1 text-content-muted">{selectedTask.pickupZone} vers {selectedTask.deliveryZone}</p>
+              </div>
+              {[
+                ['Statut', statusLabel[selectedTask.status]],
+                ['Priorité', priorityLabel[selectedTask.priority]],
+                ['Chauffeur', selectedTask.driverName ?? 'Non assigné'],
+                ['Distance', `${selectedTask.distanceKm} km`],
+                ['Attente', `${selectedTask.queueMinutes} min`],
+              ].map(([label, value]) => (
+                <div key={label} className="flex items-center justify-between rounded-xl bg-surface-muted px-3 py-2">
+                  <span className="text-content-muted">{label}</span>
+                  <span className="font-black text-content-primary">{value}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-content-muted">Aucune mission sélectionnée.</p>
+          )}
+        </div>
+      </section>
+
+      <section className={`${logisticsCard} p-5`}>
+        <div className="flex items-center gap-2">
+          <Icon name="clock-history" className="h-5 w-5 text-brand-blue" />
+          <h2 className="text-lg font-black text-content-primary">Journal dispatch</h2>
+        </div>
+        <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {operationLog.map((item, index) => (
+            <div key={`${item}-${index}`} className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">
+              {item}
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="-mx-1 grid gap-4 sm:mx-0 xl:grid-cols-4">
@@ -331,7 +441,12 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                     .map((driver) => ({ driver, score: scoreDriver(task, driver) }))
                     .sort((a, b) => b.score - a.score);
                   return (
-                    <article key={task.id} className="rounded-xl border border-surface-border-subtle bg-surface-muted p-3">
+                    <article key={task.id} className={`rounded-xl border p-3 ${
+                      selectedTaskId === task.id
+                        ? 'border-brand-blue bg-brand-blue/5'
+                        : 'border-surface-border-subtle bg-surface-muted'
+                    }`}>
+                      <button type="button" onClick={() => setSelectedTaskId(task.id)} className="w-full text-left">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-black text-content-primary">{task.id}</p>
@@ -344,6 +459,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                       <p className="mt-3 text-xs text-content-muted">
                         {task.pickupAddress} vers {task.deliveryZone} · {task.distanceKm} km
                       </p>
+                      </button>
                       {task.driverName && (
                         <p className="mt-2 text-xs font-bold text-content-primary">
                           Chauffeur: {task.driverName} · charge {task.currentDriverLoad ?? 0}
@@ -354,7 +470,10 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                         {task.status === 'pending' && (
                           <button
                             type="button"
-                            onClick={() => setMatchingTaskId(matchingTaskId === task.id ? null : task.id)}
+                            onClick={() => {
+                              setSelectedTaskId(task.id);
+                              setMatchingTaskId(matchingTaskId === task.id ? null : task.id);
+                            }}
                             className="col-span-2 rounded-lg bg-brand-blue px-3 py-3 text-xs font-bold text-white sm:col-span-1 sm:py-1"
                           >
                             Assigner chauffeur
@@ -364,7 +483,10 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                           <>
                             <button
                               type="button"
-                              onClick={() => setMatchingTaskId(matchingTaskId === task.id ? null : task.id)}
+                              onClick={() => {
+                                setSelectedTaskId(task.id);
+                                setMatchingTaskId(matchingTaskId === task.id ? null : task.id);
+                              }}
                               className="rounded-lg border border-surface-border-subtle px-3 py-3 text-xs font-bold text-content-primary sm:py-1"
                             >
                               Réassigner
@@ -377,6 +499,15 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                               Démarrer
                             </button>
                           </>
+                        )}
+                        {task.status === 'in_transit' && (
+                          <button
+                            type="button"
+                            onClick={() => completeTask(task.id)}
+                            className="rounded-lg bg-green-600 px-3 py-3 text-xs font-bold text-white sm:py-1"
+                          >
+                            Terminer
+                          </button>
                         )}
                         {task.status !== 'delivered' && (
                           <>
@@ -400,7 +531,10 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
 
                       {matchingTaskId === task.id && (
                         <div className="mt-3 space-y-2 rounded-lg bg-surface-card p-2">
-                          <p className="text-[11px] font-black uppercase text-content-muted">Matching chauffeur</p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[11px] font-black uppercase text-content-muted">Matching chauffeur</p>
+                            {isSavingAction && <span className="text-[11px] font-bold text-brand-blue">Sauvegarde...</span>}
+                          </div>
                           {rankedDrivers.slice(0, 5).map(({ driver, score }) => (
                             <button
                               key={driver.id}
