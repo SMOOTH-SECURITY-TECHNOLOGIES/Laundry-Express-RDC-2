@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { MobileMissionCard } from '../../components/logistics/MobileMissionCard';
 import type { LogisticsStatus, TrackingPoint, Trip, TripTimelineEvent } from '../../components/logistics/logistics-types';
 import { getTrackingPoints, getTrips, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
@@ -340,6 +341,13 @@ export const LogisticsTracking: React.FC = () => {
     sessionStorage.setItem('logisticsFocusTripId', activeTrip.id);
   };
 
+  const primaryActionLabel =
+    activeTrip.status === 'assigned'
+      ? 'Démarrer mission'
+      : activeTrip.status === 'delivered'
+        ? 'Reprendre mission'
+        : 'Terminer mission';
+
   return (
     <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.45fr_0.75fr]">
       <section className={`${logisticsCard} overflow-hidden`}>
@@ -409,6 +417,31 @@ export const LogisticsTracking: React.FC = () => {
             Géolocalisation indisponible. Affichage fallback sur les dernières positions connues.
           </div>
         )}
+
+        <div className="px-3 pt-3 sm:px-5 sm:pt-5 xl:hidden">
+          <MobileMissionCard
+            missionId={activeTrip.taskId}
+            status={activeTrip.status}
+            statusLabel={activeTrip.statusLabel}
+            customerName={activeTrip.customerName}
+            pickupLabel={activeTrip.origin}
+            deliveryLabel={activeTrip.destination}
+            etaLabel={`${activeTrip.etaMinutes} min`}
+            distanceLabel={`${activeTrip.distanceKm} km`}
+            driverName={activeTrip.driverName}
+            vehiclePlate={activeTrip.vehiclePlate}
+            primaryActionLabel={primaryActionLabel}
+            onPrimaryAction={() => updateTripStatus(activeTrip.status === 'delivered' ? 'in_transit' : 'delivered')}
+            onCallDriver={() => setActionMessage(`Contact chauffeur: ${activeTrip.driverName}`)}
+            onCallCustomer={() => setActionMessage(`Contact client: ${activeTrip.customerName}`)}
+            onProof={() => setActionMessage(`Preuve demandée pour ${activeTrip.taskId}`)}
+            onIncident={() => updateTripStatus('failed')}
+            onOpenDetails={() => {
+              openTripDetails();
+              window.location.hash = 'trip-details';
+            }}
+          />
+        </div>
 
         <div className="p-3 sm:p-5">
           <div className="relative min-h-[310px] overflow-hidden rounded-2xl border border-surface-border-subtle bg-slate-100 sm:min-h-[420px] dark:bg-slate-900">

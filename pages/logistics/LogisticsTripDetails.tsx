@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { MobileMissionCard } from '../../components/logistics/MobileMissionCard';
 import type { LogisticsStatus, Trip, TripTimelineEvent } from '../../components/logistics/logistics-types';
 import { getTrips, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
@@ -184,6 +185,13 @@ export const LogisticsTripDetails: React.FC = () => {
     pushAction(`Statut mis à jour: ${statusLabel[status]}`);
   };
 
+  const primaryActionLabel =
+    selectedTrip?.status === 'assigned'
+      ? 'Démarrer mission'
+      : selectedTrip?.status === 'delivered'
+        ? 'Reprendre mission'
+        : 'Terminer mission';
+
   if (!selectedTrip) {
     return (
       <section className={`${logisticsCard} p-6`}>
@@ -209,6 +217,27 @@ export const LogisticsTripDetails: React.FC = () => {
             {actionMessage}
           </div>
         )}
+
+        <div className="lg:hidden">
+          <MobileMissionCard
+            missionId={selectedTrip.taskId}
+            status={selectedTrip.status}
+            statusLabel={statusLabel[selectedTrip.status]}
+            customerName={selectedTrip.customerName}
+            pickupLabel={selectedTrip.pickupAddress}
+            deliveryLabel={selectedTrip.deliveryAddress}
+            etaLabel={`${selectedTrip.etaMinutes} min`}
+            distanceLabel={`${selectedTrip.distanceKm} km`}
+            driverName={selectedTrip.driverName}
+            vehiclePlate={selectedTrip.vehiclePlate}
+            primaryActionLabel={primaryActionLabel}
+            onPrimaryAction={() => updateStatus(selectedTrip.status === 'delivered' ? 'in_transit' : 'delivered')}
+            onCallDriver={() => pushAction(`Contact chauffeur: ${selectedTrip.driverName}`)}
+            onCallCustomer={() => pushAction(`Contact client: ${selectedTrip.customerName}`)}
+            onProof={() => pushAction(`Preuve demandée pour ${selectedTrip.taskId}`)}
+            onIncident={() => updateStatus('failed')}
+          />
+        </div>
 
         <section className={`${logisticsCard} overflow-hidden`}>
           <div className="flex flex-col gap-4 border-b border-surface-border-subtle p-5 lg:flex-row lg:items-start lg:justify-between">
