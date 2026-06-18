@@ -129,3 +129,17 @@ class NotificationService:
             .all()
         )
         return [row[0] for row in rows]
+
+    def logistics_manager_user_ids_for_companies(self, company_ids: Iterable[UUID]) -> List[UUID]:
+        ids = [company_id for company_id in company_ids if company_id]
+        if not ids:
+            return []
+        rows = (
+            self.db.query(User.id)
+            .filter(
+                User.role == UserRole.LOGISTICS_MANAGER,
+                User.delivery_company_id.in_(ids),
+            )
+            .all()
+        )
+        return [row[0] for row in rows]

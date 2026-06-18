@@ -17,6 +17,7 @@ import { UserSecurityCard } from '../components/admin/users/UserSecurityCard';
 import { TopUsersTable } from '../components/admin/users/TopUsersTable';
 import { UserWatchlistCard } from '../components/admin/users/UserWatchlistCard';
 import { UserSegmentsCard } from '../components/admin/users/UserSegmentsCard';
+import { ChurnPredictionCoupon } from '../components/ChurnPredictionCoupon';
 import { UserValueTable } from '../components/admin/users/UserValueTable';
 import { UserQuickActions } from '../components/admin/users/UserQuickActions';
 import { UserDetailDrawer } from '../components/admin/users/UserDetailDrawer';
@@ -182,6 +183,12 @@ export const UsersControlCenter: React.FC = () => {
               {loyalty && <UsersLoyaltyCard loyalty={loyalty} />}
               {security && <UserSecurityCard security={security} />}
               <UserQuickActions onExport={onExport} onFilter={(s) => onFilter('status', s)} />
+              <ChurnPredictionCoupon
+                customerId="demo-customer"
+                customerName="Client a risque"
+                orderCount={2}
+                lastOrderDays={45}
+              />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

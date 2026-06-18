@@ -66,6 +66,8 @@ describe('CampaignsPage', () => {
     await act(async () => { root.render(<CampaignsControlCenter mode="growth" />); });
     expect(container.textContent).toContain('Growth Engine');
     expect(container.textContent).toContain('Segments RFM');
+    expect(container.textContent).toContain('Marketing & AI Growth Platform V1 - P0');
+    expect(container.textContent).toContain('Promo Management');
     expect(container.textContent).toContain('Préparer workflow');
     expect(container.textContent).toContain('Suspendre');
     expect(container.textContent).not.toContain('Nouvelle campagne');

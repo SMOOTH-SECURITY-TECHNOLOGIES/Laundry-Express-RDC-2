@@ -401,6 +401,51 @@ class MarketplaceRepository:
             return None
         
         return task, order
+
+    def list_company_service_zones(self, company_id: UUID) -> List[CompanyServiceZone]:
+        """Zones de service actives d'une compagnie."""
+        return (
+            self.db.query(CompanyServiceZone)
+            .filter(
+                CompanyServiceZone.company_id == company_id,
+                CompanyServiceZone.is_active == True,
+            )
+            .all()
+        )
+
+    def get_companies_for_commune(
+        self,
+        city: str,
+        commune: Optional[str],
+        task_type: TaskType,
+    ) -> List[DeliveryCompany]:
+        """Compagnies actives couvrant une commune."""
+        query = self.db.query(DeliveryCompany).join(
+            CompanyServiceZone,
+            and_(
+                CompanyServiceZone.company_id == DeliveryCompany.id,
+                CompanyServiceZone.city == city,
+                CompanyServiceZone.is_active == True,
+            ),
+        ).filter(
+            DeliveryCompany.status == DeliveryCompanyStatus.ACTIVE,
+            DeliveryCompany.is_active == True,
+        )
+
+        if commune:
+            query = query.filter(
+                or_(
+                    CompanyServiceZone.commune == commune,
+                    CompanyServiceZone.commune.is_(None),
+                )
+            )
+
+        if task_type == TaskType.PICKUP:
+            query = query.filter(DeliveryCompany.supports_pickup == True)
+        else:
+            query = query.filter(DeliveryCompany.supports_delivery == True)
+
+        return query.distinct().all()
     
     def get_companies_for_city(self, city: str, task_type: TaskType) -> List[DeliveryCompany]:
         """Obtenir les compagnies actives pour une ville et un type de tâche"""

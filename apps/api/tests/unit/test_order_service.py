@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -240,6 +241,27 @@ class TestOrderService:
 
         assert result is mock_order
         self.service.transition_order_status.assert_called_once()
+
+    def test_reassignment_recommendation_does_not_mutate_cancelled_order(self):
+        original_partner_id = uuid4()
+        candidate_id = uuid4()
+        mock_order = SimpleNamespace(id=self.order_id, partner_id=original_partner_id)
+        candidate = SimpleNamespace(id=candidate_id, name="Partner alternatif", rating=4.5)
+
+        self.mock_db.query.return_value.filter.return_value.all.return_value = [candidate]
+        self.service._required_service_type_ids = Mock(return_value={uuid4()})
+        self.service._service_coverage_score = Mock(return_value=1.0)
+        self.service._partner_active_order_count = Mock(return_value=1)
+
+        self.service._record_reassignment_recommendation(mock_order)
+
+        assert mock_order.partner_id == original_partner_id
+        added_event = self.mock_db.add.call_args.args[0]
+        assert added_event.event_type == "REASSIGNMENT_RECOMMENDED"
+        payload = json.loads(added_event.event_data)
+        assert payload["from_partner"] == str(original_partner_id)
+        assert payload["candidates"][0]["partner_id"] == str(candidate_id)
+        self.mock_db.flush.assert_called_once()
 
     def test_update_payment_status_success(self):
         mock_order = Mock()

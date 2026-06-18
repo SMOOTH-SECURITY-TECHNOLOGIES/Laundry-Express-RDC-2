@@ -47,12 +47,21 @@ export const DB = {
             if (storedData) {
                 const parsed = JSON.parse(storedData);
                 // Force merge initial data for sections that might be empty or missing in old storage
-                const sectionsToForce = ['advertisements', 'partners', 'services', 'siteContent', 'users', 'orderHistory', 'reviews', 'appNotifications', 'promoCodes'];
+                const sectionsToForce = ['advertisements', 'partners', 'logisticsPartners', 'services', 'siteContent', 'users', 'orderHistory', 'reviews', 'appNotifications', 'promoCodes', 'partnerApplications', 'applicationSettings'];
                 sectionsToForce.forEach(key => {
                     if (!parsed[key] || (Array.isArray(parsed[key]) && parsed[key].length === 0)) {
                         parsed[key] = JSON.parse(JSON.stringify(initialDBData[key as keyof typeof initialDBData]));
                     }
                 });
+                if (Array.isArray(parsed.users)) {
+                    parsed.users = parsed.users.map((user: any) => {
+                        if (user.role === 'driver' && !user.logisticsPartnerId && String(user.partnerId || '').startsWith('LOGISTICS-')) {
+                            const { partnerId, ...driver } = user;
+                            return { ...driver, logisticsPartnerId: partnerId };
+                        }
+                        return user;
+                    });
+                }
                 this._data = parsed;
             } else {
                 this._data = JSON.parse(JSON.stringify(initialDBData));
@@ -127,9 +136,9 @@ const initialDBData = {
         { id: 'USER-1', name: 'John Doe', email: 'john.doe@example.com', phone: '0812345678', passwordHash: 'local-demo-customer-pass', role: 'customer', pickupAddress: { commune: 'Gombe', avenue: 'Des Aviateurs', numero: '123' }, loyaltyPoints: 1250, referralCode: 'LE-X7K9M2BQ', createdAt: '2023-01-15T10:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
         { id: 'USER-ADMIN', name: 'Admin User', email: 'admin@laundry.app', phone: '0810000000', passwordHash: 'adminpass123', role: 'superadmin', pickupAddress: { commune: 'System', avenue: 'Admin', numero: '1' }, loyaltyPoints: 0, referralCode: 'LE-A3D8F1GH', createdAt: '2023-01-01T00:00:00Z', is2FAEnabled: true, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
         { id: 'USER-PARTNER-1', name: 'Patrice Manager', email: 'patrice@prestige.com', phone: '0820000001', passwordHash: 'partnerpass123', role: 'partner-owner', partnerId: 'PARTNER-1', pickupAddress: { commune: 'Gombe', avenue: 'Du 30 Juin', numero: '10' }, loyaltyPoints: 0, referralCode: 'LE-P4R7T9WC', createdAt: '2023-01-10T09:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
-        { id: 'USER-DRIVER-1', name: 'Driver Kabila', email: 'driver1@kinexpress.cd', phone: '0831111111', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Lingwala', avenue: 'Des Pilotes', numero: '7' }, loyaltyPoints: 0, referralCode: 'LE-D1V3R5KM', createdAt: '2023-02-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
-        { id: 'USER-DRIVER-2', name: 'Driver Mfumu', email: 'driver2@kinexpress.cd', phone: '0832222222', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Kintambo', avenue: 'Makala', numero: '12' }, loyaltyPoints: 0, referralCode: 'LE-M2F6U8NP', createdAt: '2023-03-15T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
-        { id: 'USER-DRIVER-3', name: 'Driver Tshisekedi', email: 'driver3@kinexpress.cd', phone: '0833333333', passwordHash: 'driverpass123', role: 'driver', partnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Universite', numero: '55' }, loyaltyPoints: 0, referralCode: 'LE-T3S5K7WD', createdAt: '2023-04-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-1', name: 'Driver Kabila', email: 'driver1@kinexpress.cd', phone: '0831111111', passwordHash: 'driverpass123', role: 'driver', logisticsPartnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Lingwala', avenue: 'Des Pilotes', numero: '7' }, loyaltyPoints: 0, referralCode: 'LE-D1V3R5KM', createdAt: '2023-02-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-2', name: 'Driver Mfumu', email: 'driver2@kinexpress.cd', phone: '0832222222', passwordHash: 'driverpass123', role: 'driver', logisticsPartnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Kintambo', avenue: 'Makala', numero: '12' }, loyaltyPoints: 0, referralCode: 'LE-M2F6U8NP', createdAt: '2023-03-15T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
+        { id: 'USER-DRIVER-3', name: 'Driver Tshisekedi', email: 'driver3@kinexpress.cd', phone: '0833333333', passwordHash: 'driverpass123', role: 'driver', logisticsPartnerId: 'LOGISTICS-1', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Universite', numero: '55' }, loyaltyPoints: 0, referralCode: 'LE-T3S5K7WD', createdAt: '2023-04-01T08:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true }, isEmailValid: true },
         { id: 'USER-002', name: 'Marie Kabongo', email: 'marie.kabongo@example.com', phone: '0844444444', passwordHash: 'mariepass123', role: 'customer', pickupAddress: { commune: 'Ngaliema', avenue: 'de l\'Equateur', numero: '22' }, loyaltyPoints: 340, referralCode: 'LE-M4R8E2KC', createdAt: '2023-06-10T14:00:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
         { id: 'USER-003', name: 'Jean Mutombo', email: 'jean.mutombo@example.com', phone: '0855555555', passwordHash: 'jeanpass123', role: 'customer', pickupAddress: { commune: 'Limete', avenue: 'Kasavubu', numero: '88' }, loyaltyPoints: 780, referralCode: 'LE-J3A7N4TM', createdAt: '2023-08-20T09:30:00Z', is2FAEnabled: false, notificationPreferences: { newOrder: true, orderStatusChange: false, newChatMessage: true, promotions: true, general: true }, isEmailValid: true },
     ],
@@ -688,21 +697,25 @@ export const apiMarkNotificationsAsRead = async (uid: string) => {
 export const apiMarkSingleNotificationAsRead = async (id: string) => DB.updateItem('appNotifications', id, { isRead: true });
 export const apiUpdatePartner = async (p: Partner) => DB.updateItem('partners', p.id, p);
 export const apiUpdateSiteContent = async (c: SiteContent) => DB.set('siteContent', c);
-export const apiSubmitPartnerApplication = async (a: any) => {
+export const apiSubmitPartnerApplication = async (a: Omit<PartnerApplication, 'id' | 'status' | 'submittedAt'>) => {
     const required = ['companyName', 'partnerType', 'contactName', 'phone', 'email'];
     for (const field of required) {
-        if (!a[field]) {
+        if (!(a as any)[field]) {
             throw new Error(`Le champ ${field} est requis.`);
         }
     }
+    const normalizedPartnerType = Object.values(PartnerType).includes(a.partnerType)
+        ? a.partnerType
+        : PartnerType.LOGISTICS;
 
     const existingApps = DB.get('partnerApplications');
     if (existingApps.some((app: any) => app.email === a.email && app.status !== ApplicationStatus.REJECTED)) {
         throw new Error('Une candidature avec cet email existe deja.');
     }
 
-    const n = {
+    const n: PartnerApplication = {
         ...a,
+        partnerType: normalizedPartnerType,
         id: `APP-${Date.now()}`,
         status: ApplicationStatus.PENDING,
         submittedAt: new Date().toISOString(),
@@ -713,7 +726,7 @@ export const apiSubmitPartnerApplication = async (a: any) => {
     DB.addItem('appNotifications', {
         id: `NOTIF-${Date.now()}`,
         recipientId: 'USER-ADMIN',
-        message: `Nouvelle candidature: ${a.companyName} (${a.partnerType})`,
+        message: `Nouvelle candidature: ${a.companyName} (${normalizedPartnerType})`,
         notificationType: NotificationType.GENERAL,
         link: { page: 'admin', params: { section: 'partner-applications' } },
         createdAt: new Date().toISOString(),
@@ -725,12 +738,67 @@ export const apiSubmitPartnerApplication = async (a: any) => {
 
 export const apiApprovePartnerApplication = async (id: string, t: any) => { 
     const apps = DB.get('partnerApplications');
-    const app = apps.find((a: any) => a.id === id);
+    const app: PartnerApplication | undefined = apps.find((a: any) => a.id === id);
     if (!app) {
         throw new Error(`Application ${id} not found`);
     }
 
     DB.updateItem('partnerApplications', id, { status: ApplicationStatus.APPROVED });
+
+    const referralChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const makeReferralCode = () => {
+        let referralCode = 'LE-';
+        for (let i = 0; i < 8; i++) {
+            referralCode += referralChars.charAt(Math.floor(Math.random() * referralChars.length));
+        }
+        return referralCode;
+    };
+
+    if (app.partnerType === PartnerType.LOGISTICS) {
+        const newLogisticsPartner: LogisticsPartner = {
+            id: `LOGISTICS-${Date.now()}`,
+            name: app.companyName,
+        };
+        DB.addItem('logisticsPartners', newLogisticsPartner);
+
+        const temporaryPassword = `logistics-${newLogisticsPartner.id.toLowerCase()}`;
+        const newUser: BackendUser = {
+            id: `USER-${Date.now()}`,
+            name: app.contactName,
+            email: app.email,
+            phone: app.phone,
+            passwordHash: temporaryPassword,
+            role: 'logistics-manager',
+            logisticsPartnerId: newLogisticsPartner.id,
+            pickupAddress: { commune: 'Kinshasa', avenue: app.address, numero: '' },
+            loyaltyPoints: 0,
+            referralCode: makeReferralCode(),
+            createdAt: new Date().toISOString(),
+            is2FAEnabled: false,
+            notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: false, general: true },
+            isEmailValid: true,
+        };
+        DB.addItem('users', newUser);
+
+        sendTransactionalEmail({
+            to: newUser.email,
+            subject: t('emails.newLogisticsPartnerWelcome.subject', { default: 'Votre espace logistique Laundry Express est pret' }),
+            bodyComponent: <NewLogisticsPartnerWelcomeEmail application={app} temporaryPassword={temporaryPassword} t={t} />,
+            t,
+        });
+
+        DB.addItem('appNotifications', {
+            id: `NOTIF-${Date.now()}-LOGISTICS-APPROVED`,
+            recipientId: 'USER-ADMIN',
+            message: `Candidature logistique approuvee: ${app.companyName}. Compagnie et manager crees.`,
+            notificationType: NotificationType.GENERAL,
+            link: { page: 'admin', params: { section: 'partner-applications' } },
+            createdAt: new Date().toISOString(),
+            isRead: false,
+        });
+
+        return { newLogisticsPartner, newUser: ResponseSanitizer.sanitizeUser(newUser) };
+    }
 
     const newPartner: Partner = {
         id: `PARTNER-${Date.now()}`,
@@ -750,28 +818,30 @@ export const apiApprovePartnerApplication = async (id: string, t: any) => {
     };
     DB.addItem('partners', newPartner);
 
-    const referralChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let referralCode = 'LE-';
-    for (let i = 0; i < 8; i++) {
-        referralCode += referralChars.charAt(Math.floor(Math.random() * referralChars.length));
-    }
-
-    const newUser: User = {
+    const temporaryPassword = `partner-${newPartner.id.toLowerCase()}`;
+    const newUser: BackendUser = {
         id: `USER-${Date.now()}`,
         name: app.contactName,
         email: app.email,
         phone: app.phone,
+        passwordHash: temporaryPassword,
         role: 'partner-owner',
         partnerId: newPartner.id,
         pickupAddress: { commune: 'Gombe', avenue: app.address, numero: '' },
         loyaltyPoints: 0,
-        referralCode,
+        referralCode: makeReferralCode(),
         createdAt: new Date().toISOString(),
         is2FAEnabled: false,
         notificationPreferences: { newOrder: true, orderStatusChange: true, newChatMessage: true, promotions: true, general: true },
         isEmailValid: true,
     };
     DB.addItem('users', newUser);
+    sendTransactionalEmail({
+        to: newUser.email,
+        subject: t('emails.newPartnerWelcome.subject', { default: 'Votre espace partenaire Laundry Express est pret' }),
+        bodyComponent: <NewPartnerWelcomeEmail application={app} temporaryPassword={temporaryPassword} t={t} />,
+        t,
+    });
 
     DB.addItem('appNotifications', {
         id: `NOTIF-${Date.now()}-APPROVED`,
@@ -782,7 +852,7 @@ export const apiApprovePartnerApplication = async (id: string, t: any) => {
         isRead: false,
     });
 
-    return { newPartner, newUser };
+    return { newPartner, newUser: ResponseSanitizer.sanitizeUser(newUser) };
 };
 
 export const apiRejectPartnerApplication = async (id: string, r: string) => DB.updateItem('partnerApplications', id, { status: ApplicationStatus.REJECTED, rejectionReason: r });
@@ -932,4 +1002,243 @@ export const apiUpdateLogisticsPartner = async (partner: LogisticsPartner) => {
 };
 export const apiDeleteLogisticsPartner = async (partnerId: string) => {
     DB.deleteItem('logisticsPartners', partnerId);
+};
+
+export const apiAnalyzeFabric = async (imageData: string) => {
+    const ai = getAI();
+    if (!ai) return { fabricType: 'unavailable', confidence: 0, treatment: 'AI not configured', washMethod: 'unknown', temperature: 'unknown', serviceSuggestion: 'PRESSING' };
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [
+            { inlineData: { mimeType: 'image/jpeg', data: imageData } },
+            { text: "Analyze this garment image. Detect the fabric type (cotton, silk, linen, polyester, wool, denim, synthetic blend, other). Identify the best wash method, temperature, and whether it needs pressing (dry cleaning) or laundry. Return JSON." }
+        ],
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    fabricType: { type: Type.STRING },
+                    confidence: { type: Type.NUMBER },
+                    treatment: { type: Type.STRING },
+                    washMethod: { type: Type.STRING },
+                    temperature: { type: Type.STRING },
+                    serviceSuggestion: { type: Type.STRING, enum: ['PRESSING', 'BLANCHISSERIE', 'CORDONNERIE'] }
+                },
+                required: ["fabricType", "confidence", "treatment", "washMethod", "temperature", "serviceSuggestion"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{}');
+};
+
+export const apiSmartPricingAdvice = async (partnerId: string) => {
+    const ai = getAI();
+    if (!ai) return { suggestions: [], reasoning: 'AI not configured' };
+    const partner = DB.get('partners').find((p: any) => p.id === partnerId);
+    const orders = DB.get('orderHistory').filter((o: any) => o.partner?.id === partnerId);
+    const recentOrders = orders.slice(-30);
+    const avgOrdersPerDay = recentOrders.length / 30;
+    const completedOrders = recentOrders.filter((o: any) => o.status === 'COMPLETED');
+
+    const context = `Partner: ${partner?.name}. Rating: ${partner?.rating}/5. Total orders: ${orders.length}. Recent 30 orders: ${recentOrders.length}. Avg/day: ${avgOrdersPerDay.toFixed(1)}. Completed: ${completedOrders.length}. Recent statuses: ${recentOrders.slice(-10).map((o: any) => o.status).join(', ')}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze this partner's business data and suggest pricing strategies: ${context}. Consider demand level, completion rate, and rating. Return JSON with pricing suggestions.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    suggestions: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                type: { type: Type.STRING, enum: ['increase', 'decrease', 'promotion', 'express_premium'] },
+                                description: { type: Type.STRING },
+                                estimatedImpact: { type: Type.STRING },
+                                urgency: { type: Type.STRING, enum: ['high', 'medium', 'low'] }
+                            },
+                            required: ["type", "description", "estimatedImpact", "urgency"]
+                        }
+                    },
+                    reasoning: { type: Type.STRING }
+                },
+                required: ["suggestions", "reasoning"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"suggestions": [], "reasoning": "Could not analyze"}');
+};
+
+export const apiGenerateBirthdayReward = async (userName: string, orderCount: number) => {
+    const ai = getAI();
+    if (!ai) return { message: `Joyeux anniversaire ${userName} !`, rewardType: 'discount', rewardValue: 10 };
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Generate a personalized birthday reward for a customer named "${userName}" who has placed ${orderCount} orders. Create a warm, personal birthday message and an appropriate reward based on their loyalty. Return JSON.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    message: { type: Type.STRING },
+                    rewardType: { type: Type.STRING, enum: ['discount', 'free_delivery', 'bonus_points', 'free_item'] },
+                    rewardValue: { type: Type.NUMBER },
+                    pointsBonus: { type: Type.NUMBER }
+                },
+                required: ["message", "rewardType", "rewardValue"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{}');
+};
+
+export const apiCheckCapacity = async () => {
+    const ai = getAI();
+    if (!ai) return { prediction: 'normal', load: 50, recommendation: 'AI not configured' };
+    const partners = DB.get('partners');
+    const orders = DB.get('orderHistory');
+    const today = new Date().toISOString().split('T')[0];
+    const todayOrders = orders.filter((o: any) => o.createdAt?.startsWith(today));
+    const activePartners = partners.filter((p: any) => p.isFeatured);
+
+    const context = `Today's orders: ${todayOrders.length}. Active partners: ${activePartners.length}. Pending orders: ${todayOrders.filter((o: any) => ['AWAITING_CONFIRMATION', 'CONFIRMED', 'READY_FOR_PICKUP'].includes(o.status)).length}. Processing: ${todayOrders.filter((o: any) => o.status === 'PROCESSING').length}. Completed today: ${todayOrders.filter((o: any) => o.status === 'COMPLETED').length}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze capacity and predict potential overload for this laundry platform: ${context}. Return JSON with prediction, load percentage, and recommendations.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    prediction: { type: Type.STRING, enum: ['low', 'normal', 'high', 'overloaded'] },
+                    load: { type: Type.NUMBER },
+                    recommendation: { type: Type.STRING },
+                    estimatedSaturation: { type: Type.STRING },
+                    suggestedActions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["prediction", "load", "recommendation"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{}');
+};
+
+export const apiSmartPriceEstimate = async (params: { serviceType: string; commune: string; volume: number; garmentTypes?: string[] }) => {
+    const ai = getAI();
+    if (!ai) return { minPrice: 0, avgPrice: 0, maxPrice: 0, breakdown: [], confidence: 0, reasoning: 'AI not configured' };
+    const partners = DB.get('partners');
+    const orders = DB.get('orderHistory');
+    const matchingPartners = partners.filter((p: any) => p.address?.toLowerCase().includes(params.commune.toLowerCase()));
+    const matchingOrders = orders.filter((o: any) => o.partner?.address?.toLowerCase().includes(params.commune.toLowerCase()));
+
+    const avgPartnerRating = matchingPartners.length
+        ? matchingPartners.reduce((s: number, p: any) => s + (p.rating || 0), 0) / matchingPartners.length
+        : 4.5;
+
+    const context = `Service: ${params.serviceType}. Commune: ${params.commune}. Volume: ${params.volume} items. Garment types: ${(params.garmentTypes || []).join(', ') || 'mixed'}. Partners in zone: ${matchingPartners.length}. Avg rating: ${avgPartnerRating.toFixed(1)}. Historical orders in zone: ${matchingOrders.length}. Average order value in zone: $${matchingOrders.length ? (matchingOrders.reduce((s: number, o: any) => s + (o.totalPrice || 0), 0) / matchingOrders.length).toFixed(2) : '10.00'}`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Estimate laundry service prices in Kinshasa for this request: ${context}. Consider partner ratings, zone, garment types and volume. Return JSON with price range and breakdown.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    minPrice: { type: Type.NUMBER },
+                    avgPrice: { type: Type.NUMBER },
+                    maxPrice: { type: Type.NUMBER },
+                    breakdown: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                garment: { type: Type.STRING },
+                                min: { type: Type.NUMBER },
+                                max: { type: Type.NUMBER }
+                            },
+                            required: ["garment", "min", "max"]
+                        }
+                    },
+                    confidence: { type: Type.NUMBER },
+                    reasoning: { type: Type.STRING }
+                },
+                required: ["minPrice", "avgPrice", "maxPrice", "confidence", "reasoning"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"minPrice": 0, "avgPrice": 0, "maxPrice": 0, "breakdown": [], "confidence": 0, "reasoning": "Could not estimate"}');
+};
+
+export const apiGenerateChurnCoupon = async (customerId: string, orderCount: number, lastOrderDays: number) => {
+    const ai = getAI();
+    if (!ai) return { couponCode: '', discount: 15, message: '', urgency: 'medium', reason: 'AI not configured' };
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `A customer hasn't ordered in ${lastOrderDays} days. They have ${orderCount} total orders. Generate a churn prevention coupon. Return JSON with coupon code, discount percentage, personalized message, urgency level, and reasoning.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    couponCode: { type: Type.STRING },
+                    discount: { type: Type.NUMBER },
+                    message: { type: Type.STRING },
+                    urgency: { type: Type.STRING, enum: ['high', 'medium', 'low'] },
+                    reason: { type: Type.STRING }
+                },
+                required: ["couponCode", "discount", "message", "urgency", "reason"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"couponCode": "", "discount": 15, "message": "", "urgency": "medium", "reason": "Could not generate"}');
+};
+
+export const apiDetectFraud = async () => {
+    const ai = getAI();
+    if (!ai) return { risks: [], summary: 'AI not configured' };
+    const users = DB.get('users');
+    const orders = DB.get('orderHistory');
+    const promoUsage = DB.get('promoCodes');
+
+    const phoneGroups: Record<string, any[]> = {};
+    users.forEach((u: any) => { if (u.phone) { phoneGroups[u.phone] = phoneGroups[u.phone] || []; phoneGroups[u.phone].push(u); } });
+    const multiAccountPhones = Object.entries(phoneGroups).filter(([, users]) => users.length > 1);
+
+    const context = `Total users: ${users.length}. Total orders: ${orders.length}. Phones with multiple accounts: ${multiAccountPhones.length}. Promos: ${promoUsage.length}. Rejected/refunded orders: ${orders.filter((o: any) => o.status === 'REJECTED').length}. Suspicious patterns: orders < $2 from same IP, rapid promo stacking.`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze this marketplace for fraud patterns: ${context}. Detect: multiple accounts, promo abuse, suspicious payment patterns. Return JSON with risk list and summary.`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    risks: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                type: { type: Type.STRING, enum: ['multi_account', 'promo_abuse', 'suspicious_payment', 'suspicious_behavior'] },
+                                severity: { type: Type.STRING, enum: ['high', 'medium', 'low'] },
+                                description: { type: Type.STRING },
+                                affectedCount: { type: Type.NUMBER },
+                                recommendation: { type: Type.STRING }
+                            },
+                            required: ["type", "severity", "description", "affectedCount", "recommendation"]
+                        }
+                    },
+                    summary: { type: Type.STRING }
+                },
+                required: ["risks", "summary"]
+            }
+        }
+    });
+    return JSON.parse(response.text || '{"risks": [], "summary": "Could not analyze"}');
 };

@@ -43,6 +43,32 @@ class LocationType(str, Enum):
     PARTNER = "partner"
 
 
+class VehicleType(str, Enum):
+    """Type de véhicule"""
+    MOTO = "moto"
+    CAR = "car"
+    VAN = "van"
+
+
+class VehicleStatus(str, Enum):
+    """Statut du véhicule"""
+    PENDING = "pending"
+    ASSIGNED = "assigned"
+    IN_TRANSIT = "in_transit"
+    DELIVERED = "delivered"
+    DELAYED = "delayed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class VehicleMaintenanceStatus(str, Enum):
+    """Statut de maintenance du véhicule"""
+    OK = "ok"
+    SCHEDULED = "scheduled"
+    IN_PROGRESS = "in_progress"
+    OVERDUE = "overdue"
+
+
 class Driver(BaseModel):
     """Chauffeur"""
     __tablename__ = "drivers"
@@ -147,3 +173,37 @@ class DeliveryTask(BaseModel):
     
     def __repr__(self):
         return f"<DeliveryTask(id={self.id}, order_id={self.order_id}, task_type={self.task_type}, status={self.status})>"
+
+
+class Vehicle(BaseModel):
+    """Véhicule de la flotte"""
+    __tablename__ = "vehicles"
+
+    delivery_company_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("delivery_companies.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    plate = Column(String(50), nullable=False, unique=True, index=True)
+    type = Column(SQLEnum(VehicleType), nullable=False)
+    status = Column(SQLEnum(VehicleStatus), default=VehicleStatus.PENDING, nullable=False)
+
+    driver_id = Column(UUID(as_uuid=True), ForeignKey("drivers.id"), nullable=True, index=True)
+    assigned_driver_name = Column(String(200), nullable=True)
+
+    zone = Column(String(100), nullable=True)
+    location = Column(String(200), nullable=True)
+    last_known_location = Column(String(200), nullable=True)
+
+    mileage_km = Column(Integer, default=0, nullable=False)
+    insurance_expires_at = Column(DateTime(timezone=True), nullable=True)
+
+    maintenance_status = Column(SQLEnum(VehicleMaintenanceStatus), default=VehicleMaintenanceStatus.OK, nullable=False)
+    maintenance_next_service_km = Column(Integer, default=0, nullable=False)
+    maintenance_notes = Column(Text, nullable=True)
+
+    driver = relationship("Driver", backref="vehicles")
+
+    def __repr__(self):
+        return f"<Vehicle(id={self.id}, plate={self.plate}, type={self.type}, status={self.status})>"

@@ -4,6 +4,8 @@ import { Icon } from '../Icon';
 interface DriverFormData {
   name: string;
   phone: string;
+  password: string;
+  avatarUrl?: string;
   vehicle: string;
   vehiclePlate: string;
   commune: string;
@@ -14,7 +16,9 @@ interface DriverFormData {
 interface AddDriverModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (driver: DriverFormData) => void;
+  onAdd: (driver: DriverFormData) => void | Promise<void>;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
 }
 
 const VEHICLE_OPTIONS = ['Moto', 'Voiture', 'Camionnette'];
@@ -24,10 +28,18 @@ const COMMUNE_OPTIONS = [
   'Kimbanseke', 'Masina', 'Nsele', 'Mont-Ngafula',
 ];
 
-export const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onAdd }) => {
+export const AddDriverModal: React.FC<AddDriverModalProps> = ({
+  isOpen,
+  onClose,
+  onAdd,
+  isSubmitting = false,
+  errorMessage = null,
+}) => {
   const [form, setForm] = useState<DriverFormData>({
     name: '',
     phone: '',
+    password: '',
+    avatarUrl: '',
     vehicle: 'Moto',
     vehiclePlate: '',
     commune: '',
@@ -37,7 +49,7 @@ export const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose,
 
   useEffect(() => {
     if (isOpen) {
-      setForm({ name: '', phone: '', vehicle: 'Moto', vehiclePlate: '', commune: '', email: '', notes: '' });
+      setForm({ name: '', phone: '', password: '', avatarUrl: '', vehicle: 'Moto', vehiclePlate: '', commune: '', email: '', notes: '' });
     }
   }, [isOpen]);
 
@@ -56,9 +68,15 @@ export const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose,
   };
 
   const handleSubmit = () => {
-    if (!form.name.trim() || !form.phone.trim()) return;
-    onAdd(form);
+    if (!form.name.trim() || !form.phone.trim() || !form.email.trim() || form.password.trim().length < 8) return;
+    void onAdd(form);
   };
+
+  const canSubmit =
+    form.name.trim().length > 0 &&
+    form.phone.trim().length > 0 &&
+    form.email.trim().length > 0 &&
+    form.password.trim().length >= 8;
 
   if (!isOpen) return null;
 
@@ -98,6 +116,16 @@ export const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose,
             />
           </div>
           <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Photo URL (optionnel)</label>
+            <input
+              type="url"
+              value={form.avatarUrl || ''}
+              onChange={(e) => handleChange('avatarUrl', e.target.value)}
+              placeholder="Ex: /images/drivers/driver-1.svg"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+            />
+          </div>
+          <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Véhicule</label>
             <select
               value={form.vehicle}
@@ -133,12 +161,22 @@ export const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose,
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Email (optionnel)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => handleChange('email', e.target.value)}
               placeholder="Ex: chauffeur@email.com"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Mot de passe initial <span className="text-red-500">*</span></label>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              placeholder="Minimum 8 caractères"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
             />
           </div>
@@ -154,19 +192,26 @@ export const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose,
           </div>
         </div>
 
+        {errorMessage ? (
+          <div className="border-t border-red-100 bg-red-50 px-6 py-3 text-sm font-medium text-red-700">
+            {errorMessage}
+          </div>
+        ) : null}
+
         <div className="border-t border-gray-100 px-6 py-4 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+            disabled={isSubmitting}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Annuler
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!form.name.trim() || !form.phone.trim()}
+            disabled={!canSubmit || isSubmitting}
             className="flex-1 px-4 py-2.5 rounded-xl bg-brand-blue text-white font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-blue/90"
           >
-            Ajouter le chauffeur
+            {isSubmitting ? 'Création...' : 'Ajouter le chauffeur'}
           </button>
         </div>
       </div>

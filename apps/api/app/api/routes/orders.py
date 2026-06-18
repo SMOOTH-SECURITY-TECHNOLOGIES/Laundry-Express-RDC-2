@@ -25,6 +25,7 @@ from app.schemas.order import (
 )
 from app.services.order_service import OrderService
 from app.services.notification_service import NotificationService
+from app.services.logistics_marketplace_service import LogisticsMarketplaceService
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -356,6 +357,7 @@ def update_order_status(
             )
 
         _notify_order_status_changed(db, order, status_data.new_status.value)
+        LogisticsMarketplaceService(db).handle_order_status_change(order, status_data.new_status)
         db.commit()
         db.refresh(order)
         return order

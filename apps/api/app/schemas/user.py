@@ -60,6 +60,7 @@ class UserResponse(UserBase):
     loyalty_points: int = 0
     referral_code: Optional[str] = None
     referred_by_user_id: Optional[UUID] = None
+    delivery_company_id: Optional[UUID] = None
     last_login_at: Optional[datetime] = None
     email_verified_at: Optional[datetime] = None
     phone_verified_at: Optional[datetime] = None
@@ -120,6 +121,12 @@ class CustomerAddressBase(BaseModel):
     instructions: Optional[str] = None
     is_default: bool = False
 
+    @validator('contact_name', 'contact_phone', 'address_line_2', 'zone', pre=True)
+    def empty_str_to_none(cls, v):
+        if v is not None and isinstance(v, str) and v.strip() == '':
+            return None
+        return v
+
 
 class CustomerAddressCreate(CustomerAddressBase):
     """Schéma pour création d'adresse"""
@@ -140,6 +147,12 @@ class CustomerAddressUpdate(BaseModel):
     longitude: Optional[float] = Field(None, ge=-180, le=180)
     instructions: Optional[str] = None
     is_default: Optional[bool] = None
+
+    @validator('label', 'contact_name', 'contact_phone', 'address_line_1', 'address_line_2', 'commune', 'zone', pre=True)
+    def empty_str_to_none(cls, v):
+        if v is not None and isinstance(v, str) and v.strip() == '':
+            return None
+        return v
 
 
 class CustomerAddressResponse(CustomerAddressBase):
@@ -222,6 +235,7 @@ def user_to_response(user) -> UserResponse:
         loyalty_points=getattr(user, "loyalty_points", 0) or 0,
         referral_code=getattr(user, "referral_code", None),
         referred_by_user_id=getattr(user, "referred_by_user_id", None),
+        delivery_company_id=getattr(user, "delivery_company_id", None),
         last_login_at=user.last_login_at,
         email_verified_at=user.email_verified_at,
         phone_verified_at=user.phone_verified_at,

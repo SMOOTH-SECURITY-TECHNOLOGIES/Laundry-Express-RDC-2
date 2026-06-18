@@ -3,15 +3,25 @@ import { Icon } from '../components/Icon';
 import { NotificationBell } from '../components/NotificationBell';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { LogisticsSidebar } from '../components/logistics/LogisticsSidebar';
+import { LogisticsMobileNav } from '../components/logistics/LogisticsMobileNav';
 import { isLogisticsSection, LogisticsSection } from '../components/logistics/logistics-types';
 import { useAppContext } from '../context/AppContext';
+import { useRealTimeAlerts } from '../hooks/useRealTimeAlerts';
 import { LogisticsAlerts } from './logistics/LogisticsAlerts';
 import { LogisticsDrivers } from './logistics/LogisticsDrivers';
+import { LogisticsDispatch } from './logistics/LogisticsDispatch';
+import { LogisticsFleet } from './logistics/LogisticsFleet';
+import { LogisticsMaintenance } from './logistics/LogisticsMaintenance';
 import { LogisticsMissions } from './logistics/LogisticsMissions';
 import { LogisticsOverview } from './logistics/LogisticsOverview';
 import { LogisticsPerformance } from './logistics/LogisticsPerformance';
 import { LogisticsReports } from './logistics/LogisticsReports';
 import { LogisticsSettings } from './logistics/LogisticsSettings';
+import { LogisticsShipments } from './logistics/LogisticsShipments';
+import { LogisticsTracking } from './logistics/LogisticsTracking';
+import { LogisticsTripDetails } from './logistics/LogisticsTripDetails';
+import { PilotDashboard } from '../components/pilot/PilotDashboard';
+import { pilotConfig } from '../config/pilot';
 
 const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string }> = {
   dashboard: {
@@ -22,9 +32,29 @@ const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string
     title: 'Missions',
     subtitle: 'Backlog, missions actives et assignation chauffeur.',
   },
+  fleet: {
+    title: 'Fleet',
+    subtitle: 'Véhicules, plaques, zones et disponibilité.',
+  },
   drivers: {
     title: 'Chauffeurs',
     subtitle: 'Disponibilité, performance et gestion du réseau.',
+  },
+  dispatch: {
+    title: 'Dispatch',
+    subtitle: 'File d’attente, assignation et priorités opérationnelles.',
+  },
+  tracking: {
+    title: 'Tracking',
+    subtitle: 'Carte temps réel, trajets et ETA.',
+  },
+  'trip-details': {
+    title: 'Trip Details',
+    subtitle: 'Détail trajet, timeline, contacts et incidents.',
+  },
+  shipments: {
+    title: 'Shipments',
+    subtitle: 'Livraisons rattachées aux commandes Laundry.',
   },
   performance: {
     title: 'Performance',
@@ -38,9 +68,17 @@ const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string
     title: 'Rapports',
     subtitle: 'Exports quotidiens, hebdomadaires et personnalisés.',
   },
+  maintenance: {
+    title: 'Maintenance',
+    subtitle: 'Entretien véhicules, incidents et disponibilité.',
+  },
   settings: {
     title: 'Paramètres',
     subtitle: 'Notifications, dispatch automatique et zones.',
+  },
+  pilot: {
+    title: 'Pilote terrain',
+    subtitle: 'Métriques opérationnelles du pilote Laundry Express.',
   },
 };
 
@@ -75,33 +113,159 @@ const LogisticsDesktopBar: React.FC<{ userName: string }> = ({ userName }) => (
 );
 
 export const LogisticsDashboardPage: React.FC = () => {
-  const { user, addNotification, logout, setCurrentPage } = useAppContext();
+  const {
+    user,
+    addNotification,
+    logout,
+    setCurrentPage,
+    openLogisticsMissionForOrderId,
+    setOpenLogisticsMissionForOrderId,
+  } = useAppContext();
+  const { alerts } = useRealTimeAlerts({ enabled: true });
+  const alertCount = alerts.length;
   const [activeSection, setActiveSection] = useState<LogisticsSection>(() => {
     const hash = window.location.hash.replace('#', '');
     return isLogisticsSection(hash) ? hash : 'dashboard';
   });
+  const [missionFocusId, setMissionFocusId] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusMissionId')
+  );
+  const [missionFocusAlert, setMissionFocusAlert] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusMissionAlert')
+  );
+  const [missionFocusType, setMissionFocusType] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusMissionType')
+  );
+  const [missionFocusZone, setMissionFocusZone] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusZone')
+  );
+  const [driverFocusName, setDriverFocusName] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusDriverName')
+  );
+  const [reportFocusAlert, setReportFocusAlert] = useState<string | null>(() =>
+    sessionStorage.getItem('logisticsFocusReportAlert')
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleRefresh = () => addNotification('Données actualisées', 'success');
   const handleAutoDispatch = () => addNotification('Auto-dispatch terminé : 12 missions assignées', 'success');
   const handleExport = () => addNotification('Export CSV généré', 'success');
 
-  const handleSectionChange = useCallback((section: string) => {
+  const clearFocus = useCallback(() => {
+    setMissionFocusId(null);
+    setMissionFocusAlert(null);
+    setMissionFocusType(null);
+    setMissionFocusZone(null);
+    setDriverFocusName(null);
+    setReportFocusAlert(null);
+    sessionStorage.removeItem('logisticsFocusMissionId');
+    sessionStorage.removeItem('logisticsFocusMissionAlert');
+    sessionStorage.removeItem('logisticsFocusMissionType');
+    sessionStorage.removeItem('logisticsFocusZone');
+    sessionStorage.removeItem('logisticsFocusDriverName');
+    sessionStorage.removeItem('logisticsFocusReportAlert');
+  }, []);
+
+  const handleSectionChange = useCallback((section: string, options?: { missionId?: string; driverName?: string; alertTitle?: string; missionAlertTitle?: string; missionFocusType?: string; zone?: string }) => {
     if (!isLogisticsSection(section)) return;
+    if (section === 'missions' || section === 'dispatch') {
+      const nextMissionId = options?.missionId ?? null;
+      const nextMissionAlert = options?.missionAlertTitle ?? null;
+      const nextMissionType = options?.missionFocusType ?? null;
+      const nextZone = options?.zone ?? null;
+      setMissionFocusId(nextMissionId);
+      setMissionFocusAlert(nextMissionAlert);
+      setMissionFocusType(nextMissionType);
+      setMissionFocusZone(nextZone);
+      if (nextMissionId) sessionStorage.setItem('logisticsFocusMissionId', nextMissionId);
+      else sessionStorage.removeItem('logisticsFocusMissionId');
+      if (nextMissionAlert) sessionStorage.setItem('logisticsFocusMissionAlert', nextMissionAlert);
+      else sessionStorage.removeItem('logisticsFocusMissionAlert');
+      if (nextMissionType) sessionStorage.setItem('logisticsFocusMissionType', nextMissionType);
+      else sessionStorage.removeItem('logisticsFocusMissionType');
+      if (nextZone) sessionStorage.setItem('logisticsFocusZone', nextZone);
+      else sessionStorage.removeItem('logisticsFocusZone');
+      setDriverFocusName(null);
+      setReportFocusAlert(null);
+      sessionStorage.removeItem('logisticsFocusDriverName');
+      sessionStorage.removeItem('logisticsFocusReportAlert');
+    } else if (section === 'drivers') {
+      const nextDriverName = options?.driverName ?? null;
+      setDriverFocusName(nextDriverName);
+      if (nextDriverName) sessionStorage.setItem('logisticsFocusDriverName', nextDriverName);
+      else sessionStorage.removeItem('logisticsFocusDriverName');
+      setMissionFocusId(null);
+      setReportFocusAlert(null);
+      sessionStorage.removeItem('logisticsFocusMissionId');
+      sessionStorage.removeItem('logisticsFocusMissionAlert');
+      sessionStorage.removeItem('logisticsFocusMissionType');
+      sessionStorage.removeItem('logisticsFocusZone');
+      sessionStorage.removeItem('logisticsFocusReportAlert');
+    } else if (section === 'reports') {
+      const nextAlert = options?.alertTitle ?? null;
+      setReportFocusAlert(nextAlert);
+      if (nextAlert) sessionStorage.setItem('logisticsFocusReportAlert', nextAlert);
+      else sessionStorage.removeItem('logisticsFocusReportAlert');
+      setMissionFocusId(options?.missionId ?? null);
+      if (options?.missionId) sessionStorage.setItem('logisticsFocusMissionId', options.missionId);
+      else sessionStorage.removeItem('logisticsFocusMissionId');
+      setMissionFocusAlert(null);
+      setMissionFocusType(null);
+      setMissionFocusZone(null);
+      setDriverFocusName(null);
+      sessionStorage.removeItem('logisticsFocusMissionAlert');
+      sessionStorage.removeItem('logisticsFocusMissionType');
+      sessionStorage.removeItem('logisticsFocusZone');
+      sessionStorage.removeItem('logisticsFocusDriverName');
+    } else {
+      clearFocus();
+    }
     setActiveSection(section);
     const nextUrl = `${window.location.pathname}${window.location.search}#${section}`;
     window.history.replaceState(null, '', nextUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [clearFocus]);
+
+  useEffect(() => {
+    if (!openLogisticsMissionForOrderId) return;
+    handleSectionChange('missions', { missionId: openLogisticsMissionForOrderId });
+    setOpenLogisticsMissionForOrderId(null);
+  }, [openLogisticsMissionForOrderId, handleSectionChange, setOpenLogisticsMissionForOrderId]);
 
   useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (isLogisticsSection(hash)) setActiveSection(hash);
+      if (isLogisticsSection(hash)) {
+        setActiveSection(hash);
+        if (hash === 'missions' || hash === 'dispatch') {
+          setMissionFocusId(sessionStorage.getItem('logisticsFocusMissionId'));
+          setMissionFocusAlert(sessionStorage.getItem('logisticsFocusMissionAlert'));
+          setMissionFocusType(sessionStorage.getItem('logisticsFocusMissionType'));
+          setMissionFocusZone(sessionStorage.getItem('logisticsFocusZone'));
+          setDriverFocusName(null);
+          setReportFocusAlert(null);
+        } else if (hash === 'drivers') {
+          setDriverFocusName(sessionStorage.getItem('logisticsFocusDriverName'));
+          setMissionFocusId(null);
+          setMissionFocusAlert(null);
+          setMissionFocusType(null);
+          setMissionFocusZone(null);
+          setReportFocusAlert(null);
+        } else if (hash === 'reports') {
+          setReportFocusAlert(sessionStorage.getItem('logisticsFocusReportAlert'));
+          setMissionFocusId(sessionStorage.getItem('logisticsFocusMissionId'));
+          setMissionFocusAlert(null);
+          setMissionFocusType(null);
+          setMissionFocusZone(null);
+          setDriverFocusName(null);
+        } else {
+          clearFocus();
+        }
+      }
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+  }, [clearFocus]);
 
   if (!user || user.role !== 'logistics-manager') {
     return (
@@ -130,18 +294,50 @@ export const LogisticsDashboardPage: React.FC = () => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'fleet':
+        return <LogisticsFleet />;
+      case 'dispatch':
+        return (
+          <LogisticsDispatch
+            focusMissionId={missionFocusId}
+            focusAlertTitle={missionFocusAlert}
+            focusType={missionFocusType}
+            focusZone={missionFocusZone}
+            onClearFocus={clearFocus}
+          />
+        );
       case 'missions':
-        return <LogisticsMissions />;
+        return (
+          <LogisticsMissions
+            focusMissionId={missionFocusId}
+            focusAlertTitle={missionFocusAlert}
+            focusType={missionFocusType}
+            focusZone={missionFocusZone}
+            onClearFocus={clearFocus}
+            onNavigate={handleSectionChange}
+            onActionFeedback={(message) => addNotification(message, 'info')}
+          />
+        );
       case 'drivers':
-        return <LogisticsDrivers />;
+        return <LogisticsDrivers focusDriverName={driverFocusName} onClearFocus={clearFocus} />;
       case 'performance':
         return <LogisticsPerformance />;
+      case 'tracking':
+        return <LogisticsTracking />;
+      case 'trip-details':
+        return <LogisticsTripDetails />;
+      case 'shipments':
+        return <LogisticsShipments />;
       case 'alerts':
-        return <LogisticsAlerts />;
+        return <LogisticsAlerts onNavigate={handleSectionChange} onActionFeedback={(message) => addNotification(message, 'info')} />;
+      case 'maintenance':
+        return <LogisticsMaintenance />;
       case 'reports':
-        return <LogisticsReports />;
+        return <LogisticsReports focusAlertTitle={reportFocusAlert} focusMissionId={missionFocusId} onClearFocus={clearFocus} />;
       case 'settings':
         return <LogisticsSettings />;
+      case 'pilot':
+        return <PilotDashboard />;
       case 'dashboard':
       default:
         return (
@@ -149,6 +345,8 @@ export const LogisticsDashboardPage: React.FC = () => {
             onRefresh={handleRefresh}
             onAutoDispatch={handleAutoDispatch}
             onExport={handleExport}
+            onNavigate={handleSectionChange}
+            onActionFeedback={(message) => addNotification(message, 'info')}
           />
         );
     }
@@ -161,6 +359,7 @@ export const LogisticsDashboardPage: React.FC = () => {
         onSectionClick={handleSectionChange}
         onNavigateHome={() => setCurrentPage({ name: 'home' })}
         onLogout={logout}
+        alertCount={alertCount}
       />
 
       {isSidebarOpen && (
@@ -178,6 +377,7 @@ export const LogisticsDashboardPage: React.FC = () => {
               }}
               onNavigateHome={() => setCurrentPage({ name: 'home' })}
               onLogout={logout}
+              alertCount={alertCount}
             />
           </div>
         </div>
@@ -185,8 +385,8 @@ export const LogisticsDashboardPage: React.FC = () => {
 
       <LogisticsTopbar title={sectionMeta.title} onMenuClick={() => setIsSidebarOpen(true)} />
 
-      <main className="relative z-0 px-4 pb-8 pt-[88px] md:ml-[260px] md:px-8 md:pt-6">
-        <div key={activeSection} className="mx-auto max-w-[1500px] space-y-6">
+      <main className="relative z-0 px-3 pb-24 pt-[88px] sm:px-4 md:ml-[260px] md:px-8 md:pb-8 md:pt-6">
+        <div key={activeSection} className="mx-auto max-w-[1500px] space-y-5 sm:space-y-6">
           <LogisticsDesktopBar userName={userName} />
 
           {!isDashboard && (
@@ -201,13 +401,19 @@ export const LogisticsDashboardPage: React.FC = () => {
           )}
 
           <section>
-            <h1 className="text-3xl font-black text-content-primary">{sectionMeta.title}</h1>
-            <p className="mt-2 text-content-muted">{sectionMeta.subtitle}</p>
+            <h1 className="text-2xl font-black leading-tight text-content-primary sm:text-3xl">{sectionMeta.title}</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-content-muted sm:text-base">{sectionMeta.subtitle}</p>
           </section>
 
           {renderContent()}
         </div>
       </main>
+
+      <LogisticsMobileNav
+        activeSection={activeSection}
+        alertCount={alertCount}
+        onSectionChange={handleSectionChange}
+      />
     </div>
   );
 };

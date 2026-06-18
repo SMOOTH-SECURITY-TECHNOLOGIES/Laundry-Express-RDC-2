@@ -15,6 +15,7 @@ export interface ApiUser {
   loyalty_points: number;
   referral_code?: string | null;
   referred_by_user_id?: string | null;
+  delivery_company_id?: string | null;
   last_login_at: string | null;
   email_verified_at: string | null;
   phone_verified_at: string | null;
@@ -1797,6 +1798,9 @@ export interface LogisticsTask {
   completed_at?: string | null;
   proof_photo_url?: string | null;
   proof_note?: string | null;
+  claimed_by_company_id?: string | null;
+  market_visible?: boolean;
+  market_expires_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1807,6 +1811,7 @@ export interface LogisticsDriver {
   user_name?: string | null;
   user_email?: string | null;
   user_phone?: string | null;
+  avatar_url?: string | null;
   vehicle_type?: string | null;
   license_number?: string | null;
   status: 'active' | 'inactive' | 'suspended';
@@ -1829,6 +1834,110 @@ export interface LogisticsDriverListResponse {
   total: number;
   page: number;
   page_size: number;
+}
+
+export interface LogisticsDriverCreateRequest {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  vehicle_type?: string | null;
+  license_number?: string | null;
+  status?: 'active' | 'inactive' | 'suspended';
+  is_available?: boolean;
+}
+
+export interface LogisticsVehicle {
+  id: string;
+  plate: string;
+  type: 'moto' | 'car' | 'van';
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'delayed' | 'failed' | 'cancelled';
+  driverId?: string;
+  assignedDriverName?: string;
+  zone: string;
+  location: string;
+  lastKnownLocation?: string;
+  mileageKm: number;
+  insuranceExpiresAt: string;
+  maintenance: {
+    status: 'ok' | 'scheduled' | 'in_progress' | 'overdue';
+    nextServiceAtKm: number;
+    notes?: string;
+  };
+}
+
+export interface LogisticsVehicleUpsertRequest {
+  plate?: string;
+  type?: LogisticsVehicle['type'];
+  status?: LogisticsVehicle['status'];
+  driver_id?: string | null;
+  assigned_driver_name?: string | null;
+  zone?: string;
+  location?: string;
+  last_known_location?: string | null;
+  mileage_km?: number;
+  insurance_expires_at?: string | null;
+  maintenance_status?: LogisticsVehicle['maintenance']['status'];
+  maintenance_next_service_km?: number;
+  maintenance_notes?: string | null;
+}
+
+export interface LogisticsVehicleListResponse {
+  vehicles: LogisticsVehicle[];
+}
+
+export interface LogisticsTrip {
+  id: string;
+  taskId: string;
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'delayed' | 'failed' | 'cancelled';
+  origin: string;
+  destination: string;
+  customerName?: string;
+  driverName?: string;
+  vehiclePlate?: string;
+  estimatedDurationMinutes?: number;
+  etaMinutes?: number;
+  distanceKm?: number;
+}
+
+export interface LogisticsTripListResponse {
+  trips: LogisticsTrip[];
+}
+
+export interface LogisticsTrackingPoint {
+  id: string;
+  tripId: string;
+  kind: 'vehicle' | 'driver' | 'pickup' | 'delivery';
+  label: string;
+  latitude: number;
+  longitude: number;
+  recordedAt: string;
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'delayed' | 'failed' | 'cancelled';
+  driverName?: string;
+  vehiclePlate?: string;
+}
+
+export interface LogisticsTrackingPointListResponse {
+  tracking_points: LogisticsTrackingPoint[];
+}
+
+export interface LogisticsMaintenanceEvent {
+  id: string;
+  vehicleId: string;
+  vehiclePlate?: string;
+  title: string;
+  type: 'insurance' | 'repair' | 'preventive' | 'inspection';
+  status: 'scheduled' | 'in_progress' | 'done' | 'overdue';
+  dueDate: string;
+  cost: number;
+  nextControlAt: string;
+  alert?: 'insurance_expired' | 'vehicle_broken' | 'maintenance_overdue';
+  vehicleAvailable: boolean;
+  costEstimate?: number;
+}
+
+export interface LogisticsMaintenanceEventListResponse {
+  maintenance_events: LogisticsMaintenanceEvent[];
 }
 
 export interface MarketplaceCompany {
@@ -3415,8 +3524,62 @@ class ApiClient {
     return this.request<LogisticsDriverListResponse>(endpoint);
   }
 
+  async createLogisticsDriver(data: LogisticsDriverCreateRequest): Promise<LogisticsDriver> {
+    return this.request<LogisticsDriver>('/logistics/drivers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getVehicles(): Promise<LogisticsVehicleListResponse> {
+    return this.request<LogisticsVehicleListResponse>('/logistics/vehicles');
+  }
+
+  async createVehicle(data: LogisticsVehicleUpsertRequest & { plate: string; type: LogisticsVehicle['type'] }): Promise<LogisticsVehicle> {
+    return this.request<LogisticsVehicle>('/logistics/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateVehicle(vehicleId: string, data: LogisticsVehicleUpsertRequest): Promise<LogisticsVehicle> {
+    return this.request<LogisticsVehicle>(`/logistics/vehicles/${vehicleId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteVehicle(vehicleId: string): Promise<void> {
+    return this.request<void>(`/logistics/vehicles/${vehicleId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getTrips(): Promise<LogisticsTripListResponse> {
+    return this.request<LogisticsTripListResponse>('/logistics/trips');
+  }
+
+  async getTrackingPoints(): Promise<LogisticsTrackingPointListResponse> {
+    return this.request<LogisticsTrackingPointListResponse>('/logistics/tracking-points');
+  }
+
+  async getMaintenanceEvents(): Promise<LogisticsMaintenanceEventListResponse> {
+    return this.request<LogisticsMaintenanceEventListResponse>('/logistics/maintenance-events');
+  }
+
   async updateDriverAvailability(available: boolean): Promise<{ available: boolean }> {
     return this.request<{ available: boolean }>('/driver/availability', {
+      method: 'PATCH',
+      body: JSON.stringify({ available }),
+    });
+  }
+
+  async getMyDriverProfile(): Promise<LogisticsDriver> {
+    return this.request<LogisticsDriver>('/logistics/drivers/me');
+  }
+
+  async updateMyDriverAvailability(available: boolean): Promise<{ available: boolean }> {
+    return this.request<{ available: boolean }>('/logistics/drivers/me/availability', {
       method: 'PATCH',
       body: JSON.stringify({ available }),
     });
@@ -3442,6 +3605,20 @@ class ApiClient {
     });
   }
 
+  async claimLogisticsTask(taskId: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/claim`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  async autoAssignLogisticsTask(taskId: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/auto-assign`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
   async acceptLogisticsTask(taskId: string): Promise<LogisticsTask> {
     return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/accept`, {
       method: 'POST',
@@ -3456,12 +3633,42 @@ class ApiClient {
     });
   }
 
-  async completeLogisticsTask(taskId: string, proofNote?: string): Promise<LogisticsTask> {
+  async completeLogisticsTask(
+    taskId: string,
+    proofNote?: string,
+    proofPhotoUrl?: string | null,
+  ): Promise<LogisticsTask> {
     return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/complete`, {
       method: 'POST',
       body: JSON.stringify({
         proof_note: proofNote || 'Completed from driver dashboard',
+        proof_photo_url: proofPhotoUrl || undefined,
       }),
+    });
+  }
+
+  async updateDriverLocation(
+    driverId: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<{ latitude: number; longitude: number; recorded_at?: string }> {
+    return this.request(`/logistics/drivers/${driverId}/location`, {
+      method: 'POST',
+      body: JSON.stringify({ latitude, longitude }),
+    });
+  }
+
+  async failLogisticsTask(taskId: string, reason: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/fail`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async cancelLogisticsTask(taskId: string, reason?: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
     });
   }
 

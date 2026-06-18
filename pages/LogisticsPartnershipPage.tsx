@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
 import { apiSubmitPartnerApplication } from '../constants';
+import { PartnerType } from '../types';
 
 const stats = [
   { value: '500+', label: 'livraisons mensuelles', icon: 'truck' as const },
@@ -12,11 +13,17 @@ const stats = [
 ];
 
 const steps = [
-  { num: 1, title: 'Inscription', desc: 'Créez votre compte et soumettez vos documents.', icon: 'user' as const },
-  { num: 2, title: 'Validation', desc: 'Nous vérifions vos informations et vos documents.', icon: 'document-text' as const },
-  { num: 3, title: 'Activation', desc: 'Votre compte est activé et vous recevez vos accès.', icon: 'check' as const },
-  { num: 4, title: 'Réception des missions', desc: 'Recevez les missions près de chez vous et acceptez celles qui vous conviennent.', icon: 'bell' as const },
-  { num: 5, title: 'Paiement hebdomadaire', desc: 'Soyez payé chaque semaine directement sur votre compte.', icon: 'wallet' as const },
+  { num: 1, title: 'Candidature', desc: 'Votre compagnie soumet sa flotte, ses zones et son responsable.', icon: 'user' as const },
+  { num: 2, title: 'Validation admin', desc: 'Laundry Express vérifie les coordonnées, documents et capacités.', icon: 'document-text' as const },
+  { num: 3, title: 'Cockpit logistique', desc: 'Le manager reçoit un accès au dashboard logistique.', icon: 'computer' as const },
+  { num: 4, title: 'Chauffeurs', desc: 'Les chauffeurs sont ajoutés puis reliés à la compagnie.', icon: 'truck' as const },
+  { num: 5, title: 'Missions', desc: 'Les missions sont dispatchées, suivies et payées dans la plateforme.', icon: 'wallet' as const },
+];
+
+const operatingFlow = [
+  { title: 'Compte manager', desc: 'Accès au cockpit, fleet, dispatch, tracking et rapports.', icon: 'shield-check' as const },
+  { title: 'Comptes chauffeurs', desc: 'Accès séparé au driver dashboard pour missions, disponibilité et revenus.', icon: 'user' as const },
+  { title: 'Contrôle Laundry', desc: 'Les rôles logistiques sont activés après approbation, jamais par auto-inscription.', icon: 'badge-check' as const },
 ];
 
 const zones = [
@@ -90,7 +97,7 @@ export const LogisticsPartnershipPage: React.FC = () => {
     try {
       const application = {
         companyName: form.company,
-        partnerType: 'LOGISTICS',
+        partnerType: PartnerType.LOGISTICS,
         contactName: form.owner,
         phone: form.phone,
         email: form.email,
@@ -101,8 +108,8 @@ export const LogisticsPartnershipPage: React.FC = () => {
       await apiSubmitPartnerApplication(application);
       addNotification('Candidature envoyée avec succès !', 'success');
       setFormSubmitted(true);
-    } catch {
-      addNotification("Une erreur s'est produite. Veuillez réessayer.", 'error');
+    } catch (error) {
+      addNotification(error instanceof Error ? error.message : "Une erreur s'est produite. Veuillez réessayer.", 'error');
     }
   };
 
@@ -215,6 +222,32 @@ export const LogisticsPartnershipPage: React.FC = () => {
                 <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-5 h-5 bg-brand-orange text-white text-[10px] font-bold rounded-full flex items-center justify-center z-20">{step.num}</span>
                 <h3 className="font-bold text-brand-dark text-sm mb-1">{step.title}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-4 pb-16">
+        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5 sm:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-brand-blue">Flux d’accès contrôlé</p>
+              <h2 className="mt-1 text-xl font-extrabold text-brand-dark">Une candidature logistique ne crée pas un compte client</h2>
+            </div>
+            <button onClick={() => setCurrentPage({ name: 'login' })} className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90">
+              Accès existant
+              <Icon name="arrowRight" className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {operatingFlow.map((item) => (
+              <div key={item.title} className="rounded-xl bg-white p-4 shadow-sm">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10">
+                  <Icon name={item.icon} className="h-5 w-5 text-brand-blue" />
+                </div>
+                <h3 className="text-sm font-extrabold text-brand-dark">{item.title}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-gray-600">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -443,12 +476,25 @@ export const LogisticsPartnershipPage: React.FC = () => {
             <div id="application-form">
               <h2 className="text-2xl font-extrabold text-brand-dark mb-6">Rejoignez notre réseau logistique</h2>
               {formSubmitted ? (
-                <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-card text-center">
+                <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-card">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Icon name="check" className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-brand-dark mb-2">Candidature envoyée</h3>
-                  <p className="text-sm text-gray-500">Notre équipe vous contactera sous 24 heures.</p>
+                  <h3 className="text-xl font-bold text-brand-dark mb-2 text-center">Candidature envoyée</h3>
+                  <p className="text-sm text-gray-500 text-center">Notre équipe vérifie votre flotte et vos zones avant activation.</p>
+                  <div className="mt-6 space-y-3 text-sm">
+                    {[
+                      'Un administrateur valide la candidature dans Candidatures.',
+                      'La compagnie est créée comme partenaire logistique.',
+                      'Le responsable reçoit un accès logistics-manager au cockpit.',
+                      'Les chauffeurs sont ajoutés ou reliés à cette compagnie.',
+                    ].map((item, index) => (
+                      <div key={item} className="flex items-start gap-3 rounded-xl bg-gray-50 p-3">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-blue text-xs font-bold text-white">{index + 1}</span>
+                        <span className="text-gray-700">{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleFormSubmit} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-card space-y-4">

@@ -1,15 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
+import type { LogisticsSection } from '../../components/logistics/logistics-types';
+import { getLogisticsAlerts, type DataMode, type LogisticsAlertRow } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
 
-interface Alert {
-  id: string;
-  type: 'retard' | 'attente' | 'inactif' | 'paiement';
-  title: string;
-  description: string;
-  count: number;
-  timestamp: string;
-}
+type Alert = LogisticsAlertRow;
 
 const MOCK_ALERTS: Alert[] = [
   { id: 'ALT-001', type: 'retard', title: 'Mission MSN-004 en retard', description: 'Le chauffeur Tshimanga A. est en retard de 15 min sur la mission #MSN-004', count: 1, timestamp: 'Il y a 5 min' },
@@ -46,33 +41,113 @@ const FILTER_MAP: Record<string, string | null> = {
   'Paiements': 'paiement',
 };
 
-export const LogisticsAlerts: React.FC = () => {
+const ACTION_TARGETS: Record<Alert['type'], { label: string; section: LogisticsSection; feedback: string }> = {
+  retard: {
+    label: 'Voir',
+    section: 'missions',
+    feedback: 'Ouverture des missions pour analyser le retard.',
+  },
+  attente: {
+    label: 'Résoudre',
+    section: 'missions',
+    feedback: 'Ouverture du backlog missions pour assignation.',
+  },
+  inactif: {
+    label: 'Contacter',
+    section: 'drivers',
+    feedback: 'Ouverture des chauffeurs pour prise de contact.',
+  },
+  paiement: {
+    label: 'Résoudre',
+    section: 'reports',
+    feedback: 'Ouverture des rapports pour suivi paiement.',
+  },
+};
+
+interface LogisticsAlertsProps {
+  onNavigate: (
+    section: LogisticsSection,
+    options?: { missionId?: string; driverName?: string; alertTitle?: string; missionAlertTitle?: string; missionFocusType?: string; zone?: string }
+  ) => void;
+  onActionFeedback?: (message: string) => void;
+}
+
+const findMissionId = (alert: Alert) =>
+  `${alert.title} ${alert.description}`.match(/\bMSN-\d{3}\b/)?.[0] ?? null;
+
+const findDriverName = (alert: Alert) => {
+  const source = `${alert.title} ${alert.description}`;
+  const patterns = [
+    /Chauffeur\s+([A-Za-zÀ-ÿ]+\s+[A-Z]\.)/i,
+    /chauffeur\s+([A-Za-zÀ-ÿ]+\s+[A-Z]\.)/i,
+    /Le chauffeur\s+([A-Za-zÀ-ÿ]+\s+[A-Z]\.)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    if (match?.[1]) return match[1].replace(/\.+$/, '.');
+  }
+  return null;
+};
+
+const findZone = (alert: Alert) =>
+  `${alert.title} ${alert.description}`.match(/\bzone\s+([A-Za-zÀ-ÿ-]+)/i)?.[1] ?? null;
+
+const missionFocusType = (alert: Alert) => {
+  if (alert.type === 'retard') return 'late';
+  if (alert.type === 'attente') return 'waiting';
+  return null;
+};
+
+export const LogisticsAlerts: React.FC<LogisticsAlertsProps> = ({ onNavigate, onActionFeedback }) => {
   const [activeFilter, setActiveFilter] = useState<string>('Toutes');
+  const [alerts, setAlerts] = useState<Alert[]>(MOCK_ALERTS);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+
+  useEffect(() => {
+    let mounted = true;
+    getLogisticsAlerts(MOCK_ALERTS).then((result) => {
+      if (!mounted) return;
+      setAlerts(result.data);
+      setDataMode(result.mode);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filteredAlerts = useMemo(() => {
     const typeFilter = FILTER_MAP[activeFilter];
-    if (!typeFilter) return MOCK_ALERTS;
-    return MOCK_ALERTS.filter(a => a.type === typeFilter);
-  }, [activeFilter]);
+    if (!typeFilter) return alerts;
+    return alerts.filter(a => a.type === typeFilter);
+  }, [activeFilter, alerts]);
 
   const getFilterCount = (filter: string) => {
     const typeFilter = FILTER_MAP[filter];
-    if (!typeFilter) return MOCK_ALERTS.length;
-    return MOCK_ALERTS.filter(a => a.type === typeFilter).length;
+    if (!typeFilter) return alerts.length;
+    return alerts.filter(a => a.type === typeFilter).length;
   };
 
   return (
     <div className="space-y-6">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Alertes calculées depuis le backend' : 'Mode dégradé — alertes locales'}
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-brand-dark">Alertes opérationnelles</h1>
-          <p className="text-sm text-gray-500 mt-1">{MOCK_ALERTS.length} alertes actives</p>
+          <p className="text-sm text-gray-500 mt-1">{alerts.length} alertes actives</p>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map(filter => (
           <button
+            type="button"
             key={filter}
             onClick={() => setActiveFilter(filter)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -101,43 +176,80 @@ export const LogisticsAlerts: React.FC = () => {
         <div className="space-y-3">
           {filteredAlerts.map(alert => {
             const config = TYPE_CONFIG[alert.type];
+            const action = ACTION_TARGETS[alert.type];
+            const missionId = findMissionId(alert);
+            const driverName = findDriverName(alert);
+            const zone = findZone(alert);
+            const focusType = missionFocusType(alert);
+            const missionAlertTitle = (action.section === 'missions' || action.section === 'dispatch') && !missionId ? alert.title : null;
+            const actionClass = alert.type === 'retard'
+              ? 'bg-brand-blue hover:bg-brand-blue/90'
+              : alert.type === 'inactif'
+                ? 'bg-green-500 hover:bg-green-600'
+                : 'bg-brand-orange hover:bg-orange-600';
             return (
-              <div key={alert.id} className={`${logisticsCard} p-5 transition-shadow hover:shadow-md`}>
-                <div className="flex items-start gap-4">
+              <div key={alert.id} className={`${logisticsCard} p-4 transition-shadow hover:shadow-md sm:p-5`}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.bg}`}>
                     <Icon name={config.icon} className={`h-5 w-5 ${config.color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-brand-dark">{alert.title}</h3>
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <h3 className="min-w-0 text-sm font-bold text-brand-dark">{alert.title}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${config.bg} ${config.color}`}>
                         {config.label}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{alert.description}</p>
-                    <div className="flex items-center gap-4 mt-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
                       {alert.count > 1 && (
                         <span className="text-xs font-bold text-brand-orange">{alert.count} éléments</span>
                       )}
                       <span className="text-xs text-gray-400">{alert.timestamp}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {alert.type === 'retard' && (
-                      <button className="px-3 py-1.5 rounded-lg bg-brand-blue text-white text-xs font-semibold hover:bg-brand-blue/90">
-                        Voir
-                      </button>
-                    )}
-                    {alert.type === 'inactif' && (
-                      <button className="px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-semibold hover:bg-green-600">
-                        Contacter
-                      </button>
-                    )}
-                    {(alert.type === 'attente' || alert.type === 'paiement') && (
-                      <button className="px-3 py-1.5 rounded-lg bg-brand-orange text-white text-xs font-semibold hover:bg-orange-600">
-                        Résoudre
-                      </button>
-                    )}
+                  <div className="flex shrink-0 items-center gap-2 sm:justify-end">
+                    <a
+                      href={`#${action.section}`}
+                      onClick={() => {
+                        if (missionId) {
+                          sessionStorage.setItem('logisticsFocusMissionId', missionId);
+                        }
+                        if (missionAlertTitle) {
+                          sessionStorage.setItem('logisticsFocusMissionAlert', missionAlertTitle);
+                        }
+                        if (focusType) {
+                          sessionStorage.setItem('logisticsFocusMissionType', focusType);
+                        }
+                        if (zone) {
+                          sessionStorage.setItem('logisticsFocusZone', zone);
+                        }
+                        if (driverName) {
+                          sessionStorage.setItem('logisticsFocusDriverName', driverName);
+                        }
+                        if (alert.type === 'paiement') {
+                          sessionStorage.setItem('logisticsFocusReportAlert', alert.title);
+                        }
+                        onNavigate(action.section, {
+                          missionId: missionId ?? undefined,
+                          driverName: driverName ?? undefined,
+                          alertTitle: alert.type === 'paiement' ? alert.title : undefined,
+                          missionAlertTitle: missionAlertTitle ?? undefined,
+                          missionFocusType: focusType ?? undefined,
+                          zone: zone ?? undefined,
+                        });
+                        const target = [
+                          missionId ? `Mission cible: ${missionId}.` : '',
+                          missionAlertTitle ? `Alerte cible: ${missionAlertTitle}.` : '',
+                          zone ? `Zone cible: ${zone}.` : '',
+                          driverName ? `Chauffeur cible: ${driverName}` : '',
+                        ].filter(Boolean).join(' ');
+                        onActionFeedback?.(target ? `${action.feedback} ${target}` : action.feedback);
+                      }}
+                      className={`min-h-[40px] w-full rounded-lg px-3 py-2 text-center text-xs font-semibold text-white sm:w-auto sm:py-1.5 ${actionClass}`}
+                    >
+                      {action.label}
+                    </a>
                   </div>
                 </div>
               </div>

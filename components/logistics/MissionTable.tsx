@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '../Icon';
+import { StatusBadge } from '../ui/StatusBadge';
 
 interface Mission {
   id: string;
@@ -37,15 +38,15 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: 'Annulée',
 };
 
-const STATUS_CLASSES: Record<string, string> = {
-  awaiting_dispatch: 'bg-yellow-100 text-yellow-700',
-  assigned: 'bg-blue-100 text-blue-700',
-  driver_en_route: 'bg-purple-100 text-purple-700',
-  pickup_completed: 'bg-indigo-100 text-indigo-700',
-  processing: 'bg-cyan-100 text-cyan-700',
-  delivery_en_route: 'bg-orange-100 text-orange-700',
-  completed: 'bg-green-100 text-green-700',
-  cancelled: 'bg-red-100 text-red-700',
+const STATUS_TONES: Record<string, 'orange' | 'blue' | 'violet' | 'green' | 'red' | 'slate'> = {
+  awaiting_dispatch: 'orange',
+  assigned: 'blue',
+  driver_en_route: 'violet',
+  pickup_completed: 'violet',
+  processing: 'blue',
+  delivery_en_route: 'orange',
+  completed: 'green',
+  cancelled: 'red',
 };
 
 const FILTER_TABS = [
@@ -70,11 +71,6 @@ const MOCK_MISSIONS: Mission[] = [
   { id: 'M-008', client: 'Karim Ait Ahmed', clientPhone: '+213 555 010 008', pickupAddress: '28 Rue Didouche Mourad', pickupCommune: 'El Harrach', deliveryAddress: '9 Boulevard Colonel Amirouche', deliveryCommune: 'Bourouba', distance: 8.7, amount: 1800, time: '13:00', date: '2026-06-07', status: 'cancelled' },
   { id: 'M-009', client: 'Nadia Cherifi', clientPhone: '+213 555 010 009', pickupAddress: "61 Rue Larbi Ben M'hidi", pickupCommune: 'Dar El Beïda', deliveryAddress: '14 Rue Abane Ramdane', deliveryCommune: 'Bab Ezzouar', distance: 9.2, amount: 1900, time: '14:00', date: '2026-06-07', status: 'awaiting_dispatch', priority: 'high' },
   { id: 'M-010', client: 'Samir Zeroual', clientPhone: '+213 555 010 010', pickupAddress: '10 Boulevard Khemisti', pickupCommune: 'Oran', deliveryAddress: '37 Rue des Frères Abbas', deliveryCommune: 'Es Senia', distance: 5.1, amount: 1100, time: '09:15', date: '2026-06-07', status: 'assigned', driverName: 'Amine Bouzid' },
-  { id: 'M-011', client: 'Houda Belkacem', clientPhone: '+213 555 010 011', pickupAddress: '22 Rue Ahmed Bey', pickupCommune: 'Constantine', deliveryAddress: "48 Avenue de l'ALN", deliveryCommune: 'El Khroub', distance: 11.5, amount: 2100, time: '10:45', date: '2026-06-07', status: 'driver_en_route', driverName: 'Youcef Hamidi' },
-  { id: 'M-012', client: 'Mourad Djelloul', clientPhone: '+213 555 010 012', pickupAddress: '33 Boulevard Emir Abdelkader', pickupCommune: 'Annaba', deliveryAddress: '18 Rue Chahid Bouzidi', deliveryCommune: 'El Bouni', distance: 7.3, amount: 1400, time: '11:15', date: '2026-06-07', status: 'completed', driverName: 'Karim Zeroual' },
-  { id: 'M-013', client: 'Salima Hadj', clientPhone: '+213 555 010 013', pickupAddress: '5 Boulevard Colonel Lotfi', pickupCommune: 'Blida', deliveryAddress: '41 Rue Didouche Mourad', deliveryCommune: 'Boufarik', distance: 14.8, amount: 2800, time: '15:00', date: '2026-06-07', status: 'awaiting_dispatch', priority: 'normal' },
-  { id: 'M-014', client: 'Reda Makhlouf', clientPhone: '+213 555 010 014', pickupAddress: '16 Rue Abane Ramdane', pickupCommune: 'Sétif', deliveryAddress: '29 Avenue Colonel Amirouche', deliveryCommune: 'El Eulma', distance: 18.2, amount: 3500, time: '08:30', date: '2026-06-06', status: 'completed', driverName: 'Nabil Ferhat' },
-  { id: 'M-015', client: 'Lamia Bouchama', clientPhone: '+213 555 010 015', pickupAddress: "50 Rue Larbi Ben M'hidi", pickupCommune: 'Batna', deliveryAddress: '7 Rue Ahmed Orfan', deliveryCommune: 'Barika', distance: 22.1, amount: 4200, time: '16:00', date: '2026-06-06', status: 'cancelled' },
 ];
 
 const ITEMS_PER_PAGE = 5;
@@ -109,7 +105,6 @@ export const MissionTable: React.FC<MissionTableProps> = ({
 
   const filteredMissions = useMemo(() => {
     let result = missions;
-
     switch (activeFilter) {
       case 'today': result = result.filter(m => m.date === todayStr); break;
       case 'awaiting_dispatch': result = result.filter(m => m.status === 'awaiting_dispatch'); break;
@@ -119,57 +114,38 @@ export const MissionTable: React.FC<MissionTableProps> = ({
       case 'completed': result = result.filter(m => m.status === 'completed'); break;
       case 'cancelled': result = result.filter(m => m.status === 'cancelled'); break;
     }
-
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
-        m =>
-          m.id.toLowerCase().includes(q) ||
-          m.client.toLowerCase().includes(q) ||
-          m.pickupCommune.toLowerCase().includes(q) ||
-          m.deliveryCommune.toLowerCase().includes(q) ||
-          (m.driverName && m.driverName.toLowerCase().includes(q))
+        m => m.id.toLowerCase().includes(q) || m.client.toLowerCase().includes(q) || m.pickupCommune.toLowerCase().includes(q) || m.deliveryCommune.toLowerCase().includes(q) || (m.driverName && m.driverName.toLowerCase().includes(q))
       );
     }
-
     return result;
   }, [missions, activeFilter, searchQuery]);
 
   const totalPages = Math.ceil(filteredMissions.length / ITEMS_PER_PAGE);
-  const paginatedMissions = filteredMissions.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedMissions = filteredMissions.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  const handleFilterChange = (key: string) => {
-    setActiveFilter(key);
-    setCurrentPage(1);
-  };
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
+  const handleFilterChange = (key: string) => { setActiveFilter(key); setCurrentPage(1); };
+  const handleSearch = (value: string) => { setSearchQuery(value); setCurrentPage(1); };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex flex-wrap gap-2 mb-4">
+    <div className="rounded-2xl border border-surface-border-subtle bg-surface-card shadow-card">
+      <div className="border-b border-surface-border-subtle p-4 sm:p-6">
+        <div className="mb-3 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap">
           {FILTER_TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => handleFilterChange(tab.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`inline-flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-bold transition ${
                 activeFilter === tab.key
                   ? 'bg-brand-blue text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-surface-muted text-content-muted hover:bg-surface-border'
               }`}
             >
               {tab.label}
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                activeFilter === tab.key
-                  ? 'bg-white/20 text-white'
-                  : 'bg-gray-200 text-gray-500'
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-surface-border text-content-muted'
               }`}>
                 {getCounts(tab.key)}
               </span>
@@ -178,86 +154,76 @@ export const MissionTable: React.FC<MissionTableProps> = ({
         </div>
 
         <div className="relative">
-          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Icon name="search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-muted" />
           <input
             type="text"
-            placeholder="Rechercher par ID, client, commune ou chauffeur..."
+            placeholder="Rechercher..."
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+            className="w-full rounded-xl border border-surface-border bg-surface-muted py-2.5 pl-9 pr-4 text-sm text-content-primary placeholder:text-content-muted focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      {/* Desktop Table */}
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100">
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Client</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Chauffeur</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Commune</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Montant</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Statut</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Heure</th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+            <tr className="border-b border-surface-border-subtle">
+              <th className="px-5 py-3 text-left text-[10px] font-bold uppercase text-content-muted">ID</th>
+              <th className="px-5 py-3 text-left text-[10px] font-bold uppercase text-content-muted">Client</th>
+              <th className="px-5 py-3 text-left text-[10px] font-bold uppercase text-content-muted">Chauffeur</th>
+              <th className="px-5 py-3 text-left text-[10px] font-bold uppercase text-content-muted">Zone</th>
+              <th className="px-5 py-3 text-left text-[10px] font-bold uppercase text-content-muted">Montant</th>
+              <th className="px-5 py-3 text-left text-[10px] font-bold uppercase text-content-muted">Statut</th>
+              <th className="px-5 py-3 text-right text-[10px] font-bold uppercase text-content-muted">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-surface-border-subtle">
             {paginatedMissions.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center">
-                  <Icon name="search" className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">Aucune mission trouvée</p>
+                <td colSpan={7} className="px-5 py-12 text-center">
+                  <Icon name="search" className="mx-auto h-10 w-10 text-content-muted" />
+                  <p className="mt-2 text-sm text-content-muted">Aucune mission trouvée</p>
                 </td>
               </tr>
             ) : (
               paginatedMissions.map((mission) => (
-                <tr key={mission.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-brand-blue">{mission.id}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{mission.client}</div>
-                    <div className="text-xs text-gray-500">{mission.clientPhone}</div>
+                <tr key={mission.id} className="hover:bg-surface-muted/50 transition-colors">
+                  <td className="px-5 py-3 font-bold text-brand-blue">{mission.id}</td>
+                  <td className="px-5 py-3">
+                    <p className="font-medium text-content-primary">{mission.client}</p>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{mission.driverName || '—'}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-700">{mission.pickupCommune}</div>
-                    <div className="text-xs text-gray-400">→ {mission.deliveryCommune}</div>
+                  <td className="px-5 py-3 text-content-muted">{mission.driverName || '—'}</td>
+                  <td className="px-5 py-3">
+                    <p className="text-content-primary">{mission.pickupCommune}</p>
+                    <p className="text-[10px] text-content-muted">→ {mission.deliveryCommune}</p>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatPrice(mission.amount)}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${STATUS_CLASSES[mission.status] || 'bg-gray-100 text-gray-700'}`}>
-                      {STATUS_LABELS[mission.status] || mission.status}
-                    </span>
+                  <td className="px-5 py-3 font-bold text-content-primary">{formatPrice(mission.amount)}</td>
+                  <td className="px-5 py-3">
+                    <StatusBadge
+                      label={STATUS_LABELS[mission.status] || mission.status}
+                      tone={STATUS_TONES[mission.status] || 'slate'}
+                    />
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{mission.time}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-5 py-3 text-right">
                     <div className="relative inline-block">
                       <button
                         onClick={() => setOpenDropdown(openDropdown === mission.id ? null : mission.id)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-content-muted hover:bg-surface-muted"
                       >
-                        <Icon name="bars3" className="w-4 h-4" />
+                        <Icon name="bars3" className="h-4 w-4" />
                       </button>
                       {openDropdown === mission.id && (
-                        <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10">
-                          <button
-                            onClick={() => { onView(mission.id); setOpenDropdown(null); }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <Icon name="document-text" className="w-4 h-4" /> Voir
+                        <div className="absolute right-0 z-10 mt-1 w-40 rounded-xl border border-surface-border bg-surface-card py-1 shadow-lg">
+                          <button onClick={() => { onView(mission.id); setOpenDropdown(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-content-primary hover:bg-surface-muted">
+                            <Icon name="document-text" className="h-3.5 w-3.5" /> Voir
                           </button>
-                          <button
-                            onClick={() => { onReassign(mission.id); setOpenDropdown(null); }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <Icon name="arrow-path" className="w-4 h-4" /> Réassigner
+                          <button onClick={() => { onReassign(mission.id); setOpenDropdown(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-content-primary hover:bg-surface-muted">
+                            <Icon name="arrow-path" className="h-3.5 w-3.5" /> Réassigner
                           </button>
-                          <button
-                            onClick={() => { onCancel(mission.id); setOpenDropdown(null); }}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <Icon name="xmark" className="w-4 h-4" /> Annuler
+                          <button onClick={() => { onCancel(mission.id); setOpenDropdown(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
+                            <Icon name="xmark" className="h-3.5 w-3.5" /> Annuler
                           </button>
                         </div>
                       )}
@@ -270,27 +236,66 @@ export const MissionTable: React.FC<MissionTableProps> = ({
         </table>
       </div>
 
+      {/* Mobile Cards */}
+      <div className="sm:hidden space-y-2 p-3">
+        {paginatedMissions.length === 0 ? (
+          <div className="py-12 text-center">
+            <Icon name="search" className="mx-auto h-10 w-10 text-content-muted" />
+            <p className="mt-2 text-sm text-content-muted">Aucune mission</p>
+          </div>
+        ) : (
+          paginatedMissions.map((mission) => (
+            <button
+              key={mission.id}
+              type="button"
+              onClick={() => onView(mission.id)}
+              className="w-full rounded-2xl border border-surface-border-subtle bg-surface-card p-4 text-left transition active:scale-[0.98]"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-black text-brand-blue">{mission.id}</p>
+                  <p className="mt-0.5 truncate text-sm font-bold text-content-primary">{mission.client}</p>
+                  <p className="mt-0.5 text-xs text-content-muted">
+                    {mission.pickupCommune} → {mission.deliveryCommune} · {mission.distance} km
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <StatusBadge
+                    label={STATUS_LABELS[mission.status] || mission.status}
+                    tone={STATUS_TONES[mission.status] || 'slate'}
+                  />
+                  <p className="mt-1 text-xs font-bold text-content-primary">{formatPrice(mission.amount)}</p>
+                </div>
+              </div>
+              {mission.driverName && (
+                <p className="mt-2 rounded-lg bg-surface-muted px-2.5 py-1.5 text-[10px] font-bold text-content-muted">
+                  Chauffeur: {mission.driverName}
+                </p>
+              )}
+            </button>
+          ))
+        )}
+      </div>
+
       {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredMissions.length)} sur {filteredMissions.length} missions
+        <div className="flex items-center justify-between border-t border-surface-border-subtle px-4 py-3 sm:px-6">
+          <p className="text-xs text-content-muted">
+            {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredMissions.length)} sur {filteredMissions.length}
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex h-8 min-w-[32px] items-center justify-center rounded-lg bg-surface-muted text-xs font-bold text-content-primary disabled:opacity-40"
             >
-              <Icon name="arrowLeft" className="w-4 h-4 inline mr-1" />
-              Précédent
+              <Icon name="arrowLeft" className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex h-8 min-w-[32px] items-center justify-center rounded-lg bg-surface-muted text-xs font-bold text-content-primary disabled:opacity-40"
             >
-              Suivant
-              <Icon name="arrowRight" className="w-4 h-4 inline ml-1" />
+              <Icon name="arrowRight" className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
@@ -298,3 +303,5 @@ export const MissionTable: React.FC<MissionTableProps> = ({
     </div>
   );
 };
+
+export default MissionTable;

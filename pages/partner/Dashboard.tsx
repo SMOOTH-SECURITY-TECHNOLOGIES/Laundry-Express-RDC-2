@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { Order, OrderStatus, PartnerSection, Partner } from '../../types.ts';
+import { Order, OrderStatus, PartnerSection, Partner, PromoCode } from '../../types.ts';
 import { ChatModal } from '../../components/ChatModal';
 import { OrderDetailsModal } from '../../components/partner/OrderDetailsModal.tsx';
 import { Icon } from '../../components/Icon';
@@ -142,9 +142,155 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[]; onCreat
   );
 };
 
+const PartnerGrowthOS: React.FC<{
+  activePromos: number;
+  promoRevenue: number;
+  recurringClients: number;
+  reviewCount: number;
+  avgRating: string;
+  marketplaceScore: number;
+  formatPrice: (value: number) => string;
+  setSection: (section: PartnerSection) => void;
+}> = ({ activePromos, promoRevenue, recurringClients, reviewCount, avgRating, marketplaceScore, formatPrice, setSection }) => {
+  type GrowthTone = 'green' | 'orange' | 'blue' | 'slate';
+  type GrowthModule = {
+    title: string;
+    value: string;
+    detail: string;
+    status: string;
+    icon: 'gift' | 'chartBar' | 'chatBubble' | 'arrow-path';
+    section: PartnerSection;
+    tone: GrowthTone;
+  };
+
+  const growthScore = Math.min(
+    100,
+    Math.round(
+      (activePromos > 0 ? 20 : 0) +
+      Math.min(25, recurringClients * 3) +
+      Math.min(20, reviewCount * 2) +
+      Math.min(20, Number(avgRating) * 4) +
+      Math.min(15, marketplaceScore * 0.15),
+    ),
+  );
+
+  const modules: GrowthModule[] = [
+    {
+      title: 'Promo Management',
+      value: `${activePromos} actives`,
+      detail: `${formatPrice(promoRevenue)} attribues`,
+      status: activePromos > 0 ? 'Connecte' : 'A lancer',
+      icon: 'gift' as const,
+      section: 'promotions' as PartnerSection,
+      tone: activePromos > 0 ? 'green' : 'orange',
+    },
+    {
+      title: 'Revenue Dashboard',
+      value: `${growthScore}/100`,
+      detail: 'Score croissance partenaire',
+      status: 'Disponible',
+      icon: 'chartBar' as const,
+      section: 'analytics' as PartnerSection,
+      tone: growthScore >= 70 ? 'green' : 'blue',
+    },
+    {
+      title: 'Review Assistant',
+      value: `${reviewCount} avis`,
+      detail: `${avgRating}/5 satisfaction`,
+      status: reviewCount > 0 ? 'Pret' : 'En attente',
+      icon: 'chatBubble' as const,
+      section: 'orders' as PartnerSection,
+      tone: reviewCount > 0 ? 'green' : 'slate',
+    },
+    {
+      title: 'Demand Forecasting',
+      value: recurringClients > 0 ? `${recurringClients} recurrents` : 'Nouveaux clients',
+      detail: 'Signal pour offres ciblees',
+      status: 'Recommande',
+      icon: 'arrow-path' as const,
+      section: 'automation' as PartnerSection,
+      tone: 'blue',
+    },
+  ];
+
+  const toneClass: Record<GrowthTone, string> = {
+    green: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    orange: 'bg-orange-50 text-orange-700 border-orange-100',
+    blue: 'bg-blue-50 text-blue-700 border-blue-100',
+    slate: 'bg-slate-50 text-slate-600 border-slate-100',
+  };
+
+  const recommendations = [
+    activePromos === 0
+      ? { text: 'Creer une promotion pour capter les nouveaux clients.', section: 'promotions' as PartnerSection }
+      : { text: 'Optimiser la meilleure promotion dans Analytics.', section: 'analytics' as PartnerSection },
+    reviewCount < 5
+      ? { text: 'Demander plus d avis apres livraison.', section: 'orders' as PartnerSection }
+      : { text: 'Repondre aux avis recents pour renforcer la confiance.', section: 'orders' as PartnerSection },
+    marketplaceScore < 80
+      ? { text: 'Completer profil, photos, services et horaires.', section: 'profile' as PartnerSection }
+      : { text: 'Programmer une automation de reactivation.', section: 'automation' as PartnerSection },
+  ];
+
+  return (
+    <div className={`${partnerCard} overflow-hidden`}>
+      <div className="border-b border-surface-border-subtle bg-gradient-to-r from-brand-blue to-brand-blue-700 p-5 text-white">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-white/70">Partner Growth OS V1</p>
+            <h2 className="mt-1 text-xl font-extrabold">Marketing, retention et revenus</h2>
+            <p className="mt-1 max-w-2xl text-sm text-white/75">Pilotez les briques P0 cote partenaire : promotions, revenus, avis, reactivation et score de croissance.</p>
+          </div>
+          <div className="rounded-2xl bg-white/15 px-5 py-3 text-center">
+            <p className="text-3xl font-extrabold">{growthScore}</p>
+            <p className="text-[10px] font-bold uppercase text-white/70">Growth Score</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+        {modules.map((module) => (
+          <button
+            key={module.title}
+            type="button"
+            onClick={() => setSection(module.section)}
+            className="min-w-0 rounded-xl border border-surface-border-subtle bg-surface-card p-4 text-left transition hover:-translate-y-0.5 hover:shadow-card"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-muted">
+                <Icon name={module.icon} className="h-5 w-5 text-brand-blue" />
+              </div>
+              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${toneClass[module.tone]}`}>
+                {module.status}
+              </span>
+            </div>
+            <p className="mt-3 text-sm font-extrabold text-content-primary">{module.title}</p>
+            <p className="mt-1 text-lg font-black text-content-primary">{module.value}</p>
+            <p className="mt-1 text-xs text-content-muted">{module.detail}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 border-t border-surface-border-subtle p-4 lg:grid-cols-3">
+        {recommendations.map((item) => (
+          <button
+            key={item.text}
+            type="button"
+            onClick={() => setSection(item.section)}
+            className="flex min-w-0 items-start gap-3 rounded-xl bg-surface-muted p-3 text-left transition hover:bg-surface-elevated"
+          >
+            <Icon name="sparkles" className="mt-0.5 h-4 w-4 shrink-0 text-[#FF7A00]" />
+            <span className="text-sm font-medium text-content-primary">{item.text}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 /* ─── MAIN DASHBOARD ─── */
 export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
-  const { user, partners, getOrdersForPartner, updateOrderStatus, addNotification, reviews, formatPrice } = useAppContext();
+  const { user, partners, getOrdersForPartner, updateOrderStatus, addNotification, reviews, formatPrice, promoCodes } = useAppContext();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -154,8 +300,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
   const partner = useMemo(() => findPartner(partners, user?.partnerId), [partners, user]);
   const partnerOrders = useMemo(() => user?.partnerId ? getOrdersForPartner(user.partnerId) : [], [user, getOrdersForPartner]);
   const partnerReviews = useMemo(() => reviews.filter(r => r.partnerId === user?.partnerId), [reviews, user]);
+  const partnerPromoCodes = useMemo(
+    () => promoCodes.filter((promo: PromoCode) => String(promo.partnerId) === String(user?.partnerId)),
+    [promoCodes, user?.partnerId],
+  );
   const pendingOrders = useMemo(() => partnerOrders.filter(o => o.status === OrderStatus.AWAITING_CONFIRMATION), [partnerOrders]);
   const completedOrders = useMemo(() => partnerOrders.filter(o => o.status === OrderStatus.COMPLETED), [partnerOrders]);
+  const recurringClients = useMemo(() => {
+    const counts = new Map<string, number>();
+    completedOrders.forEach((order) => {
+      counts.set(order.userId, (counts.get(order.userId) || 0) + 1);
+    });
+    return Array.from(counts.values()).filter((count) => count > 1).length;
+  }, [completedOrders]);
+  const promoRevenue = useMemo(() => {
+    const codes = new Set(partnerPromoCodes.map((promo) => promo.code.toUpperCase()));
+    return completedOrders
+      .filter((order) => order.appliedPromoCode && codes.has(order.appliedPromoCode.toUpperCase()))
+      .reduce((sum, order) => sum + order.totalPrice, 0);
+  }, [completedOrders, partnerPromoCodes]);
+  const activePromoCount = useMemo(
+    () => partnerPromoCodes.filter((promo) => promo.isActive && (!promo.endDate || new Date(promo.endDate) >= new Date())).length,
+    [partnerPromoCodes],
+  );
 
   /* ─── Computed Stats ─── */
   const stats = useMemo(() => {
@@ -353,6 +520,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ setSection }) => {
           </div>
         ))}
       </div>
+
+      <PartnerGrowthOS
+        activePromos={activePromoCount}
+        promoRevenue={promoRevenue}
+        recurringClients={recurringClients}
+        reviewCount={stats.reviewCount}
+        avgRating={stats.avgRating}
+        marketplaceScore={marketplaceScore.total}
+        formatPrice={formatPrice}
+        setSection={setSection}
+      />
 
       {/* ─── Revenue Chart + Visibility ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

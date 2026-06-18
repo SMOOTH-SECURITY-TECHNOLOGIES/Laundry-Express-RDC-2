@@ -35,7 +35,7 @@ export const QuickEstimate: React.FC<QuickEstimateProps> = ({
 
     <div className="space-y-3">
       {items.map((item) => (
-        <div key={item.id} className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[1fr_120px_90px] items-center gap-3 rounded-xl bg-gray-50 dark:bg-slate-700/50 p-3">
+        <div key={item.id} className="grid grid-cols-[1fr_auto] gap-3 rounded-xl bg-gray-50 p-3 dark:bg-slate-700/50 sm:grid-cols-[1fr_120px_90px] sm:items-center">
           <div className="flex items-center gap-3 min-w-0">
             {item.imageUrl ? (
               <img src={item.imageUrl} alt="" loading="lazy" className="w-12 h-12 rounded-lg object-cover bg-white dark:bg-slate-700 shrink-0" />
@@ -50,37 +50,37 @@ export const QuickEstimate: React.FC<QuickEstimateProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-end gap-1.5 sm:justify-center sm:gap-2">
             <button
               type="button"
               onClick={() => onDecrement(item.id)}
               disabled={item.quantity === 0}
               aria-label={`Diminuer ${item.name}`}
-              className="w-8 h-8 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 text-brand-blue flex items-center justify-center hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-500 dark:bg-slate-600"
             >
               <Icon name="minus" className="w-4 h-4" />
             </button>
-            <span className="w-8 text-center font-bold text-gray-900 dark:text-white" aria-label={`${item.quantity} ${item.name}`}>
+            <span className="w-6 text-center font-bold text-gray-900 dark:text-white sm:w-8" aria-label={`${item.quantity} ${item.name}`}>
               {item.quantity}
             </span>
             <button
               type="button"
               onClick={() => onIncrement(item.id)}
               aria-label={`Augmenter ${item.name}`}
-              className="w-8 h-8 rounded-full bg-white dark:bg-slate-600 border border-gray-200 dark:border-slate-500 text-brand-blue flex items-center justify-center hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-brand-blue hover:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/30 dark:border-slate-500 dark:bg-slate-600"
             >
               <Icon name="plus" className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="text-right text-sm font-bold text-gray-900 dark:text-white">{formatPrice(item.price * item.quantity)}</p>
+          <p className="col-span-2 text-right text-sm font-bold text-gray-900 dark:text-white sm:col-span-1">{formatPrice(item.price * item.quantity)}</p>
         </div>
       ))}
     </div>
 
-    <div className="mt-5 rounded-xl bg-brand-blue/10 p-4 flex items-center justify-between">
+    <div className="mt-5 flex flex-col gap-1 rounded-xl bg-brand-blue/10 p-4 sm:flex-row sm:items-center sm:justify-between">
       <span className="font-bold text-gray-900 dark:text-white">Total estime</span>
-      <span className="text-2xl font-bold text-brand-blue" data-testid="estimate-total">{formatPrice(total)}</span>
+      <span className="text-xl font-bold text-brand-blue sm:text-2xl" data-testid="estimate-total">{formatPrice(total)}</span>
     </div>
 
     <button

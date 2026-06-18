@@ -3,6 +3,7 @@ import { Icon } from './Icon';
 // The Notification type for toasts is the simple one, which is correct.
 import { Notification } from '../types';
 import { useNotification } from '../context/NotificationContext';
+import { GlobalChatModal } from './GlobalChatModal';
 
 const NotificationToast: React.FC<{
   notification: Notification;
@@ -84,11 +85,10 @@ const NotificationToast: React.FC<{
 export const NotificationContainer: React.FC = () => {
     const { notifications, removeNotification } = useNotification();
 
-    if (notifications.length === 0) {
-        return null;
-    }
-
     return (
+      <>
+        <GlobalChatModal />
+        {notifications.length > 0 && (
         <div 
           className="fixed top-4 right-4 z-[100] space-y-2 w-full max-w-sm"
           aria-live="polite"
@@ -97,6 +97,8 @@ export const NotificationContainer: React.FC = () => {
                 <NotificationToast key={n.id} notification={n} onDismiss={removeNotification} />
             ))}
         </div>
+        )}
+      </>
     );
 };
 

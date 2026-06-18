@@ -58,9 +58,9 @@ export const Footer: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={link.label}
-                  className="w-9 h-9 rounded-full bg-slate-700 hover:bg-brand-blue flex items-center justify-center transition-colors"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-slate-700 hover:bg-brand-blue flex items-center justify-center transition-colors"
                 >
-                  <Icon name={link.icon} className="w-4 h-4 text-white" />
+                  <Icon name={link.icon} className="w-5 h-5 text-white" />
                 </a>
               ))}
             </div>

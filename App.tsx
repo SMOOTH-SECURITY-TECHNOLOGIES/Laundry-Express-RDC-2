@@ -13,6 +13,7 @@ import { Footer } from './components/Footer';
 import { AdminControlCenter } from './pages/AdminControlCenter';
 import { PartnerDashboardPage } from './pages/PartnerDashboardPage';
 import { NotificationContainer } from './components/Notification';
+import { ToastProvider } from './components/ui/Toast';
 import { FAQPage } from './pages/FAQPage';
 import { BlogPage } from './pages/BlogPage';
 import { SupportCenterPage } from './pages/SupportCenterPage';
@@ -439,23 +440,27 @@ const App: React.FC = () => {
 
   if (currentPage === 'admin' || currentPage === 'driver-dashboard' || currentPage === 'logistics-dashboard') {
     return (
-      <div className="min-h-screen font-sans bg-surface-page text-content-primary">
-        <NotificationContainer />
-        {renderPage()}
-      </div>
+      <ToastProvider>
+        <div className="min-h-screen font-sans bg-surface-page text-content-primary">
+          <NotificationContainer />
+          {renderPage()}
+        </div>
+      </ToastProvider>
     );
   }
 
   // Layout for Dashboard pages (no footer, full width)
   if (isDashboardPage) {
     return (
-      <div className="min-h-screen flex flex-col font-sans bg-surface-page text-content-primary">
-        <Header />
-        <NotificationContainer />
-        <main className="flex-grow pt-24 px-4 sm:px-6 lg:px-8">
-          {renderPage()}
-        </main>
-      </div>
+      <ToastProvider>
+        <div className="min-h-screen flex flex-col font-sans bg-surface-page text-content-primary">
+          <Header />
+          <NotificationContainer />
+          <main className="flex-grow pt-24 px-4 sm:px-6 lg:px-8">
+            {renderPage()}
+          </main>
+        </div>
+      </ToastProvider>
     );
   }
 

@@ -1,12 +1,34 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { resolveGreetingName } from '../lib/display-name';
 import { ChatModal } from '../components/ChatModal';
 import { Icon } from '../components/Icon';
 import { NotificationBell } from '../components/NotificationBell';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import { MobileBottomNav, type MobileNavItem } from '../components/ui/MobileBottomNav';
+import { BottomSheet } from '../components/ui/BottomSheet';
+import { DriverKpiCards } from '../components/driver/DriverKpiCards';
+import { ActiveMissionCard as DriverActiveMissionCard } from '../components/driver/ActiveMissionCard';
+import { DriverAvailabilityToggle } from '../components/driver/DriverAvailabilityToggle';
+import { DriverMissionScreen } from '../components/driver/DriverMissionScreen';
+import { DriverMobileDashboard } from '../components/driver/DriverMobileDashboard';
+import { DeliveryProofSheet } from '../components/driver/DeliveryProofSheet';
 import { useAppContext } from '../context/AppContext';
 import { useMyReferralStats } from '../hooks/useMyReferralStats';
 import { LogisticsDriver, LogisticsTask, realApi } from '../services/real-api';
 import { NotificationPreferences, Order, OrderStatus, User } from '../types';
+import {
+  clearMissionSubPhase,
+  getMissionSubPhase,
+  setMissionSubPhase as persistMissionSubPhase,
+  type MissionSubPhase,
+} from '../lib/driver-mission-phase';
+import {
+  pilotTrackAssignment,
+  pilotTrackDelivery,
+  pilotTrackIncident,
+  pilotTrackMissionStart,
+  pilotTrackPickup,
+} from '../lib/pilot-metrics-store';
 
 type DriverSection =
   | 'dashboard'
@@ -291,36 +313,7 @@ const DriverDesktopBar: React.FC<{ driverName: string }> = ({ driverName }) => (
   </div>
 );
 
-const DriverKpiCards: React.FC<{ stats: DriverStats; rating: number; reviewCount: number }> = ({ stats, rating, reviewCount }) => {
-  const cards = [
-    { label: 'Missions terminées', value: String(stats.completedToday), sub: "Aujourd'hui", icon: 'check' as const, tone: 'bg-blue-100 text-brand-blue' },
-    { label: 'Gains totaux (est.)', value: formatMoney(stats.totalEstimatedEarnings), sub: 'Total à ce jour', icon: 'currencyDollar' as const, tone: 'bg-green-100 text-green-600' },
-    { label: 'Gains cette semaine', value: formatMoney(stats.weeklyEarnings), sub: `${stats.weeklyMissionCount} mission${stats.weeklyMissionCount > 1 ? 's' : ''}`, icon: 'calendar' as const, tone: 'bg-violet-100 text-violet-600' },
-    { label: 'Note moyenne', value: rating.toFixed(2), sub: `${reviewCount} avis`, icon: 'star' as const, tone: 'bg-orange-100 text-orange-500', stars: true },
-  ];
-
-  return (
-    <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicateurs chauffeur">
-      {cards.map((card) => (
-        <article key={card.label} className={`${driverCard} p-6`}>
-          <div className="flex items-center gap-5">
-            <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${card.tone}`}>
-              <Icon name={card.icon} className="h-7 w-7" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm text-content-muted">{card.label}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <p className="text-3xl font-black text-content-primary">{card.value}</p>
-                {card.stars && <span className="text-sm text-[#ffb703]">★★★★★</span>}
-              </div>
-              <p className="mt-2 text-sm text-content-muted">{card.sub}</p>
-            </div>
-          </div>
-        </article>
-      ))}
-    </section>
-  );
-};
+// DriverKpiCards is now imported from components/driver/DriverKpiCards
 
 export const DriverStatusCard: React.FC<{
   available: boolean;
@@ -397,69 +390,7 @@ const DriverTipsCard: React.FC<{ acceptanceRate: number; accepted: number; offer
   );
 };
 
-export const ActiveMissionCard: React.FC<{
-  mission: LogisticsTask | null;
-  available: boolean;
-  onOpenMissions: () => void;
-  onChat: () => void;
-  onAction: () => void;
-  isUpdating: boolean;
-}> = ({ mission, available, onOpenMissions, onChat, onAction, isUpdating }) => {
-  if (!mission) {
-    return (
-      <section className="rounded-2xl border border-dashed border-surface-border bg-surface-card p-6 shadow-sm">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-muted text-brand-blue">
-              <Icon name="truck" className="h-8 w-8" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-content-primary">Aucune mission active</h2>
-              <p className="mt-2 max-w-xl text-sm text-content-muted">
-                Vous êtes actuellement libre. Vous serez notifié quand une nouvelle mission sera disponible.
-              </p>
-            </div>
-          </div>
-          <button onClick={onOpenMissions} className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-blue px-5 py-3 text-sm font-black text-brand-blue transition hover:bg-brand-blue hover:text-white">
-            Voir les missions disponibles
-            <Icon name="arrowRight" className="h-4 w-4" />
-          </button>
-        </div>
-        {!available && <p className="mt-4 text-sm font-semibold text-orange-600">Passez disponible pour recevoir de nouvelles propositions.</p>}
-      </section>
-    );
-  }
-
-  const actionLabel = mission.status === 'driver_assigned' ? 'Accepter' : mission.status === 'accepted' ? 'Démarrer' : 'Marquer terminée';
-  return (
-    <section className={`${driverCard} p-6`}>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-wide text-brand-blue">Mission active</p>
-          <h2 className="mt-2 text-2xl font-black text-content-primary">#{mission.order_number || mission.order_id?.slice(0, 8) || mission.id.slice(0, 8)}</h2>
-          <p className="mt-1 text-sm text-content-muted">{mission.task_type === 'pickup' ? 'Collecte' : 'Livraison'} · {getTaskStatusLabel(mission.status)}</p>
-        </div>
-        <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">Gain estimé {formatMoney(MONEY_PER_MISSION)}</span>
-      </div>
-
-      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MissionInfo icon="user" label="Client" value={getTaskClientName(mission)} />
-        <MissionInfo icon="mapPin" label="Départ" value={getTaskPickupAddress(mission)} />
-        <MissionInfo icon="mapPin" label="Arrivée" value={getTaskDeliveryAddress(mission)} />
-        <MissionInfo icon="clock" label="ETA" value={mission.scheduled_at ? new Date(mission.scheduled_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Bientôt disponible'} />
-      </div>
-
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <button onClick={onChat} className="flex-1 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">Voir détails</button>
-        <button onClick={onAction} disabled={isUpdating} className="flex-1 rounded-xl bg-brand-blue px-4 py-3 text-sm font-black text-white hover:bg-brand-blue-700 disabled:cursor-wait disabled:opacity-60">
-          {isUpdating ? 'Traitement...' : actionLabel}
-        </button>
-        <a href={`tel:${getTaskPhone(mission)}`} className="flex-1 rounded-xl border border-surface-border-subtle px-4 py-3 text-center text-sm font-black text-content-primary hover:bg-surface-muted">Appeler client</a>
-        <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getTaskDeliveryAddress(mission))}`, '_blank')} className="flex-1 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">Ouvrir carte</button>
-      </div>
-    </section>
-  );
-};
+// ActiveMissionCard is now imported from components/driver/ActiveMissionCard as DriverActiveMissionCard
 
 const MissionInfo: React.FC<{ icon: React.ComponentProps<typeof Icon>['name']; label: string; value: string }> = ({ icon, label, value }) => (
   <div className="rounded-xl bg-surface-muted p-4">
@@ -504,7 +435,7 @@ const MissionHistoryChart: React.FC<{ data: MissionChartPoint[]; range: string; 
         <Legend color="#64748B" label="Rejetées" />
       </div>
       <div className="mt-3 overflow-x-auto">
-        <svg viewBox={`0 0 ${width} ${height}`} className="min-w-[720px]">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-0">
           {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
             <g key={pct}>
               <line x1={pad.left} x2={width - pad.right} y1={pad.top + chartH - pct * chartH} y2={pad.top + chartH - pct * chartH} stroke="#e8f0fb" strokeDasharray="4 4" />
@@ -1003,6 +934,10 @@ export const DriverDashboardPage: React.FC = () => {
   const [liveDriver, setLiveDriver] = useState<LogisticsDriver | null>(null);
   const [historyRange, setHistoryRange] = useState('30');
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+  const [showProofSheet, setShowProofSheet] = useState(false);
+  const [activeMissionView, setActiveMissionView] = useState<'dashboard' | 'mission'>('dashboard');
+  const [missionSubPhase, setMissionSubPhase] = useState<MissionSubPhase | null>(null);
+  const trackedMissionsRef = useRef<Set<string>>(new Set());
   const missionRef = useRef<HTMLDivElement>(null);
   const { stats: referralStats, isLoading: referralLoading } = useMyReferralStats(!!user && user.role === 'driver');
 
@@ -1042,37 +977,82 @@ export const DriverDashboardPage: React.FC = () => {
     }
   }, [openDriverMissionForOrderId, setOpenDriverMissionForOrderId]);
 
+  const refreshDriverData = useCallback(async () => {
+    if (!user || user.role !== 'driver') return;
+    try {
+      const [tasksResponse, myDriver] = await Promise.all([
+        realApi.getLogisticsTasks({ page: 1, page_size: 100 }),
+        realApi.getMyDriverProfile().catch(() => null),
+      ]);
+      setLiveTasks(tasksResponse.tasks || []);
+      setLiveDriver(myDriver || null);
+    } catch {
+      setLiveTasks([]);
+      setLiveDriver(null);
+    }
+  }, [user]);
+
   useEffect(() => {
     let isMounted = true;
     const loadDriverData = async () => {
-      if (!user || user.role !== 'driver') return;
-      try {
-        const [tasksResponse, driversResponse] = await Promise.all([
-          realApi.getLogisticsTasks({ page: 1, page_size: 100 }),
-          realApi.getLogisticsDrivers({ page: 1, page_size: 100 }),
-        ]);
-        if (!isMounted) return;
-        setLiveTasks(tasksResponse.tasks || []);
-        setLiveDriver((driversResponse.drivers || []).find((driver) => driver.user_id === user.id || driver.user_email === user.email) || null);
-      } catch {
-        if (isMounted) {
-          setLiveTasks([]);
-          setLiveDriver(null);
-        }
-      }
+      if (!isMounted) return;
+      await refreshDriverData();
     };
     loadDriverData();
-    const poll = window.setInterval(loadDriverData, 30000);
+    const poll = window.setInterval(() => {
+      if (isMounted) void refreshDriverData();
+    }, 30000);
     return () => {
       isMounted = false;
       window.clearInterval(poll);
     };
-  }, [user]);
+  }, [refreshDriverData]);
 
   const localCompletedOrders = useMemo(() => (user ? getCompletedOrdersForDriver(user.id) : []), [user, getCompletedOrdersForDriver]);
   const localCurrentOrder = useMemo(() => (user ? getOrdersForDriver(user.id) : null), [user, getOrdersForDriver]);
 
   const activeTask = useMemo(() => liveTasks.find((task) => ['driver_assigned', 'accepted', 'in_progress'].includes(task.status)) || null, [liveTasks]);
+
+  useEffect(() => {
+    if (!activeTask) {
+      setMissionSubPhase(null);
+      return;
+    }
+    if (!trackedMissionsRef.current.has(activeTask.id)) {
+      trackedMissionsRef.current.add(activeTask.id);
+      pilotTrackMissionStart(activeTask.id);
+      if (['driver_assigned', 'accepted', 'in_progress'].includes(activeTask.status)) {
+        pilotTrackAssignment(activeTask.id);
+      }
+    }
+    const stored = getMissionSubPhase(activeTask.id);
+    if (stored) {
+      setMissionSubPhase(stored);
+    } else if (activeTask.status === 'in_progress') {
+      setMissionSubPhase('in_transit_pickup');
+      persistMissionSubPhase(activeTask.id, 'in_transit_pickup');
+    } else {
+      setMissionSubPhase(null);
+    }
+  }, [activeTask?.id, activeTask?.status]);
+
+  useEffect(() => {
+    if (!liveDriver?.id || !activeTask || activeTask.status !== 'in_progress') return;
+    if (!navigator.geolocation) return;
+
+    const pushLocation = (latitude: number, longitude: number) => {
+      realApi.updateDriverLocation(liveDriver.id, latitude, longitude).catch(() => {});
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => pushLocation(position.coords.latitude, position.coords.longitude),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 },
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [liveDriver?.id, activeTask?.id, activeTask?.status]);
+
   const allAvailableTasks = useMemo(() => liveTasks.filter((task) => ['pending', 'open_market', 'claimed'].includes(task.status)), [liveTasks]);
   const completedTasks = useMemo(() => liveTasks.filter((task) => task.status === 'completed'), [liveTasks]);
   const cancelledTasks = useMemo(() => liveTasks.filter((task) => task.status === 'cancelled' || task.status === 'expired'), [liveTasks]);
@@ -1139,9 +1119,13 @@ export const DriverDashboardPage: React.FC = () => {
     setIsUpdating(true);
     try {
       try {
-        await realApi.updateDriverAvailability(nextAvailable);
+        await realApi.updateMyDriverAvailability(nextAvailable);
       } catch {
-        // Keep the dashboard usable while older backends catch up with /driver/availability.
+        try {
+          await realApi.updateDriverAvailability(nextAvailable);
+        } catch {
+          // Keep the dashboard usable while older backends catch up with /driver/availability.
+        }
       }
       await updateUser({ ...user, driverStatus: nextAvailable ? 'AVAILABLE' : 'UNAVAILABLE' });
       setLiveDriver((driver) => driver ? { ...driver, is_available: nextAvailable } : driver);
@@ -1154,38 +1138,13 @@ export const DriverDashboardPage: React.FC = () => {
     }
   };
 
-  const handleMissionAction = async () => {
-    setIsUpdating(true);
-    try {
-      if (activeTask) {
-        const updatedTask = activeTask.status === 'driver_assigned'
-          ? await realApi.acceptLogisticsTask(activeTask.id)
-          : activeTask.status === 'accepted'
-            ? await realApi.startLogisticsTask(activeTask.id)
-            : await realApi.completeLogisticsTask(activeTask.id);
-        setLiveTasks((tasks) => tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
-        addNotification('Mission mise à jour avec succès.', 'success');
-        return;
-      }
-      if (localCurrentOrder?.status === OrderStatus.PICKUP) {
-        await updateOrderStatus(localCurrentOrder.id, OrderStatus.PROCESSING);
-        addNotification('Collecte confirmée.', 'success');
-      } else if (localCurrentOrder?.status === OrderStatus.DELIVERY) {
-        await updateOrderStatus(localCurrentOrder.id, OrderStatus.COMPLETED);
-        addNotification('Livraison confirmée.', 'success');
-      }
-    } catch {
-      addNotification('Impossible de mettre à jour la mission.', 'error');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const handleAcceptMission = async (mission: LogisticsTask) => {
     setIsUpdating(true);
     try {
       const updated = await realApi.acceptLogisticsTask(mission.id);
       setLiveTasks((tasks) => tasks.map((task) => task.id === updated.id ? updated : task));
+      pilotTrackMissionStart(mission.id);
+      pilotTrackAssignment(mission.id);
       addNotification('Mission acceptée.', 'success');
       window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_mission_accepted', missionId: mission.id } }));
     } catch {
@@ -1218,6 +1177,10 @@ export const DriverDashboardPage: React.FC = () => {
   };
 
   const referralCode = referralStats.referralCode || user?.referralCode || '';
+  const driverName = useMemo(
+    () => resolveGreetingName({ fullName: liveDriver?.user_name || user?.name, fallback: 'Chauffeur' }),
+    [liveDriver?.user_name, user?.name]
+  );
   const sectionMeta = SECTION_LABELS[activeSection];
   const completedCount = completedTasks.length || localCompletedOrders.length;
   const isDashboard = activeSection === 'dashboard';
@@ -1234,10 +1197,269 @@ export const DriverDashboardPage: React.FC = () => {
     );
   }
 
-  const driverName = user.name?.split(' ')[0] || 'Driver';
+  const handleArrivePickup = () => {
+    if (!activeTask) return;
+    setMissionSubPhase('in_transit_delivery');
+    persistMissionSubPhase(activeTask.id, 'in_transit_delivery');
+    pilotTrackPickup(activeTask.id);
+    addNotification('Arrivée au pickup confirmée. En route vers le client.', 'success');
+  };
+
+  const handleMissionAction = async () => {
+    if (activeTask?.status === 'in_progress') {
+      const phase = missionSubPhase ?? getMissionSubPhase(activeTask.id) ?? 'in_transit_pickup';
+      if (phase === 'in_transit_pickup') {
+        handleArrivePickup();
+        return;
+      }
+      setShowProofSheet(true);
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      if (activeTask) {
+        const updatedTask = activeTask.status === 'driver_assigned'
+          ? await realApi.acceptLogisticsTask(activeTask.id)
+          : activeTask.status === 'accepted'
+            ? await realApi.startLogisticsTask(activeTask.id)
+            : await realApi.completeLogisticsTask(activeTask.id);
+
+        if (activeTask.status === 'driver_assigned') {
+          pilotTrackAssignment(activeTask.id);
+        }
+        if (activeTask.status === 'accepted') {
+          setMissionSubPhase('in_transit_pickup');
+          persistMissionSubPhase(activeTask.id, 'in_transit_pickup');
+          setActiveMissionView('mission');
+        }
+        setLiveTasks((tasks) => tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+        addNotification('Mission mise à jour avec succès.', 'success');
+        return;
+      }
+      if (localCurrentOrder?.status === OrderStatus.PICKUP) {
+        await updateOrderStatus(localCurrentOrder.id, OrderStatus.PROCESSING);
+        addNotification('Collecte confirmée.', 'success');
+      } else if (localCurrentOrder?.status === OrderStatus.DELIVERY) {
+        await updateOrderStatus(localCurrentOrder.id, OrderStatus.COMPLETED);
+        addNotification('Livraison confirmée.', 'success');
+      }
+    } catch {
+      addNotification('Impossible de mettre à jour la mission.', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleProofSubmit = async (photo: File | null, comment: string) => {
+    if (!activeTask) {
+      setShowProofSheet(false);
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      let proofPhotoUrl: string | undefined;
+      if (photo) {
+        proofPhotoUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('photo-read-failed'));
+          reader.readAsDataURL(photo);
+        });
+      }
+      const updatedTask = await realApi.completeLogisticsTask(
+        activeTask.id,
+        comment || 'Livraison confirmée depuis l’app chauffeur',
+        proofPhotoUrl,
+      );
+      clearMissionSubPhase(activeTask.id);
+      setMissionSubPhase(null);
+      pilotTrackDelivery(activeTask.id);
+      setLiveTasks((tasks) => tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+      setShowProofSheet(false);
+      setActiveMissionView('dashboard');
+      addNotification('Preuve de livraison envoyée.', 'success');
+    } catch {
+      addNotification('Impossible d’envoyer la preuve de livraison.', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleIncidentSubmit = async (type: string, description: string) => {
+    if (!activeTask) return;
+    setIsUpdating(true);
+    try {
+      const reason = `[${type}] ${description}`.trim();
+      const updatedTask = await realApi.failLogisticsTask(activeTask.id, reason || type);
+      clearMissionSubPhase(activeTask.id);
+      setMissionSubPhase(null);
+      pilotTrackIncident(activeTask.id, type);
+      setLiveTasks((tasks) => tasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+      setActiveMissionView('dashboard');
+      addNotification('Incident signalé au dispatch.', 'success');
+    } catch {
+      addNotification('Impossible de signaler l’incident.', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const mobileNavItems: MobileNavItem[] = [
+    { key: 'dashboard', label: 'Accueil', icon: 'home' },
+    { key: 'missions', label: 'Missions', icon: 'shoppingBag', badge: allAvailableTasks.length },
+    { key: 'history', label: 'Historique', icon: 'clock' },
+    { key: 'earnings', label: 'Gains', icon: 'currencyDollar' },
+    { key: 'settings', label: 'Plus', icon: 'bars3' },
+  ];
+
+  if (activeMissionView === 'mission' && activeTask) {
+    return (
+      <div className="driver-shell min-h-screen bg-surface-page text-content-primary">
+        <DriverMissionScreen
+          mission={activeTask}
+          onBack={() => setActiveMissionView('dashboard')}
+          onAction={handleMissionAction}
+          onComplete={() => setShowProofSheet(true)}
+          onCallClient={() => {
+            const phone = getTaskPhone(activeTask);
+            if (phone) window.open(`tel:${phone}`, '_self');
+          }}
+          onOpenMap={() => {
+            const addr = getTaskDeliveryAddress(activeTask);
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+          }}
+          onOpenProof={() => setShowProofSheet(true)}
+          isUpdating={isUpdating}
+        />
+        <DeliveryProofSheet
+          isOpen={showProofSheet}
+          onClose={() => setShowProofSheet(false)}
+          onSubmit={handleProofSubmit}
+          isSubmitting={isUpdating}
+        />
+      </div>
+    );
+  }
+
+  /* ─── Mobile-only: DriverMobileDashboard ─── */
+  const mobileMissionData = activeTask ? {
+    id: activeTask.id,
+    orderRef: activeTask.order_number || activeTask.order_id?.slice(0, 8) || activeTask.id.slice(0, 8),
+    type: (activeTask.task_type || 'delivery') as 'pickup' | 'delivery',
+    status: activeTask.status || 'driver_assigned',
+    statusLabel: getTaskStatusLabel(activeTask.status),
+    clientName: getTaskClientName(activeTask),
+    clientPhone: getTaskPhone(activeTask),
+    pickupAddress: getTaskPickupAddress(activeTask),
+    deliveryAddress: getTaskDeliveryAddress(activeTask),
+    eta: activeTask.scheduled_at
+      ? new Date(activeTask.scheduled_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : '--',
+    gain: `${formatMoney(MONEY_PER_MISSION)}`,
+    distance: '--',
+  } : null;
 
   return (
     <div className="driver-shell min-h-screen bg-surface-page text-content-primary">
+      {/* Mobile: dedicated dashboard */}
+      <div className="md:hidden">
+        <DriverMobileDashboard
+          mission={mobileMissionData}
+          availableMissions={allAvailableTasks.map((t) => ({
+            id: t.id,
+            orderRef: t.order_number || t.order_id?.slice(0, 8) || t.id.slice(0, 8),
+            type: (t.task_type || 'delivery') as 'pickup' | 'delivery',
+            status: t.status || 'pending',
+            statusLabel: getTaskStatusLabel(t.status),
+            clientName: getTaskClientName(t),
+            pickupZone: t.pickup_commune || 'Kinshasa',
+            deliveryZone: t.delivery_commune || 'Kinshasa',
+            gain: formatMoney(MONEY_PER_MISSION),
+            time: t.scheduled_at
+              ? new Date(t.scheduled_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+              : '--',
+          }))}
+          missionHistory={completedTasks.map((t) => ({
+            id: t.id,
+            orderRef: t.order_number || t.order_id?.slice(0, 8) || t.id.slice(0, 8),
+            type: (t.task_type || 'delivery') as 'pickup' | 'delivery',
+            status: t.status || 'completed',
+            statusLabel: getTaskStatusLabel(t.status),
+            clientName: getTaskClientName(t),
+            pickupZone: t.pickup_commune || 'Kinshasa',
+            deliveryZone: t.delivery_commune || 'Kinshasa',
+            gain: formatMoney(MONEY_PER_MISSION),
+            time: t.completed_at
+              ? new Date(t.completed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+              : '--',
+          }))}
+          earnings={[]}
+          stats={{
+            completedToday: stats.completedToday,
+            totalEarnings: formatMoney(stats.totalEstimatedEarnings),
+            weeklyEarnings: formatMoney(stats.weeklyEarnings),
+            weeklyMissions: stats.weeklyMissionCount,
+            rating,
+            reviewCount,
+            acceptanceRate: stats.acceptanceRate,
+          }}
+          driverName={driverName}
+          driverPhone={(user as any)?.phone || ''}
+          driverEmail={(user as any)?.email || ''}
+          avatarUrl={(user as any)?.avatarUrl}
+          isAvailable={available}
+          referralCode={referralCode}
+          referralCount={referralStats.referredUsersCount}
+          onToggleAvailability={handleAvailabilityToggle}
+          onAcceptMission={(id) => {
+            const task = allAvailableTasks.find((t) => t.id === id);
+            if (task) handleAcceptMission(task);
+          }}
+          onStartMission={handleMissionAction}
+          onCompleteMission={() => setShowProofSheet(true)}
+          onArrivePickup={handleArrivePickup}
+          onArriveDelivery={() => setShowProofSheet(true)}
+          onIncidentSubmit={handleIncidentSubmit}
+          onProofSubmit={handleProofSubmit}
+          onOpenMissionScreen={() => setActiveMissionView('mission')}
+          missionSubPhase={missionSubPhase}
+          onCallClient={() => {
+            if (activeTask) {
+              const phone = getTaskPhone(activeTask);
+              if (phone) window.open(`tel:${phone}`, '_self');
+            }
+          }}
+          onOpenMap={() => {
+            if (activeTask) {
+              const addr = getTaskDeliveryAddress(activeTask);
+              window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+            }
+          }}
+          onNavigate={(page) => {
+            if (page === 'logout') logout();
+            else setCurrentPage({ name: page as any });
+          }}
+          onAvatarChange={async (file) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              const avatarUrl = e.target?.result as string;
+              await updateUser({ ...user, avatarUrl } as any);
+              addNotification('Photo de profil mise à jour.', 'success');
+            };
+            reader.readAsDataURL(file);
+          }}
+          onSaveProfile={async (data) => {
+            await updateUser({ ...user, name: data.name, phone: data.phone, email: data.email } as any);
+            addNotification('Profil mis à jour.', 'success');
+          }}
+          onRefresh={refreshDriverData}
+          isUpdating={isUpdating}
+        />
+      </div>
+
+      {/* Desktop: original layout */}
+      <div className="hidden md:block">
       <DriverSidebar
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
@@ -1288,26 +1510,33 @@ export const DriverDashboardPage: React.FC = () => {
             <>
               <DriverKpiCards stats={stats} rating={rating} reviewCount={reviewCount} />
 
-              <div className="grid gap-6 xl:grid-cols-[1fr_0.98fr]">
+              <DriverAvailabilityToggle available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
+
+              <div className="hidden xl:grid xl:grid-cols-[1fr_0.98fr]">
                 <DriverStatusCard available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
                 <DriverTipsCard acceptanceRate={stats.acceptanceRate} accepted={stats.acceptedMissions} offered={stats.offeredMissions} />
               </div>
 
               <div ref={missionRef}>
-                <ActiveMissionCard
+                <DriverActiveMissionCard
                   mission={activeTask}
                   available={available}
-                  onOpenMissions={() => {
-                    handleSectionChange('missions');
-                    window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_available_missions_clicked' } }));
-                  }}
-                  onChat={() => {
-                    if (activeMissionOrder) {
-                      setChattingOrder(activeMissionOrder);
-                      window.dispatchEvent(new CustomEvent('analytics:track', { detail: { event: 'driver_active_mission_viewed' } }));
+                  onAccept={handleMissionAction}
+                  onStart={handleMissionAction}
+                  onComplete={handleMissionAction}
+                  onCallClient={() => {
+                    if (activeTask) {
+                      const phone = getTaskPhone(activeTask);
+                      if (phone) window.open(`tel:${phone}`, '_self');
                     }
                   }}
-                  onAction={handleMissionAction}
+                  onOpenMap={() => {
+                    if (activeTask) {
+                      const addr = getTaskDeliveryAddress(activeTask);
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+                    }
+                  }}
+                  onViewMissions={() => handleSectionChange('missions')}
                   isUpdating={isUpdating}
                 />
               </div>
@@ -1354,16 +1583,27 @@ export const DriverDashboardPage: React.FC = () => {
 
           {activeSection === 'missions' && (
             <div className="space-y-6">
-              <DriverStatusCard available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
+              <DriverAvailabilityToggle available={available} isUpdating={isUpdating} onToggle={handleAvailabilityToggle} />
               <div ref={missionRef}>
-                <ActiveMissionCard
+                <DriverActiveMissionCard
                   mission={activeTask}
                   available={available}
-                  onOpenMissions={() => missionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                  onChat={() => {
-                    if (activeMissionOrder) setChattingOrder(activeMissionOrder);
+                  onAccept={handleMissionAction}
+                  onStart={handleMissionAction}
+                  onComplete={handleMissionAction}
+                  onCallClient={() => {
+                    if (activeTask) {
+                      const phone = getTaskPhone(activeTask);
+                      if (phone) window.open(`tel:${phone}`, '_self');
+                    }
                   }}
-                  onAction={handleMissionAction}
+                  onOpenMap={() => {
+                    if (activeTask) {
+                      const addr = getTaskDeliveryAddress(activeTask);
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
+                    }
+                  }}
+                  onViewMissions={() => missionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                   isUpdating={isUpdating}
                 />
               </div>
@@ -1405,15 +1645,8 @@ export const DriverDashboardPage: React.FC = () => {
         </div>
       </main>
 
-      <button
-        onClick={handleAvailabilityToggle}
-        disabled={isUpdating}
-        className="fixed bottom-4 left-4 right-4 z-40 rounded-2xl bg-brand-blue py-4 text-sm font-black text-white shadow-2xl shadow-blue-200 disabled:opacity-60 md:hidden"
-      >
-        {available ? 'Passer indisponible' : 'Devenir disponible'}
-      </button>
-
       <ChatModal isOpen={!!chattingOrder} onClose={() => setChattingOrder(null)} order={chattingOrder} />
+      </div>
     </div>
   );
 };

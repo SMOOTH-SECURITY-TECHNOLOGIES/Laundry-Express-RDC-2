@@ -47,17 +47,38 @@ module.exports = {
         '2xl': '1.5rem',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-out forwards',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out forwards',
+        'slide-down': 'slideDown 0.3s ease-out forwards',
+        'scale-in': 'scaleIn 0.2s ease-out',
+        'bounce-in': 'bounceIn 0.4s ease-out',
+        'shimmer': 'shimmer 2s infinite',
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(-10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideDown: {
+          '0%': { opacity: '0', transform: 'translateY(-16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        bounceIn: {
+          '0%': { opacity: '0', transform: 'scale(0.9)' },
+          '50%': { transform: 'scale(1.02)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
       },
     },
@@ -73,6 +94,17 @@ module.exports = {
     'border-surface-border',
     'border-surface-border-subtle',
     'shadow-card',
+    /* Design system status colors */
+    'bg-green-100', 'bg-green-500', 'text-green-700', 'border-green-200',
+    'bg-blue-100', 'bg-brand-blue', 'text-blue-700', 'border-blue-200',
+    'bg-orange-100', 'bg-orange-500', 'text-orange-700', 'border-orange-200',
+    'bg-red-100', 'bg-red-500', 'text-red-700', 'border-red-200',
+    'bg-slate-100', 'bg-slate-500', 'text-slate-700', 'border-slate-200',
+    'dark:bg-green-950/40', 'dark:text-green-300', 'dark:border-green-800',
+    'dark:bg-blue-950/40', 'dark:text-blue-300', 'dark:border-blue-800',
+    'dark:bg-orange-950/40', 'dark:text-orange-300', 'dark:border-orange-800',
+    'dark:bg-red-950/40', 'dark:text-red-300', 'dark:border-red-800',
+    'dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700',
   ],
   plugins: [],
 };

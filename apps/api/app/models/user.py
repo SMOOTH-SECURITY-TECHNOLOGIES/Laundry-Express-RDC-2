@@ -50,6 +50,12 @@ class User(BaseModel):
     loyalty_points = Column(Integer, default=0, nullable=False)
     referral_code = Column(String(32), unique=True, nullable=True, index=True)
     referred_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    delivery_company_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("delivery_companies.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     referral_discount_used_at = Column(DateTime(timezone=True), nullable=True)
     referral_bonus_awarded_at = Column(DateTime(timezone=True), nullable=True)
     

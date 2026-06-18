@@ -3,6 +3,7 @@ import { PartnerApplication } from '../../types';
 
 interface NewLogisticsPartnerWelcomeEmailProps {
   application: PartnerApplication;
+  temporaryPassword?: string;
   t?: (key: string, options?: any) => string;
 }
 
@@ -12,7 +13,7 @@ const styles = {
     button: { backgroundColor: '#0066CC', color: 'white', padding: '12px 20px', textDecoration: 'none', borderRadius: '5px', display: 'inline-block' }
 };
 
-export const NewLogisticsPartnerWelcomeEmail: React.FC<NewLogisticsPartnerWelcomeEmailProps> = ({ application, t }) => {
+export const NewLogisticsPartnerWelcomeEmail: React.FC<NewLogisticsPartnerWelcomeEmailProps> = ({ application, temporaryPassword, t }) => {
   if (!t) return null;
 
   return (
@@ -25,6 +26,9 @@ export const NewLogisticsPartnerWelcomeEmail: React.FC<NewLogisticsPartnerWelcom
           <p style={styles.header}>{t('emails.newLogisticsPartnerWelcome.header', { name: application.contactName })}</p>
           <p>{t('emails.newLogisticsPartnerWelcome.body1', { companyName: application.companyName })}</p>
           <p>{t('emails.newLogisticsPartnerWelcome.body2', { email: application.email })}</p>
+          {temporaryPassword && (
+            <p><strong>Mot de passe temporaire :</strong> {temporaryPassword}</p>
+          )}
           <a href="#" style={styles.button}>{t('emails.newLogisticsPartnerWelcome.cta')}</a>
           <p>{t('emails.newLogisticsPartnerWelcome.body3')}</p>
           <p>{t('emails.newLogisticsPartnerWelcome.footer')}<br/>{t('emails.newLogisticsPartnerWelcome.team')}</p>

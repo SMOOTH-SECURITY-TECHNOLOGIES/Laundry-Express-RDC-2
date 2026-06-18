@@ -70,10 +70,11 @@ def confirm_cash_payment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_sync_db),
 ):
-    """Confirmer un paiement cash"""
+    """Confirmer un paiement cash — uniquement par le partenaire ou chauffeur assigne"""
     if current_user.role not in [
         UserRole.DRIVER,
         UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
         UserRole.PARTNER_OWNER,
         UserRole.PARTNER_STAFF,
         UserRole.LOGISTICS_MANAGER,

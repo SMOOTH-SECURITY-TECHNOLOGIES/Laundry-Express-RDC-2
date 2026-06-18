@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Icon } from '../components/Icon';
 import { Service, ServiceType, formatAddress } from '../types';
 import { ServiceSelectionPage } from '../components/order-marketplace/ServiceSelectionPage';
 import { OrderAddressPaymentPage } from './OrderAddressPaymentPage';
+import { SmartPriceEstimator } from '../components/SmartPriceEstimator';
+import { FabricAnalysisModal } from '../components/FabricAnalysisModal';
 import { calculateSubtotal } from '../utils/order-pricing';
 import { realApi } from '../services/real-api';
 import { DEFAULT_ORDER_ADDONS, mapOrderAddOnFromApi, OrderAddOnUiItem } from '../utils/order-addons';
@@ -192,8 +194,11 @@ export const OrderPage: React.FC = () => {
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [addOnItems, setAddOnItems] = useState<OrderAddOnUiItem[]>(DEFAULT_ORDER_ADDONS);
   const [laundryWeightKg, setLaundryWeightKg] = useState(5);
+  const [showPriceEstimator, setShowPriceEstimator] = useState(false);
+  const [showFabricAnalysis, setShowFabricAnalysis] = useState(false);
 
   const isPartnerShopCheckout = orderDraft.checkoutSource === 'partner_shop';
+  const manualNavRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -214,6 +219,7 @@ export const OrderPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (manualNavRef.current) return;
     if (!orderDraft.partner && !orderDraft.serviceType) return;
 
     if (orderDraft.serviceType) {
@@ -487,7 +493,10 @@ export const OrderPage: React.FC = () => {
     setSelectedService(serviceId);
     const serviceType = serviceToTypeMap[serviceId];
     updateOrderDraft({ serviceType, checkoutSource: 'marketplace' });
+    manualNavRef.current = true;
     setStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const handleSelectPartner = (partnerId: string) => {
@@ -496,13 +505,18 @@ export const OrderPage: React.FC = () => {
       updateOrderDraft({ partner });
     }
     setSelectedPartnerId(partnerId);
+    manualNavRef.current = true;
     setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const handleContinue = () => {
     if (orderSubtotal === 0) return;
+    manualNavRef.current = true;
     setStep(3);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const handleConfirmOrder = async () => {
@@ -546,9 +560,12 @@ export const OrderPage: React.FC = () => {
   };
 
   const handleBack = () => {
+    manualNavRef.current = true;
     if (step === 1) {
       setStep(0);
       setSelectedService(null);
+      updateOrderDraft({ serviceType: undefined, partner: undefined, checkoutSource: undefined });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (step === 2) {
       if (isPartnerShopCheckout && orderDraft.partner) {
         setCurrentPage({ name: 'partner-detail', params: { partnerId: orderDraft.partner.id } } as any);
@@ -556,9 +573,13 @@ export const OrderPage: React.FC = () => {
       }
       setStep(1);
       setSelectedPartnerId(null);
+      updateOrderDraft({ partner: undefined });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (step === 3) {
       setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    setTimeout(() => { manualNavRef.current = false; }, 200);
   };
 
   const increment = (itemId: string) => {
@@ -662,7 +683,14 @@ export const OrderPage: React.FC = () => {
   };
 
   const renderMarketplaceStep0 = () => (
-    <ServiceSelectionPage
+    <div>
+      <div className="mb-4 flex justify-end">
+        <button onClick={() => setShowPriceEstimator(true)} className="flex items-center gap-2 rounded-xl border border-[#005bd8] bg-[#005bd8]/10 px-4 py-2.5 text-sm font-black text-[#005bd8] hover:bg-[#005bd8]/20">
+          <Icon name="currencyDollar" className="h-4 w-4" />
+          Estimer le prix (IA)
+        </button>
+      </div>
+      <ServiceSelectionPage
       services={marketplaceServices}
       partners={partners || []}
       reviews={reviews || []}
@@ -676,6 +704,7 @@ export const OrderPage: React.FC = () => {
       onContinueEstimate={() => handleSelectService(selectedService || 'lessive')}
       onChoosePartner={handleSelectPartner}
     />
+    </div>
   );
 
   /* ─── Step 0: Service Selection ─── */
@@ -1192,6 +1221,12 @@ export const OrderPage: React.FC = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-8 items-start">
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <button onClick={() => setShowFabricAnalysis(true)} className="flex items-center gap-2 rounded-xl border border-purple-300 bg-purple-50 px-4 py-2.5 text-sm font-black text-purple-700 hover:bg-purple-100">
+              <Icon name="camera" className="h-4 w-4" />
+              Analyser le tissu (IA)
+            </button>
+          </div>
           <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
@@ -1717,12 +1752,16 @@ export const OrderPage: React.FC = () => {
   /* ─── Main Render ─── */
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      <SmartPriceEstimator isOpen={showPriceEstimator} onClose={() => setShowPriceEstimator(false)} />
+      <FabricAnalysisModal isOpen={showFabricAnalysis} onClose={() => setShowFabricAnalysis(false)} onComplete={(svc) => { setShowFabricAnalysis(false); handleSelectService(svc === 'CORDONNERIE' ? 'cordonnerie' : 'nettoyage'); }} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {step !== 3 && renderStepIndicator()}
-        {step === 0 && renderMarketplaceStep0()}
-        {step === 1 && renderStep1()}
-        {step === 2 && renderStep2()}
-        {step === 3 && renderStep3()}
+        <div>
+          {step === 0 && renderMarketplaceStep0()}
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+        </div>
       </div>
     </div>
   );

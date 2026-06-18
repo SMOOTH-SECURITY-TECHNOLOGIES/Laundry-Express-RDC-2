@@ -31,7 +31,7 @@ export const PartnerComparison: React.FC<PartnerComparisonProps> = ({ partners, 
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="w-full min-w-[360px] text-sm">
             <thead>
               <tr className="text-left text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-slate-700">
                 <th className="px-5 py-3">Partenaire</th>

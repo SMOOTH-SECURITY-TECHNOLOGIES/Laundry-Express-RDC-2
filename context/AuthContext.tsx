@@ -3,6 +3,7 @@ import { User, LoginRequest, RegisterRequest, DrcAddress } from '../types';
 import { realApi, ApiCurrentUserResponse, ApiAddress } from '../services/real-api';
 import { apiLogin, apiRegister } from '../constants';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { formatAccountDisplayName } from '../lib/display-name';
 import { appEvents } from '../utils/events';
 import { useLanguageContext } from './LanguageContext';
 import { useNavigation } from './NavigationContext';
@@ -50,7 +51,7 @@ const convertApiUserToFrontendUser = (apiResponse: ApiCurrentUserResponse): User
 
   return {
     id: apiResponse.user.id,
-    name: apiResponse.user.name || '',
+    name: formatAccountDisplayName(apiResponse.user.name, apiResponse.profile) || apiResponse.user.name || '',
     email: apiResponse.user.email,
     phone: apiResponse.user.phone || '',
     role: normalizeRole(apiResponse.user.role),
@@ -69,7 +70,7 @@ const convertApiUserToFrontendUser = (apiResponse: ApiCurrentUserResponse): User
     },
     isEmailValid: apiResponse.user.is_email_verified,
     partnerId: partnerId || undefined,
-    logisticsPartnerId: undefined,
+    logisticsPartnerId: apiResponse.user.delivery_company_id || undefined,
   };
 };
 

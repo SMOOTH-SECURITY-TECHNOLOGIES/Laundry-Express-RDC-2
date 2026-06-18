@@ -137,9 +137,9 @@ class DispatchService:
             raise ValueError(f"Commande {order_id} non trouvée")
 
         # Vérifier si une tâche existe déjà pour cette commande
-        existing_task = self.logistics_repo.get_delivery_task_by_order_id(order_id)
+        existing_task = self.logistics_repo.get_delivery_task_by_order_and_type(order_id, TaskType.PICKUP)
         if existing_task:
-            raise ValueError(f"Une tâche existe déjà pour la commande {order_id}")
+            raise ValueError(f"Une tâche pickup existe déjà pour la commande {order_id}")
 
         # Créer la tâche de pickup
         task = DeliveryTask(
@@ -160,9 +160,9 @@ class DispatchService:
             raise ValueError(f"Commande {order_id} non trouvée")
 
         # Vérifier si une tâche existe déjà pour cette commande
-        existing_task = self.logistics_repo.get_delivery_task_by_order_id(order_id)
+        existing_task = self.logistics_repo.get_delivery_task_by_order_and_type(order_id, TaskType.DELIVERY)
         if existing_task:
-            raise ValueError(f"Une tâche existe déjà pour la commande {order_id}")
+            raise ValueError(f"Une tâche delivery existe déjà pour la commande {order_id}")
 
         # Créer la tâche de delivery
         task = DeliveryTask(
@@ -175,8 +175,62 @@ class DispatchService:
 
         return self.logistics_repo.create_delivery_task(task)
 
-    def assign_driver_to_task(self, task_id: UUID, driver_id: UUID) -> Optional[DeliveryTask]:
-        """Assigner un chauffeur à une tâche avec verrouillage atomique"""
+    def assign_driver_to_task(
+        self,
+        task_id: UUID,
+        driver_id: UUID,
+        company_id: Optional[UUID] = None,
+    ) -> Optional[DeliveryTask]:
+        """Assigner un chauffeur à une tâche avec verrouillage atomique."""
+        task_preview = self.logistics_repo.get_delivery_task_by_id(task_id)
+        if not task_preview:
+            raise ValueError(f"Tâche {task_id} non trouvée")
+
+        if task_preview.status == DeliveryTaskStatus.OPEN_MARKET:
+            raise ValueError("Mission ouverte au marche. Claim requis avant assignation.")
+
+        if task_preview.status == DeliveryTaskStatus.CLAIMED:
+            if not company_id:
+                raise ValueError("Compagnie requise pour assigner une mission claimée.")
+            from app.repositories.marketplace_repository import MarketplaceRepository
+
+            marketplace_repo = MarketplaceRepository(self.db)
+            with self.db.begin_nested():
+                driver = (
+                    self.db.query(Driver)
+                    .filter(Driver.id == driver_id)
+                    .with_for_update(of=Driver, nowait=True)
+                    .one_or_none()
+                )
+                if not driver:
+                    raise ValueError(f"Chauffeur {driver_id} non trouvé ou déjà verrouillé")
+                if driver.status != DriverStatus.ACTIVE:
+                    raise ValueError(f"Chauffeur {driver_id} n'est pas actif")
+                if not driver.is_available:
+                    raise ValueError(f"Chauffeur {driver_id} n'est pas disponible")
+
+                assigned = marketplace_repo.assign_company_driver_to_task(task_id, company_id, driver_id)
+                if not assigned:
+                    raise ValueError(
+                        "Impossible d'assigner ce chauffeur. "
+                        "Vérifiez que la mission est claimée par votre compagnie."
+                    )
+                driver.is_available = False
+                self._record_timeline(
+                    order_id=assigned.order_id,
+                    task_id=assigned.id,
+                    event_type=TimelineEventType.STATUS_CHANGE,
+                    event_subtype="driver_assigned",
+                    from_status="claimed",
+                    to_status="driver_assigned",
+                    actor_type=ActorType.SYSTEM,
+                    actor_id=driver_id,
+                    actor_name=getattr(driver, "name", "system"),
+                    payload={"driver_id": str(driver_id), "company_id": str(company_id)},
+                )
+                self.db.flush()
+                return assigned
+
         with self.db.begin_nested():
             # 1. VERROU : SELECT FOR UPDATE NOWAIT sur chauffeur ET tâche
             try:

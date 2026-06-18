@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
+import { StatusBadge } from '../../components/ui/StatusBadge';
+import { DispatcherMobileUrgency } from '../../components/dispatcher/DispatcherMobileUrgency';
 import { logisticsCard } from './logistics-ui';
 import BacklogBoard from './BacklogBoard';
 import ReadyDriversPanel from './ReadyDriversPanel';
@@ -8,11 +10,25 @@ import DriversTable from './DriversTable';
 import PerformanceDashboard from './PerformanceDashboard';
 import OperationalAlerts from './OperationalAlerts';
 import DispatchMap from './DispatchMap';
+import {
+  driverProfileToReadyDriver,
+  getLogisticsDrivers,
+  getMissionRows,
+  storeBacklogMissionForDispatch,
+  type DataMode,
+  type LogisticsBacklogMission,
+  type LogisticsMissionRow,
+  type LogisticsReadyDriver,
+} from '../../services/logistics-api';
+import { useRealTimeAlerts } from '../../hooks/useRealTimeAlerts';
+import { useRealTimeTracking } from '../../hooks/useRealTimeTracking';
 
 interface LogisticsOverviewProps {
   onRefresh: () => void;
   onAutoDispatch: () => void;
   onExport: () => void;
+  onNavigate?: (section: string, options?: { missionId?: string }) => void;
+  onActionFeedback?: (message: string) => void;
 }
 
 type DispatcherTab = 'operations' | 'dispatch' | 'tours' | 'missions' | 'drivers' | 'performance';
@@ -129,9 +145,9 @@ const SuggestedDispatchTable: React.FC<{
   onApplySuggestion: (label: string) => void;
 }> = ({ onAutoDispatch, onApplySuggestion }) => (
   <div className={`${logisticsCard} overflow-hidden`}>
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-surface-border-subtle">
+    <div className="flex flex-col gap-3 border-b border-surface-border-subtle px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
       <div>
-        <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-base font-extrabold text-content-primary sm:text-lg">
           <Icon name="sparkles" className="w-5 h-5 text-brand-orange" />
           Suggestions auto-dispatch
         </h2>
@@ -140,12 +156,39 @@ const SuggestedDispatchTable: React.FC<{
       <button
         type="button"
         onClick={onAutoDispatch}
-        className="px-4 py-2 rounded-xl bg-brand-blue text-white text-sm font-semibold hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+        className="min-h-11 rounded-xl bg-brand-blue px-4 py-3 text-sm font-semibold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:min-h-0 sm:py-2"
       >
         Appliquer les meilleures suggestions
       </button>
     </div>
-    <div className="overflow-x-auto">
+    <div className="space-y-3 p-4 sm:hidden">
+      {DISPATCH_SUGGESTIONS.map((row) => (
+        <article key={row.missionId} className="rounded-xl border border-surface-border-subtle bg-surface-muted/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-mono text-sm font-bold text-content-primary">#{row.missionId}</p>
+              <p className="mt-1 text-sm font-semibold text-content-primary">{row.client}</p>
+              <p className="text-xs text-content-muted">{row.time} · {row.distance} km</p>
+            </div>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-brand-blue">{row.score}%</span>
+          </div>
+          <div className="mt-3 rounded-lg bg-surface-card p-3">
+            <p className="text-sm font-semibold text-content-primary">{row.driver}</p>
+            <p className={`text-xs ${row.driverStatus === 'dispo' ? 'text-green-600' : 'text-orange-600'}`}>
+              {row.driverStatus === 'dispo' ? 'Disponible maintenant' : 'À planifier après mission'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onApplySuggestion(`${row.action} ${row.missionId} à ${row.driver}`)}
+            className="mt-3 min-h-11 w-full rounded-xl border border-brand-blue px-4 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+          >
+            {row.action}
+          </button>
+        </article>
+      ))}
+    </div>
+    <div className="hidden overflow-x-auto sm:block">
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50 text-xs uppercase text-content-muted">
           <tr>
@@ -194,18 +237,18 @@ const SuggestedDispatchTable: React.FC<{
 );
 
 const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpenTour }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
     {ACTIVE_TOURS.map((tour) => (
-      <article key={tour.id} className={`${logisticsCard} p-5`}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <article key={tour.id} className={`${logisticsCard} p-4 sm:p-5`}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <p className="font-mono text-xs font-bold text-brand-blue">#{tour.id}</p>
             <h3 className="mt-1 text-lg font-extrabold text-content-primary">{tour.driver}</h3>
             <p className="mt-1 text-sm text-content-muted">Prochain arrêt : {tour.nextStop}</p>
           </div>
-          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">{tour.status}</span>
+          <span className="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">{tour.status}</span>
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-5 text-center">
+        <div className="mt-5 grid grid-cols-3 gap-2 text-center sm:gap-3">
           <div className="rounded-xl bg-blue-50 p-3">
             <p className="text-xl font-extrabold text-brand-blue">{tour.pickups}</p>
             <p className="text-[11px] text-content-muted">Collectes</p>
@@ -231,7 +274,7 @@ const ToursBoard: React.FC<{ onOpenTour: (tourId: string) => void }> = ({ onOpen
         <button
           type="button"
           onClick={() => onOpenTour(tour.id)}
-          className="mt-5 w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+          className="mt-5 min-h-11 w-full rounded-xl border border-brand-blue px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
         >
           Ouvrir la tournée
         </button>
@@ -247,25 +290,25 @@ const ALERT_TONE_CLASS: Record<string, string> = {
 };
 
 const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }> = ({ onAlertAction }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
     {ACTIONABLE_ALERTS.map((alert) => {
       const tone = ALERT_TONE_CLASS[alert.tone] || ALERT_TONE_CLASS.green;
       return (
         <article key={alert.id} className={`rounded-2xl border p-4 ${tone}`}>
           <h3 className="text-sm font-extrabold text-content-primary">{alert.title}</h3>
           <p className="mt-1 min-h-[40px] text-sm text-content-muted">{alert.detail}</p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
               onClick={() => onAlertAction(`${alert.primary} - ${alert.title}`)}
-              className="rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="min-h-10 rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-2 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.primary}
             </button>
             <button
               type="button"
               onClick={() => onAlertAction(`${alert.secondary} - ${alert.title}`)}
-              className="rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="min-h-10 rounded-lg px-3 py-2 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.secondary}
             </button>
@@ -278,13 +321,42 @@ const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }
 
 const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> = ({ onDriverAction }) => (
   <div className={`${logisticsCard} overflow-hidden`}>
-    <div className="px-5 py-4 border-b border-surface-border-subtle">
-      <h2 className="text-lg font-extrabold text-content-primary flex items-center gap-2">
+    <div className="border-b border-surface-border-subtle px-4 py-4 sm:px-5">
+      <h2 className="flex items-center gap-2 text-base font-extrabold text-content-primary sm:text-lg">
         <Icon name="trophy" className="w-5 h-5 text-brand-orange" />
         Performance chauffeur individuelle
       </h2>
     </div>
-    <div className="overflow-x-auto">
+    <div className="space-y-3 p-4 sm:hidden">
+      {DRIVER_RANKING.map((driver) => (
+        <article key={driver.name} className="rounded-xl border border-surface-border-subtle bg-surface-muted/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-bold text-content-primary">{driver.name}</p>
+              <p className="mt-1 text-xs text-content-muted">{driver.missions} missions · {driver.delays} retards</p>
+            </div>
+            <span className="flex items-center gap-1 font-bold text-content-primary">
+              <Icon name="star" className="h-3.5 w-3.5 text-yellow-500" />
+              {driver.rating}
+            </span>
+          </div>
+          <div className="mt-3 rounded-lg bg-surface-card p-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-content-muted">À temps</span>
+              <span className={`font-bold ${driver.onTime >= 90 ? 'text-green-600' : 'text-orange-600'}`}>{driver.onTime}%</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onDriverAction(`${driver.coaching ? 'Coaching' : 'Statistiques'} - ${driver.name}`)}
+            className={`mt-3 min-h-11 w-full rounded-xl px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${driver.coaching ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-brand-blue'}`}
+          >
+            {driver.coaching ? 'Coaching' : 'Voir stats'}
+          </button>
+        </article>
+      ))}
+    </div>
+    <div className="hidden overflow-x-auto sm:block">
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50 text-xs uppercase text-content-muted">
           <tr>
@@ -328,9 +400,15 @@ const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> =
   </div>
 );
 
-export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport }) => {
+export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport, onNavigate, onActionFeedback }) => {
   const [activeTab, setActiveTab] = useState<DispatcherTab>('operations');
+  const { alerts, criticalCount, refresh: refreshAlerts } = useRealTimeAlerts();
+  const { data: liveTracking, mode: liveTrackingMode, refresh: refreshLiveTracking } = useRealTimeTracking();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  const [backlog, setBacklog] = useState<LogisticsBacklogMission[]>(MOCK_BACKLOG);
+  const [activeMissions, setActiveMissions] = useState<LogisticsMissionRow[]>(MOCK_ACTIVE_MISSIONS);
+  const [readyDrivers, setReadyDrivers] = useState<LogisticsReadyDriver[]>(MOCK_READY_DRIVERS);
   const [loading, setLoading] = useState<Record<DispatcherTab, boolean>>({
     operations: false,
     dispatch: false,
@@ -346,6 +424,76 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
     return () => clearTimeout(timer);
   }, [activeTab]);
 
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([
+      getMissionRows(MOCK_BACKLOG, MOCK_ACTIVE_MISSIONS),
+      getLogisticsDrivers([]),
+    ]).then(([missionResult, driverResult]) => {
+      if (!mounted) return;
+      setBacklog(missionResult.data.backlog);
+      setActiveMissions(missionResult.data.missions);
+      if (driverResult.data.length > 0) {
+        setReadyDrivers(driverResult.data.map(driverProfileToReadyDriver));
+      }
+      setDataMode(missionResult.mode === 'backend' || driverResult.mode === 'backend' ? 'backend' : 'degraded');
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const liveOpenMissionsCount = liveTrackingMode === 'backend' && liveTracking.tasks.length > 0
+    ? liveTracking.tasks.filter((task) => task.status === 'pending' || task.status === 'open_market').length
+    : backlog.length;
+  const liveActiveMissionsCount = liveTrackingMode === 'backend' && liveTracking.tasks.length > 0
+    ? liveTracking.tasks.filter((task) => ['driver_assigned', 'accepted', 'in_progress'].includes(task.status)).length
+    : activeMissions.length;
+  const liveTotalMissionFlow = liveOpenMissionsCount + liveActiveMissionsCount;
+  const liveActiveMissionRate = liveTotalMissionFlow > 0 ? Math.round((liveActiveMissionsCount / liveTotalMissionFlow) * 100) : 0;
+  const liveTotalDriversCount = liveTrackingMode === 'backend' && liveTracking.drivers.length > 0
+    ? liveTracking.drivers.length
+    : readyDrivers.length;
+  const liveAvailableDriversCount = liveTrackingMode === 'backend' && liveTracking.drivers.length > 0
+    ? liveTracking.drivers.filter((driver) => driver.is_available).length
+    : readyDrivers.filter((driver) => driver.status === 'Disponible').length;
+  const liveEstimatedBacklogRevenue = backlog.reduce((total, mission) => total + mission.amount, 0);
+
+  const urgentMissionsForMobile = useMemo(() => {
+    const delayAlerts = alerts.filter((alert) => alert.type === 'retard' || alert.type === 'attente');
+    if (delayAlerts.length > 0) {
+      return delayAlerts.map((alert, index) => ({
+        id: alert.id || `alert-${index}`,
+        customerName: alert.title.replace(/^Mission /, '').replace(/ en retard$/, ''),
+        pickupZone: alert.description.split('·')[1]?.trim() || alert.description,
+        deliveryZone: alert.description.split('·')[0]?.trim() || 'Kinshasa',
+        queueMinutes: Number.parseInt(alert.timestamp, 10) || 15,
+        priority: (alert.severity === 'high' ? 'urgent' : 'high') as 'urgent' | 'high',
+        status: 'pending',
+      }));
+    }
+    return backlog
+      .filter((mission) => mission.amount > 3000)
+      .map((mission) => ({
+        id: mission.id,
+        customerName: mission.client,
+        pickupZone: mission.commune,
+        deliveryZone: mission.delivery.split(',')[0],
+        queueMinutes: 15,
+        priority: 'urgent' as const,
+        status: 'pending',
+      }));
+  }, [alerts, backlog]);
+
+  const pendingCountForMobile = alerts.find((alert) => alert.id === 'pending-missions')?.count ?? liveOpenMissionsCount;
+
+  const liveKpiCards = [
+    { label: 'Missions ouvertes', value: String(liveOpenMissionsCount), sub: 'À assigner', icon: 'shoppingBag' as const, tone: 'bg-blue-50 text-brand-blue' },
+    { label: 'Missions actives', value: String(liveActiveMissionsCount), sub: `${liveActiveMissionRate}% du flux`, icon: 'truck' as const, tone: 'bg-violet-50 text-violet-600' },
+    { label: 'Chauffeurs dispo', value: `${liveAvailableDriversCount}/${liveTotalDriversCount}`, sub: 'Réseau actif', icon: 'users' as const, tone: 'bg-green-50 text-green-600' },
+    { label: 'Volume estimé', value: formatCdf(liveEstimatedBacklogRevenue), sub: 'Backlog non assigné', icon: 'currencyDollar' as const, tone: 'bg-orange-50 text-orange-600' },
+  ];
+
   const announceAction = (message: string) => {
     setActionMessage(message);
   };
@@ -358,8 +506,10 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
   const handleRefresh = () => {
     setLoading((prev) => ({ ...prev, [activeTab]: true }));
     setTimeout(() => setLoading((prev) => ({ ...prev, [activeTab]: false })), 1200);
+    void refreshAlerts();
+    void refreshLiveTracking();
     onRefresh();
-    announceAction(`Section ${TABS.find((tab) => tab.key === activeTab)?.label || 'active'} rafraîchie.`);
+    announceAction(`Section ${TABS.find((tab) => tab.key === activeTab)?.label || 'active'} rafraîchie.${criticalCount > 0 ? ` ${criticalCount} alerte(s) critique(s).` : ''}`);
   };
 
   const renderTabContent = () => {
@@ -378,16 +528,40 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       case 'operations':
         return (
           <div className="space-y-6">
-            <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
-            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
+            {/* Mobile: Urgency-focused view */}
+            <div className="sm:hidden">
+              <DispatcherMobileUrgency
+                urgentMissions={urgentMissionsForMobile}
+                totalPending={pendingCountForMobile}
+                onSelectMission={(id) => announceAction(`Mission ${id} sélectionnée`)}
+                onAssignMission={(id) => announceAction(`Assignation de ${id} en cours`)}
+              />
+            </div>
+
+            {/* Desktop: Full operations view */}
+            <div className="hidden sm:block">
+              <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
+            </div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
               <div className={`${logisticsCard} p-5`}>
-                <BacklogBoard missions={MOCK_BACKLOG} />
+                <BacklogBoard
+                  missions={backlog}
+                  onMissionClick={(missionId) => {
+                    const mission = backlog.find((item) => item.id === missionId);
+                    if (mission) {
+                      storeBacklogMissionForDispatch(mission);
+                    }
+                    sessionStorage.setItem('logisticsFocusMissionId', missionId);
+                    onNavigate?.('dispatch', { missionId });
+                    onActionFeedback?.(`Ouverture du dispatch pour ${missionId}.`);
+                  }}
+                />
               </div>
               <div className={`${logisticsCard} p-5`}>
-                <ReadyDriversPanel drivers={MOCK_READY_DRIVERS} />
+                <ReadyDriversPanel drivers={readyDrivers} />
               </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className={`${logisticsCard} p-5`}>
                 <DispatchMap />
               </div>
@@ -416,7 +590,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
                 <button
                   type="button"
                   onClick={() => announceAction('Optimisation lancée pour les tournées multi-arrêts.')}
-                  className="rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                  className="min-h-11 w-full rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:w-auto"
                 >
                   Optimiser les tournées
                 </button>
@@ -428,13 +602,13 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       case 'missions':
         return (
           <div className={`${logisticsCard} p-5`}>
-            <MissionTable missions={MOCK_ACTIVE_MISSIONS} />
+            <MissionTable missions={activeMissions} />
           </div>
         );
       case 'drivers':
         return (
           <div className={`${logisticsCard} p-5`}>
-            <DriversTable drivers={MOCK_READY_DRIVERS} />
+            <DriversTable drivers={readyDrivers} />
           </div>
         );
       case 'performance':
@@ -453,32 +627,40 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
   return (
     <div className="space-y-6">
-      <div className={`${logisticsCard} p-6`}>
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+        dataMode === 'backend'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : 'border-orange-200 bg-orange-50 text-orange-700'
+      }`}>
+        {dataMode === 'backend' ? 'Dashboard logistique connecté au backend' : 'Mode dégradé — dashboard local'}
+      </div>
+
+      <div className={`${logisticsCard} p-4 sm:p-6`}>
+        <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">
+          <div className="min-w-0">
             <p className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-1">COCKPIT DISPATCHER</p>
-            <h1 className="text-2xl font-extrabold text-content-primary">Cockpit logistique universel</h1>
-            <p className="text-sm text-content-muted mt-1">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
+            <h1 className="text-xl font-extrabold leading-tight text-content-primary sm:text-2xl">Cockpit logistique universel</h1>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-content-muted">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 lg:w-auto">
             <button
               type="button"
               onClick={handleRefresh}
-              className="px-4 py-2 rounded-xl border border-surface-border-subtle text-sm font-semibold text-content-primary hover:bg-surface-muted flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-semibold text-content-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2"
             >
               <Icon name="arrow-path" className="w-4 h-4" /> Rafraîchir
             </button>
             <button
               type="button"
               onClick={handleAutoDispatch}
-              className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-4 py-3 text-sm font-semibold text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 sm:py-2"
             >
               <Icon name="sparkles" className="w-4 h-4" /> Auto-dispatch
             </button>
             <button
               type="button"
               onClick={onExport}
-              className="px-4 py-2 rounded-xl border border-surface-border-subtle text-sm font-semibold text-content-primary hover:bg-surface-muted flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-semibold text-content-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2"
             >
               <Icon name="arrow-down-tray" className="w-4 h-4" /> Exporter CSV
             </button>
@@ -495,16 +677,16 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {KPI_CARDS.map((kpi) => (
-          <div key={kpi.label} className={`${logisticsCard} p-5`}>
-            <div className="flex items-center gap-4">
-              <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${kpi.tone}`}>
-                <Icon name={kpi.icon} className="h-6 w-6" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+        {liveKpiCards.map((kpi) => (
+          <div key={kpi.label} className={`${logisticsCard} p-4 sm:p-5`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-14 sm:w-14 ${kpi.tone}`}>
+                <Icon name={kpi.icon} className="h-5 w-5 sm:h-6 sm:w-6" />
               </span>
-              <div>
-                <p className="text-sm font-semibold text-content-muted">{kpi.label}</p>
-                <p className="mt-1 text-3xl font-extrabold tracking-tight text-content-primary">{kpi.value}</p>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-content-muted sm:text-sm">{kpi.label}</p>
+                <p className="mt-1 break-words text-xl font-extrabold tracking-tight text-content-primary sm:text-3xl">{kpi.value}</p>
                 <p className="mt-1 text-xs font-medium text-content-muted">{kpi.sub}</p>
               </div>
             </div>
@@ -513,7 +695,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       </div>
 
       <div>
-        <nav className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-surface-muted p-1" role="tablist" aria-label="Sections logistiques">
+        <nav className="-mx-3 mb-5 flex gap-2 overflow-x-auto bg-surface-muted px-3 py-2 sm:mx-0 sm:mb-6 sm:rounded-xl sm:p-1" role="tablist" aria-label="Sections logistiques">
           {TABS.map((tab) => (
             <button
               type="button"
@@ -521,7 +703,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
               role="tab"
               aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 ${
+              className={`flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:min-h-0 sm:py-2 ${
                 activeTab === tab.key
                   ? 'bg-surface-card text-content-primary shadow-sm'
                   : 'text-content-muted hover:text-content-primary'

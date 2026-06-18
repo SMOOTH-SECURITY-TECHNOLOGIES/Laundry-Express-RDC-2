@@ -135,7 +135,19 @@ def list_service_categories(
 ):
     """Lister les catégories de service (public)"""
     repository = CatalogRepository(db)
-    return repository.list_service_categories(active_only=active_only)
+    rows = repository.list_service_categories(active_only=active_only)
+    return [
+        ServiceCategoryResponse(
+            id=cat.id,
+            name=cat.name,
+            slug=cat.slug,
+            description=cat.description,
+            is_active=cat.is_active,
+            created_at=str(cat.created_at),
+            updated_at=str(cat.updated_at),
+        )
+        for cat in rows
+    ]
 
 
 @router.get("/categories/{category_id}", response_model=ServiceCategoryResponse)
@@ -163,7 +175,19 @@ def list_service_types(
 ):
     """Lister les types de service (public)"""
     repository = CatalogRepository(db)
-    return repository.list_service_types(active_only=active_only)
+    rows = repository.list_service_types(active_only=active_only)
+    return [
+        ServiceTypeResponse(
+            id=st.id,
+            name=st.name,
+            slug=st.slug,
+            description=st.description,
+            is_active=st.is_active,
+            created_at=str(st.created_at),
+            updated_at=str(st.updated_at),
+        )
+        for st in rows
+    ]
 
 
 @router.get("/service-types/{type_id}", response_model=ServiceTypeResponse)

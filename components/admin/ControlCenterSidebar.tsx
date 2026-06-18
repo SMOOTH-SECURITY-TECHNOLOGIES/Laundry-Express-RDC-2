@@ -25,6 +25,7 @@ export const controlCenterSections: NavSection[] = [
     title: 'PILOTAGE',
     items: [
       { label: 'Dashboard', icon: 'home' },
+      { label: 'Pilot Dashboard', icon: 'chartBar', isNew: true },
       { label: 'Truth Dashboard', icon: 'chartBar' },
       { label: 'Order Truth', icon: 'document-text' },
       { label: 'Anomalies', icon: 'warning', badge: 6 },

@@ -4,6 +4,7 @@ import { Icon } from './Icon';
 import { useAppContext } from '../context/AppContext';
 import { timeSince } from '../utils/timeSince';
 import { NOTIFICATION_META } from '../utils/notificationMeta';
+import { handleAppNotificationClick } from '../lib/handle-notification-click';
 
 interface NotificationPanelProps {
   notifications: AppNotification[];
@@ -32,41 +33,17 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ notificati
       markSingleNotificationAsRead(notification.id);
     }
 
-    if (notification.link) {
-      const { page, params } = notification.link;
+    handleAppNotificationClick(notification, {
+      setCurrentPage,
+      setOpenChatForOrderId,
+      setOpenOrderDetailsForOrderId,
+      setOpenLogisticsMissionForOrderId,
+      setOpenDriverMissionForOrderId,
+      setAdminSectionParams,
+      setActiveOrder,
+      orderHistory,
+    });
 
-      if (page === 'partner-dashboard' && params?.orderId) {
-        if (notification.notificationType === 'newChatMessage') {
-          setOpenChatForOrderId(params.orderId);
-        } else {
-          setOpenOrderDetailsForOrderId(params.orderId);
-        }
-      }
-
-      if (page === 'logistics-dashboard' && params?.orderId) {
-        setOpenLogisticsMissionForOrderId(params.orderId);
-      }
-
-      if (page === 'driver-dashboard' && params?.orderId) {
-        setOpenDriverMissionForOrderId(params.orderId);
-      }
-
-      if (page === 'admin' && params) {
-        setAdminSectionParams(params);
-      }
-      
-      if (page === 'tracking' && params?.orderId) {
-        const order = orderHistory.find(o => o.id === params.orderId);
-        if (order) {
-            setActiveOrder(order);
-        }
-        if (notification.notificationType === 'newChatMessage') {
-            setOpenChatForOrderId(params.orderId);
-        }
-      }
-
-      setCurrentPage({ name: page as any });
-    }
     onClose();
   };
 

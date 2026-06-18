@@ -60,3 +60,11 @@ class TestMvpRoutesExist:
 
         for response in responses:
             assert_route_exists(response)
+
+    def test_logistics_live_websocket_route_exists(self):
+        with client.websocket_connect("/api/v1/logistics/live?token=invalid") as websocket:
+            # Connexion acceptée puis fermée si token invalide
+            try:
+                websocket.receive_json()
+            except Exception:
+                pass

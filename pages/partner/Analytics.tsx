@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { OrderStatus, PartnerSection } from '../../types';
 import { findPartner } from '../../utils/findPartner';
 import { timeSince } from '../../utils/timeSince';
+import { SmartPricingAdvisor } from '../../components/SmartPricingAdvisor';
 
 type TimeRange = '7d' | '30d' | '90d' | '12m';
 
@@ -344,6 +345,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({ setSection }) => {
           </div>
         </div>
       </div>
+
+      {/* ─── Smart Pricing Advisor ─── */}
+      {partner && <SmartPricingAdvisor partnerId={partner.id} />}
 
       {/* ─── Section 6: Top Services + Section 8: Geographic ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -6,6 +6,11 @@ import { ReviewModal } from '../components/ReviewModal';
 import { OrderTrackingMap } from '../components/OrderTrackingMap';
 import { ChatModal } from '../components/ChatModal';
 import { Icon } from '../components/Icon';
+import { BottomSheet } from '../components/ui/BottomSheet';
+import { ProgressTimeline } from '../components/ui/ProgressTimeline';
+import { ClientTrackingHero } from '../components/tracking/ClientTrackingHero';
+import { ClientDriverCard } from '../components/tracking/ClientDriverCard';
+import { ClientMobileDashboard, type ClientOrder } from '../components/tracking/ClientMobileDashboard';
 import { useOrderTracking } from '../hooks/useOrderTracking';
 import { useMyReviews } from '../hooks/useMyReviews';
 
@@ -44,7 +49,7 @@ export const TrackingPage: React.FC = () => {
     activeOrder: contextActiveOrder, setActiveOrder, setCurrentPage,
     resetOrderDraft, submitReview, getUserById,
     openChatForOrderId, setOpenChatForOrderId,
-    formatPrice, t, partners,
+    formatPrice, t, partners, orderHistory,
   } = useAppContext();
 
   const { order: trackedOrder } = useOrderTracking({
@@ -71,11 +76,12 @@ export const TrackingPage: React.FC = () => {
   const [notifPrefs, setNotifPrefs] = useState({ sms: true, whatsapp: true, email: false });
 
   useEffect(() => {
-    if (openChatForOrderId && activeOrder && openChatForOrderId === activeOrder.id) {
-      setIsChatOpen(true);
-      setOpenChatForOrderId(null);
+    if (!openChatForOrderId) return;
+    const order = orderHistory.find((entry) => entry.id === openChatForOrderId);
+    if (order) {
+      setActiveOrder(order);
     }
-  }, [openChatForOrderId, activeOrder, setOpenChatForOrderId]);
+  }, [openChatForOrderId, orderHistory, setActiveOrder]);
 
   const handleSubmitReview = async (rating: number, comment: string) => {
     if (activeOrder) {
@@ -124,6 +130,7 @@ export const TrackingPage: React.FC = () => {
   const isLive = activeOrder && [OrderStatus.PICKUP, OrderStatus.DELIVERY].includes(activeOrder.status);
   const isSearching = activeOrder && [OrderStatus.AWAITING_CONFIRMATION, OrderStatus.CONFIRMED, OrderStatus.READY_FOR_PICKUP].includes(activeOrder.status);
   const canModify = activeOrder && [OrderStatus.AWAITING_CONFIRMATION, OrderStatus.CONFIRMED].includes(activeOrder.status);
+  const [showDetailsSheet, setShowDetailsSheet] = useState(false);
 
   const originalPrice = activeOrder
     ? activeOrder.totalPrice + (activeOrder.discountAmount || 0) + (activeOrder.pointsDiscount || 0) + (activeOrder.referralDiscount || 0)
@@ -168,6 +175,28 @@ export const TrackingPage: React.FC = () => {
     }, 0);
   }, [activeOrder]);
 
+  const clientOrder = useMemo<ClientOrder | null>(() => {
+    if (!activeOrder) return null;
+    return {
+      id: activeOrder.id,
+      orderRef: activeOrder.backendOrderNumber || activeOrder.id,
+      status: activeOrder.status as ClientOrder['status'],
+      statusLabel: config.label,
+      partnerName: activeOrder.partner?.name || 'Partenaire',
+      partnerPhone: undefined,
+      driverName: driver?.name,
+      driverPhone: driver?.phone,
+      driverInitial: driver?.name?.charAt(0),
+      pickupAddress: activeOrder.partner ? formatAddress(activeOrder.partner.address) : '—',
+      deliveryAddress: formatAddress(activeOrder.clientDetails.pickupAddress),
+      articles: articleList,
+      totalPrice: formatPrice(activeOrder.totalPrice),
+      eta: isLive ? getEtaLabel() : undefined,
+      estimatedDelivery: getEstimatedDeliveryTime(),
+      createdAt: new Date(activeOrder.createdAt).toLocaleString('fr-FR'),
+    };
+  }, [activeOrder, articleList, config.label, driver, formatPrice, isLive]);
+
   if (!activeOrder) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-4">
@@ -209,10 +238,50 @@ export const TrackingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      <div className="sm:hidden">
+        <ClientMobileDashboard
+          order={clientOrder}
+          onCallPartner={() => {}}
+          onCallDriver={() => {
+            if (driver?.phone) window.open(`tel:${driver.phone}`, '_self');
+          }}
+          onChat={() => setIsChatOpen(true)}
+          onNewOrder={() => {
+            resetOrderDraft();
+            setActiveOrder(null);
+            setCurrentPage({ name: 'order' });
+          }}
+          onShareTracking={() => {
+            const url = window.location.href;
+            if (navigator.share) {
+              navigator.share({ title: 'Suivi Laundry Express', url }).catch(() => {});
+            } else {
+              navigator.clipboard?.writeText(url);
+            }
+          }}
+          onContactSupport={() => window.open('tel:+243812345678', '_self')}
+          onRateOrder={handleSubmitReview}
+          hasRated={hasSubmittedReview}
+        />
+      </div>
+
+      <div className="hidden sm:block">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
-        {/* ─── HERO STATUS BANNER ─── */}
-        <div className={`${config.bgColor} border ${config.borderColor} rounded-2xl p-5 sm:p-6 mb-5`}>
+        {/* ─── MOBILE HERO (new component) ─── */}
+        <div className="mb-5 sm:hidden">
+          <ClientTrackingHero
+            status={activeOrder.status}
+            partnerName={activeOrder.partner?.name}
+            eta={isLive ? getEtaLabel() : undefined}
+            estimatedDelivery={getEstimatedDeliveryTime()}
+            orderRef={activeOrder.backendOrderNumber || activeOrder.id}
+            progressPct={config.progress}
+          />
+        </div>
+
+        {/* ─── DESKTOP HERO STATUS BANNER ─── */}
+        <div className={`${config.bgColor} border ${config.borderColor} rounded-2xl p-5 sm:p-6 mb-5 hidden sm:block`}>
           <div className="flex items-start gap-4">
             <div className={`w-14 h-14 rounded-2xl ${isLive ? 'bg-brand-blue' : 'bg-white dark:bg-slate-800'} flex items-center justify-center shrink-0 ${isLive ? 'animate-pulse' : ''}`}>
               <Icon name={config.icon as any} className={`w-7 h-7 ${isLive ? 'text-white' : config.color}`} />
@@ -262,15 +331,31 @@ export const TrackingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ─── QUICK KPIs ─── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {/* ─── MOBILE QUICK KPIs ─── */}
+        <div className="grid grid-cols-2 gap-2 mb-4 sm:hidden">
+          {[
+            { label: 'Statut', value: config.label, icon: 'badge-check' as const, color: config.color },
+            { label: 'Montant', value: formatPrice(activeOrder.totalPrice), icon: 'currencyDollar' as const },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-xl border border-gray-100 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Icon name={kpi.icon} className="w-3 h-3 text-gray-400" />
+                <span className="text-[9px] font-semibold uppercase text-gray-500 dark:text-gray-400">{kpi.label}</span>
+              </div>
+              <p className={`text-sm font-bold truncate ${kpi.color || 'text-gray-900 dark:text-white'}`}>{kpi.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ─── DESKTOP KPIs ─── */}
+        <div className="hidden grid-cols-4 gap-3 mb-6 sm:grid">
           {[
             { label: 'Commande', value: activeOrder.backendOrderNumber || activeOrder.id.slice(0, 12), icon: 'document-text' as const },
             { label: 'Statut', value: config.label, icon: 'badge-check' as const, color: config.color },
             { label: 'Montant', value: formatPrice(activeOrder.totalPrice), icon: 'currencyDollar' as const },
             { label: 'Collecte', value: activeOrder.pickupTime || '—', icon: 'calendar' as const },
           ].map((kpi) => (
-            <div key={kpi.label} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-3 sm:p-4">
+            <div key={kpi.label} className="rounded-xl border border-gray-100 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
               <div className="flex items-center gap-2 mb-1">
                 <Icon name={kpi.icon} className="w-3.5 h-3.5 text-gray-400" />
                 <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">{kpi.label}</span>
@@ -286,16 +371,30 @@ export const TrackingPage: React.FC = () => {
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Suivi de votre commande</h1>
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
               <span className="font-mono">ID : {activeOrder.backendOrderNumber || activeOrder.id}</span>
-              <span>•</span>
-              <span>Passée le {new Date(activeOrder.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline">Passée le {new Date(activeOrder.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
           {canChat && (
-            <button onClick={() => setIsChatOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-brand-blue text-white rounded-xl text-sm font-semibold hover:bg-brand-blue-700 transition-colors self-start">
+            <button onClick={() => setIsChatOpen(true)} className="flex min-h-[44px] items-center gap-2 self-start rounded-xl bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue-700">
               <Icon name="chatBubble" className="w-4 h-4" />
               Contacter
             </button>
           )}
+        </div>
+
+        {/* ─── MOBILE: Quick actions + Driver + Details sheet ─── */}
+        <div className="mb-6 space-y-3 sm:hidden">
+          {canChat && (
+            <button onClick={() => setIsChatOpen(true)} className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-brand-blue text-sm font-bold text-white">
+              <Icon name="chatBubble" className="w-4 h-4" />
+              Contacter le chauffeur
+            </button>
+          )}
+          <button onClick={() => setShowDetailsSheet(true)} className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+            <Icon name="document-text" className="w-4 h-4" />
+            Voir les détails de la commande
+          </button>
         </div>
 
         {/* ─── MAIN GRID ─── */}
@@ -511,77 +610,18 @@ export const TrackingPage: React.FC = () => {
           <div className="w-full lg:w-[40%] space-y-6">
 
             {/* Driver Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-card border border-gray-100 dark:border-slate-700 p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Votre chauffeur</h3>
-                {isLive && (
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Arrivée estimée</span>
-                    <p className="text-xl font-bold text-brand-blue">{getEtaLabel()}</p>
-                  </div>
-                )}
-                {isSearching && !driver && (
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
-                    <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                    Recherche...
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0 overflow-hidden ${driver ? 'bg-gradient-to-br from-brand-blue to-[#00B4D8] ring-2 ring-green-400' : 'bg-gray-200 dark:bg-slate-700'}`}>
-                    {driver ? (driver.name?.charAt(0) || 'C') : '?'}
-                  </div>
-                  {driver && <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  {driver ? (
-                    <>
-                      <p className="font-bold text-gray-900 dark:text-white">{driver.name}</p>
-                      <div className="flex items-center gap-1">
-                        <Icon name="star" className="w-3 h-3 text-amber-400" />
-                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">4.9</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">(124 avis)</span>
-                      </div>
-                      {driver.vehicleInfo && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Moto • {driver.vehicleInfo}</p>
-                      )}
-                    </>
-                  ) : (
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">Recherche d'un chauffeur</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Temps moyen : <strong className="text-gray-700 dark:text-gray-300">2 min</strong></p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400"><strong className="text-green-600">5</strong> disponibles</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Dernière attribution : <strong className="text-gray-700 dark:text-gray-300">il y a 35s</strong></span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500 rounded-full" style={{ width: '97%' }} />
-                        </div>
-                        <span className="text-[10px] font-bold text-green-600">97%</span>
-                      </div>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Probabilité de ramassage dans les délais</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <a href={`tel:${driver?.phone || ''}`} className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${driver ? 'bg-brand-blue text-white hover:bg-brand-blue-700' : 'bg-gray-100 dark:bg-slate-700 text-gray-400 cursor-not-allowed'}`}>
-                  <Icon name="phone" className="w-4 h-4" />
-                  Appeler
-                </a>
-                {canChat && (
-                  <button onClick={() => setIsChatOpen(true)} className="flex flex-col items-center gap-1.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-                    <Icon name="chatBubble" className="w-4 h-4" />
-                    Contacter
-                  </button>
-                )}
-                <button className="flex flex-col items-center gap-1.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-                  <Icon name="chevron-down" className="w-4 h-4" />
-                  Détails
-                </button>
-              </div>
+            <div className="hidden sm:block">
+              <ClientDriverCard
+                driverName={driver?.name}
+                driverInitial={driver ? (driver.name?.charAt(0) || 'C') : undefined}
+                rating={4.9}
+                reviewCount={124}
+                vehicleInfo={driver?.vehicleInfo}
+                isSearching={isSearching && !driver}
+                eta={isLive ? getEtaLabel() : undefined}
+                onCall={() => { if (driver?.phone) window.open(`tel:${driver.phone}`, '_self'); }}
+                onChat={() => setIsChatOpen(true)}
+              />
             </div>
 
             {/* Partner Card */}
@@ -813,6 +853,135 @@ export const TrackingPage: React.FC = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ─── MOBILE DRIVER CARD ─── */}
+      <div className="px-4 pb-4 sm:hidden">
+        <ClientDriverCard
+          driverName={driver?.name}
+          driverInitial={driver ? (driver.name?.charAt(0) || 'C') : undefined}
+          rating={4.9}
+          reviewCount={124}
+          vehicleInfo={driver?.vehicleInfo}
+          isSearching={isSearching && !driver}
+          eta={isLive ? getEtaLabel() : undefined}
+          onCall={() => { if (driver?.phone) window.open(`tel:${driver.phone}`, '_self'); }}
+          onChat={() => setIsChatOpen(true)}
+        />
+      </div>
+
+      {/* ─── MOBILE BOTTOM NAV ─── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur-lg sm:hidden dark:border-slate-700 dark:bg-slate-800/95">
+        <div className="flex items-center justify-around px-2 py-1">
+          {[
+            { key: 'home', icon: 'home', label: 'Accueil' },
+            { key: 'order', icon: 'shoppingBag', label: 'Commander' },
+            { key: 'tracking', icon: 'mapPin', label: 'Suivi', active: true },
+            { key: 'profile', icon: 'user', label: 'Profil' },
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => {
+                if (item.key === 'home') setCurrentPage({ name: 'home' });
+                else if (item.key === 'order') setCurrentPage({ name: 'order' });
+                else if (item.key === 'profile') setCurrentPage({ name: 'profile' });
+              }}
+              className={`flex min-w-[60px] flex-col items-center gap-0.5 rounded-xl px-3 py-2 text-center transition ${
+                item.active ? 'text-brand-blue' : 'text-gray-400'
+              }`}
+            >
+              <Icon name={item.icon as any} className="h-5 w-5" />
+              <span className="text-[10px] font-bold">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* ─── MOBILE DETAILS BOTTOM SHEET ─── */}
+      <BottomSheet isOpen={showDetailsSheet} onClose={() => setShowDetailsSheet(false)} title="Détails commande">
+        <div className="space-y-4">
+          <div className="rounded-xl bg-surface-muted p-4">
+            <p className="text-xs font-bold text-content-muted">Articles ({articleList.length})</p>
+            <div className="mt-2 space-y-2">
+              {articleList.map((article, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <span className="text-sm text-content-primary">{article.quantity}x {article.name}</span>
+                  <span className="text-xs text-content-muted">{formatPrice(article.price * article.quantity)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-surface-muted p-4 space-y-2">
+            <p className="text-xs font-bold text-content-muted">Récapitulatif</p>
+            <div className="flex justify-between text-sm">
+              <span className="text-content-muted">Sous-total</span>
+              <span className="font-semibold text-content-primary">{formatPrice(originalPrice)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-content-muted">Livraison</span>
+              <span className="font-semibold text-content-primary">{formatPrice(deliveryFee)}</span>
+            </div>
+            {totalDiscount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">Réductions</span>
+                <span className="font-semibold text-green-600">-{formatPrice(totalDiscount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-surface-border pt-2 text-lg font-bold">
+              <span className="text-content-primary">Total</span>
+              <span className="text-brand-blue">{formatPrice(activeOrder.totalPrice)}</span>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-surface-muted p-4">
+            <p className="text-xs font-bold text-content-muted">Historique récent</p>
+            <div className="mt-2 space-y-2">
+              {activeOrder.trackingHistory.slice(-3).reverse().map((entry, i) => {
+                const time = new Date(entry.time);
+                const label = statusConfig[entry.status]?.label || entry.status;
+                return (
+                  <div key={i} className="flex items-start gap-2">
+                    <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${i === 0 ? 'bg-brand-blue' : 'bg-gray-300'}`} />
+                    <div>
+                      <span className="text-xs font-mono text-content-muted">
+                        {time.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <p className={`text-sm font-medium ${i === 0 ? 'text-brand-blue' : 'text-content-primary'}`}>{label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-surface-muted p-4">
+            <p className="text-xs font-bold text-content-muted">Recevoir les mises à jour</p>
+            <div className="mt-2 space-y-2">
+              {notificationPrefs.map((pref) => (
+                <label key={pref.id} className="flex items-center gap-3">
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
+                    notifPrefs[pref.id as keyof typeof notifPrefs]
+                      ? 'border-brand-blue bg-brand-blue'
+                      : 'border-gray-300'
+                  }`}>
+                    {notifPrefs[pref.id as keyof typeof notifPrefs] && <Icon name="check" className="h-3 w-3 text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={notifPrefs[pref.id as keyof typeof notifPrefs]}
+                    onChange={(e) => setNotifPrefs(prev => ({ ...prev, [pref.id]: e.target.checked }))}
+                  />
+                  <Icon name={pref.icon} className="h-4 w-4 text-content-muted" />
+                  <span className="text-sm text-content-primary">{pref.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
       </div>
 
       <ReviewModal isOpen={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} onSubmit={handleSubmitReview} order={activeOrder} />
