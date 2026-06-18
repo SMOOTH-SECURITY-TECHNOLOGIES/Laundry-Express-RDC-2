@@ -54,6 +54,7 @@ services:
     volumes:
       - ./apps/api:/app
       - ./infra/scripts:/scripts
+      - ./.env:/etc/laundry-express/.env:ro
     command: >
       sh -c "
         /scripts/wait-for-db.sh db 5432 &&

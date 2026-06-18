@@ -22,6 +22,12 @@ from typing import Any
 from urllib import error, parse, request
 from uuid import uuid4
 
+SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from staging_ws_probe import probe_logistics_ws, resolve_logistics_ws_url
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -460,6 +466,13 @@ def run_logistics_flow(runtime: dict[str, Any]) -> FlowResult:
         steps.append(pass_step("logistics_login", DEFAULT_LOGISTICS_EMAIL))
         steps.append(pass_step("driver_login", DEFAULT_DRIVER_EMAIL))
 
+        ws_url = resolve_logistics_ws_url(API_BASE_URL)
+        ws_ok, ws_detail = probe_logistics_ws(ws_url, logistics_token)
+        if not ws_ok:
+            steps.append(fail_step("logistics_live_ws", f"{ws_url} -> {ws_detail}"))
+            return flow_result("logistics", steps)
+        steps.append(pass_step("logistics_live_ws", ws_detail))
+
         driver_id = ensure_driver_exists(admin_token, str(driver_user["id"]))
         runtime["driver_id"] = driver_id
         steps.append(pass_step("ensure_driver", driver_id))
@@ -630,6 +643,8 @@ def print_preflight() -> None:
     print("Staging flow verification")
     print("========================")
     print(f"API base: {API_BASE_URL or '<missing>'}")
+    if API_BASE_URL:
+        print(f"Logistics WS: {resolve_logistics_ws_url(API_BASE_URL)}")
     print(f"Async DB : {mask(STAGING_DATABASE_URL) if STAGING_DATABASE_URL else '<missing>'}")
     print(f"Sync DB  : {mask(STAGING_DATABASE_URL_SYNC) if STAGING_DATABASE_URL_SYNC else '<missing>'}")
     print(f"Provider : {PAYMENT_PROVIDER_MODE}")
