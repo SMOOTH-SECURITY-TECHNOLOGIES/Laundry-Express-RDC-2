@@ -33,7 +33,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [appNotifications, setAppNotifications] = useState<AppNotification[]>([]);
 
   const mapBackendNotification = useCallback((notification: any): AppNotification => {
-    const metadata = notification.notification_metadata || notification.link || {};
+    let metadata = notification.notification_metadata || notification.link || {};
+    if (typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch {
+        metadata = {};
+      }
+    }
+    const orderId = metadata.orderId || metadata.order_id;
     return {
       id: String(notification.id),
       recipientId: String(notification.user_id || notification.recipientId || user?.id || ''),
@@ -43,9 +51,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         page: metadata.page || 'notifications',
         params: {
           ...metadata,
-          orderId: metadata.orderId,
-          taskId: metadata.taskId,
-          section: metadata.section,
+          orderId: orderId ? String(orderId) : undefined,
         },
       },
       createdAt: notification.created_at || notification.createdAt || new Date().toISOString(),

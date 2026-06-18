@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon.tsx';
 import * as api from '../constants';
 import { timeSince } from '../utils/timeSince';
 import { NOTIFICATION_META } from '../utils/notificationMeta';
+import { handleAppNotificationClick } from '../lib/handle-notification-click';
 
 // Modals imported from other pages for reuse
 // FIX: Using correct PascalCase for the implementation file import to resolve casing and export errors.
@@ -99,23 +100,16 @@ export const NotificationsPage: React.FC = () => {
             markSingleNotificationAsRead(notification.id);
         }
 
-        if (notification.link) {
-            const { page, params } = notification.link;
-            
-            // Handle various deep links
-            if (page === 'partner-dashboard' && params?.orderId) setOpenOrderDetailsForOrderId(params.orderId);
-            if (page === 'logistics-dashboard' && params?.orderId) setOpenLogisticsMissionForOrderId(params.orderId);
-            if (page === 'driver-dashboard' && params?.orderId) setOpenDriverMissionForOrderId(params.orderId);
-            if (page === 'admin' && params) setAdminSectionParams(params);
-            
-            if (page === 'tracking' && params?.orderId) {
-                const order = orderHistory.find(o => o.id === params.orderId);
-                if (order) setActiveOrder(order);
-                if (notification.notificationType === 'newChatMessage') setOpenChatForOrderId(params.orderId);
-            }
-
-            setCurrentPage({ name: page as any });
-        }
+        handleAppNotificationClick(notification, {
+            setCurrentPage,
+            setOpenChatForOrderId,
+            setOpenOrderDetailsForOrderId,
+            setOpenLogisticsMissionForOrderId,
+            setOpenDriverMissionForOrderId,
+            setAdminSectionParams,
+            setActiveOrder,
+            orderHistory,
+        });
     };
 
     const handleActionClick = async (action: AppNotificationAction, notificationId: string) => {

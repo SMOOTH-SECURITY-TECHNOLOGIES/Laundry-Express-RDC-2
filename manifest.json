@@ -1,12 +1,37 @@
 {
   "name": "Laundry Express RDC",
   "short_name": "Laundry Express",
-  "description": "An on-demand laundry app for cities in the DRC, connecting customers with local laundromats for quick and easy laundry service, pickup, and delivery.",
+  "description": "Service de pressing à la demande en RDC — collecte, nettoyage, livraison.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#F7F9FC",
-  "theme_color": "#0077B6",
+  "theme_color": "#0066CC",
   "orientation": "portrait-primary",
+  "categories": ["business", "utilities"],
+  "lang": "fr",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Nouvelle commande",
+      "short_name": "Commander",
+      "url": "/?action=order",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Suivre ma commande",
+      "short_name": "Suivi",
+      "url": "/?page=tracking",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Tableau de bord chauffeur",
+      "short_name": "Chauffeur",
+      "url": "/?page=driver-dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
   "icons": [
     {
       "src": "/favicon.svg",
