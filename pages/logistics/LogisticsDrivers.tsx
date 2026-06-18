@@ -3,7 +3,7 @@ import { Icon } from '../../components/Icon';
 import { logisticsCard } from './logistics-ui';
 import { AddDriverModal } from '../../components/logistics/AddDriverModal';
 import { EditDriverModal } from '../../components/logistics/EditDriverModal';
-import { getLogisticsDrivers, type DataMode, type LogisticsDriverProfile } from '../../services/logistics-api';
+import { getLogisticsDrivers, createLogisticsDriver, type DataMode, type LogisticsDriverProfile } from '../../services/logistics-api';
 
 type Driver = LogisticsDriverProfile;
 
@@ -67,21 +67,41 @@ const normalize = (value: string) =>
 export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverName, onClearFocus }) => {
   const [activeFilter, setActiveFilter] = useState('Tous');
   const [searchQuery, setSearchQuery] = useState('');
-  const [drivers, setDrivers] = useState<Driver[]>(MOCK_DRIVERS);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [selectedDriverId, setSelectedDriverId] = useState<string>('D-001');
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
+  const reloadDrivers = () => {
+    setIsLoading(true);
+    setLoadError(null);
+    return getLogisticsDrivers(MOCK_DRIVERS).then((result) => {
+      setDrivers(result.data);
+      setSelectedDriverId((current) => current || result.data[0]?.id || '');
+      setDataMode(result.mode);
+      if (result.mode === 'degraded') {
+        setLoadError(result.reason || 'Backend indisponible — données locales affichées.');
+      }
+    }).catch((error) => {
+      setLoadError(error instanceof Error ? error.message : 'Impossible de charger les chauffeurs.');
+      setDrivers(MOCK_DRIVERS);
+      setDataMode('degraded');
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  };
+
   useEffect(() => {
     let mounted = true;
-    getLogisticsDrivers(MOCK_DRIVERS).then((result) => {
+    reloadDrivers().then(() => {
       if (!mounted) return;
-      setDrivers(result.data);
-      setSelectedDriverId(result.data[0]?.id ?? '');
-      setDataMode(result.mode);
     });
     return () => {
       mounted = false;
@@ -155,15 +175,43 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
     return drivers.filter(d => d.status === filter).length;
   };
 
-  const handleAddDriver = (newDriver: Omit<Driver, 'id' | 'missionsCompleted' | 'rating'>) => {
-    const driver: Driver = {
-      ...newDriver,
-      id: `D-${String(drivers.length + 1).padStart(3, '0')}`,
-      missionsCompleted: 0,
-      rating: 5.0,
-    };
-    setDrivers(prev => [...prev, driver]);
-    setShowAddModal(false);
+  const handleAddDriver = async (newDriver: {
+    name: string;
+    phone: string;
+    password: string;
+    email: string;
+    vehicle: string;
+    vehiclePlate: string;
+    commune?: string;
+    notes?: string;
+  }) => {
+    if (dataMode !== 'backend') {
+      setCreateError('Connexion backend requise pour créer un chauffeur.');
+      return;
+    }
+
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      const created = await createLogisticsDriver({
+        name: newDriver.name,
+        phone: newDriver.phone,
+        password: newDriver.password,
+        email: newDriver.email,
+        vehicle: newDriver.vehicle,
+        vehiclePlate: newDriver.vehiclePlate,
+        commune: newDriver.commune,
+        notes: newDriver.notes,
+      });
+      setDrivers((prev) => [...prev, created]);
+      setSelectedDriverId(created.id);
+      setShowAddModal(false);
+      setActionMessage(`Chauffeur ${created.name} créé et rattaché à votre compagnie.`);
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : 'Création du chauffeur impossible.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleEditDriver = (updated: Driver) => {
@@ -202,8 +250,12 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
           <p className="text-sm text-gray-500 mt-1">{drivers.length} chauffeurs enregistrés</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white hover:bg-brand-blue/90 sm:w-auto sm:py-2.5"
+          onClick={() => {
+            setCreateError(null);
+            setShowAddModal(true);
+          }}
+          disabled={dataMode !== 'backend' || isLoading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 text-sm font-semibold text-white hover:bg-brand-blue/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5"
         >
           <Icon name="plus" className="w-4 h-4" />
           Ajouter un chauffeur
@@ -235,6 +287,35 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
         </div>
       )}
 
+      {loadError && (
+        <div className="rounded-2xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-900">
+          {loadError}
+        </div>
+      )}
+
+      {actionMessage && (
+        <div className="rounded-2xl border border-green-300/60 bg-green-50 p-4 text-sm text-green-900">
+          {actionMessage}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className={`${logisticsCard} p-8 text-center text-sm text-content-muted`}>
+          Chargement des chauffeurs de votre compagnie...
+        </div>
+      ) : null}
+
+      {!isLoading && dataMode === 'backend' && drivers.length === 0 ? (
+        <div className={`${logisticsCard} p-8 text-center`}>
+          <p className="text-base font-bold text-content-primary">Aucun chauffeur pour le moment</p>
+          <p className="mt-2 text-sm text-content-muted">
+            Ajoutez votre premier chauffeur pour commencer les assignations sans intervention admin.
+          </p>
+        </div>
+      ) : null}
+
+      {!isLoading && drivers.length > 0 ? (
+      <>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total', value: stats.total, icon: 'users' as const, tone: 'bg-blue-50 text-brand-blue' },
@@ -569,11 +650,18 @@ export const LogisticsDrivers: React.FC<LogisticsDriversProps> = ({ focusDriverN
           </div>
         </section>
       )}
+      </>
+      ) : null}
 
       <AddDriverModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          setCreateError(null);
+        }}
         onAdd={handleAddDriver}
+        isSubmitting={isCreating}
+        errorMessage={createError}
       />
       <EditDriverModal
         isOpen={!!editingDriver}

@@ -117,6 +117,34 @@ input[type="radio"]:focus-visible {
   display: none;
 }
 
+/* Mobile touch optimizations */
+@media (max-width: 767px) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================================
+   DESIGN SYSTEM — Mobile-First Utilities
+   ============================================================ */
+@layer utilities {
+  /* Touch target minimums */
+  .touch-min { min-height: 48px; min-width: 48px; }
+  .touch-min-lg { min-height: 52px; }
+  .touch-min-sm { min-height: 40px; }
+
+  /* Smooth press animation */
+  .press-scale { transition: transform 0.1s ease; }
+  .press-scale:active { transform: scale(0.97); }
+
+  /* Safe area padding for notch devices */
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
 /* ============================================================
    DARK MODE — Cross-shell utilities
    Applies to .admin-shell, .driver-shell, .logistics-shell,
@@ -326,10 +354,29 @@ html.dark .partner-shell .hover\:bg-slate-100:hover {
   background-color: var(--le-bg-muted);
 }
 
-/* --- Shared: inputs --- */
+/* --- Shared: inputs (light mode readability) --- */
+.logistics-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.logistics-shell select,
+.logistics-shell textarea {
+  color: var(--le-text);
+}
+
+.logistics-shell input::placeholder,
+.logistics-shell textarea::placeholder {
+  color: var(--le-text-muted);
+  opacity: 1;
+}
+
+/* --- Shared: inputs (dark mode) --- */
 html.dark .admin-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
 html.dark .admin-shell select,
 html.dark .admin-shell textarea,
+html.dark .driver-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark .driver-shell select,
+html.dark .driver-shell textarea,
+html.dark .logistics-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.dark .logistics-shell select,
+html.dark .logistics-shell textarea,
 html.dark .partner-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
 html.dark .partner-shell select,
 html.dark .partner-shell textarea {
@@ -340,6 +387,10 @@ html.dark .partner-shell textarea {
 
 html.dark .admin-shell input::placeholder,
 html.dark .admin-shell textarea::placeholder,
+html.dark .driver-shell input::placeholder,
+html.dark .driver-shell textarea::placeholder,
+html.dark .logistics-shell input::placeholder,
+html.dark .logistics-shell textarea::placeholder,
 html.dark .partner-shell input::placeholder,
 html.dark .partner-shell textarea::placeholder {
   color: var(--le-text-faint);
@@ -715,3 +766,45 @@ html.dark .partner-shell .partner-cta-light {
 html.dark .partner-shell .partner-cta-light:hover {
   background-color: rgb(255 255 255 / 0.9);
 }
+
+/* ============================================================
+   DARK MODE — Missing partner hex color overrides
+   ============================================================ */
+/* Partner orange status text */
+html.dark .partner-shell .text-\[\#FF7A00\] { color: #fdba74; }
+html.dark .partner-shell .text-\[\#ff7a00\] { color: #fdba74; }
+
+/* Partner orange backgrounds */
+html.dark .partner-shell .bg-\[\#FF7A00\] { background-color: rgb(124 45 18 / 0.4); }
+html.dark .partner-shell .bg-\[\#ff7a00\] { background-color: rgb(124 45 18 / 0.4); }
+html.dark .partner-shell .bg-\[\#FF7A00\]\/10 { background-color: rgb(124 45 18 / 0.25); }
+
+/* Partner green backgrounds */
+html.dark .partner-shell .bg-\[\#22C55E\] { background-color: rgb(6 78 59 / 0.4); }
+html.dark .partner-shell .bg-\[\#22c55e\] { background-color: rgb(6 78 59 / 0.4); }
+html.dark .partner-shell .bg-\[\#22C55E\]\/10 { background-color: rgb(6 78 59 / 0.25); }
+
+/* Partner gradients */
+html.dark .partner-shell .from-\[\#FF7A00\] {
+  --tw-gradient-from: rgb(124 45 18 / 0.4) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(124 45 18 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+html.dark .partner-shell .from-\[\#22C55E\] {
+  --tw-gradient-from: rgb(6 78 59 / 0.4) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(6 78 59 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+/* ============================================================
+   DARK MODE — Missing logistics text overrides
+   ============================================================ */
+html.dark .logistics-shell .text-gray-500,
+html.dark .logistics-shell .text-gray-400 { color: var(--le-text-muted); }
+
+html.dark .logistics-shell .text-gray-700,
+html.dark .logistics-shell .text-gray-800,
+html.dark .logistics-shell .text-gray-900 { color: var(--le-text); }
+
+html.dark .logistics-shell .text-brand-dark { color: var(--le-text); }

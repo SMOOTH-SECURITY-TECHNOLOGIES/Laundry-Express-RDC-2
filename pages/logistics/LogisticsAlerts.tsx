@@ -44,12 +44,12 @@ const FILTER_MAP: Record<string, string | null> = {
 const ACTION_TARGETS: Record<Alert['type'], { label: string; section: LogisticsSection; feedback: string }> = {
   retard: {
     label: 'Voir',
-    section: 'dispatch',
+    section: 'missions',
     feedback: 'Ouverture des missions pour analyser le retard.',
   },
   attente: {
     label: 'Résoudre',
-    section: 'dispatch',
+    section: 'missions',
     feedback: 'Ouverture du backlog missions pour assignation.',
   },
   inactif: {

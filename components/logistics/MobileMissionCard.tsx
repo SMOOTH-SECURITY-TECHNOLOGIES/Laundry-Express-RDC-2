@@ -1,5 +1,8 @@
 import React from 'react';
 import { Icon } from '../Icon';
+import { StatusChip } from '../ui/StatusChip';
+import { MobileButton } from '../ui/MobileButton';
+import { CARD, TYPO, SPACING, MISSION_STATUS_MAP, type StatusTone } from '../ui/tokens';
 import type { LogisticsStatus } from './logistics-types';
 
 interface MobileMissionCardProps {
@@ -22,15 +25,18 @@ interface MobileMissionCardProps {
   onOpenDetails?: () => void;
 }
 
-const statusTone: Record<LogisticsStatus, string> = {
-  pending: 'bg-slate-100 text-slate-700',
-  assigned: 'bg-blue-100 text-blue-700',
-  in_transit: 'bg-green-100 text-green-700',
-  delivered: 'bg-emerald-100 text-emerald-700',
-  delayed: 'bg-orange-100 text-orange-700',
-  failed: 'bg-red-100 text-red-700',
-  cancelled: 'bg-slate-200 text-slate-700',
-};
+const secondaryActions = (
+  onCallDriver?: () => void,
+  onCallCustomer?: () => void,
+  onProof?: () => void,
+  onIncident?: () => void,
+) =>
+  [
+    onCallDriver ? { label: 'Appeler', icon: 'phone' as const, onClick: onCallDriver, tone: 'success' as const } : null,
+    onCallCustomer ? { label: 'Client', icon: 'user' as const, onClick: onCallCustomer, tone: 'info' as const } : null,
+    onProof ? { label: 'Preuve', icon: 'camera' as const, onClick: onProof, tone: 'info' as const } : null,
+    onIncident ? { label: 'Incident', icon: 'warning' as const, onClick: onIncident, tone: 'danger' as const } : null,
+  ].filter(Boolean) as Array<{ label: string; icon: React.ComponentProps<typeof Icon>['name']; onClick: () => void; tone: StatusTone }>;
 
 export const MobileMissionCard: React.FC<MobileMissionCardProps> = ({
   missionId,
@@ -51,102 +57,100 @@ export const MobileMissionCard: React.FC<MobileMissionCardProps> = ({
   onIncident,
   onOpenDetails,
 }) => {
-  const secondaryActions = [
-    onCallDriver ? { label: 'Appeler', icon: 'phone' as const, action: onCallDriver, tone: 'border-green-200 text-green-700' } : null,
-    onCallCustomer ? { label: 'Client', icon: 'user' as const, action: onCallCustomer, tone: 'border-blue-200 text-brand-blue' } : null,
-    onProof ? { label: 'Preuve', icon: 'camera' as const, action: onProof, tone: 'border-violet-200 text-violet-700' } : null,
-    onIncident ? { label: 'Incident', icon: 'warning' as const, action: onIncident, tone: 'border-red-200 text-red-600' } : null,
-  ].filter(Boolean) as Array<{ label: string; icon: React.ComponentProps<typeof Icon>['name']; action: () => void; tone: string }>;
+  const tone: StatusTone = MISSION_STATUS_MAP[status] || 'neutral';
+  const actions = secondaryActions(onCallDriver, onCallCustomer, onProof, onIncident);
 
   return (
-    <article className="rounded-[28px] border border-surface-border-subtle bg-surface-card p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-black uppercase text-content-muted">Mission active</p>
-          <h3 className="mt-1 truncate text-2xl font-black text-content-primary">{missionId}</h3>
-          <p className="mt-1 truncate text-sm font-bold text-content-muted">{customerName}</p>
+    <article className={`${CARD.base} overflow-hidden`}>
+      {/* Header */}
+      <div className={`${SPACING.cardPad} border-b border-surface-border-subtle`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className={TYPO.label}>Mission active</p>
+            <h3 className={`mt-1 ${TYPO.pageTitle} text-xl`}>{missionId}</h3>
+            <p className={`mt-0.5 ${TYPO.sectionSubtitle}`}>{customerName}</p>
+          </div>
+          <StatusChip label={statusLabel} tone={tone} size="md" />
         </div>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${statusTone[status]}`}>
-          {statusLabel}
-        </span>
       </div>
 
-      <div className="mt-4 space-y-3">
-        <div className="rounded-2xl bg-surface-muted p-3">
-          <div className="flex gap-3">
-            <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
-              <Icon name="mapPin" className="h-4 w-4" />
+      {/* Route */}
+      <div className={`${SPACING.cardPad} ${SPACING.sectionGap}`}>
+        <div className={`${CARD.muted} p-3 space-y-0`}>
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
+              <Icon name="mapPin" className="h-3.5 w-3.5" />
             </span>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-content-muted">Pickup</p>
-              <p className="truncate text-sm font-black text-content-primary">{pickupLabel}</p>
+            <div className="min-w-0 flex-1">
+              <p className={TYPO.label}>Pickup</p>
+              <p className={`truncate ${TYPO.cardTitle}`}>{pickupLabel}</p>
             </div>
           </div>
-          <div className="my-2 ml-4 h-5 border-l-2 border-dashed border-surface-border-subtle" />
-          <div className="flex gap-3">
-            <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
-              <Icon name="check" className="h-4 w-4" />
+          <div className="ml-3.5 h-4 border-l-2 border-dashed border-surface-border" />
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
+              <Icon name="check" className="h-3.5 w-3.5" />
             </span>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-content-muted">Destination</p>
-              <p className="truncate text-sm font-black text-content-primary">{deliveryLabel}</p>
+            <div className="min-w-0 flex-1">
+              <p className={TYPO.label}>Destination</p>
+              <p className={`truncate ${TYPO.cardTitle}`}>{deliveryLabel}</p>
             </div>
           </div>
         </div>
 
+        {/* KPIs */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-2xl bg-surface-muted p-3">
-            <p className="text-xs font-bold text-content-muted">ETA</p>
-            <p className="mt-1 text-lg font-black text-content-primary">{etaLabel || '--'}</p>
+          <div className={`${CARD.muted} p-3 text-center`}>
+            <p className={TYPO.label}>ETA</p>
+            <p className={`mt-0.5 ${TYPO.value}`}>{etaLabel || '--'}</p>
           </div>
-          <div className="rounded-2xl bg-surface-muted p-3">
-            <p className="text-xs font-bold text-content-muted">Distance</p>
-            <p className="mt-1 text-lg font-black text-content-primary">{distanceLabel || '--'}</p>
+          <div className={`${CARD.muted} p-3 text-center`}>
+            <p className={TYPO.label}>Distance</p>
+            <p className={`mt-0.5 ${TYPO.value}`}>{distanceLabel || '--'}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-2xl bg-surface-muted p-3">
-            <p className="text-xs font-bold text-content-muted">Chauffeur</p>
-            <p className="mt-1 truncate font-black text-content-primary">{driverName || 'A assigner'}</p>
+        {/* Chauffeur / Véhicule */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className={`${CARD.muted} p-3`}>
+            <p className={TYPO.label}>Chauffeur</p>
+            <p className={`mt-0.5 truncate ${TYPO.cardTitle}`}>{driverName || 'A assigner'}</p>
           </div>
-          <div className="rounded-2xl bg-surface-muted p-3">
-            <p className="text-xs font-bold text-content-muted">Vehicule</p>
-            <p className="mt-1 truncate font-black text-content-primary">{vehiclePlate || 'A confirmer'}</p>
+          <div className={`${CARD.muted} p-3`}>
+            <p className={TYPO.label}>Véhicule</p>
+            <p className={`mt-0.5 truncate ${TYPO.cardTitle}`}>{vehiclePlate || 'À confirmer'}</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2">
-        <button
-          type="button"
+      {/* Actions */}
+      <div className={`${SPACING.cardPad} pt-0 space-y-2`}>
+        <MobileButton
+          label={primaryActionLabel}
+          icon="play"
+          variant="primary"
+          size="lg"
           onClick={onPrimaryAction}
-          className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-brand-blue px-4 text-sm font-black text-white hover:bg-brand-blue-700 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
-        >
-          <Icon name="play" className="h-4 w-4" />
-          {primaryActionLabel}
-        </button>
+        />
         <div className="grid grid-cols-2 gap-2">
-          {secondaryActions.map((item) => (
-            <button
+          {actions.map((item) => (
+            <MobileButton
               key={item.label}
-              type="button"
-              onClick={item.action}
-              className={`flex min-h-[46px] items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-black ${item.tone} hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2`}
-            >
-              <Icon name={item.icon} className="h-4 w-4" />
-              {item.label}
-            </button>
+              label={item.label}
+              icon={item.icon}
+              variant="secondary"
+              size="sm"
+              onClick={item.onClick}
+            />
           ))}
         </div>
         {onOpenDetails && (
-          <button
-            type="button"
+          <MobileButton
+            label="Voir détails"
+            variant="ghost"
+            size="sm"
             onClick={onOpenDetails}
-            className="min-h-[46px] rounded-2xl bg-surface-muted px-3 text-xs font-black text-content-primary hover:bg-surface-page focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
-          >
-            Ouvrir le detail trajet
-          </button>
+          />
         )}
       </div>
     </article>

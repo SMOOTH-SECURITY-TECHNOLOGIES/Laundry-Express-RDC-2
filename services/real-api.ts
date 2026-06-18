@@ -15,6 +15,7 @@ export interface ApiUser {
   loyalty_points: number;
   referral_code?: string | null;
   referred_by_user_id?: string | null;
+  delivery_company_id?: string | null;
   last_login_at: string | null;
   email_verified_at: string | null;
   phone_verified_at: string | null;
@@ -1797,6 +1798,9 @@ export interface LogisticsTask {
   completed_at?: string | null;
   proof_photo_url?: string | null;
   proof_note?: string | null;
+  claimed_by_company_id?: string | null;
+  market_visible?: boolean;
+  market_expires_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1830,6 +1834,17 @@ export interface LogisticsDriverListResponse {
   total: number;
   page: number;
   page_size: number;
+}
+
+export interface LogisticsDriverCreateRequest {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  vehicle_type?: string | null;
+  license_number?: string | null;
+  status?: 'active' | 'inactive' | 'suspended';
+  is_available?: boolean;
 }
 
 export interface LogisticsVehicle {
@@ -3509,6 +3524,13 @@ class ApiClient {
     return this.request<LogisticsDriverListResponse>(endpoint);
   }
 
+  async createLogisticsDriver(data: LogisticsDriverCreateRequest): Promise<LogisticsDriver> {
+    return this.request<LogisticsDriver>('/logistics/drivers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getVehicles(): Promise<LogisticsVehicleListResponse> {
     return this.request<LogisticsVehicleListResponse>('/logistics/vehicles');
   }
@@ -3552,6 +3574,17 @@ class ApiClient {
     });
   }
 
+  async getMyDriverProfile(): Promise<LogisticsDriver> {
+    return this.request<LogisticsDriver>('/logistics/drivers/me');
+  }
+
+  async updateMyDriverAvailability(available: boolean): Promise<{ available: boolean }> {
+    return this.request<{ available: boolean }>('/logistics/drivers/me/availability', {
+      method: 'PATCH',
+      body: JSON.stringify({ available }),
+    });
+  }
+
   async getMarketplaceCompanies(params?: {
     page?: number;
     page_size?: number;
@@ -3569,6 +3602,13 @@ class ApiClient {
     return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/assign`, {
       method: 'POST',
       body: JSON.stringify({ driver_id: driverId }),
+    });
+  }
+
+  async claimLogisticsTask(taskId: string): Promise<LogisticsTask> {
+    return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/claim`, {
+      method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
@@ -3593,12 +3633,28 @@ class ApiClient {
     });
   }
 
-  async completeLogisticsTask(taskId: string, proofNote?: string): Promise<LogisticsTask> {
+  async completeLogisticsTask(
+    taskId: string,
+    proofNote?: string,
+    proofPhotoUrl?: string | null,
+  ): Promise<LogisticsTask> {
     return this.request<LogisticsTask>(`/logistics/tasks/${taskId}/complete`, {
       method: 'POST',
       body: JSON.stringify({
         proof_note: proofNote || 'Completed from driver dashboard',
+        proof_photo_url: proofPhotoUrl || undefined,
       }),
+    });
+  }
+
+  async updateDriverLocation(
+    driverId: string,
+    latitude: number,
+    longitude: number,
+  ): Promise<{ latitude: number; longitude: number; recorded_at?: string }> {
+    return this.request(`/logistics/drivers/${driverId}/location`, {
+      method: 'POST',
+      body: JSON.stringify({ latitude, longitude }),
     });
   }
 

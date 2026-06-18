@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { DispatchTask, Driver } from '../../components/logistics/logistics-types';
-import { getDispatchTasks, type DataMode } from '../../services/logistics-api';
+import { getDispatchTasks, mergeFocusedBacklogIntoDispatchTasks, type DataMode } from '../../services/logistics-api';
 import { realApi } from '../../services/real-api';
 import { logisticsCard } from './logistics-ui';
+import { DispatcherMobileDashboard } from '../../components/dispatcher/DispatcherMobileDashboard';
+import { CARD, TYPO, SPACING } from '../../components/ui/tokens';
+import { pilotTrackAssignment, pilotTrackCancellation, pilotTrackMissionStart } from '../../lib/pilot-metrics-store';
 
 interface LogisticsDispatchProps {
   focusMissionId?: string | null;
@@ -180,6 +183,13 @@ const focusMatchesTask = (
   return zoneMatches;
 };
 
+const mapDispatchMissionStatus = (status: DispatchTask['status']) => {
+  if (status === 'assigned') return 'accepted';
+  if (status === 'in_transit') return 'in_progress';
+  if (status === 'delivered') return 'completed';
+  return status;
+};
+
 const scoreDriver = (task: DispatchTask, driver: Driver) => {
   const vehicleStatus = driver.vehicleId ? vehicleAvailability[driver.vehicleId] : null;
   if (vehicleStatus && !vehicleStatus.available) return -1;
@@ -211,18 +221,41 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
 
   useEffect(() => {
     let mounted = true;
+    const focusId = focusMissionId ?? sessionStorage.getItem('logisticsFocusMissionId');
     getDispatchTasks(initialTasks).then((result) => {
       if (!mounted) return;
-      setTasks(result.data);
-      setSelectedTaskId(result.data[0]?.id ?? '');
+      const mergedTasks = mergeFocusedBacklogIntoDispatchTasks(result.data, focusId);
+      setTasks(mergedTasks);
+      const selectedId =
+        focusId && mergedTasks.some((task) => task.id === focusId)
+          ? focusId
+          : mergedTasks[0]?.id ?? '';
+      setSelectedTaskId(selectedId);
+      if (focusId && mergedTasks.some((task) => task.id === focusId)) {
+        setMatchingTaskId(focusId);
+      }
       setDataMode(result.mode);
+      if (focusId && mergedTasks.some((task) => task.id === focusId) && !result.data.some((task) => task.id === focusId)) {
+        setOperationLog((current) => [`${focusId} chargée depuis le backlog missions.`, ...current].slice(0, 6));
+      }
     });
     return () => {
       mounted = false;
     };
   }, []);
 
+  useEffect(() => {
+    if (!focusMissionId) return;
+    setTasks((current) => {
+      const merged = mergeFocusedBacklogIntoDispatchTasks(current, focusMissionId);
+      return merged.length === current.length ? current : merged;
+    });
+    setSelectedTaskId(focusMissionId);
+    setMatchingTaskId(focusMissionId);
+  }, [focusMissionId]);
+
   const hasFocus = Boolean(focusMissionId || focusAlertTitle || focusType || focusZone);
+  const isBacklogDispatch = Boolean(focusMissionId && !focusAlertTitle && !focusType && !focusZone);
   const visibleTasks = useMemo(
     () =>
       tasks.filter(
@@ -230,6 +263,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
       ),
     [focusMissionId, focusType, focusZone, hasFocus, tasks]
   );
+  const hasFocusedMission = visibleTasks.length > 0;
   const urgentTasks = visibleTasks.filter((task) => task.priority === 'urgent' || task.queueMinutes >= 15);
   const mobileQueue = useMemo(() => {
     const filtered = visibleTasks.filter((task) => {
@@ -279,6 +313,9 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
     setIsSavingAction(true);
     if (dataMode === 'backend') {
       try {
+        if (task.taskStatus === 'open_market') {
+          await realApi.claimLogisticsTask(task.shipmentId || task.id);
+        }
         await realApi.assignLogisticsTask(task.shipmentId || task.id, driver.id);
       } catch (error) {
         pushLog(`Backend indisponible, action conservée localement: ${error instanceof Error ? error.message : 'assignation'}`);
@@ -301,6 +338,8 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
     );
     setMatchingTaskId(null);
     setSelectedTaskId(task.id);
+    pilotTrackMissionStart(task.id);
+    pilotTrackAssignment(task.id);
     pushLog(`${task.id} assignée à ${driver.name}.`);
     setIsSavingAction(false);
   };
@@ -326,6 +365,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
     setTasks((current) => current.map((task) => (task.id === taskId ? { ...task, status: 'cancelled' } : task)));
     const nextVisibleTask = tasks.find((task) => task.id !== taskId && task.status !== 'cancelled');
     setSelectedTaskId(nextVisibleTask?.id ?? '');
+    pilotTrackCancellation(taskId);
     pushLog(`${taskId} annulée et retirée du tableau dispatch.`);
     setIsSavingAction(false);
   };
@@ -369,7 +409,9 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
   };
 
   const focusTitle = focusMissionId
-    ? `Mission ciblée depuis l’alerte: ${focusMissionId}`
+    ? isBacklogDispatch
+      ? `Mission depuis le backlog: ${focusMissionId}`
+      : `Mission ciblée depuis l’alerte: ${focusMissionId}`
     : `Alerte missions ciblée: ${focusAlertTitle ?? (focusType === 'late' ? 'Retards opérationnels' : 'File d’attente')}`;
 
   return (
@@ -383,16 +425,26 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
       </div>
 
       {hasFocus && (
-        <div className="rounded-2xl border border-red-400/60 bg-red-500/10 p-4 text-sm text-content-primary">
+        <div
+          className={`rounded-2xl border p-4 text-sm text-content-primary ${
+            isBacklogDispatch && hasFocusedMission
+              ? 'border-brand-blue/40 bg-brand-blue/10'
+              : hasFocusedMission
+                ? 'border-amber-400/60 bg-amber-500/10'
+                : 'border-red-400/60 bg-red-500/10'
+          }`}
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-extrabold">{focusTitle}</p>
               <p className="mt-1 text-content-muted">
-                {visibleTasks.length > 0
-                  ? `Le Dispatch Center est filtré sur ${focusZone ? `la zone ${focusZone}` : 'le contexte de cette alerte'} pour éviter la liste générale.`
+                {hasFocusedMission
+                  ? isBacklogDispatch
+                    ? `La mission ${focusMissionId} est prête pour assignation chauffeur dans la file ci-dessous.`
+                    : `Le Dispatch Center est filtré sur ${focusZone ? `la zone ${focusZone}` : 'le contexte de cette alerte'} pour éviter la liste générale.`
                   : 'Aucune mission correspondante trouvée dans les données actuelles.'}
               </p>
-              {focusZone && <p className="mt-1 text-xs font-bold text-red-200">Zone ciblée: {focusZone}</p>}
+              {focusZone && <p className="mt-1 text-xs font-bold text-red-700 dark:text-red-200">Zone ciblée: {focusZone}</p>}
             </div>
             <button
               type="button"
@@ -414,7 +466,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
         </div>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_0.8fr] xl:grid-cols-[1.1fr_0.7fr_0.8fr]">
+      <section className="hidden xl:grid gap-4 lg:grid-cols-[1.3fr_0.8fr] xl:grid-cols-[1.1fr_0.7fr_0.8fr]">
         <div className={`${logisticsCard} p-5`}>
           <div className="flex items-center gap-2">
             <Icon name="warning" className="h-5 w-5 text-brand-orange" />
@@ -475,216 +527,83 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
         </div>
       </section>
 
-      <section className={`${logisticsCard} p-5`}>
-        <div className="flex items-center gap-2">
-          <Icon name="clock-history" className="h-5 w-5 text-brand-blue" />
-          <h2 className="text-lg font-black text-content-primary">Journal dispatch</h2>
-        </div>
-        <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-          {operationLog.map((item, index) => (
-            <div key={`${item}-${index}`} className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">
-              {item}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-4 xl:hidden">
-        <div className={`${logisticsCard} p-4`}>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-black text-content-primary">File dispatch mobile</h2>
-              <p className="mt-1 text-sm text-content-muted">Missions triées par urgence, attente et statut opérationnel.</p>
-            </div>
-            <span className="rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-black text-brand-blue">
-              {mobileQueue.length}
-            </span>
+      <section className="hidden xl:block">
+        <div className={`${logisticsCard} p-5`}>
+          <div className="flex items-center gap-2">
+            <Icon name="clock-history" className="h-5 w-5 text-brand-blue" />
+            <h2 className="text-lg font-black text-content-primary">Journal dispatch</h2>
           </div>
-          <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1">
-            {(Object.keys(mobileFilterLabel) as DispatchMobileFilter[]).map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setMobileFilter(filter)}
-                className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-full px-4 text-xs font-black ${
-                  mobileFilter === filter
-                    ? 'bg-brand-blue text-white'
-                    : 'bg-surface-muted text-content-muted hover:bg-surface-page'
-                }`}
-              >
-                {mobileFilterLabel[filter]}
-                <span className={mobileFilter === filter ? 'text-white/80' : 'text-content-muted'}>
-                  {mobileFilterCounts[filter]}
-                </span>
-              </button>
+          <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {operationLog.map((item, index) => (
+              <div key={`${item}-${index}`} className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">
+                {item}
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="space-y-3">
-          {mobileQueue.map((task) => {
-            const rankedDrivers = [...drivers]
-              .map((driver) => ({ driver, score: scoreDriver(task, driver) }))
-              .sort((a, b) => b.score - a.score);
-            return (
-              <article
-                key={`mobile-${task.id}`}
-                className={`rounded-[24px] border p-4 shadow-sm ${
-                  selectedTaskId === task.id
-                    ? 'border-brand-blue bg-brand-blue/5'
-                    : 'border-surface-border-subtle bg-surface-card'
-                }`}
-              >
-                <button type="button" onClick={() => setSelectedTaskId(task.id)} className="w-full text-left">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-black uppercase text-content-muted">{statusLabel[task.status]}</p>
-                      <h3 className="mt-1 truncate text-xl font-black text-content-primary">{task.id}</h3>
-                      <p className="mt-1 truncate text-sm font-bold text-content-muted">{task.customerName}</p>
-                    </div>
-                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-black ${
-                      task.priority === 'urgent'
-                        ? 'bg-red-100 text-red-700'
-                        : task.priority === 'high'
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-blue-100 text-brand-blue'
-                    }`}>
-                      {priorityLabel[task.priority]}
-                    </span>
-                  </div>
-                  <div className="mt-4 rounded-2xl bg-surface-muted p-3 text-sm">
-                    <div className="flex justify-between gap-3">
-                      <span className="text-content-muted">Pickup</span>
-                      <span className="text-right font-black text-content-primary">{task.pickupZone}</span>
-                    </div>
-                    <div className="mt-2 flex justify-between gap-3">
-                      <span className="text-content-muted">Destination</span>
-                      <span className="text-right font-black text-content-primary">{task.deliveryZone}</span>
-                    </div>
-                    <div className="mt-2 flex justify-between gap-3">
-                      <span className="text-content-muted">Attente</span>
-                      <span className="font-black text-content-primary">{task.queueMinutes} min · {task.distanceKm} km</span>
-                    </div>
-                  </div>
-                </button>
-
-                {task.driverName && (
-                  <p className="mt-3 rounded-2xl bg-surface-muted px-3 py-2 text-sm font-black text-content-primary">
-                    Chauffeur: {task.driverName} · charge {task.currentDriverLoad ?? 0}
-                  </p>
-                )}
-
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {task.status === 'pending' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedTaskId(task.id);
-                        setMatchingTaskId(matchingTaskId === task.id ? null : task.id);
-                      }}
-                      className="col-span-2 min-h-[48px] rounded-2xl bg-brand-blue px-3 text-sm font-black text-white"
-                    >
-                      Assigner chauffeur
-                    </button>
-                  )}
-                  {task.status === 'assigned' && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedTaskId(task.id);
-                          setMatchingTaskId(matchingTaskId === task.id ? null : task.id);
-                        }}
-                        className="min-h-[46px] rounded-2xl border border-surface-border-subtle px-3 text-xs font-black text-content-primary"
-                      >
-                        Réassigner
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveToTransit(task.id)}
-                        className="min-h-[46px] rounded-2xl bg-green-600 px-3 text-xs font-black text-white"
-                      >
-                        Démarrer
-                      </button>
-                    </>
-                  )}
-                  {task.status === 'in_transit' && (
-                    <button
-                      type="button"
-                      onClick={() => completeTask(task.id)}
-                      className="min-h-[46px] rounded-2xl bg-green-600 px-3 text-xs font-black text-white"
-                    >
-                      Terminer
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => prioritizeTask(task.id)}
-                    className="min-h-[46px] rounded-2xl border border-orange-200 px-3 text-xs font-black text-brand-orange"
-                  >
-                    Prioriser
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openTracking(task)}
-                    className="min-h-[46px] rounded-2xl border border-blue-200 px-3 text-xs font-black text-brand-blue"
-                  >
-                    Tracking
-                  </button>
-                  {task.status !== 'delivered' && (
-                    <button
-                      type="button"
-                      onClick={() => cancelTask(task.id)}
-                      className="col-span-2 min-h-[46px] rounded-2xl border border-red-200 px-3 text-xs font-black text-red-600"
-                    >
-                      Annuler
-                    </button>
-                  )}
-                </div>
-
-                {matchingTaskId === task.id && (
-                  <div className="mt-3 space-y-2 rounded-2xl bg-surface-muted p-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[11px] font-black uppercase text-content-muted">Matching chauffeur</p>
-                      {isSavingAction && <span className="text-[11px] font-bold text-brand-blue">Sauvegarde...</span>}
-                    </div>
-                    {rankedDrivers.slice(0, 5).map(({ driver, score }) => (
-                      <button
-                        key={driver.id}
-                        type="button"
-                        disabled={score < 0}
-                        onClick={() => {
-                          if (score >= 0) assignDriver(task, driver);
-                        }}
-                        className={`flex w-full items-center justify-between rounded-2xl bg-surface-card px-3 py-3 text-left text-xs ${
-                          score < 0 ? 'cursor-not-allowed opacity-60' : 'hover:bg-surface-page'
-                        }`}
-                      >
-                        <span>
-                          <span className="font-black text-content-primary">{driver.name}</span>
-                          <span className="block text-content-muted">
-                            {driver.zone} · {driver.status} · charge {driverLoad[driver.id] ?? 0}
-                          </span>
-                          {score < 0 && (
-                            <span className="block font-bold text-red-600">
-                              Assignation bloquée: {vehicleAvailability[driver.vehicleId ?? '']?.reason}
-                            </span>
-                          )}
-                        </span>
-                        <span className="font-black text-brand-blue">{score < 0 ? 'Bloqué' : score}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </article>
-            );
-          })}
-          {mobileQueue.length === 0 && (
-            <div className={`${logisticsCard} p-6 text-center text-sm font-bold text-content-muted`}>
-              Aucune mission dans ce filtre.
-            </div>
-          )}
-        </div>
+      <section className="xl:hidden">
+        <DispatcherMobileDashboard
+          missions={visibleTasks.map((task) => ({
+            id: task.id,
+            orderRef: task.orderId,
+            status: mapDispatchMissionStatus(task.status),
+            statusLabel: statusLabel[task.status],
+            priority: task.priority,
+            clientName: task.customerName,
+            pickupZone: task.pickupZone,
+            deliveryZone: task.deliveryZone,
+            distance: `${task.distanceKm} km`,
+            eta: `${task.queueMinutes} min`,
+            queueMinutes: task.queueMinutes,
+            driverName: task.driverName,
+          }))}
+          drivers={drivers.map((driver) => ({
+            id: driver.id,
+            name: driver.name,
+            zone: driver.zone,
+            status: driver.status === 'available' ? 'available' as const : 'busy' as const,
+            score: 0,
+            load: driverLoad[driver.id] ?? 0,
+            vehicleAvailable: vehicleAvailability[driver.vehicleId]?.available ?? true,
+          }))}
+          resolveDriverScore={(missionId, driverCandidate) => {
+            const task = tasks.find((item) => item.id === missionId);
+            const driver = drivers.find((item) => item.id === driverCandidate.id);
+            if (task && driver) return scoreDriver(task, driver);
+            return driverCandidate.score;
+          }}
+          stats={{
+            total: tasks.length,
+            urgent: tasks.filter((task) => task.priority === 'urgent').length,
+            pending: tasks.filter((task) => task.status === 'pending').length,
+            active: tasks.filter((task) => task.status === 'assigned' || task.status === 'in_transit').length,
+          }}
+          onSelectMission={setSelectedTaskId}
+          onAssignDriver={(missionId, driverId) => {
+            const task = tasks.find((item) => item.id === missionId);
+            const driver = drivers.find((item) => item.id === driverId);
+            if (task && driver) assignDriver(task, driver);
+          }}
+          onStartMission={moveToTransit}
+          onCompleteMission={completeTask}
+          onPrioritize={prioritizeTask}
+          onCancel={cancelTask}
+          onRefresh={() => {
+            getDispatchTasks(initialTasks).then((result) => {
+              const merged = mergeFocusedBacklogIntoDispatchTasks(result.data, focusMissionId);
+              setTasks(merged);
+              setDataMode(result.mode);
+              pushLog('File dispatch actualisée.');
+            });
+          }}
+          onOpenTracking={(missionId) => {
+            const task = tasks.find((item) => item.id === missionId);
+            if (task) openTracking(task);
+          }}
+          isSaving={isSavingAction}
+        />
       </section>
 
       <section className="-mx-1 hidden gap-4 sm:mx-0 xl:grid xl:grid-cols-4">

@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { MobileMissionCard } from '../../components/logistics/MobileMissionCard';
+import { TripDetailsMobile } from '../../components/logistics/TripDetailsMobile';
 import type { LogisticsStatus, Trip, TripTimelineEvent } from '../../components/logistics/logistics-types';
 import { getTrips, type DataMode } from '../../services/logistics-api';
 import { logisticsCard } from './logistics-ui';
+import { CARD, TYPO, SPACING } from '../../components/ui/tokens';
 
 interface DetailedTrip extends Trip {
   customerName: string;
@@ -219,26 +221,31 @@ export const LogisticsTripDetails: React.FC = () => {
         )}
 
         <div className="lg:hidden">
-          <MobileMissionCard
-            missionId={selectedTrip.taskId}
-            status={selectedTrip.status}
-            statusLabel={statusLabel[selectedTrip.status]}
-            customerName={selectedTrip.customerName}
-            pickupLabel={selectedTrip.pickupAddress}
-            deliveryLabel={selectedTrip.deliveryAddress}
-            etaLabel={`${selectedTrip.etaMinutes} min`}
-            distanceLabel={`${selectedTrip.distanceKm} km`}
-            driverName={selectedTrip.driverName}
-            vehiclePlate={selectedTrip.vehiclePlate}
-            primaryActionLabel={primaryActionLabel}
-            onPrimaryAction={() => updateStatus(selectedTrip.status === 'delivered' ? 'in_transit' : 'delivered')}
-            onCallDriver={() => pushAction(`Contact chauffeur: ${selectedTrip.driverName}`)}
-            onCallCustomer={() => pushAction(`Contact client: ${selectedTrip.customerName}`)}
-            onProof={() => pushAction(`Preuve demandée pour ${selectedTrip.taskId}`)}
+          <TripDetailsMobile
+            trip={{
+              ...selectedTrip,
+              distanceKm: selectedTrip.distanceKm ?? 0,
+              etaMinutes: selectedTrip.etaMinutes ?? 0,
+              estimatedDurationMinutes: selectedTrip.estimatedDurationMinutes ?? 30,
+              pickupAddress: selectedTrip.origin,
+              deliveryAddress: selectedTrip.destination,
+            }}
+            onBack={() => window.history.back()}
+            onCallDriver={() => {
+              if (selectedTrip.driverPhone) window.open(`tel:${selectedTrip.driverPhone}`, '_self');
+              else pushAction(`Contact chauffeur: ${selectedTrip.driverName}`);
+            }}
+            onCallCustomer={() => {
+              if (selectedTrip.clientPhone) window.open(`tel:${selectedTrip.clientPhone}`, '_self');
+              else pushAction(`Contact client: ${selectedTrip.customerName}`);
+            }}
             onIncident={() => updateStatus('failed')}
+            onDelay={() => updateStatus('delayed')}
+            onUpdateStatus={updateStatus}
           />
         </div>
 
+        <div className="hidden lg:block space-y-6">
         <section className={`${logisticsCard} overflow-hidden`}>
           <div className="flex flex-col gap-4 border-b border-surface-border-subtle p-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -330,9 +337,10 @@ export const LogisticsTripDetails: React.FC = () => {
             </button>
           </div>
         </section>
+        </div>
       </section>
 
-      <aside className="space-y-6">
+      <aside className="hidden lg:block space-y-6">
         <section className={`${logisticsCard} p-5`}>
           <h2 className="text-lg font-black text-content-primary">Trajets</h2>
           <div className="mt-4 space-y-3">

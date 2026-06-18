@@ -3,8 +3,10 @@ import { Icon } from '../components/Icon';
 import { NotificationBell } from '../components/NotificationBell';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { LogisticsSidebar } from '../components/logistics/LogisticsSidebar';
+import { LogisticsMobileNav } from '../components/logistics/LogisticsMobileNav';
 import { isLogisticsSection, LogisticsSection } from '../components/logistics/logistics-types';
 import { useAppContext } from '../context/AppContext';
+import { useRealTimeAlerts } from '../hooks/useRealTimeAlerts';
 import { LogisticsAlerts } from './logistics/LogisticsAlerts';
 import { LogisticsDrivers } from './logistics/LogisticsDrivers';
 import { LogisticsDispatch } from './logistics/LogisticsDispatch';
@@ -18,6 +20,8 @@ import { LogisticsSettings } from './logistics/LogisticsSettings';
 import { LogisticsShipments } from './logistics/LogisticsShipments';
 import { LogisticsTracking } from './logistics/LogisticsTracking';
 import { LogisticsTripDetails } from './logistics/LogisticsTripDetails';
+import { PilotDashboard } from '../components/pilot/PilotDashboard';
+import { pilotConfig } from '../config/pilot';
 
 const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string }> = {
   dashboard: {
@@ -72,6 +76,10 @@ const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string
     title: 'Paramètres',
     subtitle: 'Notifications, dispatch automatique et zones.',
   },
+  pilot: {
+    title: 'Pilote terrain',
+    subtitle: 'Métriques opérationnelles du pilote Laundry Express.',
+  },
 };
 
 const LogisticsTopbar: React.FC<{
@@ -105,7 +113,16 @@ const LogisticsDesktopBar: React.FC<{ userName: string }> = ({ userName }) => (
 );
 
 export const LogisticsDashboardPage: React.FC = () => {
-  const { user, addNotification, logout, setCurrentPage } = useAppContext();
+  const {
+    user,
+    addNotification,
+    logout,
+    setCurrentPage,
+    openLogisticsMissionForOrderId,
+    setOpenLogisticsMissionForOrderId,
+  } = useAppContext();
+  const { alerts } = useRealTimeAlerts({ enabled: true });
+  const alertCount = alerts.length;
   const [activeSection, setActiveSection] = useState<LogisticsSection>(() => {
     const hash = window.location.hash.replace('#', '');
     return isLogisticsSection(hash) ? hash : 'dashboard';
@@ -210,6 +227,12 @@ export const LogisticsDashboardPage: React.FC = () => {
   }, [clearFocus]);
 
   useEffect(() => {
+    if (!openLogisticsMissionForOrderId) return;
+    handleSectionChange('missions', { missionId: openLogisticsMissionForOrderId });
+    setOpenLogisticsMissionForOrderId(null);
+  }, [openLogisticsMissionForOrderId, handleSectionChange, setOpenLogisticsMissionForOrderId]);
+
+  useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash.replace('#', '');
       if (isLogisticsSection(hash)) {
@@ -291,6 +314,8 @@ export const LogisticsDashboardPage: React.FC = () => {
             focusType={missionFocusType}
             focusZone={missionFocusZone}
             onClearFocus={clearFocus}
+            onNavigate={handleSectionChange}
+            onActionFeedback={(message) => addNotification(message, 'info')}
           />
         );
       case 'drivers':
@@ -311,6 +336,8 @@ export const LogisticsDashboardPage: React.FC = () => {
         return <LogisticsReports focusAlertTitle={reportFocusAlert} focusMissionId={missionFocusId} onClearFocus={clearFocus} />;
       case 'settings':
         return <LogisticsSettings />;
+      case 'pilot':
+        return <PilotDashboard />;
       case 'dashboard':
       default:
         return (
@@ -318,6 +345,8 @@ export const LogisticsDashboardPage: React.FC = () => {
             onRefresh={handleRefresh}
             onAutoDispatch={handleAutoDispatch}
             onExport={handleExport}
+            onNavigate={handleSectionChange}
+            onActionFeedback={(message) => addNotification(message, 'info')}
           />
         );
     }
@@ -330,6 +359,7 @@ export const LogisticsDashboardPage: React.FC = () => {
         onSectionClick={handleSectionChange}
         onNavigateHome={() => setCurrentPage({ name: 'home' })}
         onLogout={logout}
+        alertCount={alertCount}
       />
 
       {isSidebarOpen && (
@@ -347,6 +377,7 @@ export const LogisticsDashboardPage: React.FC = () => {
               }}
               onNavigateHome={() => setCurrentPage({ name: 'home' })}
               onLogout={logout}
+              alertCount={alertCount}
             />
           </div>
         </div>
@@ -354,7 +385,7 @@ export const LogisticsDashboardPage: React.FC = () => {
 
       <LogisticsTopbar title={sectionMeta.title} onMenuClick={() => setIsSidebarOpen(true)} />
 
-      <main className="relative z-0 px-3 pb-8 pt-[88px] sm:px-4 md:ml-[260px] md:px-8 md:pt-6">
+      <main className="relative z-0 px-3 pb-24 pt-[88px] sm:px-4 md:ml-[260px] md:px-8 md:pb-8 md:pt-6">
         <div key={activeSection} className="mx-auto max-w-[1500px] space-y-5 sm:space-y-6">
           <LogisticsDesktopBar userName={userName} />
 
@@ -377,6 +408,12 @@ export const LogisticsDashboardPage: React.FC = () => {
           {renderContent()}
         </div>
       </main>
+
+      <LogisticsMobileNav
+        activeSection={activeSection}
+        alertCount={alertCount}
+        onSectionChange={handleSectionChange}
+      />
     </div>
   );
 };

@@ -11,6 +11,7 @@
     "check:repo-safety": "node scripts/check_repo_safety.mjs",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:mobile-logistics": "vitest components/ui/__tests__/MobileButton.mobile.test.tsx components/ui/__tests__/BottomSheet.mobile.test.tsx components/ui/__tests__/HorizontalFilter.mobile.test.tsx components/ui/__tests__/StatusChip.mobile.test.tsx components/driver/__tests__/DriverMobileDashboard.mobile.test.tsx components/dispatcher/__tests__/DispatcherMobileDashboard.mobile.test.tsx components/logistics/__tests__/TrackingMobile.mobile.test.tsx components/logistics/__tests__/TripDetailsMobile.mobile.test.tsx components/tracking/__tests__/ClientMobileDashboard.mobile.test.tsx components/pilot/__tests__/PilotDashboard.mobile.test.tsx",
     "test:seeded-credentials": "python scripts/verify_seeded_credentials.py",
     "test:role-access": "python scripts/verify_role_access_matrix.py",
     "test:role-drift": "python scripts/detect_legacy_role_drift.py",

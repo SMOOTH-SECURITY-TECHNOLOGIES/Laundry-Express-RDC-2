@@ -219,12 +219,14 @@ const toBackendVehiclePayload = (vehicle: Vehicle): LogisticsVehicleUpsertReques
 };
 
 export const LogisticsFleet: React.FC = () => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
   const [assigningVehicleId, setAssigningVehicleId] = useState<string | null>(null);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<string>(initialVehicles[0]?.id ?? '');
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
   const [filter, setFilter] = useState<FleetFilter>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | Vehicle['type']>('all');
   const [query, setQuery] = useState('');
@@ -263,11 +265,18 @@ export const LogisticsFleet: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
+    setIsLoading(true);
+    setLoadError(null);
     getVehicles(initialVehicles).then((result) => {
       if (!mounted) return;
       setVehicles(result.data);
       setSelectedVehicleId(result.data[0]?.id ?? '');
       setDataMode(result.mode);
+      if (result.mode === 'degraded') {
+        setLoadError(result.reason || 'Backend indisponible — flotte locale affichée.');
+      }
+    }).finally(() => {
+      if (mounted) setIsLoading(false);
     });
     return () => {
       mounted = false;
@@ -451,8 +460,39 @@ export const LogisticsFleet: React.FC = () => {
           ? 'border-green-200 bg-green-50 text-green-700'
           : 'border-orange-200 bg-orange-50 text-orange-700'
       }`}>
-        {dataMode === 'backend' ? 'Données véhicules connectées au backend' : 'Mode dégradé — données véhicules locales'}
+        {dataMode === 'backend' ? 'Flotte de votre compagnie connectée au backend' : 'Mode dégradé — données véhicules locales'}
       </div>
+
+      {loadError && (
+        <div className="rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {loadError}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className={`${logisticsCard} p-8 text-center text-sm text-content-muted`}>
+          Chargement de la flotte de votre compagnie...
+        </div>
+      ) : null}
+
+      {!isLoading && dataMode === 'backend' && vehicles.length === 0 ? (
+        <div className={`${logisticsCard} p-8 text-center`}>
+          <p className="text-base font-bold text-content-primary">Aucun véhicule enregistré</p>
+          <p className="mt-2 text-sm text-content-muted">
+            Ajoutez un véhicule pour constituer la flotte de votre compagnie logistique.
+          </p>
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700"
+          >
+            Ajouter un véhicule
+          </button>
+        </div>
+      ) : null}
+
+      {!isLoading && vehicles.length > 0 ? (
+      <>
 
       {actionMessage && (
         <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">
@@ -489,12 +529,13 @@ export const LogisticsFleet: React.FC = () => {
                 <Icon name="truck" className="h-5 w-5 text-brand-blue" />
                 <h2 className="text-lg font-black text-content-primary">Fleet Management</h2>
               </div>
-              <p className="mt-1 text-sm text-content-muted">Moto, voiture et camionnette rattachées aux opérations Laundry Express.</p>
+              <p className="mt-1 text-sm text-content-muted">Flotte rattachée à votre compagnie logistique.</p>
             </div>
             <button
               type="button"
               onClick={openCreateForm}
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700"
+              disabled={dataMode !== 'backend'}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-sm font-black text-white hover:bg-brand-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Icon name="plus" className="h-4 w-4" />
               Ajouter véhicule
@@ -826,6 +867,8 @@ export const LogisticsFleet: React.FC = () => {
           </aside>
         )}
       </section>
+      </>
+      ) : null}
     </div>
   );
 };

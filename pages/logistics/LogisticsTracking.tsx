@@ -1,9 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Icon } from '../../components/Icon';
 import { MobileMissionCard } from '../../components/logistics/MobileMissionCard';
+import { LiveTrackingMap } from '../../components/tracking/LiveTrackingMap';
+import { TrackingMobile } from '../../components/logistics/TrackingMobile';
 import type { LogisticsStatus, TrackingPoint, Trip, TripTimelineEvent } from '../../components/logistics/logistics-types';
 import { getTrackingPoints, getTrips, type DataMode } from '../../services/logistics-api';
+import { usePolling } from '../../hooks/usePolling';
+import { useRealTimeTracking } from '../../hooks/useRealTimeTracking';
 import { logisticsCard } from './logistics-ui';
+import { CARD, TYPO, SPACING } from '../../components/ui/tokens';
 
 type TrackingStatus = 'available' | 'busy' | 'delayed' | 'offline';
 type TrackingFilter = 'all' | TrackingStatus;
@@ -242,6 +247,37 @@ const toLiveTrip = (trip: Trip): LiveTrip => {
   };
 };
 
+const KINSHASA_FALLBACK = {
+  pickup: { lat: -4.315, lng: 15.308 },
+  delivery: { lat: -4.329, lng: 15.296 },
+};
+
+const positionsForTrip = (tripId: string, points: TrackingPoint[]) => {
+  const tripPoints = points.filter((point) => point.tripId === tripId);
+  const driverPoint = tripPoints.find((point) => point.kind === 'driver' || point.kind === 'vehicle');
+  const pickupPoint = tripPoints.find((point) => point.kind === 'pickup');
+  const deliveryPoint = tripPoints.find((point) => point.kind === 'delivery');
+
+  return {
+    driverPosition: driverPoint
+      ? { lat: driverPoint.latitude, lng: driverPoint.longitude }
+      : undefined,
+    pickupPosition: pickupPoint
+      ? { lat: pickupPoint.latitude, lng: pickupPoint.longitude }
+      : KINSHASA_FALLBACK.pickup,
+    deliveryPosition: deliveryPoint
+      ? { lat: deliveryPoint.latitude, lng: deliveryPoint.longitude }
+      : KINSHASA_FALLBACK.delivery,
+  };
+};
+
+type TrackingSnapshot = {
+  trips: LiveTrip[];
+  points: TrackingPoint[];
+  dataMode: DataMode;
+  syncTime: string;
+};
+
 export const LogisticsTracking: React.FC = () => {
   const [activeTripId, setActiveTripId] = useState(() => sessionStorage.getItem('logisticsFocusTripId') || 'trip-001');
   const [liveTrips, setLiveTrips] = useState<LiveTrip[]>(fallbackLiveTrips);
@@ -253,26 +289,42 @@ export const LogisticsTracking: React.FC = () => {
   const [trackingFilter, setTrackingFilter] = useState<TrackingFilter>('all');
   const [lastSyncAt, setLastSyncAt] = useState('10:19');
 
-  useEffect(() => {
-    let mounted = true;
-    Promise.all([
+  const fetchTrackingSnapshot = useCallback(async (): Promise<TrackingSnapshot> => {
+    const [tripResult, pointResult] = await Promise.all([
       getTrips(fallbackLiveTrips),
       getTrackingPoints(fallbackTrackingPoints),
-    ]).then(([tripResult, pointResult]) => {
-      if (!mounted) return;
-      const nextTrips = tripResult.data.map(toLiveTrip);
-      setLiveTrips(nextTrips);
-      setTrackingPoints(pointResult.data);
-      setDataMode(tripResult.mode === 'backend' || pointResult.mode === 'backend' ? 'backend' : 'degraded');
-      if (nextTrips.length > 0 && !nextTrips.some((trip) => trip.id === activeTripId)) {
-        setActiveTripId(nextTrips[0].id);
-        sessionStorage.setItem('logisticsFocusTripId', nextTrips[0].id);
-      }
-    });
-    return () => {
-      mounted = false;
+    ]);
+    return {
+      trips: tripResult.data.map(toLiveTrip),
+      points: pointResult.data,
+      dataMode: tripResult.mode === 'backend' || pointResult.mode === 'backend' ? 'backend' : 'degraded',
+      syncTime: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
     };
   }, []);
+
+  const { refresh: refreshTrackingPoll } = usePolling({
+    fetcher: fetchTrackingSnapshot,
+    interval: 30000,
+    onData: (snapshot) => {
+      setLiveTrips(snapshot.trips);
+      setTrackingPoints(snapshot.points);
+      setDataMode(snapshot.dataMode);
+      setLastSyncAt(snapshot.syncTime);
+    },
+  });
+
+  const { mode: liveTrackingMode, refresh: refreshLiveTracking } = useRealTimeTracking({ interval: 30000 });
+  const effectiveDataMode: DataMode =
+    dataMode === 'backend' || liveTrackingMode === 'backend' ? 'backend' : 'degraded';
+
+  const refreshTracking = () => {
+    Promise.all([refreshTrackingPoll(), refreshLiveTracking()])
+      .then(() => {
+        const syncTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        setActionMessage(`Positions actualisées à ${syncTime}`);
+      })
+      .catch(() => setActionMessage('Impossible d’actualiser le tracking.'));
+  };
 
   const activeTripBase = liveTrips.find((trip) => trip.id === activeTripId) ?? liveTrips[0];
   const activeStatus = tripOverrides[activeTripBase.id] ?? activeTripBase.status;
@@ -331,12 +383,6 @@ export const LogisticsTracking: React.FC = () => {
     sessionStorage.setItem('logisticsFocusTripId', tripId);
   };
 
-  const refreshTracking = () => {
-    const nextSync = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    setLastSyncAt(nextSync);
-    setActionMessage(`Positions actualisées à ${nextSync}`);
-  };
-
   const openTripDetails = () => {
     sessionStorage.setItem('logisticsFocusTripId', activeTrip.id);
   };
@@ -349,14 +395,64 @@ export const LogisticsTracking: React.FC = () => {
         : 'Terminer mission';
 
   return (
-    <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.45fr_0.75fr]">
+    <div className="space-y-4">
+      {/* Mobile-only tracking view */}
+      <div className="space-y-4 xl:hidden">
+        <LiveTrackingMap
+          trips={filteredTrips.map((t) => ({
+            id: t.id,
+            taskId: t.taskId,
+            status: t.status,
+            statusLabel: t.statusLabel,
+            trackingStatus: t.trackingStatus,
+            origin: t.origin,
+            destination: t.destination,
+            etaMinutes: t.etaMinutes,
+            distanceKm: t.distanceKm,
+            customerName: t.customerName,
+            driverName: t.driverName,
+            vehiclePlate: t.vehiclePlate,
+            ...positionsForTrip(t.id, trackingPoints),
+          }))}
+          activeTripId={activeTrip?.id || ''}
+          onSelectTrip={focusTrip}
+          onRefresh={refreshTracking}
+          lastSyncAt={lastSyncAt}
+          onCallDriver={(phone) => {
+            if (phone) window.open(`tel:${phone}`, '_self');
+          }}
+          onOpenDetails={() => openTripDetails()}
+        />
+        <TrackingMobile
+          trips={filteredTrips.map((t) => ({
+            id: t.id,
+            taskId: t.taskId,
+            status: t.status,
+            statusLabel: t.statusLabel,
+            trackingStatus: t.trackingStatus,
+            origin: t.origin,
+            destination: t.destination,
+            etaMinutes: t.etaMinutes ?? 0,
+            distanceKm: t.distanceKm ?? 0,
+            customerName: t.customerName,
+            driverName: t.driverName,
+            vehiclePlate: t.vehiclePlate,
+          }))}
+          onSelectTrip={focusTrip}
+          onRefresh={refreshTracking}
+          lastSyncAt={lastSyncAt}
+        />
+      </div>
+
+      {/* Desktop tracking view */}
+      <div className="hidden xl:grid xl:grid-cols-[1.45fr_0.75fr]">
       <section className={`${logisticsCard} overflow-hidden`}>
         <div className={`border-b px-4 py-3 text-sm font-bold ${
-          dataMode === 'backend'
+          effectiveDataMode === 'backend'
             ? 'border-green-200 bg-green-50 text-green-700'
             : 'border-orange-200 bg-orange-50 text-orange-700'
         }`}>
-          {dataMode === 'backend' ? 'Tracking connecté au backend' : 'Mode dégradé — dernières positions locales'}
+          {effectiveDataMode === 'backend' ? 'Tracking connecté au backend' : 'Mode dégradé — dernières positions locales'}
         </div>
         <div className="flex flex-col gap-4 border-b border-surface-border-subtle p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -693,6 +789,7 @@ export const LogisticsTracking: React.FC = () => {
           </div>
         </section>
       </aside>
+      </div>
     </div>
   );
 };

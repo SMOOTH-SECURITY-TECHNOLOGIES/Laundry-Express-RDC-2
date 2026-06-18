@@ -1,4 +1,5 @@
 import { realApi, type LogisticsDriver, type LogisticsTask } from './real-api';
+import { mapLogisticsTaskViaTms } from '../lib/tms/generic-mission';
 import type { DispatchTask, Driver, LogisticsStatus, MaintenanceEvent, TrackingPoint, Trip, Vehicle } from '../components/logistics/logistics-types';
 
 export type DataMode = 'backend' | 'degraded';
@@ -116,29 +117,8 @@ export const mapLogisticsDriver = (driver: LogisticsDriver): Driver => ({
   vehicleId: driver.license_number ? `vehicle-${driver.license_number}` : undefined,
 });
 
-export const mapLogisticsTask = (task: LogisticsTask, drivers: Driver[] = []): DispatchTask => {
-  const assignedDriver = task.driver_id ? drivers.find((driver) => driver.id === task.driver_id) : undefined;
-  const createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
-  const queueMinutes = Number.isFinite(createdAt) ? Math.max(0, Math.round((Date.now() - createdAt) / 60000)) : 0;
-
-  return {
-    id: task.order_number || task.id,
-    orderId: task.order_id,
-    shipmentId: task.id,
-    status: mapStatus(task.status),
-    customerName: task.customer_name || task.pickup_contact_name || 'Client Laundry',
-    pickupAddress: task.pickup_address_line || task.pickup_address_label || 'Adresse pickup',
-    pickupZone: task.pickup_commune || 'Kinshasa',
-    deliveryZone: task.delivery_commune || task.dropoff_location_type || 'Kinshasa',
-    distanceKm: 2.4,
-    queueMinutes,
-    priority: queueMinutes >= 20 ? 'urgent' : queueMinutes >= 10 ? 'high' : 'normal',
-    driverId: assignedDriver?.id ?? task.driver_id ?? undefined,
-    driverName: assignedDriver?.name,
-    vehicleId: assignedDriver?.vehicleId,
-    currentDriverLoad: assignedDriver ? 1 : undefined,
-  };
-};
+export const mapLogisticsTask = (task: LogisticsTask, drivers: Driver[] = []): DispatchTask =>
+  mapLogisticsTaskViaTms(task, drivers);
 
 const formatTaskTime = (value?: string | null) => {
   if (!value) return '--:--';
@@ -166,6 +146,52 @@ export const dispatchTaskToBacklogMission = (task: DispatchTask, index = 0): Log
   amount: 2500 + (index % 7) * 850,
   time: formatTaskTime(undefined),
 });
+
+export const LOGISTICS_DISPATCH_BACKLOG_KEY = 'logisticsDispatchBacklogMission';
+
+export const storeBacklogMissionForDispatch = (mission: LogisticsBacklogMission): void => {
+  sessionStorage.setItem(LOGISTICS_DISPATCH_BACKLOG_KEY, JSON.stringify(mission));
+};
+
+export const readBacklogMissionForDispatch = (missionId?: string | null): LogisticsBacklogMission | null => {
+  const raw = sessionStorage.getItem(LOGISTICS_DISPATCH_BACKLOG_KEY);
+  if (!raw) return null;
+  try {
+    const mission = JSON.parse(raw) as LogisticsBacklogMission;
+    if (missionId && mission.id !== missionId) return null;
+    return mission;
+  } catch {
+    return null;
+  }
+};
+
+export const backlogMissionToDispatchTask = (mission: LogisticsBacklogMission): DispatchTask => {
+  const deliveryZone = mission.delivery.split(',')[0]?.trim() || mission.commune;
+  const numericId = mission.id.replace(/\D/g, '') || '0';
+  return {
+    id: mission.id,
+    orderId: `LX-${numericId.padStart(4, '0')}`,
+    shipmentId: `shp-${numericId.padStart(3, '0')}`,
+    status: 'pending',
+    customerName: mission.client,
+    pickupAddress: mission.pickup,
+    pickupZone: mission.commune,
+    deliveryZone,
+    distanceKm: mission.distance,
+    queueMinutes: Math.max(5, Math.round(mission.distance * 4)),
+    priority: mission.distance >= 5 || mission.amount >= 4000 ? 'urgent' : mission.distance >= 3 ? 'high' : 'normal',
+  };
+};
+
+export const mergeFocusedBacklogIntoDispatchTasks = (
+  tasks: DispatchTask[],
+  focusMissionId?: string | null
+): DispatchTask[] => {
+  if (!focusMissionId || tasks.some((task) => task.id === focusMissionId)) return tasks;
+  const backlogMission = readBacklogMissionForDispatch(focusMissionId);
+  if (!backlogMission) return tasks;
+  return [backlogMissionToDispatchTask(backlogMission), ...tasks];
+};
 
 export const dispatchTaskToMissionRow = (task: DispatchTask): LogisticsMissionRow => ({
   id: task.id,
@@ -308,10 +334,35 @@ export const getLogisticsDrivers = async (fallback: LogisticsDriverProfile[]): P
   try {
     const response = await realApi.getLogisticsDrivers({ page: 1, page_size: 100 });
     const drivers = response.drivers.map(mapLogisticsDriverProfile);
-    return drivers.length > 0 ? { data: drivers, mode: 'backend' } : fallbackResult(fallback, 'backend drivers empty');
+    return { data: drivers, mode: 'backend' };
   } catch (error) {
     return fallbackResult(fallback, error instanceof Error ? error.message : 'backend drivers unavailable');
   }
+};
+
+export interface LogisticsDriverCreateInput {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  vehicle: string;
+  vehiclePlate: string;
+  commune?: string;
+  notes?: string;
+}
+
+export const createLogisticsDriver = async (input: LogisticsDriverCreateInput): Promise<LogisticsDriverProfile> => {
+  const created = await realApi.createLogisticsDriver({
+    name: input.name.trim(),
+    email: input.email.trim(),
+    phone: input.phone.trim(),
+    password: input.password,
+    vehicle_type: input.vehicle,
+    license_number: input.vehiclePlate || undefined,
+    status: 'active',
+    is_available: true,
+  });
+  return mapLogisticsDriverProfile(created);
 };
 
 export const getMissionRows = async (
@@ -360,7 +411,7 @@ export const getLogisticsAlerts = async (fallback: LogisticsAlertRow[]): Promise
 export const getVehicles = async (fallback: Vehicle[]): Promise<LogisticsDataResult<Vehicle[]>> => {
   try {
     const response = await realApi.getVehicles();
-    return response.vehicles.length > 0 ? { data: response.vehicles, mode: 'backend' } : fallbackResult(fallback, 'backend vehicles empty');
+    return { data: response.vehicles, mode: 'backend' };
   } catch (error) {
     return fallbackResult(fallback, error instanceof Error ? error.message : 'backend vehicles unavailable');
   }

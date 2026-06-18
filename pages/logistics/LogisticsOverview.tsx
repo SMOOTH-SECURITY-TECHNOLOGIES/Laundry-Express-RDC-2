@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Icon } from '../../components/Icon';
+import { StatusBadge } from '../../components/ui/StatusBadge';
+import { DispatcherMobileUrgency } from '../../components/dispatcher/DispatcherMobileUrgency';
 import { logisticsCard } from './logistics-ui';
 import BacklogBoard from './BacklogBoard';
 import ReadyDriversPanel from './ReadyDriversPanel';
@@ -12,16 +14,21 @@ import {
   driverProfileToReadyDriver,
   getLogisticsDrivers,
   getMissionRows,
+  storeBacklogMissionForDispatch,
   type DataMode,
   type LogisticsBacklogMission,
   type LogisticsMissionRow,
   type LogisticsReadyDriver,
 } from '../../services/logistics-api';
+import { useRealTimeAlerts } from '../../hooks/useRealTimeAlerts';
+import { useRealTimeTracking } from '../../hooks/useRealTimeTracking';
 
 interface LogisticsOverviewProps {
   onRefresh: () => void;
   onAutoDispatch: () => void;
   onExport: () => void;
+  onNavigate?: (section: string, options?: { missionId?: string }) => void;
+  onActionFeedback?: (message: string) => void;
 }
 
 type DispatcherTab = 'operations' | 'dispatch' | 'tours' | 'missions' | 'drivers' | 'performance';
@@ -393,8 +400,10 @@ const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> =
   </div>
 );
 
-export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport }) => {
+export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport, onNavigate, onActionFeedback }) => {
   const [activeTab, setActiveTab] = useState<DispatcherTab>('operations');
+  const { alerts, criticalCount, refresh: refreshAlerts } = useRealTimeAlerts();
+  const { data: liveTracking, mode: liveTrackingMode, refresh: refreshLiveTracking } = useRealTimeTracking();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [backlog, setBacklog] = useState<LogisticsBacklogMission[]>(MOCK_BACKLOG);
@@ -434,13 +443,50 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
     };
   }, []);
 
-  const liveOpenMissionsCount = backlog.length;
-  const liveActiveMissionsCount = activeMissions.length;
+  const liveOpenMissionsCount = liveTrackingMode === 'backend' && liveTracking.tasks.length > 0
+    ? liveTracking.tasks.filter((task) => task.status === 'pending' || task.status === 'open_market').length
+    : backlog.length;
+  const liveActiveMissionsCount = liveTrackingMode === 'backend' && liveTracking.tasks.length > 0
+    ? liveTracking.tasks.filter((task) => ['driver_assigned', 'accepted', 'in_progress'].includes(task.status)).length
+    : activeMissions.length;
   const liveTotalMissionFlow = liveOpenMissionsCount + liveActiveMissionsCount;
   const liveActiveMissionRate = liveTotalMissionFlow > 0 ? Math.round((liveActiveMissionsCount / liveTotalMissionFlow) * 100) : 0;
-  const liveTotalDriversCount = readyDrivers.length;
-  const liveAvailableDriversCount = readyDrivers.filter((driver) => driver.status === 'Disponible').length;
+  const liveTotalDriversCount = liveTrackingMode === 'backend' && liveTracking.drivers.length > 0
+    ? liveTracking.drivers.length
+    : readyDrivers.length;
+  const liveAvailableDriversCount = liveTrackingMode === 'backend' && liveTracking.drivers.length > 0
+    ? liveTracking.drivers.filter((driver) => driver.is_available).length
+    : readyDrivers.filter((driver) => driver.status === 'Disponible').length;
   const liveEstimatedBacklogRevenue = backlog.reduce((total, mission) => total + mission.amount, 0);
+
+  const urgentMissionsForMobile = useMemo(() => {
+    const delayAlerts = alerts.filter((alert) => alert.type === 'retard' || alert.type === 'attente');
+    if (delayAlerts.length > 0) {
+      return delayAlerts.map((alert, index) => ({
+        id: alert.id || `alert-${index}`,
+        customerName: alert.title.replace(/^Mission /, '').replace(/ en retard$/, ''),
+        pickupZone: alert.description.split('·')[1]?.trim() || alert.description,
+        deliveryZone: alert.description.split('·')[0]?.trim() || 'Kinshasa',
+        queueMinutes: Number.parseInt(alert.timestamp, 10) || 15,
+        priority: (alert.severity === 'high' ? 'urgent' : 'high') as 'urgent' | 'high',
+        status: 'pending',
+      }));
+    }
+    return backlog
+      .filter((mission) => mission.amount > 3000)
+      .map((mission) => ({
+        id: mission.id,
+        customerName: mission.client,
+        pickupZone: mission.commune,
+        deliveryZone: mission.delivery.split(',')[0],
+        queueMinutes: 15,
+        priority: 'urgent' as const,
+        status: 'pending',
+      }));
+  }, [alerts, backlog]);
+
+  const pendingCountForMobile = alerts.find((alert) => alert.id === 'pending-missions')?.count ?? liveOpenMissionsCount;
+
   const liveKpiCards = [
     { label: 'Missions ouvertes', value: String(liveOpenMissionsCount), sub: 'À assigner', icon: 'shoppingBag' as const, tone: 'bg-blue-50 text-brand-blue' },
     { label: 'Missions actives', value: String(liveActiveMissionsCount), sub: `${liveActiveMissionRate}% du flux`, icon: 'truck' as const, tone: 'bg-violet-50 text-violet-600' },
@@ -460,8 +506,10 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
   const handleRefresh = () => {
     setLoading((prev) => ({ ...prev, [activeTab]: true }));
     setTimeout(() => setLoading((prev) => ({ ...prev, [activeTab]: false })), 1200);
+    void refreshAlerts();
+    void refreshLiveTracking();
     onRefresh();
-    announceAction(`Section ${TABS.find((tab) => tab.key === activeTab)?.label || 'active'} rafraîchie.`);
+    announceAction(`Section ${TABS.find((tab) => tab.key === activeTab)?.label || 'active'} rafraîchie.${criticalCount > 0 ? ` ${criticalCount} alerte(s) critique(s).` : ''}`);
   };
 
   const renderTabContent = () => {
@@ -480,16 +528,40 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       case 'operations':
         return (
           <div className="space-y-6">
-            <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
-            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
+            {/* Mobile: Urgency-focused view */}
+            <div className="sm:hidden">
+              <DispatcherMobileUrgency
+                urgentMissions={urgentMissionsForMobile}
+                totalPending={pendingCountForMobile}
+                onSelectMission={(id) => announceAction(`Mission ${id} sélectionnée`)}
+                onAssignMission={(id) => announceAction(`Assignation de ${id} en cours`)}
+              />
+            </div>
+
+            {/* Desktop: Full operations view */}
+            <div className="hidden sm:block">
+              <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
+            </div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
               <div className={`${logisticsCard} p-5`}>
-                <BacklogBoard missions={backlog} />
+                <BacklogBoard
+                  missions={backlog}
+                  onMissionClick={(missionId) => {
+                    const mission = backlog.find((item) => item.id === missionId);
+                    if (mission) {
+                      storeBacklogMissionForDispatch(mission);
+                    }
+                    sessionStorage.setItem('logisticsFocusMissionId', missionId);
+                    onNavigate?.('dispatch', { missionId });
+                    onActionFeedback?.(`Ouverture du dispatch pour ${missionId}.`);
+                  }}
+                />
               </div>
               <div className={`${logisticsCard} p-5`}>
                 <ReadyDriversPanel drivers={readyDrivers} />
               </div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className={`${logisticsCard} p-5`}>
                 <DispatchMap />
               </div>

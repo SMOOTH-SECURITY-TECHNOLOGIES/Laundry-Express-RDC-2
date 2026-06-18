@@ -10,15 +10,16 @@ interface Mission {
 
 interface MissionTableProps {
   missions: Mission[];
+  onMissionView?: (missionId: string) => void;
 }
 
 const statusColor: Record<string, string> = {
-  'En cours': 'bg-blue-50 text-brand-blue',
-  'Assignée': 'bg-yellow-50 text-yellow-600',
-  'En attente': 'bg-gray-100 text-gray-600',
+  'En cours': 'bg-blue-50 text-brand-blue dark:bg-blue-950/30 dark:text-blue-200',
+  'Assignée': 'bg-amber-50 text-amber-800 dark:bg-yellow-950/30 dark:text-yellow-200',
+  'En attente': 'bg-slate-200 text-slate-800 dark:bg-gray-100 dark:text-gray-300',
 };
 
-export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
+export const MissionTable: React.FC<MissionTableProps> = ({ missions, onMissionView }) => {
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -28,11 +29,11 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
         </h2>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Icon name="search" className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Icon name="search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-muted" />
             <input
               type="text"
               placeholder="Rechercher..."
-              className="w-full rounded-xl border border-gray-200 py-3 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 sm:w-auto sm:py-2"
+              className="w-full rounded-xl border border-surface-border bg-surface-card py-3 pl-9 pr-4 text-sm text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-brand-blue/20 sm:w-auto sm:py-2"
             />
           </div>
         </div>
@@ -45,13 +46,17 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
                 <p className="font-bold text-content-primary">{mission.id}</p>
                 <p className="mt-1 text-sm text-content-muted">{mission.driver}</p>
               </div>
-              <span className={`rounded-full px-2 py-1 text-xs font-bold ${statusColor[mission.status] || 'bg-gray-100 text-gray-600'}`}>
+              <span className={`rounded-full px-2 py-1 text-xs font-bold ${statusColor[mission.status] || 'bg-slate-200 text-slate-800 dark:bg-gray-100 dark:text-gray-300'}`}>
                 {mission.status}
               </span>
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-content-muted">{mission.commune}</span>
-              <button type="button" className="flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-bold text-brand-blue hover:bg-brand-blue/10">
+              <button
+                type="button"
+                onClick={() => onMissionView?.(mission.id)}
+                className="flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-bold text-brand-blue hover:bg-brand-blue/10"
+              >
                 <Icon name="search" className="h-3 w-3" />
                 Voir
               </button>
@@ -62,7 +67,7 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
       <div className="hidden overflow-x-auto sm:block">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-xs uppercase text-gray-500 border-b border-gray-100">
+            <tr className="border-b border-surface-border-subtle text-xs uppercase text-content-muted">
               <th className="text-left py-3 px-4 font-semibold">Mission</th>
               <th className="text-left py-3 px-4 font-semibold">Statut</th>
               <th className="text-left py-3 px-4 font-semibold">Chauffeur</th>
@@ -75,14 +80,18 @@ export const MissionTable: React.FC<MissionTableProps> = ({ missions }) => {
               <tr key={mission.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="py-3 px-4 font-bold text-content-primary">{mission.id}</td>
                 <td className="py-3 px-4">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusColor[mission.status] || 'bg-gray-100 text-gray-600'}`}>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${statusColor[mission.status] || 'bg-slate-200 text-slate-800 dark:bg-gray-100 dark:text-gray-300'}`}>
                     {mission.status}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-gray-600">{mission.driver}</td>
-                <td className="py-3 px-4 text-gray-600">{mission.commune}</td>
+                <td className="px-4 py-3 text-content-muted">{mission.driver}</td>
+                <td className="px-4 py-3 text-content-muted">{mission.commune}</td>
                 <td className="py-3 px-4">
-                  <button className="text-brand-blue hover:text-content-primary text-xs font-bold flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onMissionView?.(mission.id)}
+                    className="flex items-center gap-1 text-xs font-bold text-brand-blue hover:text-content-primary"
+                  >
                     <Icon name="search" className="w-3 h-3" />
                     Voir
                   </button>

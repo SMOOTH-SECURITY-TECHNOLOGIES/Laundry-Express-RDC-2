@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { logisticsCard } from './logistics-ui';
+import { CARD, TYPO, SPACING } from '../../components/ui/tokens';
 
 interface ToggleProps {
   label: string;
@@ -12,13 +13,13 @@ interface ToggleProps {
 const Toggle: React.FC<ToggleProps> = ({ label, description, enabled, onToggle }) => (
   <div className="flex items-center justify-between py-3">
     <div>
-      <p className="text-sm font-semibold text-gray-800">{label}</p>
-      <p className="text-xs text-gray-500">{description}</p>
+      <p className="text-sm font-semibold text-content-primary">{label}</p>
+      <p className="text-xs text-content-muted">{description}</p>
     </div>
     <button
       onClick={onToggle}
       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-        enabled ? 'bg-brand-blue' : 'bg-gray-200'
+        enabled ? 'bg-brand-blue' : 'bg-surface-muted'
       }`}
     >
       <span
@@ -49,8 +50,8 @@ export const LogisticsSettings: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-brand-dark">Paramètres</h1>
-        <p className="text-sm text-gray-500 mt-1">Configurez les options de la plateforme logistique</p>
+        <h1 className="text-2xl font-extrabold text-content-primary">Paramètres</h1>
+        <p className="text-sm text-content-muted mt-1">Configurez les options de la plateforme logistique</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -59,9 +60,9 @@ export const LogisticsSettings: React.FC = () => {
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
               <Icon name="bell" className="h-5 w-5 text-brand-blue" />
             </span>
-            <h2 className="text-lg font-bold text-brand-dark">Notifications</h2>
+            <h2 className="text-lg font-bold text-content-primary">Notifications</h2>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-surface-border-subtle">
             <Toggle
               label="Nouvelle mission"
               description="Recevoir une alerte pour chaque nouvelle mission"
@@ -106,28 +107,28 @@ export const LogisticsSettings: React.FC = () => {
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50">
               <Icon name="clock" className="h-5 w-5 text-green-600" />
             </span>
-            <h2 className="text-lg font-bold text-brand-dark">Horaires de dispatch</h2>
+            <h2 className="text-lg font-bold text-content-primary">Horaires de dispatch</h2>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Heure de début</label>
+              <label className="block text-sm font-semibold text-content-muted mb-1">Heure de début</label>
               <input
                 type="time"
                 value={dispatchStart}
                 onChange={(e) => setDispatchStart(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                className="w-full px-4 py-2.5 border border-surface-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Heure de fin</label>
+              <label className="block text-sm font-semibold text-content-muted mb-1">Heure de fin</label>
               <input
                 type="time"
                 value={dispatchEnd}
                 onChange={(e) => setDispatchEnd(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                className="w-full px-4 py-2.5 border border-surface-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
-            <p className="text-xs text-gray-400">Les missions seront automatiquement assignées pendant ces heures</p>
+            <p className="text-xs text-content-faint">Les missions seront automatiquement assignées pendant ces heures</p>
           </div>
         </div>
 
@@ -136,22 +137,22 @@ export const LogisticsSettings: React.FC = () => {
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-50">
               <Icon name="mapPin" className="h-5 w-5 text-orange-600" />
             </span>
-            <h2 className="text-lg font-bold text-brand-dark">Zone de couverture</h2>
+            <h2 className="text-lg font-bold text-content-primary">Zone de couverture</h2>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Rayon maximal (km)</label>
+              <label className="block text-sm font-semibold text-content-muted mb-1">Rayon maximal (km)</label>
               <input
                 type="number"
                 value={coverageRadius}
                 onChange={(e) => setCoverageRadius(e.target.value)}
                 min="5"
                 max="50"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                className="w-full px-4 py-2.5 border border-surface-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs text-gray-500 mb-2">Communes couvertes :</p>
+            <div className="bg-surface-muted rounded-xl p-4">
+              <p className="text-xs text-content-muted mb-2">Communes couvertes :</p>
               <div className="flex flex-wrap gap-2">
                 {['Gombe', 'Lingwala', 'Barumbu', 'Kinshasa', 'Ngiri-Ngiri', 'Bandalungwa', 'Kalamu', 'Matete', 'Limete', 'Ngaliema'].map(commune => (
                   <span key={commune} className="px-3 py-1 rounded-full bg-brand-blue/10 text-brand-blue text-xs font-medium">
@@ -168,32 +169,32 @@ export const LogisticsSettings: React.FC = () => {
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
               <Icon name="warning" className="h-5 w-5 text-red-500" />
             </span>
-            <h2 className="text-lg font-bold text-brand-dark">Seuils d'alerte</h2>
+            <h2 className="text-lg font-bold text-content-primary">Seuils d'alerte</h2>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Retard maximum (min)</label>
+              <label className="block text-sm font-semibold text-content-muted mb-1">Retard maximum (min)</label>
               <input
                 type="number"
                 value={delayThreshold}
                 onChange={(e) => setDelayThreshold(e.target.value)}
                 min="5"
                 max="60"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                className="w-full px-4 py-2.5 border border-surface-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Inactivité chauffeur (min)</label>
+              <label className="block text-sm font-semibold text-content-muted mb-1">Inactivité chauffeur (min)</label>
               <input
                 type="number"
                 value={idleThreshold}
                 onChange={(e) => setIdleThreshold(e.target.value)}
                 min="10"
                 max="120"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                className="w-full px-4 py-2.5 border border-surface-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
-            <p className="text-xs text-gray-400">Une alerte sera déclenchée cuando ces seuils seront dépassés</p>
+            <p className="text-xs text-content-faint">Une alerte sera déclenchée cuando ces seuils seront dépassés</p>
           </div>
         </div>
       </div>

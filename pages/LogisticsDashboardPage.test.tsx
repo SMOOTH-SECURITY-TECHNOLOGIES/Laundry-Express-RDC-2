@@ -5,6 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buttonByText, byText, renderComponent } from '../components/order-marketplace/test-utils';
 import { LogisticsDashboardPage } from './LogisticsDashboardPage';
 
+vi.mock('../config/pilot', () => ({
+  pilotConfig: { isPilotMode: true, hiddenAdminModules: new Set(), paymentMode: 'sandbox', paymentModeLabel: 'sandbox' },
+  isAdminModuleVisible: () => true,
+}));
+
 const mocks = vi.hoisted(() => {
   const context = {
     user: {
@@ -143,6 +148,22 @@ describe('LogisticsDashboardPage', () => {
     view.unmount();
   });
 
+  it('navigates to the missions section from the sidebar', async () => {
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const missionsButton = buttonByText(view.container, /^Missions$/);
+    expect(missionsButton).not.toBeNull();
+    view.click(missionsButton!);
+
+    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Toutes les missions')).not.toBeNull();
+
+    view.unmount();
+  });
+
   it('manages dispatch tasks with matching and operational actions', async () => {
     window.history.replaceState(null, '', '/#dispatch');
     const view = renderComponent(<LogisticsDashboardPage />);
@@ -195,6 +216,10 @@ describe('LogisticsDashboardPage', () => {
     view.click(buttonByText(view.container, /^Maintenance$/)!);
     expect(byText(view.container, 'Contrôle freinage moto')).not.toBeNull();
 
+    view.click(buttonByText(view.container, /^Pilote$/)!);
+    expect(byText(view.container, 'Métriques temps réel')).not.toBeNull();
+    expect(byText(view.container, 'Résumé missions')).not.toBeNull();
+
     view.unmount();
   });
 
@@ -214,6 +239,7 @@ describe('LogisticsDashboardPage', () => {
       [/^Fleet$/, 'Fleet Management'],
       [/^Drivers$/, 'Profil chauffeur'],
       [/^Dispatch$/, 'Nouvelles missions'],
+      [/^Missions$/, 'Backlog à dispatcher'],
       [/^Tracking$/, 'Live Tracking'],
       [/^Trip Details$/, 'Timeline trajet'],
       [/^Shipments$/, 'shp-001'],
@@ -221,6 +247,7 @@ describe('LogisticsDashboardPage', () => {
       [/^Maintenance$/, 'Suivi entretien véhicules'],
       [/^Reports$/, 'Reports & Analytics'],
       [/^Settings$/, 'Notifications'],
+      [/^Pilote$/, 'Résumé missions'],
     ];
 
     for (const [label, expectedText] of mobileSections) {
@@ -312,13 +339,13 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Statut mis à jour: Retard')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Actualiser positions$/)!);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     expect(byText(view.container, 'Positions actualisées')).not.toBeNull();
 
     const tripDetailsLink = Array.from(view.container.querySelectorAll('a')).find((link) => link.textContent === 'Ouvrir Trip Details');
     expect(tripDetailsLink?.getAttribute('href')).toBe('#trip-details');
-
-    view.click(buttonByText(view.container, /Basculer fallback géolocalisation/)!);
-    expect(byText(view.container, 'Géolocalisation indisponible')).toBeNull();
 
     view.unmount();
   });
@@ -486,11 +513,11 @@ describe('LogisticsDashboardPage', () => {
 
     const delayAction = linkByText(view.container, /^Voir$/);
     expect(delayAction).not.toBeUndefined();
-    expect(delayAction?.getAttribute('href')).toBe('#dispatch');
+    expect(delayAction?.getAttribute('href')).toBe('#missions');
     view.click(delayAction!);
     expect(byText(view.container, 'Mission ciblée depuis l’alerte: MSN-004')).not.toBeNull();
-    expect(byText(view.container, 'Nouvelles missions')).not.toBeNull();
-    expect(window.location.hash).toBe('#dispatch');
+    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(window.location.hash).toBe('#missions');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004. Chauffeur cible: Tshimanga A.', 'info');
     view.unmount();
 
@@ -526,7 +553,7 @@ describe('LogisticsDashboardPage', () => {
     const lateGroupActions = Array.from(lateGroupView.container.querySelectorAll('a')).filter((link) => /^Voir$/.test(link.textContent || ''));
     lateGroupView.click(lateGroupActions[lateGroupActions.length - 1]);
     expect(byText(lateGroupView.container, 'Alerte missions ciblée: 3 missions avec retard > 20 min')).not.toBeNull();
-    expect(window.location.hash).toBe('#dispatch');
+    expect(window.location.hash).toBe('#missions');
     lateGroupView.unmount();
 
     window.history.replaceState(null, '', '/#alerts');
@@ -536,7 +563,7 @@ describe('LogisticsDashboardPage', () => {
     waitingGroupView.click(waitingActions[waitingActions.length - 1]);
     expect(byText(waitingGroupView.container, 'Alerte missions ciblée: File d\'attente Limete bloquée')).not.toBeNull();
     expect(byText(waitingGroupView.container, 'Zone ciblée: Limete')).not.toBeNull();
-    expect(window.location.hash).toBe('#dispatch');
+    expect(window.location.hash).toBe('#missions');
     waitingGroupView.unmount();
   });
 

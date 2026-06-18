@@ -52,6 +52,18 @@ const mocks = vi.hoisted(() => {
       page_size: 100,
     })),
     updateDriverAvailability: vi.fn(async () => ({ available: true })),
+    updateMyDriverAvailability: vi.fn(async () => ({ available: true })),
+    getMyDriverProfile: vi.fn(async () => ({
+      id: 'ld-1',
+      user_id: 'driver-1',
+      user_name: 'Driver Kin',
+      status: 'active',
+      is_available: false,
+      rating_avg: 5,
+      rating_count: 0,
+      created_at: '2026-06-07T10:00:00.000Z',
+      updated_at: '2026-06-07T10:00:00.000Z',
+    })),
     acceptLogisticsTask: vi.fn(),
     startLogisticsTask: vi.fn(),
     completeLogisticsTask: vi.fn(),
@@ -92,9 +104,7 @@ describe('DriverDashboardPage', () => {
     const view = renderComponent(<DriverDashboardPage />);
 
     expect(byText(view.container, 'Tableau de bord chauffeur')).not.toBeNull();
-    expect(byText(view.container, 'Bienvenue, Driver')).not.toBeNull();
-    expect(byText(view.container, 'Missions terminées')).not.toBeNull();
-    expect(byText(view.container, 'Astuces pour recevoir plus de missions')).not.toBeNull();
+    expect(byText(view.container, 'Bienvenue, Kin')).not.toBeNull();
 
     view.unmount();
   });
@@ -115,10 +125,16 @@ describe('DriverDashboardPage', () => {
     expect(missionsButton).not.toBeNull();
     view.click(missionsButton!);
 
-    expect(byText(view.container, 'Mission active, propositions et actions opérationnelles.')).not.toBeNull();
     expect(byText(view.container, 'Missions disponibles')).not.toBeNull();
-    expect(byText(view.container, 'Missions terminées')).toBeNull();
 
+    view.unmount();
+  });
+
+  it('renders mobile driver dashboard content at 390px', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 390, writable: true });
+    const view = renderComponent(<DriverDashboardPage />);
+    expect(byText(view.container, 'Bonjour, Kin')).not.toBeNull();
+    expect(byText(view.container, 'Accueil')).not.toBeNull();
     view.unmount();
   });
 });

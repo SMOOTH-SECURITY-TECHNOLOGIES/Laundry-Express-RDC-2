@@ -11,7 +11,8 @@ export type LogisticsSection =
   | 'alerts'
   | 'maintenance'
   | 'reports'
-  | 'settings';
+  | 'settings'
+  | 'pilot';
 
 export const LOGISTICS_SECTIONS: LogisticsSection[] = [
   'dashboard',
@@ -27,6 +28,7 @@ export const LOGISTICS_SECTIONS: LogisticsSection[] = [
   'maintenance',
   'reports',
   'settings',
+  'pilot',
 ];
 
 export const isLogisticsSection = (value: string): value is LogisticsSection =>
@@ -86,6 +88,9 @@ export interface DispatchTask {
   driverName?: string;
   vehicleId?: string;
   currentDriverLoad?: number;
+  /** Statut brut backend (open_market, claimed, etc.) */
+  taskStatus?: string;
+  claimedByCompanyId?: string;
 }
 
 export interface Trip {
