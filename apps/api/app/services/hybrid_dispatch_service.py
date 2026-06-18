@@ -88,8 +88,8 @@ class HybridDispatchService:
             setting = settings[0]
             return setting.dispatch_strategy, setting.marketplace_timeout_minutes
         
-        # Par défaut: internal_first avec timeout de 30 minutes
-        return DispatchStrategy.INTERNAL_FIRST, 30
+        # Par défaut: marketplace multi-compagnies
+        return DispatchStrategy.MARKETPLACE_ONLY, 30
     
     # ===== Dispatch Logic =====
     

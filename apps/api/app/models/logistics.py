@@ -179,6 +179,12 @@ class Vehicle(BaseModel):
     """Véhicule de la flotte"""
     __tablename__ = "vehicles"
 
+    delivery_company_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("delivery_companies.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     plate = Column(String(50), nullable=False, unique=True, index=True)
     type = Column(SQLEnum(VehicleType), nullable=False)
     status = Column(SQLEnum(VehicleStatus), default=VehicleStatus.PENDING, nullable=False)

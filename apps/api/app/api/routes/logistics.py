@@ -1,10 +1,16 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+import asyncio
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, get_sync_db, get_current_admin, is_admin_user
+from app.core.config import settings
+from app.core.database import SyncSessionLocal
 from app.repositories.order_repository import OrderRepository
 from app.models.user import User, UserProfile, UserRole
 from app.schemas.logistics import (
@@ -37,9 +43,44 @@ from app.schemas.logistics import (
 )
 from app.services.dispatch_service import DispatchService
 from app.services.notification_service import NotificationService
+from app.services.logistics_marketplace_service import LogisticsMarketplaceService
+from app.services.hybrid_dispatch_service import HybridDispatchService
+from app.services.logistics_live_hub import (
+    channel_for_task_status,
+    flush_pending_events,
+    publish_logistics_event,
+    register_connection,
+    unregister_connection,
+)
+from app.services.logistics_fleet_service import LogisticsFleetService
+from app.services.logistics_fleet_errors import FleetAccessError, FleetNotFoundError, FleetValidationError
+from app.services.logistics_live_service import LogisticsLiveService
 from app.models.logistics import Driver, DriverStatus, TaskType, DeliveryTask, DeliveryTaskStatus, Vehicle, VehicleStatus, DriverLocation, VehicleMaintenanceStatus
 
 router = APIRouter(prefix="/logistics", tags=["logistics"])
+
+
+def _authenticate_logistics_ws(token: str | None) -> bool:
+    if not token:
+        return False
+    try:
+        jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return True
+    except JWTError:
+        return False
+
+
+def _publish_task_event(task) -> None:
+    status_value = task.status.value if hasattr(task.status, "value") else str(task.status)
+    publish_logistics_event(
+        channel_for_task_status(status_value),
+        {
+            "taskId": str(task.id),
+            "orderId": str(task.order_id),
+            "status": status_value,
+            "driverId": str(task.driver_id) if task.driver_id else None,
+        },
+    )
 
 
 def _ensure_logistics_operator(current_user: User) -> None:
@@ -48,6 +89,28 @@ def _ensure_logistics_operator(current_user: User) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès réservé aux administrateurs et managers logistiques"
         )
+
+
+def _operator_company_id(current_user: User) -> Optional[UUID]:
+    if current_user.role == UserRole.LOGISTICS_MANAGER:
+        return getattr(current_user, "delivery_company_id", None)
+    return None
+
+
+def _fleet_service(db: Session) -> LogisticsFleetService:
+    return LogisticsFleetService(db)
+
+
+def _raise_fleet_http_error(exc: Exception) -> None:
+    if isinstance(exc, FleetAccessError):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    if isinstance(exc, FleetNotFoundError):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    if isinstance(exc, FleetValidationError):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    if isinstance(exc, ValueError):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    raise exc
 
 
 def _task_notification_metadata(task, page: str = "logistics-dashboard") -> dict:
@@ -214,6 +277,9 @@ def _build_task_response(task, db: Session) -> DeliveryTaskResponse:
         completed_at=task.completed_at,
         proof_photo_url=task.proof_photo_url,
         proof_note=task.proof_note,
+        claimed_by_company_id=getattr(task, "claimed_by_company_id", None),
+        market_visible=bool(getattr(task, "market_visible", False)),
+        market_expires_at=getattr(task, "market_expires_at", None),
         created_at=task.created_at,
         updated_at=task.updated_at,
     )
@@ -236,6 +302,12 @@ def list_drivers(
     service = DispatchService(db)
     
     drivers, total = service.list_drivers(status, is_available, skip, page_size)
+    fleet = _fleet_service(db)
+    company_id = _operator_company_id(current_user)
+    if company_id:
+        company_driver_ids = fleet.company_driver_ids(company_id)
+        drivers = [driver for driver in drivers if driver.id in company_driver_ids]
+        total = len(drivers)
     
     return DriverListResponse(
         drivers=[_build_driver_response(driver, db) for driver in drivers],
@@ -262,6 +334,51 @@ def list_available_drivers(
     ]
 
 
+@router.get("/drivers/me", response_model=DriverResponse)
+def get_my_driver_profile(
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Permet à un chauffeur d'obtenir son propre profil"""
+    service = DispatchService(db)
+    driver = service.get_driver_by_user_id(current_user.id)
+    if not driver:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profil chauffeur non trouvé"
+        )
+    return _build_driver_response(driver, db)
+
+
+@router.patch("/drivers/me/availability")
+def update_my_availability(
+    body: dict,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Permet à un chauffeur de modifier sa propre disponibilité"""
+    service = DispatchService(db)
+    driver = service.get_driver_by_user_id(current_user.id)
+    if not driver:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profil chauffeur non trouvé"
+        )
+    available = body.get("available")
+    if available is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le champ 'available' est requis"
+        )
+    driver.is_available = bool(available)
+    service.logistics_repo.update_driver(driver)
+    publish_logistics_event(
+        "driver.availability",
+        {"driverId": str(driver.id), "isAvailable": driver.is_available},
+    )
+    return {"available": driver.is_available}
+
+
 @router.get("/drivers/{driver_id}", response_model=DriverResponse)
 def get_driver(
     driver_id: UUID,
@@ -269,7 +386,9 @@ def get_driver(
     current_user: User = Depends(get_current_user),  # Authenticated users
 ):
     """Obtenir un chauffeur par son ID"""
+    _ensure_logistics_operator(current_user)
     service = DispatchService(db)
+    fleet = _fleet_service(db)
     driver = service.get_driver(driver_id)
     
     if not driver:
@@ -277,6 +396,11 @@ def get_driver(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chauffeur non trouvé"
         )
+
+    try:
+        fleet.ensure_driver_company_access(current_user, driver_id)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
     
     return _build_driver_response(driver, db)
 
@@ -287,17 +411,14 @@ def create_driver(
     db: Session = Depends(get_sync_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Créer un nouveau chauffeur"""
+    """Créer un chauffeur (compte + profil + rattachement compagnie)."""
     _ensure_logistics_operator(current_user)
-    service = DispatchService(db)
-    
+    fleet = _fleet_service(db)
+
     try:
-        driver = service.create_driver(driver_data)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        driver = fleet.provision_driver(current_user, driver_data)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as e:
+        _raise_fleet_http_error(e)
     
     return _build_driver_response(driver, db)
 
@@ -311,6 +432,12 @@ def update_driver(
 ):
     """Mettre à jour un chauffeur"""
     _ensure_logistics_operator(current_user)
+    fleet = _fleet_service(db)
+    try:
+        fleet.ensure_driver_company_access(current_user, driver_id)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
+
     service = DispatchService(db)
     
     driver = service.update_driver(driver_id, driver_data)
@@ -354,6 +481,15 @@ def update_driver_location(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Impossible de mettre à jour la localisation"
         )
+
+    publish_logistics_event(
+        "driver.location",
+        {
+            "driverId": str(driver_id),
+            "lat": location.latitude,
+            "lng": location.longitude,
+        },
+    )
     
     return location
 
@@ -373,15 +509,37 @@ def list_tasks(
 ):
     """Lister les tâches de livraison"""
     skip = (page - 1) * page_size
-    service = DispatchService(db)
+    marketplace_service = LogisticsMarketplaceService(db)
+    company_id = _operator_company_id(current_user)
+    service_communes = (
+        marketplace_service.get_company_service_communes(company_id)
+        if company_id
+        else None
+    )
     
     # Pour les chauffeurs, filtrer automatiquement par leur ID
     if current_user.role == UserRole.DRIVER:
-        driver = service.get_driver_by_user_id(current_user.id)
+        driver_service = DispatchService(db)
+        driver = driver_service.get_driver_by_user_id(current_user.id)
         if driver:
             driver_id = driver.id
     
-    tasks, total = service.list_tasks(driver_id, order_id, task_type, status, skip, page_size)
+    if company_id and current_user.role == UserRole.LOGISTICS_MANAGER:
+        tasks, total = marketplace_service.list_tasks_for_operator(
+            company_id=company_id,
+            service_communes=service_communes,
+            driver_id=driver_id,
+            order_id=order_id,
+            task_type=task_type,
+            status=status,
+            skip=skip,
+            limit=page_size,
+        )
+    else:
+        dispatch_service = DispatchService(db)
+        tasks, total = dispatch_service.list_tasks(
+            driver_id, order_id, task_type, status, skip, page_size
+        )
     
     return TaskListResponse(
         tasks=[_build_task_response(task, db) for task in tasks],
@@ -433,9 +591,16 @@ def create_pickup_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+    marketplace_service = LogisticsMarketplaceService(db)
+    order = OrderRepository(db).get_by_id(task_data.order_id)
+    if order:
+        task = marketplace_service._open_task_to_marketplace(task, order)
+        marketplace_service._notify_companies_for_market_task(task, order)
     _notify_task_created(db, task)
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -462,9 +627,46 @@ def create_delivery_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+    marketplace_service = LogisticsMarketplaceService(db)
+    order = OrderRepository(db).get_by_id(task_data.order_id)
+    if order:
+        task = marketplace_service._open_task_to_marketplace(task, order)
+        marketplace_service._notify_companies_for_market_task(task, order)
     _notify_task_created(db, task)
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
+    return _build_task_response(task, db)
+
+
+@router.post("/tasks/{task_id}/claim", response_model=DeliveryTaskResponse)
+def claim_task_for_company(
+    task_id: UUID,
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Claimer une mission marketplace pour la compagnie de l'opérateur."""
+    _ensure_logistics_operator(current_user)
+    company_id = _operator_company_id(current_user)
+    if not company_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aucune compagnie logistique liée à ce compte.",
+        )
+
+    hybrid = HybridDispatchService(db)
+    try:
+        task = hybrid.claim_market_task(task_id, company_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+    db.commit()
+    db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -480,7 +682,11 @@ def assign_driver_to_task(
     service = DispatchService(db)
     
     try:
-        task = service.assign_driver_to_task(task_id, assign_data.driver_id)
+        task = service.assign_driver_to_task(
+            task_id,
+            assign_data.driver_id,
+            company_id=_operator_company_id(current_user),
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -495,6 +701,7 @@ def assign_driver_to_task(
     _notify_task_assigned(db, task)
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -524,6 +731,7 @@ def auto_assign_driver_to_task(
     _notify_task_assigned(db, task)
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -568,6 +776,7 @@ def accept_task(
     _notify_task_progress(db, task, "accepted")
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -612,6 +821,7 @@ def start_task(
     _notify_task_progress(db, task, "started")
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -656,6 +866,7 @@ def complete_task(
     _notify_task_progress(db, task, "completed")
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -700,6 +911,7 @@ def fail_task(
     _notify_task_progress(db, task, "failed")
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return _build_task_response(task, db)
 
 
@@ -730,6 +942,7 @@ def cancel_task(
     _notify_task_progress(db, task, "cancelled")
     db.commit()
     db.refresh(task)
+    _publish_task_event(task)
     return task
 
 
@@ -738,6 +951,7 @@ def cancel_task(
 def _build_vehicle_response(vehicle: Vehicle) -> VehicleResponse:
     return VehicleResponse(
         id=vehicle.id,
+        delivery_company_id=vehicle.delivery_company_id,
         plate=vehicle.plate,
         type=vehicle.type,
         status=vehicle.status,
@@ -771,8 +985,9 @@ def list_vehicles(
     """Lister les véhicules de la flotte"""
     _ensure_logistics_operator(current_user)
     skip = (page - 1) * page_size
+    fleet = _fleet_service(db)
 
-    query = db.query(Vehicle)
+    query = fleet.apply_vehicle_company_filter(db.query(Vehicle), current_user)
     if status:
         query = query.filter(Vehicle.status == status)
     if type:
@@ -795,12 +1010,18 @@ def get_vehicle(
     current_user: User = Depends(get_current_user),
 ):
     """Obtenir un véhicule par son ID"""
+    _ensure_logistics_operator(current_user)
+    fleet = _fleet_service(db)
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Véhicule non trouvé"
         )
+    try:
+        fleet.ensure_vehicle_company_access(current_user, vehicle)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
     return _build_vehicle_response(vehicle)
 
 
@@ -812,32 +1033,13 @@ def create_vehicle(
 ):
     """Créer un nouveau véhicule"""
     _ensure_logistics_operator(current_user)
+    fleet = _fleet_service(db)
 
-    existing = db.query(Vehicle).filter(Vehicle.plate == vehicle_data.plate).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Un véhicule avec cette immatriculation existe déjà"
-        )
+    try:
+        vehicle = fleet.create_vehicle_for_operator(current_user, vehicle_data)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
 
-    vehicle = Vehicle(
-        plate=vehicle_data.plate,
-        type=vehicle_data.type,
-        status=vehicle_data.status,
-        driver_id=vehicle_data.driver_id,
-        assigned_driver_name=vehicle_data.assigned_driver_name,
-        zone=vehicle_data.zone,
-        location=vehicle_data.location,
-        last_known_location=vehicle_data.last_known_location,
-        mileage_km=vehicle_data.mileage_km,
-        insurance_expires_at=vehicle_data.insurance_expires_at,
-        maintenance_status=vehicle_data.maintenance_status,
-        maintenance_next_service_km=vehicle_data.maintenance_next_service_km,
-        maintenance_notes=vehicle_data.maintenance_notes,
-    )
-    db.add(vehicle)
-    db.commit()
-    db.refresh(vehicle)
     return _build_vehicle_response(vehicle)
 
 
@@ -850,6 +1052,7 @@ def update_vehicle(
 ):
     """Mettre à jour un véhicule"""
     _ensure_logistics_operator(current_user)
+    fleet = _fleet_service(db)
 
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
@@ -857,8 +1060,25 @@ def update_vehicle(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Véhicule non trouvé"
         )
+    try:
+        fleet.ensure_vehicle_company_access(current_user, vehicle)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
 
     update_data = vehicle_data.model_dump(exclude_unset=True)
+    requested_company_id = update_data.pop("delivery_company_id", None)
+    try:
+        fleet.reject_cross_company_field_change(current_user, requested_company_id, vehicle.delivery_company_id)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
+
+    company_id = _operator_company_id(current_user)
+    if company_id and update_data.get("driver_id"):
+        try:
+            fleet.ensure_driver_in_company(company_id, update_data["driver_id"])
+        except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+            _raise_fleet_http_error(exc)
+
     for field, value in update_data.items():
         setattr(vehicle, field, value)
 
@@ -875,6 +1095,7 @@ def delete_vehicle(
 ):
     """Supprimer un véhicule"""
     _ensure_logistics_operator(current_user)
+    fleet = _fleet_service(db)
 
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
@@ -882,6 +1103,10 @@ def delete_vehicle(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Véhicule non trouvé"
         )
+    try:
+        fleet.ensure_vehicle_company_access(current_user, vehicle)
+    except (FleetAccessError, FleetNotFoundError, FleetValidationError, ValueError) as exc:
+        _raise_fleet_http_error(exc)
 
     db.delete(vehicle)
     db.commit()
@@ -1064,8 +1289,9 @@ def list_maintenance_events(
     """Lister les événements de maintenance (dérivés des véhicules)"""
     _ensure_logistics_operator(current_user)
     skip = (page - 1) * page_size
+    fleet = _fleet_service(db)
 
-    query = db.query(Vehicle)
+    query = fleet.apply_vehicle_company_filter(db.query(Vehicle), current_user)
     if vehicle_id:
         query = query.filter(Vehicle.id == vehicle_id)
 
@@ -1080,3 +1306,39 @@ def list_maintenance_events(
     return MaintenanceEventListResponse(
         maintenance_events=events,
     )
+
+
+@router.websocket("/live")
+async def logistics_live_feed(websocket: WebSocket):
+    """Flux WebSocket temps réel logistique (missions, GPS, disponibilité)."""
+    await websocket.accept()
+    token = websocket.query_params.get("token")
+    if not _authenticate_logistics_ws(token):
+        await websocket.close(code=4401, reason="Unauthorized")
+        return
+
+    await register_connection(websocket)
+    db = SyncSessionLocal()
+    service = LogisticsLiveService(db)
+    last_poll = LogisticsLiveService.default_since()
+
+    try:
+        await websocket.send_json(service.build_snapshot())
+        await flush_pending_events()
+
+        while True:
+            await asyncio.sleep(15)
+            await flush_pending_events()
+            for event in service.poll_events(last_poll):
+                await websocket.send_json(event)
+            last_poll = datetime.now(timezone.utc)
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        try:
+            await websocket.send_json({"type": "error", "message": "live_feed_unavailable"})
+        except Exception:
+            pass
+    finally:
+        await unregister_connection(websocket)
+        db.close()

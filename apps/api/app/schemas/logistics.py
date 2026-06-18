@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator, HttpUrl
+from pydantic import BaseModel, EmailStr, Field, validator, HttpUrl
 
 from app.models.logistics import (
     DriverStatus,
@@ -24,12 +24,25 @@ def _to_camel(s: str) -> str:
 # ===== Driver Schemas =====
 
 class DriverCreate(BaseModel):
-    """Schéma pour créer un chauffeur"""
-    user_id: UUID
+    """Schéma pour créer un chauffeur (compte + profil + rattachement compagnie)."""
+    user_id: Optional[UUID] = None
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, min_length=9, max_length=20)
+    password: Optional[str] = Field(None, min_length=8, max_length=100)
+    delivery_company_id: Optional[UUID] = None
     vehicle_type: Optional[str] = Field(None, max_length=100)
     license_number: Optional[str] = Field(None, max_length=100)
     status: DriverStatus = DriverStatus.ACTIVE
     is_available: bool = True
+
+    @validator("phone")
+    def validate_phone(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        if not value.replace("+", "").isdigit():
+            raise ValueError("Le numéro de téléphone doit contenir uniquement des chiffres")
+        return value
 
 
 class DriverUpdate(BaseModel):
@@ -134,6 +147,9 @@ class DeliveryTaskResponse(BaseModel):
     completed_at: Optional[datetime]
     proof_photo_url: Optional[str]
     proof_note: Optional[str]
+    claimed_by_company_id: Optional[UUID] = None
+    market_visible: bool = False
+    market_expires_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -212,6 +228,7 @@ class TaskAssignmentResult(BaseModel):
 
 class VehicleCreate(BaseModel):
     """Schéma pour créer un véhicule"""
+    delivery_company_id: Optional[UUID] = None
     plate: str = Field(..., max_length=50)
     type: VehicleType
     status: VehicleStatus = VehicleStatus.PENDING
@@ -229,6 +246,7 @@ class VehicleCreate(BaseModel):
 
 class VehicleUpdate(BaseModel):
     """Schéma pour mettre à jour un véhicule"""
+    delivery_company_id: Optional[UUID] = None
     plate: Optional[str] = Field(None, max_length=50)
     type: Optional[VehicleType] = None
     status: Optional[VehicleStatus] = None
@@ -256,6 +274,7 @@ class VehicleMaintenanceResponse(BaseModel):
 class VehicleResponse(BaseModel):
     """Schéma de réponse pour un véhicule"""
     id: UUID
+    delivery_company_id: Optional[UUID] = Field(None, alias="deliveryCompanyId")
     plate: str
     type: VehicleType
     status: VehicleStatus

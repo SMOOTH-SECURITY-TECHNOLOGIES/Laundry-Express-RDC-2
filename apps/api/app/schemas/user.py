@@ -60,6 +60,7 @@ class UserResponse(UserBase):
     loyalty_points: int = 0
     referral_code: Optional[str] = None
     referred_by_user_id: Optional[UUID] = None
+    delivery_company_id: Optional[UUID] = None
     last_login_at: Optional[datetime] = None
     email_verified_at: Optional[datetime] = None
     phone_verified_at: Optional[datetime] = None
@@ -234,6 +235,7 @@ def user_to_response(user) -> UserResponse:
         loyalty_points=getattr(user, "loyalty_points", 0) or 0,
         referral_code=getattr(user, "referral_code", None),
         referred_by_user_id=getattr(user, "referred_by_user_id", None),
+        delivery_company_id=getattr(user, "delivery_company_id", None),
         last_login_at=user.last_login_at,
         email_verified_at=user.email_verified_at,
         phone_verified_at=user.phone_verified_at,

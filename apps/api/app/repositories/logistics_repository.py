@@ -12,8 +12,11 @@ from app.models.logistics import (
     DriverStatus,
     TaskType,
     DeliveryTaskStatus,
-    LocationType
+    LocationType,
 )
+from app.models.customer import CustomerAddress
+from app.models.marketplace import CompanyDriver
+from app.models.order import Order
 
 
 class LogisticsRepository:
@@ -113,6 +116,12 @@ class LogisticsRepository:
         self.db.refresh(task)
         return task
 
+    def create_delivery_task_no_commit(self, task: DeliveryTask) -> DeliveryTask:
+        """Créer une tâche sans commit (transaction parente)."""
+        self.db.add(task)
+        self.db.flush()
+        return task
+
     def get_delivery_task_by_id(self, task_id: UUID) -> Optional[DeliveryTask]:
         """Obtenir une tâche par son ID"""
         return self.db.query(DeliveryTask).filter(DeliveryTask.id == task_id).first()
@@ -120,6 +129,21 @@ class LogisticsRepository:
     def get_delivery_task_by_order_id(self, order_id: UUID) -> Optional[DeliveryTask]:
         """Obtenir une tâche par l'ID de commande"""
         return self.db.query(DeliveryTask).filter(DeliveryTask.order_id == order_id).first()
+
+    def get_delivery_task_by_order_and_type(
+        self,
+        order_id: UUID,
+        task_type: TaskType,
+    ) -> Optional[DeliveryTask]:
+        """Obtenir une tâche par commande et type."""
+        return (
+            self.db.query(DeliveryTask)
+            .filter(
+                DeliveryTask.order_id == order_id,
+                DeliveryTask.task_type == task_type,
+            )
+            .first()
+        )
 
     def list_delivery_tasks(
         self,
@@ -145,6 +169,76 @@ class LogisticsRepository:
         total = query.count()
         tasks = query.order_by(desc(DeliveryTask.created_at)).offset(skip).limit(limit).all()
 
+        return tasks, total
+
+    def list_delivery_tasks_for_operator(
+        self,
+        *,
+        company_id: Optional[UUID] = None,
+        service_communes: Optional[List[str]] = None,
+        driver_id: Optional[UUID] = None,
+        order_id: Optional[UUID] = None,
+        task_type: Optional[TaskType] = None,
+        status: Optional[DeliveryTaskStatus] = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[DeliveryTask], int]:
+        """Lister les tâches visibles pour un opérateur logistique."""
+        query = (
+            self.db.query(DeliveryTask)
+            .outerjoin(Order, DeliveryTask.order_id == Order.id)
+            .outerjoin(CustomerAddress, Order.pickup_address_id == CustomerAddress.id)
+        )
+
+        if driver_id:
+            query = query.filter(DeliveryTask.driver_id == driver_id)
+        if order_id:
+            query = query.filter(DeliveryTask.order_id == order_id)
+        if task_type:
+            query = query.filter(DeliveryTask.task_type == task_type)
+        if status:
+            query = query.filter(DeliveryTask.status == status)
+
+        if company_id is not None:
+            company_driver_ids = [
+                row[0]
+                for row in self.db.query(CompanyDriver.driver_id)
+                .filter(CompanyDriver.company_id == company_id, CompanyDriver.is_active == True)
+                .all()
+            ]
+            communes = service_communes or []
+            open_market_filter = and_(
+                DeliveryTask.status == DeliveryTaskStatus.OPEN_MARKET,
+                DeliveryTask.market_visible == True,
+            )
+            if communes:
+                open_market_filter = and_(
+                    open_market_filter,
+                    or_(
+                        CustomerAddress.commune.in_(communes),
+                        CustomerAddress.commune.is_(None),
+                    ),
+                )
+
+            visibility_filters = [
+                DeliveryTask.claimed_by_company_id == company_id,
+                open_market_filter,
+            ]
+            if company_driver_ids:
+                visibility_filters.append(DeliveryTask.driver_id.in_(company_driver_ids))
+
+            query = query.filter(or_(*visibility_filters))
+        else:
+            query = query.filter(
+                or_(
+                    DeliveryTask.claimed_by_company_id.is_(None),
+                    DeliveryTask.status != DeliveryTaskStatus.OPEN_MARKET,
+                    DeliveryTask.market_visible == True,
+                )
+            )
+
+        total = query.count()
+        tasks = query.order_by(desc(DeliveryTask.created_at)).offset(skip).limit(limit).all()
         return tasks, total
 
     def list_pending_tasks(self) -> List[DeliveryTask]:
