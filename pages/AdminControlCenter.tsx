@@ -86,6 +86,7 @@ import { QuickActions } from '../components/admin/QuickActions';
 import { OperationsIntelligence } from '../components/admin/OperationsIntelligence';
 import { FraudDetectionAI } from '../components/FraudDetectionAI';
 import { CapacityPredictionEngine } from '../components/CapacityPredictionEngine';
+import { PilotControlCenter } from './PilotControlCenter';
 
 const legacySectionMap: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -123,6 +124,7 @@ const legacySectionMap: Record<string, string> = {
   ops_truth: 'Order Truth',
   ops_anomalies: 'Anomalies',
   ops_investigate: 'Investigate',
+  pilot: 'Pilot Dashboard',
 };
 
 const ModulePage: React.FC<{ title: string; description: string; icon: string; connections: string[] }> = ({ title, description, icon, connections }) => (
@@ -240,6 +242,8 @@ export const AdminControlCenter: React.FC = () => {
             </div>
           </>
         );
+      case 'Pilot Dashboard':
+        return <PilotControlCenter />;
       case 'Truth Dashboard':
         return <TruthDashboard />;
       case 'Order Truth':
