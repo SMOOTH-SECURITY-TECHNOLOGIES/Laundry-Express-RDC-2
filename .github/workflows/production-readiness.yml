@@ -61,6 +61,18 @@ jobs:
         run: |
           cp .env.example .env
           sed -i 's/^SECRET_KEY=.*/SECRET_KEY=ci-production-readiness-gate-secret/' .env
+          cat >> .env <<'EOF'
+          ADMIN_PASSWORD=ci-local-admin-password
+          SEED_DEFAULT_PASSWORD=ci-local-default-password
+          SEED_SUPER_ADMIN_PASSWORD=ci-local-admin-password
+          SEED_PLATFORM_ADMIN_PASSWORD=ci-local-admin-password
+          SEED_CUSTOMER_PASSWORD=ci-local-customer-password
+          SEED_NEW_CUSTOMER_PASSWORD=ci-local-customer-password
+          SEED_PARTNER_OWNER_PASSWORD=ci-local-partner-password
+          SEED_PARTNER_STAFF_PASSWORD=ci-local-partner-password
+          SEED_LOGISTICS_PASSWORD=ci-local-logistics-password
+          SEED_LOGISTICS_2_PASSWORD=ci-local-logistics-password
+          EOF
 
       - name: Build and start Docker stack
         run: docker compose up -d --build db redis api
@@ -82,6 +94,9 @@ jobs:
         env:
           TRUTH_RUN_E2E: '1'
         run: node scripts/run_production_readiness_gate.mjs
+
+      - name: Driver operational corridor gate
+        run: npm run test:driver-operational-corridor
 
       - name: Dump API logs on failure
         if: failure()

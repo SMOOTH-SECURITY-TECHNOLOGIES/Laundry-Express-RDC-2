@@ -34,6 +34,8 @@
     "test:loyalty-referral-reporting-flow": "python scripts/verify_loyalty_referral_reporting_flow.py",
     "test:admin-config-gate": "python scripts/run_admin_config_proof_gate.py",
     "test:logistics-flow": "python scripts/verify_logistics_flow.py",
+    "test:logistics-self-service-gate": "python scripts/verify_logistics_self_service_gate.py",
+    "test:driver-operational-corridor": "python scripts/verify_driver_operational_corridor.py",
     "test:marketplace-flow": "python scripts/verify_marketplace_flow.py",
     "test:browser-ui-flow": "node scripts/browser_ui_flow_check.mjs",
     "test:mvp-gate": "node scripts/run_mvp_proof_gate.mjs",
@@ -62,6 +64,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
