@@ -12,7 +12,10 @@ import sys
 import urllib.error
 import urllib.request
 
+from load_project_env import load_project_env
 from local_test_credentials import load_local_test_credentials
+
+load_project_env()
 
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:18000/api/v1").rstrip("/")

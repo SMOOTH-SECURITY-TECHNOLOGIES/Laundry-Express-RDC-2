@@ -8,6 +8,10 @@ Ce document décrit les identifiants locaux réellement seedés par le projet.
 python apps/api/scripts/seed_default_credentials.py
 ```
 
+Les scripts `verify_seeded_credentials.py` et `local_test_credentials.py` **chargent automatiquement** le fichier `.env` à la racine du projet.
+
+Si la vérification échoue avec `SEED_SUPER_ADMIN_PASSWORD is required`, ajoute le bloc **Seed credentials** dans ton `.env` (voir section ci-dessous) puis relance le seed.
+
 Si tu lances le script depuis l'hôte Windows avec le `docker compose` local actuel, utilise la base exposée:
 
 ```powershell
@@ -78,23 +82,56 @@ Le backend supporte réellement ces rôles:
 - `driver`
 - `customer`
 
+## Variables `.env` (mots de passe locaux)
+
+Ajoute dans ton `.env` à la racine :
+
+```env
+SEED_DEFAULT_PASSWORD=local-dev-admin-password
+SEED_SUPER_ADMIN_PASSWORD=local-dev-admin-password
+SEED_PLATFORM_ADMIN_PASSWORD=local-dev-admin-password
+SEED_CUSTOMER_PASSWORD=local-dev-customer-password
+SEED_INACTIVE_CUSTOMER_PASSWORD=password
+SEED_NEW_CUSTOMER_PASSWORD=local-dev-customer-password
+SEED_PARTNER_OWNER_PASSWORD=local-dev-partner-password
+SEED_PARTNER_STAFF_PASSWORD=local-dev-partner-password
+SEED_LOGISTICS_PASSWORD=local-dev-logistics-password
+SEED_LOGISTICS_2_PASSWORD=local-dev-logistics-password
+```
+
+Puis synchronise la base :
+
+```bash
+docker compose exec api python scripts/seed_default_credentials.py
+```
+
+Ensuite :
+
+```bash
+python scripts/verify_seeded_credentials.py
+```
+
 ## Comptes seedés
 
 | Rôle | Email | Mot de passe | Notes |
 |------|-------|--------------|-------|
-| `SUPER_ADMIN` | `admin@laundryexpress.cd` | `SUPER_ADMIN_PASSWORD` via env | Compte bootstrap local |
-| `ADMIN` | `settings.ADMIN_EMAIL` | `settings.ADMIN_PASSWORD` | Créé seulement si l'email diffère du super admin |
-| `CUSTOMER` | `test@example.com` | `SEED_CUSTOMER_PASSWORD` via env | Client local standard |
+| `SUPER_ADMIN` | `admin@laundryexpress.cd` | `local-dev-admin-password` | Ou `SEED_SUPER_ADMIN_PASSWORD` / `ADMIN_PASSWORD` |
+| `ADMIN` | `settings.ADMIN_EMAIL` | `local-dev-admin-password` | Créé seulement si l'email diffère du super admin |
+| `CUSTOMER` | `test@example.com` | `local-dev-customer-password` | Client local standard |
 | `CUSTOMER` | `inactive@example.com` | `password` | Compte inactif |
-| `CUSTOMER` | `new@example.com` | `SEED_NEW_CUSTOMER_PASSWORD` via env | Compte client supplémentaire |
-| `PARTNER_OWNER` | `owner@partner.com` | `SEED_PARTNER_OWNER_PASSWORD` via env | Relié au partenaire de test |
-| `PARTNER_STAFF` | `staff@partner.com` | `SEED_PARTNER_STAFF_PASSWORD` via env | Relié au partenaire de test |
-| `DRIVER` | `driver1@kinexpress.cd` | `driverpass123` ou `SEED_DRIVER_1_PASSWORD` via env | Chauffeur Kin Express relié à la logistique |
-| `DRIVER` | `driver2@kinexpress.cd` | `driverpass123` ou `SEED_DRIVER_2_PASSWORD` via env | Chauffeur Kin Express relié à la logistique |
-| `DRIVER` | `driver3@kinexpress.cd` | `driverpass123` ou `SEED_DRIVER_3_PASSWORD` via env | Chauffeur Kin Express relié à la logistique |
-| `LOGISTICS_MANAGER` | `logistics@laundryexpress.cd` | `SEED_LOGISTICS_PASSWORD` via env | Manager logistique local |
+| `CUSTOMER` | `new@example.com` | `local-dev-customer-password` | Compte client supplémentaire |
+| `PARTNER_OWNER` | `owner@partner.com` | `local-dev-partner-password` | Relié au partenaire de test |
+| `PARTNER_STAFF` | `staff@partner.com` | `local-dev-partner-password` | Relié au partenaire de test |
+| `DRIVER` | `driver1@kinexpress.cd` | `driverpass123` | Chauffeur Kin Express |
+| `DRIVER` | `driver2@kinexpress.cd` | `driverpass123` | Chauffeur Kin Express |
+| `DRIVER` | `driver3@kinexpress.cd` | `driverpass123` | Chauffeur Kin Express |
+| `DRIVER` | `driver4@rapidcourrier.cd` | `driverpass123` | Chauffeur Rapid Courrier RDC |
+| `LOGISTICS_MANAGER` | `logistics@laundryexpress.cd` | `local-dev-logistics-password` | Manager Kin Express Logistics |
+| `LOGISTICS_MANAGER` | `logistics2@rapidcourrier.cd` | `local-dev-logistics-password` | Manager Rapid Courrier RDC |
 
-Les trois chauffeurs Kin Express sont aussi reliés au profil backend `Driver` et à la compagnie de livraison `Kin Express Logistics`.
+Les chauffeurs Kin Express (`driver1` à `driver3`) sont reliés à **Kin Express Logistics**.
+Le chauffeur `driver4@rapidcourrier.cd` est relié à **Rapid Courrier RDC**.
+Les communes **Gombe** et **Limete** sont couvertes par les deux compagnies pour tester le marketplace (first-claim-wins).
 
 ## Partenaire seedé
 
@@ -118,6 +155,34 @@ Donc `SUPER_ADMIN` et `ADMIN` ne peuvent pas utiliser le même email comme deux 
 Comportement du script:
 - si `ADMIN_EMAIL != admin@laundryexpress.cd`, le script crée un compte `ADMIN` séparé
 - si `ADMIN_EMAIL == admin@laundryexpress.cd`, le script conserve un seul compte avec le rôle `SUPER_ADMIN`
+
+## Vérification logistique (gates E2E)
+
+| Commande | Rôle |
+|----------|------|
+| `npm run test:logistics-self-service-gate` | 5 tests sécurité multi-tenant (HTTP) |
+| `npm run test:driver-operational-corridor` | Gate unifiée : self-service + mission complète sans admin + invariants DB |
+
+Prérequis : API Docker sur `:18000`, Postgres sur `:5434`, `.env` chargé (mots de passe seed).
+
+Depuis l'hôte (Python + SQLAlchemy installés) :
+
+```bash
+python scripts/verify_driver_operational_corridor.py
+```
+
+Depuis le container API (recommandé si SQLAlchemy absent sur l'hôte) :
+
+```bash
+docker compose exec \
+  -e API_BASE_URL=http://127.0.0.1:8000/api/v1 \
+  -e API_SMOKE_DATABASE_URL=postgresql://laundry_user:laundry_pass@db:5432/laundry_express \
+  api python /app/verify_driver_operational_corridor.py
+```
+
+(Copier d'abord les scripts `scripts/verify_*.py` et `scripts/local_test_credentials.py` vers `/app/` si le dossier `scripts/` n'est pas monté.)
+
+Verdict attendu : **DRIVER OPERATIONAL CORRIDOR : PASS**.
 
 ## Sécurité
 

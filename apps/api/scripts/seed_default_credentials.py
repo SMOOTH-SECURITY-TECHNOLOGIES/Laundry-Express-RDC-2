@@ -38,6 +38,9 @@ from app.models.marketplace import CompanyDriver, CompanyServiceZone, DeliveryCo
 from app.models.partner import Partner, PartnerStaff, PartnerStatus, PartnerType
 from app.models.user import User, UserProfile, UserRole, UserStatus
 from app.services.auth_service import AuthService
+from scripts.project_env import load_project_env, resolve_password
+
+load_project_env()
 
 
 @dataclass(frozen=True)
@@ -63,6 +66,16 @@ class SeedDriverProfile:
     is_available: bool = True
     rating_avg: float = 4.8
     rating_count: int = 12
+
+
+@dataclass(frozen=True)
+class SeedDeliveryCompany:
+    name: str
+    slug: str
+    phone: str
+    email: str
+    rating_avg: float
+    rating_count: int
 
 
 def require_env(name: str) -> str:
@@ -284,41 +297,48 @@ def ensure_driver_profile(db, user: User, profile: SeedDriverProfile) -> Driver:
     return driver
 
 
-def ensure_delivery_company(db) -> DeliveryCompany:
-    company = db.execute(select(DeliveryCompany).where(DeliveryCompany.slug == "kin-express-logistics")).scalar_one_or_none()
+def ensure_delivery_company(db, seed: SeedDeliveryCompany) -> DeliveryCompany:
+    company = db.execute(select(DeliveryCompany).where(DeliveryCompany.slug == seed.slug)).scalar_one_or_none()
 
     if company:
-        company.name = "Kin Express Logistics"
-        company.phone = "+243810000010"
-        company.email = "logistics@laundryexpress.cd"
+        company.name = seed.name
+        company.phone = seed.phone
+        company.email = seed.email
         company.status = DeliveryCompanyStatus.ACTIVE
         company.is_active = True
         company.supports_pickup = True
         company.supports_delivery = True
-        company.rating_avg = 4.8
-        company.rating_count = 57
-        print("  - delivery company updated: Kin Express Logistics")
+        company.rating_avg = seed.rating_avg
+        company.rating_count = seed.rating_count
+        print(f"  - delivery company updated: {seed.name}")
         return company
 
     company = DeliveryCompany(
-        name="Kin Express Logistics",
-        slug="kin-express-logistics",
-        phone="+243810000010",
-        email="logistics@laundryexpress.cd",
+        name=seed.name,
+        slug=seed.slug,
+        phone=seed.phone,
+        email=seed.email,
         status=DeliveryCompanyStatus.ACTIVE,
         is_active=True,
         supports_pickup=True,
         supports_delivery=True,
-        rating_avg=4.8,
-        rating_count=57,
+        rating_avg=seed.rating_avg,
+        rating_count=seed.rating_count,
     )
     db.add(company)
     db.flush()
-    print("  - delivery company created: Kin Express Logistics")
+    print(f"  - delivery company created: {seed.name}")
     return company
 
 
-def ensure_company_driver_link(db, company: DeliveryCompany, driver: Driver, email: str) -> None:
+def ensure_company_driver_link(
+    db,
+    company: DeliveryCompany,
+    driver: Driver,
+    email: str,
+    company_name: Optional[str] = None,
+) -> None:
+    label = company_name or company.name
     link = db.execute(
         select(CompanyDriver).where(
             CompanyDriver.company_id == company.id,
@@ -328,11 +348,11 @@ def ensure_company_driver_link(db, company: DeliveryCompany, driver: Driver, ema
 
     if link:
         link.is_active = True
-        print(f"  - company driver updated: {email} -> Kin Express Logistics")
+        print(f"  - company driver updated: {email} -> {label}")
         return
 
     db.add(CompanyDriver(company_id=company.id, driver_id=driver.id, is_active=True))
-    print(f"  - company driver created: {email} -> Kin Express Logistics")
+    print(f"  - company driver created: {email} -> {label}")
 
 
 def ensure_company_service_zone(db, company: DeliveryCompany, commune: str) -> None:
@@ -382,7 +402,7 @@ def seed_default_credentials() -> bool:
             email="admin@laundryexpress.cd",
             phone="+243810000000",
             name="Super Administrateur",
-            password=require_env("SEED_SUPER_ADMIN_PASSWORD"),
+            password=resolve_password("SEED_SUPER_ADMIN_PASSWORD", "SEED_DEFAULT_PASSWORD", "ADMIN_PASSWORD"),
             role=UserRole.SUPER_ADMIN,
         )
 
@@ -390,7 +410,12 @@ def seed_default_credentials() -> bool:
             email=settings.ADMIN_EMAIL,
             phone="+243810000006",
             name="Administrateur Plateforme",
-            password=require_env("SEED_PLATFORM_ADMIN_PASSWORD"),
+            password=resolve_password(
+                "SEED_PLATFORM_ADMIN_PASSWORD",
+                "SEED_SUPER_ADMIN_PASSWORD",
+                "SEED_DEFAULT_PASSWORD",
+                "ADMIN_PASSWORD",
+            ),
             role=UserRole.ADMIN,
         )
 
@@ -398,21 +423,21 @@ def seed_default_credentials() -> bool:
             email="owner@partner.com",
             phone="+243810000002",
             name="Partner Owner",
-            password=require_env("SEED_PARTNER_OWNER_PASSWORD"),
+            password=resolve_password("SEED_PARTNER_OWNER_PASSWORD", "SEED_DEFAULT_PASSWORD"),
             role=UserRole.PARTNER_OWNER,
         )
         partner_staff_seed = SeedUser(
             email="staff@partner.com",
             phone="+243810000007",
             name="Partner Staff",
-            password=require_env("SEED_PARTNER_STAFF_PASSWORD"),
+            password=resolve_password("SEED_PARTNER_STAFF_PASSWORD", "SEED_DEFAULT_PASSWORD"),
             role=UserRole.PARTNER_STAFF,
         )
         customer_seed = SeedUser(
             email="test@example.com",
             phone="+243810000001",
             name="Test User",
-            password=require_env("SEED_CUSTOMER_PASSWORD"),
+            password=resolve_password("SEED_CUSTOMER_PASSWORD", "SEED_DEFAULT_PASSWORD"),
             role=UserRole.CUSTOMER,
             loyalty_points=800,
         )
@@ -420,7 +445,7 @@ def seed_default_credentials() -> bool:
             email="inactive@example.com",
             phone="+243810000008",
             name="Inactive User",
-            password=require_env("SEED_INACTIVE_CUSTOMER_PASSWORD"),
+            password=(os.getenv("SEED_INACTIVE_CUSTOMER_PASSWORD") or "password").strip(),
             role=UserRole.CUSTOMER,
             status=UserStatus.INACTIVE,
             is_email_verified=False,
@@ -430,7 +455,7 @@ def seed_default_credentials() -> bool:
             email="new@example.com",
             phone="+243810000009",
             name="New User",
-            password=require_env("SEED_NEW_CUSTOMER_PASSWORD"),
+            password=resolve_password("SEED_NEW_CUSTOMER_PASSWORD", "SEED_DEFAULT_PASSWORD"),
             role=UserRole.CUSTOMER,
         )
         driver_seeds = [
@@ -486,8 +511,40 @@ def seed_default_credentials() -> bool:
             email="logistics@laundryexpress.cd",
             phone="+243810000004",
             name="Logistics Manager",
-            password=require_env("SEED_LOGISTICS_PASSWORD"),
+            password=resolve_password("SEED_LOGISTICS_PASSWORD", "SEED_DEFAULT_PASSWORD"),
             role=UserRole.LOGISTICS_MANAGER,
+        )
+        logistics2_seed = SeedUser(
+            email="logistics2@rapidcourrier.cd",
+            phone="+243810000011",
+            name="Rapid Courrier Manager",
+            password=os.getenv("SEED_LOGISTICS_2_PASSWORD", "").strip()
+            or resolve_password("SEED_LOGISTICS_PASSWORD", "SEED_DEFAULT_PASSWORD"),
+            role=UserRole.LOGISTICS_MANAGER,
+        )
+        kin_express_company_seed = SeedDeliveryCompany(
+            name="Kin Express Logistics",
+            slug="kin-express-logistics",
+            phone="+243810000010",
+            email="logistics@laundryexpress.cd",
+            rating_avg=4.8,
+            rating_count=57,
+        )
+        rapid_courrier_company_seed = SeedDeliveryCompany(
+            name="Rapid Courrier RDC",
+            slug="rapid-courrier-rdc",
+            phone="+243810000012",
+            email="logistics2@rapidcourrier.cd",
+            rating_avg=4.5,
+            rating_count=31,
+        )
+        rapid_driver_seed = SeedUser(
+            email="driver4@rapidcourrier.cd",
+            phone="+243844444444",
+            name="Driver Mukendi",
+            password=os.getenv("SEED_DRIVER_4_PASSWORD") or "driverpass123",
+            role=UserRole.DRIVER,
+            avatar_url="/images/drivers/driver-4.svg",
         )
 
         print("Users:")
@@ -507,6 +564,8 @@ def seed_default_credentials() -> bool:
         new_customer = ensure_user(db, auth_service, new_customer_seed, reserved_phones)
         drivers = [ensure_user(db, auth_service, seed, reserved_phones) for seed in driver_seeds]
         logistics_manager = ensure_user(db, auth_service, logistics_seed, reserved_phones)
+        logistics_manager_2 = ensure_user(db, auth_service, logistics2_seed, reserved_phones)
+        rapid_driver_user = ensure_user(db, auth_service, rapid_driver_seed, reserved_phones)
         partner_owner = ensure_user(db, auth_service, partner_owner_seed, reserved_phones)
         partner_staff = ensure_user(db, auth_service, partner_staff_seed, reserved_phones)
 
@@ -515,12 +574,37 @@ def seed_default_credentials() -> bool:
         for driver_user in drivers:
             driver_records.append((driver_user, ensure_driver_profile(db, driver_user, driver_profiles[driver_user.email])))
 
-        print("Delivery company:")
-        delivery_company = ensure_delivery_company(db)
+        print("Delivery companies:")
+        delivery_company = ensure_delivery_company(db, kin_express_company_seed)
         for commune in ["Lingwala", "Kintambo", "Ngaliema", "Gombe", "Limete"]:
             ensure_company_service_zone(db, delivery_company, commune)
         for driver_user, driver_record in driver_records:
             ensure_company_driver_link(db, delivery_company, driver_record, driver_user.email)
+
+        rapid_courrier_company = ensure_delivery_company(db, rapid_courrier_company_seed)
+        for commune in ["Gombe", "Limete", "Bandal", "Kalamu"]:
+            ensure_company_service_zone(db, rapid_courrier_company, commune)
+        rapid_driver_profile = SeedDriverProfile(
+            email=rapid_driver_seed.email,
+            vehicle_type="moto",
+            license_number="RPD-DRV-004",
+            rating_avg=4.4,
+            rating_count=9,
+        )
+        rapid_driver_record = ensure_driver_profile(db, rapid_driver_user, rapid_driver_profile)
+        ensure_company_driver_link(
+            db,
+            rapid_courrier_company,
+            rapid_driver_record,
+            rapid_driver_user.email,
+        )
+
+        if logistics_manager.delivery_company_id != delivery_company.id:
+            logistics_manager.delivery_company_id = delivery_company.id
+            print("  - logistics manager linked to Kin Express Logistics")
+        if logistics_manager_2.delivery_company_id != rapid_courrier_company.id:
+            logistics_manager_2.delivery_company_id = rapid_courrier_company.id
+            print("  - logistics manager linked to Rapid Courrier RDC")
 
         print("Partner:")
         partner = ensure_partner(db)
@@ -543,7 +627,9 @@ def seed_default_credentials() -> bool:
         print(f"  PARTNER_STAFF: {partner_staff.email}")
         for driver_user in drivers:
             print(f"  DRIVER: {driver_user.email}")
-        print(f"  LOGISTICS_MANAGER: {logistics_manager.email}")
+        print(f"  DRIVER: {rapid_driver_user.email}")
+        print(f"  LOGISTICS_MANAGER (Kin Express): {logistics_manager.email}")
+        print(f"  LOGISTICS_MANAGER (Rapid Courrier): {logistics_manager_2.email}")
         print(f"  PARTNER: {partner.email} / no direct login (Partner is a business entity)")
         print(
             "\nINFO: passwords are not echoed by this script. "
