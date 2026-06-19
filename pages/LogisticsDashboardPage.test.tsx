@@ -357,6 +357,47 @@ describe('LogisticsDashboardPage', () => {
     view.unmount();
   });
 
+  it('manages shipments with filters, search and operational actions', async () => {
+    window.history.replaceState(null, '', '/#shipments');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Shipments V1')).not.toBeNull();
+    expect(byText(view.container, 'Total shipments')).not.toBeNull();
+    expect(byText(view.container, 'En transit')).not.toBeNull();
+    expect(byText(view.container, 'Détail shipment')).not.toBeNull();
+
+    const searchInput = view.container.querySelector('input[placeholder="Rechercher shipment, commande, client, zone, chauffeur..."]') as HTMLInputElement;
+    expect(searchInput).not.toBeNull();
+    changeInput(searchInput, 'Monique');
+    expect(byText(view.container, 'shp-003')).not.toBeNull();
+    expect(byText(view.container, 'shp-001')).toBeNull();
+
+    view.click(buttonByText(view.container, /^Retards$/)!);
+    expect(byText(view.container, 'Monique V.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Voir détail$/)!);
+    expect(byText(view.container, 'shp-003 · LX-2014 · Monique V.')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Signaler incident$/)!);
+    expect(byText(view.container, 'Incident shipment enregistré: shp-003')).not.toBeNull();
+    expect(byText(view.container, 'Incident')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Marquer livré$/)!);
+    expect(byText(view.container, 'shp-003 mis à jour: Livré')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Ouvrir tracking$/)!);
+    expect(window.location.hash).toBe('#tracking');
+
+    window.history.replaceState(null, '', '/#shipments');
+    view.click(buttonByText(view.container, /^Trip details$/)!);
+    expect(window.location.hash).toBe('#trip-details');
+
+    view.unmount();
+  });
+
   it('shows complete driver profile and handles driver actions', async () => {
     window.history.replaceState(null, '', '/#drivers');
     const view = renderComponent(<LogisticsDashboardPage />);

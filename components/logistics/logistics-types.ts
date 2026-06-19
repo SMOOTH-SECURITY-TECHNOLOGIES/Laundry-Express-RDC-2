@@ -123,6 +123,16 @@ export interface Shipment {
   status: LogisticsStatus;
   pickupZone: string;
   deliveryZone: string;
+  pickupAddress?: string;
+  deliveryAddress?: string;
+  tripId?: string;
+  driverName?: string;
+  vehiclePlate?: string;
+  etaMinutes?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  proofRequired?: boolean;
+  incidentCount?: number;
 }
 
 export interface TrackingPoint {

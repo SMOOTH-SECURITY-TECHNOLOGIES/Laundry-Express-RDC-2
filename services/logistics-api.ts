@@ -62,6 +62,16 @@ export interface LogisticsShipmentRow {
   status: LogisticsStatus;
   pickupZone: string;
   deliveryZone: string;
+  pickupAddress?: string;
+  deliveryAddress?: string;
+  tripId?: string;
+  driverName?: string;
+  vehiclePlate?: string;
+  etaMinutes?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  proofRequired?: boolean;
+  incidentCount?: number;
 }
 
 export interface LogisticsAlertRow {
@@ -207,6 +217,16 @@ export const dispatchTaskToShipment = (task: DispatchTask): LogisticsShipmentRow
   status: task.status,
   pickupZone: task.pickupZone,
   deliveryZone: task.deliveryZone,
+  pickupAddress: task.pickupAddress,
+  deliveryAddress: `${task.deliveryZone}, Kinshasa`,
+  tripId: task.shipmentId,
+  driverName: task.driverName || 'À assigner',
+  vehiclePlate: task.vehicleId || 'Véhicule à confirmer',
+  etaMinutes: Math.max(8, Math.round(task.distanceKm * 6)),
+  createdAt: `${Math.max(5, task.queueMinutes)} min`,
+  updatedAt: 'Maintenant',
+  proofRequired: task.status === 'delivered',
+  incidentCount: task.status === 'failed' || task.status === 'delayed' ? 1 : 0,
 });
 
 export const mapLogisticsDriverProfile = (driver: LogisticsDriver): LogisticsDriverProfile => {
