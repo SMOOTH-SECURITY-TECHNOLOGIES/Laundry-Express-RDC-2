@@ -252,8 +252,16 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Trip Details')).not.toBeNull();
     expect(byText(view.container, 'Shipments')).not.toBeNull();
     expect(byText(view.container, 'Maintenance')).not.toBeNull();
-    expect(byText(view.container, 'Control Tower TMS')).not.toBeNull();
-    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Control Tower')).not.toBeNull();
+    expect(byText(view.container, 'État flotte')).not.toBeNull();
+    expect(byText(view.container, 'État flotte & maintenance')).not.toBeNull();
+    expect(byText(view.container, 'Capability Matrix')).not.toBeNull();
+    expect(byText(view.container, 'Fuel Control')).not.toBeNull();
+    expect(byText(view.container, 'GPS Monitoring')).not.toBeNull();
+    expect(byText(view.container, 'Signaux live')).not.toBeNull();
+    expect(byText(view.container, 'Driver Behavior Analytics')).not.toBeNull();
+    expect(byText(view.container, 'Chauffeurs scorés')).not.toBeNull();
+    expect(byText(view.container, 'Backlog dispatch')).not.toBeNull();
 
     view.unmount();
   });
@@ -287,7 +295,7 @@ describe('LogisticsDashboardPage', () => {
     expect(missionsButton).not.toBeNull();
     view.click(missionsButton!);
 
-    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Backlog dispatch')).not.toBeNull();
     expect(byText(view.container, 'Toutes les missions')).not.toBeNull();
 
     view.unmount();
@@ -382,11 +390,11 @@ describe('LogisticsDashboardPage', () => {
     view.click(menuButton!);
 
     const mobileSections: Array<[RegExp, string]> = [
-      [/^Dashboard$/, 'Control Tower TMS'],
+      [/^Dashboard$/, 'Control Tower'],
       [/^Fleet$/, 'Fleet Management'],
       [/^Drivers$/, 'Profil chauffeur'],
       [/^Dispatch$/, 'Nouvelles missions'],
-      [/^Missions$/, 'Backlog à dispatcher'],
+      [/^Missions$/, 'Backlog dispatch'],
       [/^Tracking$/, 'Live Tracking'],
       [/^Trip Details$/, 'Timeline trajet'],
       [/^Shipments$/, 'shp-001'],
@@ -809,7 +817,7 @@ describe('LogisticsDashboardPage', () => {
     expect(delayAction?.getAttribute('href')).toBe('#missions');
     view.click(delayAction!);
     expect(byText(view.container, 'Mission ciblée depuis l’alerte: MSN-004')).not.toBeNull();
-    expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
+    expect(byText(view.container, 'Backlog dispatch')).not.toBeNull();
     expect(window.location.hash).toBe('#missions');
     expect(mocks.context.addNotification).toHaveBeenCalledWith('Ouverture des missions pour analyser le retard. Mission cible: MSN-004. Chauffeur cible: Tshimanga A.', 'info');
     view.unmount();
