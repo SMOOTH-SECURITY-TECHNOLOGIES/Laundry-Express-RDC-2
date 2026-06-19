@@ -123,12 +123,29 @@ export type OperationalModel = {
     confidence: 'high' | 'medium' | 'low';
     recommendation: string;
   };
+  fuelControl: {
+    status: 'partial' | 'connect';
+    estimatedKm: number;
+    estimatedCost: number;
+    costPerMission: number;
+    costPerKm: number;
+    trackedVehicles: number;
+    anomalyCount: number;
+    confidence: 'medium' | 'low';
+    recommendation: string;
+  };
 };
 
 const latestByDate = <T,>(items: T[], pickDate: (item: T) => string | null | undefined): T | undefined =>
   [...items]
     .filter((item) => pickDate(item))
     .sort((a, b) => (new Date(pickDate(b) || 0).getTime() || 0) - (new Date(pickDate(a) || 0).getTime() || 0))[0];
+
+const vehicleFuelCostPerKm: Record<LogisticsVehicle['type'], number> = {
+  moto: 0.18,
+  car: 0.42,
+  van: 0.62,
+};
 
 export function useOperationalDashboard(
   tasks: LogisticsTask[],
@@ -362,6 +379,31 @@ export function useOperationalDashboard(
             : insuranceExpiring.length > 0 || serviceDueSoon.length > 0
               ? 'Planifier les contrôles proches pour préserver la capacité.'
               : 'Flotte assignable. Surveiller assurance et prochain entretien.',
+    };
+    const missionKmEstimate = periodTasks.reduce((sum, task) => sum + (task.task_type === 'delivery' ? 3.2 : 2.4), 0);
+    const activeVehicleTypes = vehicles.length > 0 ? vehicles.map((vehicle) => vehicle.type) : (['moto'] as LogisticsVehicle['type'][]);
+    const averageCostPerKm =
+      activeVehicleTypes.reduce((sum, type) => sum + vehicleFuelCostPerKm[type], 0) / Math.max(1, activeVehicleTypes.length);
+    const fuelEstimatedCost = missionKmEstimate * averageCostPerKm;
+    const highMileageVehicles = vehicles.filter((vehicle) => {
+      const remainingKm = vehicle.maintenance.nextServiceAtKm - vehicle.mileageKm;
+      return remainingKm < 250 && vehicle.maintenance.status !== 'overdue';
+    });
+    const fuelControl: OperationalModel['fuelControl'] = {
+      status: periodTasks.length > 0 || vehicles.length > 0 ? 'partial' : 'connect',
+      estimatedKm: Math.round(missionKmEstimate * 10) / 10,
+      estimatedCost: Math.round(fuelEstimatedCost * 100) / 100,
+      costPerMission: Math.round((fuelEstimatedCost / Math.max(1, periodTasks.length)) * 100) / 100,
+      costPerKm: Math.round(averageCostPerKm * 100) / 100,
+      trackedVehicles: vehicles.length,
+      anomalyCount: highMileageVehicles.length,
+      confidence: periodTasks.length > 0 && vehicles.length > 0 ? 'medium' : 'low',
+      recommendation:
+        periodTasks.length === 0 && vehicles.length === 0
+          ? 'Brancher fuel usage et distances réelles par trajet.'
+          : highMileageVehicles.length > 0
+            ? 'Contrôler les véhicules proches entretien avant hausse carburant.'
+            : 'Connecter les reçus carburant pour passer de proxy à coût réel.',
     };
     const completionRate = percentOf(deliveryDone.length || completedTasks.length, periodOrders.length);
     const onTimeRate = percentOf(completedTasks.length, completedTasks.length + failedTasks.length);
@@ -659,10 +701,10 @@ export function useOperationalDashboard(
       {
         id: 'fuel-control',
         label: 'Fuel Control',
-        status: 'connect',
-        source: 'fuel usage endpoint',
-        confidence: 'low',
-        nextAction: 'Créer contrat coût carburant par mission/véhicule',
+        status: fuelControl.status,
+        source: fuelControl.status === 'partial' ? 'mission distance proxy + vehicles' : 'fuel usage endpoint',
+        confidence: fuelControl.confidence,
+        nextAction: fuelControl.recommendation,
       },
       {
         id: 'trip-management',
@@ -873,6 +915,7 @@ export function useOperationalDashboard(
       gpsHealth,
       driverBehavior,
       vehicleHealth,
+      fuelControl,
     };
   }, [
     tasks,

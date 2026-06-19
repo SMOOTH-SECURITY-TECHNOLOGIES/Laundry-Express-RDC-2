@@ -263,6 +263,8 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Chauffeurs scorés')).not.toBeNull();
     expect(byText(view.container, 'Vehicle Health')).not.toBeNull();
     expect(byText(view.container, 'Assignables')).not.toBeNull();
+    expect(byText(view.container, 'Fuel Control')).not.toBeNull();
+    expect(byText(view.container, 'Coût / mission')).not.toBeNull();
     expect(byText(view.container, 'Backlog dispatch')).not.toBeNull();
 
     view.unmount();
@@ -878,5 +880,6 @@ describe('LogisticsDashboardPage', () => {
     view.click(buttonByText(view.container, /retour/i)!);
 
     expect(mocks.context.logout).toHaveBeenCalledTimes(1);
+    view.unmount();
   });
 });

@@ -10,6 +10,7 @@ import { CapabilityMatrixPanel } from './CapabilityMatrixPanel';
 import { GpsMonitoringPanel } from './GpsMonitoringPanel';
 import { DriverBehaviorPanel } from './DriverBehaviorPanel';
 import { VehicleHealthPanel } from './VehicleHealthPanel';
+import { FuelControlPanel } from './FuelControlPanel';
 import { ControlTowerPanel } from './ControlTowerPanel';
 import { TruthCorridorPipeline } from './TruthCorridorPipeline';
 import { TruthHealthCards } from './TruthHealthCards';
@@ -101,7 +102,10 @@ export const OperationalControlTower: React.FC<{
         <DriverBehaviorPanel behavior={model.driverBehavior} />
       </section>
 
-      <VehicleHealthPanel health={model.vehicleHealth} onNavigate={onNavigate} />
+      <section className="grid gap-4 xl:grid-cols-2">
+        <VehicleHealthPanel health={model.vehicleHealth} onNavigate={onNavigate} />
+        <FuelControlPanel fuel={model.fuelControl} onNavigate={onNavigate} />
+      </section>
 
       <ControlTowerPanel
         model={model}
