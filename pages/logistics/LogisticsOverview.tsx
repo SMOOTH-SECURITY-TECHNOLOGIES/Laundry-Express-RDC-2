@@ -27,11 +27,53 @@ interface LogisticsOverviewProps {
   onRefresh: () => void;
   onAutoDispatch: () => void;
   onExport: () => void;
-  onNavigate?: (section: string, options?: { missionId?: string }) => void;
+  onNavigate?: (section: string, options?: { missionId?: string; driverName?: string; zone?: string }) => void;
   onActionFeedback?: (message: string) => void;
 }
 
 type DispatcherTab = 'operations' | 'dispatch' | 'tours' | 'missions' | 'drivers' | 'performance';
+
+interface ActionableAlert {
+  id: string;
+  tone: string;
+  title: string;
+  detail: string;
+  missionId?: string;
+  driverName?: string;
+  zone?: string;
+  primary: string;
+  secondary: string;
+}
+
+const routeAlertAction = (
+  alert: ActionableAlert,
+  action: string,
+  onNavigate: LogisticsOverviewProps['onNavigate'],
+  onMessage: (message: string) => void,
+) => {
+  if (alert.missionId && ['Réassigner', 'Dispatcher'].includes(action)) {
+    onNavigate?.('dispatch', { missionId: alert.missionId });
+    onMessage(`Ouverture du dispatch pour ${alert.missionId}.`);
+    return;
+  }
+  if (alert.missionId && action === 'Contacter') {
+    onNavigate?.('drivers', { driverName: alert.driverName });
+    onMessage(`Ouverture du chauffeur ${alert.driverName || 'assigné'}.`);
+    return;
+  }
+  if (alert.zone) {
+    onNavigate?.('dispatch', { zone: alert.zone });
+    onMessage(`Filtre dispatch ouvert pour la zone ${alert.zone}.`);
+    return;
+  }
+  if (action === 'Préparer relais' || action === 'Voir chauffeurs') {
+    onNavigate?.('drivers');
+    onMessage('Ouverture des chauffeurs disponibles pour préparer le relais.');
+    return;
+  }
+  onNavigate?.('alerts');
+  onMessage(`Ouverture des alertes pour ${alert.title}.`);
+};
 
 const MOCK_BACKLOG = Array.from({ length: 24 }, (_, i) => ({
   id: `MSN-${String(i + 1).padStart(3, '0')}`,
@@ -134,10 +176,44 @@ const DRIVER_RANKING = MOCK_READY_DRIVERS.slice(0, 8).map((driver, index) => ({
   coaching: index > 4,
 }));
 
-const ACTIONABLE_ALERTS = [
-  { id: 'ALT-1', tone: 'red', title: 'Retard critique', detail: 'Tshimanga A. dépasse le SLA de 18 min sur MSN-004.', primary: 'Réassigner', secondary: 'Contacter' },
-  { id: 'ALT-2', tone: 'orange', title: 'Zone saturée', detail: 'Limete compte 6 collectes non assignées.', primary: 'Dispatcher', secondary: 'Voir zone' },
+const ACTIONABLE_ALERTS: ActionableAlert[] = [
+  { id: 'ALT-1', tone: 'red', title: 'Retard critique', detail: 'Tshimanga A. dépasse le SLA de 18 min sur MSN-004.', missionId: 'MSN-004', driverName: 'Tshimanga A.', primary: 'Réassigner', secondary: 'Contacter' },
+  { id: 'ALT-2', tone: 'orange', title: 'Zone saturée', detail: 'Limete compte 6 collectes non assignées.', zone: 'Limete', primary: 'Dispatcher', secondary: 'Voir zone' },
   { id: 'ALT-3', tone: 'green', title: 'Relais disponible', detail: '3 chauffeurs terminent une tournée dans moins de 15 min.', primary: 'Préparer relais', secondary: 'Voir chauffeurs' },
+];
+
+const ACTIVITY_BARS = [
+  { label: '06h', value: 12, tone: 'low' },
+  { label: '08h', value: 24, tone: 'mid' },
+  { label: '10h', value: 18, tone: 'mid' },
+  { label: '12h', value: 38, tone: 'high' },
+  { label: '14h', value: 44, tone: 'high' },
+  { label: '16h', value: 35, tone: 'high' },
+  { label: '18h', value: 28, tone: 'mid' },
+  { label: '20h', value: 20, tone: 'mid' },
+  { label: '22h', value: 30, tone: 'high' },
+];
+
+const CONTROL_TOWER_ORDERS = [
+  { id: 'MSN-004', address: 'Av. Lumumba 42, Gombe', eta: '12 min', status: 'Retard', tone: 'red' },
+  { id: 'MSN-019', address: 'Limete 7e Rue', eta: '20 min', status: 'À assigner', tone: 'orange' },
+  { id: 'MSN-014', address: 'Boulevard du 30 Juin', eta: '18 min', status: 'En transit', tone: 'lime' },
+  { id: 'MSN-011', address: 'Kasavubu 15, Barumbu', eta: '24 min', status: 'Assignée', tone: 'blue' },
+  { id: 'MSN-007', address: 'Matete marché', eta: '31 min', status: 'Paiement', tone: 'violet' },
+];
+
+const TOP_ZONES = [
+  { zone: 'Gombe', missions: 18, onTime: 94, pressure: 'stable' },
+  { zone: 'Limete', missions: 15, onTime: 82, pressure: 'watch' },
+  { zone: 'Lingwala', missions: 11, onTime: 91, pressure: 'stable' },
+  { zone: 'Matete', missions: 8, onTime: 76, pressure: 'stop' },
+];
+
+const CONTROL_TOWER_STATUS = [
+  { label: 'À assigner', value: 20, tone: 'bg-orange-400 text-slate-950' },
+  { label: 'Assignées', value: 16, tone: 'bg-[#e8ff28] text-slate-950' },
+  { label: 'En transit', value: 22, tone: 'bg-blue-400 text-slate-950' },
+  { label: 'Livrées', value: 98, tone: 'bg-white text-slate-950' },
 ];
 
 const SuggestedDispatchTable: React.FC<{
@@ -289,7 +365,7 @@ const ALERT_TONE_CLASS: Record<string, string> = {
   green: 'border-green-500/35 bg-green-500/15 text-green-100',
 };
 
-const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }> = ({ onAlertAction }) => (
+const ActionableAlertsStrip: React.FC<{ onAlertAction: (alert: ActionableAlert, action: string) => void }> = ({ onAlertAction }) => (
   <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
     {ACTIONABLE_ALERTS.map((alert) => {
       const tone = ALERT_TONE_CLASS[alert.tone] || ALERT_TONE_CLASS.green;
@@ -300,14 +376,14 @@ const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }
           <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
-              onClick={() => onAlertAction(`${alert.primary} - ${alert.title}`)}
+              onClick={() => onAlertAction(alert, alert.primary)}
               className="min-h-10 rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-2 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.primary}
             </button>
             <button
               type="button"
-              onClick={() => onAlertAction(`${alert.secondary} - ${alert.title}`)}
+              onClick={() => onAlertAction(alert, alert.secondary)}
               className="min-h-10 rounded-lg px-3 py-2 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.secondary}
@@ -399,6 +475,250 @@ const DriverLeaderboard: React.FC<{ onDriverAction: (label: string) => void }> =
     </div>
   </div>
 );
+
+const TmsControlTowerCard: React.FC<{
+  label: string;
+  value: string;
+  delta: string;
+  icon: React.ComponentProps<typeof Icon>['name'];
+  accent?: boolean;
+  onClick: () => void;
+}> = ({ label, value, delta, icon, accent = false, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`w-full rounded-[22px] border border-white/10 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-white/25 focus:outline-none focus:ring-2 focus:ring-[#e8ff28] focus:ring-offset-2 focus:ring-offset-[#0b0b0b] ${accent ? 'bg-[#e8ff28] text-slate-950' : 'bg-[#202020] text-white'}`}
+  >
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className={`text-xs font-semibold ${accent ? 'text-slate-700' : 'text-white/70'}`}>{label}</p>
+        <p className="mt-8 text-3xl font-black tracking-normal">{value}</p>
+        <p className={`mt-2 text-xs ${accent ? 'text-slate-700' : 'text-white/55'}`}>{delta}</p>
+      </div>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${accent ? 'border-slate-950/20 bg-slate-950 text-[#e8ff28]' : 'border-white/10 bg-white/5 text-white'}`}>
+        <Icon name={icon} className="h-4 w-4" />
+      </span>
+    </div>
+  </button>
+);
+
+const TmsControlTowerDashboard: React.FC<{
+  openMissions: number;
+  activeMissions: number;
+  availableDrivers: number;
+  totalDrivers: number;
+  backlogRevenue: number;
+  onRefresh: () => void;
+  onNavigate?: (section: string, options?: { missionId?: string; driverName?: string; zone?: string }) => void;
+  onMessage: (message: string) => void;
+}> = ({ openMissions, activeMissions, availableDrivers, totalDrivers, backlogRevenue, onRefresh, onNavigate, onMessage }) => {
+  const onTimeRate = Math.max(72, Math.min(98, MOCK_PERFORMANCE.onTimeRate + Math.round((availableDrivers / Math.max(1, totalDrivers)) * 4)));
+  const driverScore = Math.max(70, Math.round(DRIVER_RANKING.reduce((sum, driver) => sum + driver.onTime, 0) / DRIVER_RANKING.length));
+  const maxActivity = Math.max(...ACTIVITY_BARS.map((bar) => bar.value));
+  const pendingTotal = Math.max(openMissions, CONTROL_TOWER_STATUS[0].value);
+
+  return (
+    <section className="overflow-hidden rounded-[28px] bg-[#0b0b0b] p-4 text-white shadow-2xl shadow-black/20 sm:p-5 lg:p-6">
+      <div className="grid gap-4 xl:grid-cols-[72px_minmax(0,1fr)]">
+        <aside className="hidden rounded-[24px] border border-white/10 bg-[#151515] px-3 py-4 xl:flex xl:flex-col xl:items-center xl:justify-between">
+          <div className="space-y-5">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e8ff28] text-slate-950">
+              <Icon name="truck" className="h-5 w-5" />
+            </span>
+            {(['dashboard', 'dispatch', 'tracking', 'drivers', 'performance'] as const).map((section) => (
+              <button
+                key={section}
+                type="button"
+                onClick={() => onNavigate?.(section === 'dashboard' ? 'dashboard' : section)}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl text-white/70 transition hover:bg-white/10 hover:text-white"
+                aria-label={section}
+              >
+                <Icon
+                  name={section === 'dashboard' ? 'home' : section === 'dispatch' ? 'sparkles' : section === 'tracking' ? 'map' : section === 'drivers' ? 'users' : 'chartBar'}
+                  className="h-4 w-4"
+                />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl text-white/70 transition hover:bg-white/10 hover:text-white"
+            aria-label="Actualiser"
+          >
+            <Icon name="arrow-path" className="h-4 w-4" />
+          </button>
+        </aside>
+
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <button
+              type="button"
+              onClick={() => onNavigate?.('missions')}
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-[22px] border border-white/10 bg-[#171717] px-4 py-3 text-left transition hover:border-white/25 hover:bg-white/8 focus:outline-none focus:ring-2 focus:ring-[#e8ff28] focus:ring-offset-2 focus:ring-offset-[#0b0b0b]"
+            >
+              <Icon name="search" className="h-4 w-4 shrink-0 text-white/45" />
+              <span className="truncate text-sm text-white/55">Recherche mission, chauffeur, zone, plaque...</span>
+            </button>
+            <div className="flex items-center justify-between gap-3 rounded-[22px] border border-white/10 bg-[#171717] px-4 py-3 lg:min-w-[260px]">
+              <div>
+                <p className="text-sm font-bold">Control Tower TMS</p>
+                <p className="text-xs text-white/50">Laundry Express · Multi-services</p>
+              </div>
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-black">LX</span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <TmsControlTowerCard label="On-time delivery" value={`${onTimeRate}%`} delta="+2% vs hier" icon="arrowRight" accent onClick={() => onNavigate?.('performance')} />
+            <TmsControlTowerCard label="Missions ouvertes" value={String(openMissions)} delta={`${pendingTotal} en file terrain`} icon="shoppingBag" onClick={() => onNavigate?.('dispatch')} />
+            <TmsControlTowerCard label="Chauffeurs actifs" value={`${availableDrivers}/${totalDrivers}`} delta="Disponibilité réseau" icon="users" onClick={() => onNavigate?.('drivers')} />
+            <TmsControlTowerCard label="Driver behavior score" value={`${driverScore}%`} delta="Ponctualité et incidents" icon="chartBar" onClick={() => onNavigate?.('performance')} />
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)]">
+            <article className="rounded-[24px] border border-white/10 bg-[#202020] p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-black">Activité terrain</h2>
+                  <p className="mt-1 text-xs text-white/50">{formatCdf(backlogRevenue)} en backlog à dispatcher</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  className="rounded-full bg-white/8 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/15"
+                >
+                  Aujourd'hui
+                </button>
+              </div>
+              <div className="mt-6 flex h-56 items-end gap-2 rounded-[20px] bg-black/15 px-3 pb-3 pt-6 sm:gap-3">
+                {ACTIVITY_BARS.map((bar) => (
+                  <div key={bar.label} className="flex h-full min-w-0 flex-1 flex-col justify-end gap-2">
+                    <div
+                      className={`rounded-t-xl ${bar.tone === 'high' ? 'bg-[#e8ff28]' : bar.tone === 'mid' ? 'bg-white/70' : 'bg-white/25'}`}
+                      style={{ height: `${Math.max(12, (bar.value / maxActivity) * 100)}%` }}
+                      title={`${bar.value} missions`}
+                    />
+                    <span className="truncate text-center text-[10px] text-white/45">{bar.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/55">
+                <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-white/25" />Moins de 10 missions</span>
+                <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-white/70" />10-19 missions</span>
+                <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#e8ff28]" />20+ missions</span>
+              </div>
+            </article>
+
+            <article className="rounded-[24px] border border-white/10 bg-[#202020] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-black">Missions</h2>
+                <div className="flex gap-2 overflow-x-auto">
+                  {CONTROL_TOWER_STATUS.map((status) => (
+                    <span key={status.label} className={`shrink-0 rounded-full px-3 py-2 text-xs font-black ${status.tone}`}>
+                      {status.label} {status.value}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-5 space-y-1">
+                {CONTROL_TOWER_ORDERS.map((order) => (
+                  <button
+                    key={order.id}
+                    type="button"
+                    onClick={() => onNavigate?.('dispatch', { missionId: order.id })}
+                    className="grid w-full grid-cols-[92px_minmax(0,1fr)_64px_92px] items-center gap-3 rounded-2xl px-2 py-3 text-left text-sm transition hover:bg-white/8"
+                  >
+                    <span className="font-mono font-bold text-white">{order.id}</span>
+                    <span className="truncate text-white/68">{order.address}</span>
+                    <span className="text-white/50">{order.eta}</span>
+                    <span className={`justify-self-end rounded-full px-3 py-1 text-xs font-black ${
+                      order.tone === 'red' ? 'bg-red-400 text-slate-950'
+                        : order.tone === 'orange' ? 'bg-orange-400 text-slate-950'
+                          : order.tone === 'blue' ? 'bg-blue-400 text-slate-950'
+                            : order.tone === 'violet' ? 'bg-violet-400 text-white'
+                              : 'bg-[#e8ff28] text-slate-950'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <article className="rounded-[24px] border border-white/10 bg-[#202020] p-5">
+              <h2 className="text-lg font-black">Alertes opérationnelles</h2>
+              <div className="mt-4 space-y-3">
+                {ACTIONABLE_ALERTS.map((alert) => (
+                  <button
+                    key={alert.id}
+                    type="button"
+                    onClick={() => routeAlertAction(alert, alert.primary, onNavigate, onMessage)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:bg-white/8"
+                  >
+                    <p className="text-sm font-black">{alert.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-white/55">{alert.detail}</p>
+                  </button>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[24px] border border-white/10 bg-[#202020] p-5">
+              <h2 className="text-lg font-black">Top zones</h2>
+              <div className="mt-4 space-y-3">
+                {TOP_ZONES.map((zone) => (
+                  <button
+                    key={zone.zone}
+                    type="button"
+                    onClick={() => onNavigate?.('dispatch', { zone: zone.zone })}
+                    className="grid w-full grid-cols-[minmax(0,1fr)_64px_64px] items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-3 text-left"
+                  >
+                    <span className="font-bold">{zone.zone}</span>
+                    <span className="text-xs text-white/55">{zone.missions} miss.</span>
+                    <span className={`rounded-full px-2 py-1 text-center text-xs font-black ${
+                      zone.pressure === 'stop' ? 'bg-red-400 text-slate-950'
+                        : zone.pressure === 'watch' ? 'bg-orange-400 text-slate-950'
+                          : 'bg-[#e8ff28] text-slate-950'
+                    }`}>
+                      {zone.onTime}%
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[24px] border border-white/10 bg-[#202020] p-5">
+              <h2 className="text-lg font-black">Top chauffeurs</h2>
+              <div className="mt-4 grid gap-3">
+                {DRIVER_RANKING.slice(0, 3).map((driver) => (
+                  <button
+                    key={driver.name}
+                    type="button"
+                    onClick={() => onNavigate?.('drivers', { driverName: driver.name })}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.03] p-3 text-left transition hover:bg-white/8"
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e8ff28] text-sm font-black text-slate-950">
+                        {driver.name.slice(0, 2).toUpperCase()}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-black">{driver.name}</span>
+                        <span className="text-xs text-white/50">{driver.missions} missions</span>
+                      </span>
+                    </span>
+                    <span className="text-sm font-black text-[#e8ff28]">{driver.onTime}%</span>
+                  </button>
+                ))}
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport, onNavigate, onActionFeedback }) => {
   const [activeTab, setActiveTab] = useState<DispatcherTab>('operations');
@@ -540,7 +860,9 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
             {/* Desktop: Full operations view */}
             <div className="hidden sm:block">
-              <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
+              <ActionableAlertsStrip
+                onAlertAction={(alert, action) => routeAlertAction(alert, action, onNavigate, announceAction)}
+              />
             </div>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
               <div className={`${logisticsCard} p-5`}>
@@ -617,7 +939,18 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
             <div className={`${logisticsCard} p-5`}>
               <PerformanceDashboard data={MOCK_PERFORMANCE} />
             </div>
-            <DriverLeaderboard onDriverAction={(label) => announceAction(`Action chauffeur ouverte : ${label}.`)} />
+            <DriverLeaderboard
+              onDriverAction={(label) => {
+                const driverName = label.split(' - ')[1];
+                if (driverName) {
+                  onNavigate?.('drivers', { driverName });
+                  announceAction(`Ouverture du profil chauffeur ${driverName}.`);
+                } else {
+                  onNavigate?.('performance');
+                  announceAction(`Ouverture performance chauffeur : ${label}.`);
+                }
+              }}
+            />
           </div>
         );
       default:
@@ -634,6 +967,17 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
       }`}>
         {dataMode === 'backend' ? 'Dashboard logistique connecté au backend' : 'Mode dégradé — dashboard local'}
       </div>
+
+      <TmsControlTowerDashboard
+        openMissions={liveOpenMissionsCount}
+        activeMissions={liveActiveMissionsCount}
+        availableDrivers={liveAvailableDriversCount}
+        totalDrivers={liveTotalDriversCount}
+        backlogRevenue={liveEstimatedBacklogRevenue}
+        onRefresh={handleRefresh}
+        onNavigate={onNavigate}
+        onMessage={(message) => announceAction(`Action TMS : ${message}.`)}
+      />
 
       <div className={`${logisticsCard} p-4 sm:p-6`}>
         <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">

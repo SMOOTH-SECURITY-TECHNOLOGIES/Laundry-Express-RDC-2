@@ -65,4 +65,17 @@ describe('TripDetailsMobile Mobile', () => {
     expect(onCallDriver).toHaveBeenCalled();
     view.unmount();
   });
+
+  it('submits the selected incident type', () => {
+    const onIncident = vi.fn();
+    const view = renderComponent(<TripDetailsMobile {...baseProps} onIncident={onIncident} />);
+
+    view.click(buttonByText(view.container, /Plus d'actions/i)!);
+    view.click(buttonByText(view.container, /Signaler un incident/i)!);
+    view.click(buttonByText(view.container, /Problème véhicule/i)!);
+    view.click(buttonByText(view.container, /Envoyer le rapport/i)!);
+
+    expect(onIncident).toHaveBeenCalledWith('vehicle');
+    view.unmount();
+  });
 });

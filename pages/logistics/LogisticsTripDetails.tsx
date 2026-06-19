@@ -22,6 +22,33 @@ interface DetailedTrip extends Trip {
   deliveredAt?: string;
 }
 
+type ContactTarget = 'driver' | 'client';
+type ContactChannel = 'call' | 'sms' | 'whatsapp';
+type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+interface ContactEvent {
+  id: string;
+  target: ContactTarget;
+  name: string;
+  phone: string;
+  tripId: string;
+  taskId: string;
+  channel: ContactChannel;
+  createdAt: string;
+}
+
+interface IncidentRecord {
+  id: string;
+  tripId: string;
+  taskId: string;
+  type: string;
+  severity: IncidentSeverity;
+  description: string;
+  owner: string;
+  status: 'open' | 'watching' | 'resolved';
+  createdAt: string;
+}
+
 const fallbackTrips: DetailedTrip[] = [
   {
     id: 'trip-001',
@@ -106,6 +133,28 @@ const statusTone: Record<LogisticsStatus, string> = {
   cancelled: 'bg-slate-200 text-slate-700',
 };
 
+const contactLabels: Record<ContactTarget, string> = {
+  driver: 'chauffeur',
+  client: 'client',
+};
+
+const incidentLabels: Record<string, string> = {
+  traffic: 'Embouteillage',
+  accident: 'Accident',
+  vehicle: 'Problème véhicule',
+  customer: 'Client injoignable',
+  address: 'Adresse introuvable',
+  payment: 'Paiement',
+  other: 'Autre',
+};
+
+const severityLabels: Record<IncidentSeverity, string> = {
+  low: 'Faible',
+  medium: 'Moyen',
+  high: 'Élevé',
+  critical: 'Critique',
+};
+
 const mapTrip = (trip: Trip): DetailedTrip => ({
   ...trip,
   customerName: trip.customerName || 'Client Laundry',
@@ -142,6 +191,19 @@ export const LogisticsTripDetails: React.FC = () => {
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [activityLog, setActivityLog] = useState<string[]>(['Trip Details prêt: statut, contacts et incident tracking disponibles.']);
+  const [contactTarget, setContactTarget] = useState<ContactTarget | null>(null);
+  const [contactEvents, setContactEvents] = useState<ContactEvent[]>([]);
+  const [incidentRecords, setIncidentRecords] = useState<IncidentRecord[]>([]);
+  const [showIncidentForm, setShowIncidentForm] = useState(false);
+  const [incidentForm, setIncidentForm] = useState<{
+    type: string;
+    severity: IncidentSeverity;
+    description: string;
+  }>({
+    type: 'traffic',
+    severity: 'medium',
+    description: '',
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -170,6 +232,8 @@ export const LogisticsTripDetails: React.FC = () => {
     setActivityLog((current) => [message, ...current].slice(0, 5));
   };
 
+  const currentTime = () => new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
   const updateStatus = (status: LogisticsStatus) => {
     if (!selectedTrip) return;
     setTrips((current) =>
@@ -185,6 +249,62 @@ export const LogisticsTripDetails: React.FC = () => {
       )
     );
     pushAction(`Statut mis à jour: ${statusLabel[status]}`);
+  };
+
+  const openContactWorkflow = (target: ContactTarget) => {
+    if (!selectedTrip) return;
+    setContactTarget(target);
+    const name = target === 'driver' ? selectedTrip.driverName : selectedTrip.customerName;
+    pushAction(`Fiche contact ${contactLabels[target]} ouverte: ${name}`);
+  };
+
+  const recordContact = (target: ContactTarget, channel: ContactChannel) => {
+    if (!selectedTrip) return;
+    const name = target === 'driver' ? selectedTrip.driverName : selectedTrip.customerName;
+    const phone = target === 'driver' ? selectedTrip.driverPhone : selectedTrip.clientPhone;
+    const event: ContactEvent = {
+      id: `contact-${Date.now()}`,
+      target,
+      name,
+      phone,
+      tripId: selectedTrip.id,
+      taskId: selectedTrip.taskId,
+      channel,
+      createdAt: currentTime(),
+    };
+    setContactEvents((current) => [event, ...current].slice(0, 6));
+    pushAction(`${channel === 'call' ? 'Appel' : channel === 'sms' ? 'SMS' : 'WhatsApp'} ${contactLabels[target]} enregistré: ${name}`);
+
+    if (!phone) return;
+    const digits = phone.replace(/\D/g, '');
+    if (channel === 'call') window.open(`tel:${phone}`, '_self');
+    if (channel === 'sms') window.open(`sms:${phone}`, '_self');
+    if (channel === 'whatsapp') window.open(`https://wa.me/${digits}?text=${encodeURIComponent(`Bonjour, suivi mission ${selectedTrip.taskId}`)}`, '_blank');
+  };
+
+  const submitIncident = (overrides?: Partial<Pick<IncidentRecord, 'type' | 'severity' | 'description'>>) => {
+    if (!selectedTrip) return;
+    const type = overrides?.type ?? incidentForm.type;
+    const severity = overrides?.severity ?? incidentForm.severity;
+    const description = (overrides?.description ?? incidentForm.description).trim() || 'Incident signalé depuis le cockpit logistique.';
+    const status: LogisticsStatus = severity === 'low' || type === 'traffic' || type === 'address' || type === 'customer' ? 'delayed' : 'failed';
+    const record: IncidentRecord = {
+      id: `incident-${Date.now()}`,
+      tripId: selectedTrip.id,
+      taskId: selectedTrip.taskId,
+      type,
+      severity,
+      description,
+      owner: type === 'payment' ? 'Finance' : type === 'customer' || type === 'address' ? 'Support' : 'Operations',
+      status: severity === 'low' ? 'watching' : 'open',
+      createdAt: currentTime(),
+    };
+
+    setIncidentRecords((current) => [record, ...current].slice(0, 6));
+    setShowIncidentForm(false);
+    setIncidentForm({ type: 'traffic', severity: 'medium', description: '' });
+    updateStatus(status);
+    pushAction(`Incident ${incidentLabels[type] || type} enregistré sur ${selectedTrip.taskId} · ${severityLabels[severity]} · Owner ${record.owner}`);
   };
 
   const primaryActionLabel =
@@ -231,15 +351,13 @@ export const LogisticsTripDetails: React.FC = () => {
               deliveryAddress: selectedTrip.destination,
             }}
             onBack={() => window.history.back()}
-            onCallDriver={() => {
-              if (selectedTrip.driverPhone) window.open(`tel:${selectedTrip.driverPhone}`, '_self');
-              else pushAction(`Contact chauffeur: ${selectedTrip.driverName}`);
-            }}
-            onCallCustomer={() => {
-              if (selectedTrip.clientPhone) window.open(`tel:${selectedTrip.clientPhone}`, '_self');
-              else pushAction(`Contact client: ${selectedTrip.customerName}`);
-            }}
-            onIncident={() => updateStatus('failed')}
+            onCallDriver={() => recordContact('driver', 'call')}
+            onCallCustomer={() => recordContact('client', 'call')}
+            onIncident={(type) => submitIncident({
+              type: type || 'other',
+              severity: type === 'accident' || type === 'vehicle' ? 'high' : 'medium',
+              description: `Incident mobile: ${incidentLabels[type || 'other'] || type || 'Autre'}`,
+            })}
             onDelay={() => updateStatus('delayed')}
             onUpdateStatus={updateStatus}
           />
@@ -326,17 +444,99 @@ export const LogisticsTripDetails: React.FC = () => {
             <button type="button" onClick={() => updateStatus(selectedTrip.status === 'delivered' ? 'in_transit' : 'delivered')} className="rounded-xl bg-brand-blue px-4 py-3 text-sm font-black text-white hover:bg-brand-blue-700">
               Update status
             </button>
-            <button type="button" onClick={() => pushAction(`Contact chauffeur: ${selectedTrip.driverName}`)} className="rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">
+            <button type="button" onClick={() => openContactWorkflow('driver')} className="rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">
               Contacter chauffeur
             </button>
-            <button type="button" onClick={() => pushAction(`Contact client: ${selectedTrip.customerName}`)} className="rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">
+            <button type="button" onClick={() => openContactWorkflow('client')} className="rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">
               Contacter client
             </button>
-            <button type="button" onClick={() => updateStatus('failed')} className="rounded-xl border border-red-200 px-4 py-3 text-sm font-black text-red-600 hover:bg-red-50">
+            <button type="button" onClick={() => setShowIncidentForm(true)} className="rounded-xl border border-red-200 px-4 py-3 text-sm font-black text-red-600 hover:bg-red-50">
               Signaler incident
             </button>
           </div>
         </section>
+
+        {contactTarget && (
+          <section className={`${logisticsCard} p-5`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Icon name={contactTarget === 'driver' ? 'truck' : 'user'} className="h-5 w-5 text-brand-blue" />
+                  <h2 className="text-lg font-black text-content-primary">Fiche contact {contactLabels[contactTarget]}</h2>
+                </div>
+                <p className="mt-1 text-sm text-content-muted">
+                  Mission {selectedTrip.taskId} · {contactTarget === 'driver' ? selectedTrip.driverName : selectedTrip.customerName}
+                </p>
+              </div>
+              <button type="button" onClick={() => setContactTarget(null)} className="w-fit rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-muted hover:bg-surface-muted">
+                Fermer
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <button type="button" onClick={() => recordContact(contactTarget, 'call')} className="rounded-xl bg-green-600 px-4 py-3 text-sm font-black text-white hover:bg-green-700">
+                Appeler maintenant
+              </button>
+              <button type="button" onClick={() => recordContact(contactTarget, 'whatsapp')} className="rounded-xl border border-green-200 px-4 py-3 text-sm font-black text-green-700 hover:bg-green-50">
+                WhatsApp
+              </button>
+              <button type="button" onClick={() => recordContact(contactTarget, 'sms')} className="rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-black text-content-primary hover:bg-surface-muted">
+                SMS
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-surface-muted px-4 py-3">
+                <p className="text-xs font-bold uppercase text-content-muted">Téléphone</p>
+                <p className="mt-1 text-sm font-black text-content-primary">{contactTarget === 'driver' ? selectedTrip.driverPhone : selectedTrip.clientPhone}</p>
+              </div>
+              <div className="rounded-xl bg-surface-muted px-4 py-3">
+                <p className="text-xs font-bold uppercase text-content-muted">Contexte</p>
+                <p className="mt-1 text-sm font-black text-content-primary">{selectedTrip.origin} vers {selectedTrip.destination}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {showIncidentForm && (
+          <section className={`${logisticsCard} border-red-200 p-5`}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Icon name="warning" className="h-5 w-5 text-red-600" />
+                  <h2 className="text-lg font-black text-content-primary">Signaler incident</h2>
+                </div>
+                <p className="mt-1 text-sm text-content-muted">Créer un incident traçable pour {selectedTrip.taskId}, avec owner opérationnel.</p>
+              </div>
+              <button type="button" onClick={() => setShowIncidentForm(false)} className="w-fit rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-muted hover:bg-surface-muted">
+                Annuler
+              </button>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-sm font-bold text-content-primary">
+                Type
+                <select value={incidentForm.type} onChange={(event) => setIncidentForm((current) => ({ ...current, type: event.target.value }))} className="mt-2 w-full rounded-xl border border-surface-border-subtle bg-surface-card px-3 py-3 text-sm">
+                  {Object.entries(incidentLabels).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm font-bold text-content-primary">
+                Sévérité
+                <select value={incidentForm.severity} onChange={(event) => setIncidentForm((current) => ({ ...current, severity: event.target.value as IncidentSeverity }))} className="mt-2 w-full rounded-xl border border-surface-border-subtle bg-surface-card px-3 py-3 text-sm">
+                  {Object.entries(severityLabels).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm font-bold text-content-primary md:col-span-2">
+                Description opérationnelle
+                <textarea value={incidentForm.description} onChange={(event) => setIncidentForm((current) => ({ ...current, description: event.target.value }))} className="mt-2 min-h-24 w-full rounded-xl border border-surface-border-subtle bg-surface-card px-3 py-3 text-sm" placeholder="Ex: chauffeur bloqué, client injoignable, véhicule en panne..." />
+              </label>
+            </div>
+            <button type="button" onClick={() => submitIncident()} className="mt-4 rounded-xl bg-red-600 px-4 py-3 text-sm font-black text-white hover:bg-red-700">
+              Enregistrer incident
+            </button>
+          </section>
+        )}
         </div>
       </section>
 
@@ -371,6 +571,32 @@ export const LogisticsTripDetails: React.FC = () => {
             {activityLog.map((item, index) => (
               <div key={`${item}-${index}`} className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">
                 {item}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={`${logisticsCard} p-5`}>
+          <h2 className="text-lg font-black text-content-primary">Contacts récents</h2>
+          <div className="mt-4 space-y-2">
+            {contactEvents.length === 0 ? (
+              <p className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">Aucun contact enregistré.</p>
+            ) : contactEvents.map((event) => (
+              <div key={event.id} className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">
+                {event.createdAt} · {event.channel.toUpperCase()} · {event.name} · {event.taskId}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={`${logisticsCard} p-5`}>
+          <h2 className="text-lg font-black text-content-primary">Incidents ouverts</h2>
+          <div className="mt-4 space-y-2">
+            {incidentRecords.length === 0 ? (
+              <p className="rounded-xl bg-surface-muted px-3 py-2 text-xs font-bold text-content-muted">Aucun incident ouvert.</p>
+            ) : incidentRecords.map((incident) => (
+              <div key={incident.id} className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+                {incident.createdAt} · {incident.taskId} · {incidentLabels[incident.type] || incident.type} · {severityLabels[incident.severity]} · {incident.owner}
               </div>
             ))}
           </div>
