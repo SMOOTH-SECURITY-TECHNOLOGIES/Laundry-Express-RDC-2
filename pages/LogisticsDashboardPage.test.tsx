@@ -398,6 +398,30 @@ describe('LogisticsDashboardPage', () => {
     view.unmount();
   });
 
+  it('updates logistics performance metrics when the period changes', async () => {
+    window.history.replaceState(null, '', '/#performance');
+    const view = renderComponent(<LogisticsDashboardPage />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(byText(view.container, 'Performance opérationnelle')).not.toBeNull();
+    expect(byText(view.container, '242')).not.toBeNull();
+    expect(byText(view.container, '+12% vs semaine dernière')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Ce mois$/)!);
+    expect(byText(view.container, '1 084')).not.toBeNull();
+    expect(byText(view.container, '+18% vs mois dernier')).not.toBeNull();
+    expect(byText(view.container, '10 840 $')).not.toBeNull();
+
+    view.click(buttonByText(view.container, /^Ce trimestre$/)!);
+    expect(byText(view.container, '3 420')).not.toBeNull();
+    expect(byText(view.container, '+22% vs trimestre précédent')).not.toBeNull();
+    expect(byText(view.container, '34 200 $')).not.toBeNull();
+
+    view.unmount();
+  });
+
   it('shows complete driver profile and handles driver actions', async () => {
     window.history.replaceState(null, '', '/#drivers');
     const view = renderComponent(<LogisticsDashboardPage />);

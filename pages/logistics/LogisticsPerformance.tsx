@@ -3,54 +3,133 @@ import { Icon } from '../../components/Icon';
 import { logisticsCard } from './logistics-ui';
 
 const PERIODS = ['Cette semaine', 'Ce mois', 'Ce trimestre'] as const;
+type PerformancePeriod = typeof PERIODS[number];
 
-const KPI_DATA = [
-  { label: 'Missions complétées', value: '242', sub: '+12% vs semaine dernière', icon: 'check' as const, tone: 'bg-green-50 text-green-600' },
-  { label: 'Temps moyen', value: '23 min', sub: '-3 min vs semaine dernière', icon: 'clock' as const, tone: 'bg-blue-50 text-brand-blue' },
-  { label: 'Revenu total', value: '2 450 $', sub: '+8% vs semaine dernière', icon: 'currencyDollar' as const, tone: 'bg-orange-50 text-orange-600' },
-  { label: 'Ponctualité', value: '92%', sub: 'Objectif: 95%', icon: 'hand-thumb-up' as const, tone: 'bg-purple-50 text-purple-600' },
-];
+type TrendPoint = { day: string; value: number };
+type CommunePoint = { name: string; value: number };
 
-const DAILY_DATA = [
-  { day: 'Lun', value: 32 },
-  { day: 'Mar', value: 28 },
-  { day: 'Mer', value: 41 },
-  { day: 'Jeu', value: 36 },
-  { day: 'Ven', value: 45 },
-  { day: 'Sam', value: 38 },
-  { day: 'Dim', value: 22 },
-];
+const PERFORMANCE_DATA: Record<PerformancePeriod, {
+  compareLabel: string;
+  kpis: Array<{ label: string; value: string; sub: string; icon: React.ComponentProps<typeof Icon>['name']; tone: string }>;
+  missions: TrendPoint[];
+  communes: CommunePoint[];
+  collectTime: TrendPoint[];
+  revenue: TrendPoint[];
+}> = {
+  'Cette semaine': {
+    compareLabel: 'vs semaine dernière',
+    kpis: [
+      { label: 'Missions complétées', value: '242', sub: '+12% vs semaine dernière', icon: 'check', tone: 'bg-green-50 text-green-600' },
+      { label: 'Temps moyen', value: '23 min', sub: '-3 min vs semaine dernière', icon: 'clock', tone: 'bg-blue-50 text-brand-blue' },
+      { label: 'Revenu total', value: '2 450 $', sub: '+8% vs semaine dernière', icon: 'currencyDollar', tone: 'bg-orange-50 text-orange-600' },
+      { label: 'Ponctualité', value: '92%', sub: 'Objectif: 95%', icon: 'hand-thumb-up', tone: 'bg-purple-50 text-purple-600' },
+    ],
+    missions: [
+      { day: 'Lun', value: 32 },
+      { day: 'Mar', value: 28 },
+      { day: 'Mer', value: 41 },
+      { day: 'Jeu', value: 36 },
+      { day: 'Ven', value: 45 },
+      { day: 'Sam', value: 38 },
+      { day: 'Dim', value: 22 },
+    ],
+    communes: [
+      { name: 'Gombe', value: 48 },
+      { name: 'Lingwala', value: 35 },
+      { name: 'Barumbu', value: 28 },
+      { name: 'Kinshasa', value: 42 },
+      { name: 'Ngiri-Ngiri', value: 31 },
+      { name: 'Bandalungwa', value: 26 },
+    ],
+    collectTime: [
+      { day: 'Lun', value: 22 },
+      { day: 'Mar', value: 25 },
+      { day: 'Mer', value: 19 },
+      { day: 'Jeu', value: 23 },
+      { day: 'Ven', value: 21 },
+      { day: 'Sam', value: 24 },
+      { day: 'Dim', value: 20 },
+    ],
+    revenue: [
+      { day: 'Lun', value: 320 },
+      { day: 'Mar', value: 280 },
+      { day: 'Mer', value: 410 },
+      { day: 'Jeu', value: 360 },
+      { day: 'Ven', value: 450 },
+      { day: 'Sam', value: 380 },
+      { day: 'Dim', value: 220 },
+    ],
+  },
+  'Ce mois': {
+    compareLabel: 'vs mois dernier',
+    kpis: [
+      { label: 'Missions complétées', value: '1 084', sub: '+18% vs mois dernier', icon: 'check', tone: 'bg-green-50 text-green-600' },
+      { label: 'Temps moyen', value: '25 min', sub: '-2 min vs mois dernier', icon: 'clock', tone: 'bg-blue-50 text-brand-blue' },
+      { label: 'Revenu total', value: '10 840 $', sub: '+14% vs mois dernier', icon: 'currencyDollar', tone: 'bg-orange-50 text-orange-600' },
+      { label: 'Ponctualité', value: '91%', sub: 'Objectif: 95%', icon: 'hand-thumb-up', tone: 'bg-purple-50 text-purple-600' },
+    ],
+    missions: [
+      { day: 'S1', value: 214 },
+      { day: 'S2', value: 248 },
+      { day: 'S3', value: 286 },
+      { day: 'S4', value: 336 },
+    ],
+    communes: [
+      { name: 'Gombe', value: 216 },
+      { name: 'Lingwala', value: 168 },
+      { name: 'Barumbu', value: 132 },
+      { name: 'Kinshasa', value: 195 },
+      { name: 'Ngiri-Ngiri', value: 124 },
+      { name: 'Bandalungwa', value: 111 },
+    ],
+    collectTime: [
+      { day: 'S1', value: 27 },
+      { day: 'S2', value: 25 },
+      { day: 'S3', value: 24 },
+      { day: 'S4', value: 23 },
+    ],
+    revenue: [
+      { day: 'S1', value: 2140 },
+      { day: 'S2', value: 2480 },
+      { day: 'S3', value: 2860 },
+      { day: 'S4', value: 3360 },
+    ],
+  },
+  'Ce trimestre': {
+    compareLabel: 'vs trimestre précédent',
+    kpis: [
+      { label: 'Missions complétées', value: '3 420', sub: '+22% vs trimestre précédent', icon: 'check', tone: 'bg-green-50 text-green-600' },
+      { label: 'Temps moyen', value: '26 min', sub: '-4 min vs trimestre précédent', icon: 'clock', tone: 'bg-blue-50 text-brand-blue' },
+      { label: 'Revenu total', value: '34 200 $', sub: '+19% vs trimestre précédent', icon: 'currencyDollar', tone: 'bg-orange-50 text-orange-600' },
+      { label: 'Ponctualité', value: '93%', sub: 'Objectif: 95%', icon: 'hand-thumb-up', tone: 'bg-purple-50 text-purple-600' },
+    ],
+    missions: [
+      { day: 'M1', value: 980 },
+      { day: 'M2', value: 1124 },
+      { day: 'M3', value: 1316 },
+    ],
+    communes: [
+      { name: 'Gombe', value: 684 },
+      { name: 'Lingwala', value: 531 },
+      { name: 'Barumbu', value: 420 },
+      { name: 'Kinshasa', value: 628 },
+      { name: 'Ngiri-Ngiri', value: 388 },
+      { name: 'Bandalungwa', value: 352 },
+    ],
+    collectTime: [
+      { day: 'M1', value: 30 },
+      { day: 'M2', value: 27 },
+      { day: 'M3', value: 25 },
+    ],
+    revenue: [
+      { day: 'M1', value: 9800 },
+      { day: 'M2', value: 11240 },
+      { day: 'M3', value: 13160 },
+    ],
+  },
+};
 
-const COMMUNE_DATA = [
-  { name: 'Gombe', value: 48 },
-  { name: 'Lingwala', value: 35 },
-  { name: 'Barumbu', value: 28 },
-  { name: 'Kinshasa', value: 42 },
-  { name: 'Ngiri-Ngiri', value: 31 },
-  { name: 'Bandalungwa', value: 26 },
-];
-
-const COLLECT_TIME_DATA = [
-  { day: 'Lun', value: 22 },
-  { day: 'Mar', value: 25 },
-  { day: 'Mer', value: 19 },
-  { day: 'Jeu', value: 23 },
-  { day: 'Ven', value: 21 },
-  { day: 'Sam', value: 24 },
-  { day: 'Dim', value: 20 },
-];
-
-const REVENUE_DATA = [
-  { day: 'Lun', value: 320 },
-  { day: 'Mar', value: 280 },
-  { day: 'Mer', value: 410 },
-  { day: 'Jeu', value: 360 },
-  { day: 'Ven', value: 450 },
-  { day: 'Sam', value: 380 },
-  { day: 'Dim', value: 220 },
-];
-
-function LineChart({ data, color }: { data: typeof DAILY_DATA; color: string }) {
+function LineChart({ data, color }: { data: TrendPoint[]; color: string }) {
   const maxVal = Math.max(...data.map(d => d.value));
   const width = 400;
   const height = 160;
@@ -88,7 +167,7 @@ function LineChart({ data, color }: { data: typeof DAILY_DATA; color: string }) 
   );
 }
 
-function BarChart({ data, color }: { data: typeof COMMUNE_DATA; color: string }) {
+function BarChart({ data, color }: { data: CommunePoint[]; color: string }) {
   const maxVal = Math.max(...data.map(d => d.value));
   const barHeight = 24;
   const gap = 12;
@@ -112,7 +191,7 @@ function BarChart({ data, color }: { data: typeof COMMUNE_DATA; color: string })
   );
 }
 
-function AreaChart({ data, color }: { data: typeof COLLECT_TIME_DATA; color: string }) {
+function AreaChart({ data, color }: { data: TrendPoint[]; color: string }) {
   const maxVal = Math.max(...data.map(d => d.value));
   const width = 400;
   const height = 140;
@@ -147,7 +226,7 @@ function AreaChart({ data, color }: { data: typeof COLLECT_TIME_DATA; color: str
   );
 }
 
-function RevenueChart({ data, color }: { data: typeof REVENUE_DATA; color: string }) {
+function RevenueChart({ data, color }: { data: TrendPoint[]; color: string }) {
   const maxVal = Math.max(...data.map(d => d.value));
   const width = 400;
   const height = 160;
@@ -178,7 +257,8 @@ function RevenueChart({ data, color }: { data: typeof REVENUE_DATA; color: strin
 }
 
 export const LogisticsPerformance: React.FC = () => {
-  const [period, setPeriod] = useState<string>('Cette semaine');
+  const [period, setPeriod] = useState<PerformancePeriod>('Cette semaine');
+  const currentData = PERFORMANCE_DATA[period];
 
   return (
     <div className="space-y-6">
@@ -191,6 +271,7 @@ export const LogisticsPerformance: React.FC = () => {
           {PERIODS.map(p => (
             <button
               key={p}
+              type="button"
               onClick={() => setPeriod(p)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 period === p
@@ -205,7 +286,7 @@ export const LogisticsPerformance: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {KPI_DATA.map(kpi => (
+        {currentData.kpis.map(kpi => (
           <div key={kpi.label} className={`${logisticsCard} p-5`}>
             <div className="flex items-center gap-4">
               <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${kpi.tone}`}>
@@ -224,26 +305,27 @@ export const LogisticsPerformance: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className={`${logisticsCard} p-5`}>
           <h3 className="text-sm font-bold text-content-primary mb-4">Missions par jour</h3>
+          <p className="mb-2 text-xs font-medium text-content-muted">{currentData.compareLabel}</p>
           <div className="h-48">
-            <LineChart data={DAILY_DATA} color="#2563EB" />
+            <LineChart data={currentData.missions} color="#2563EB" />
           </div>
         </div>
         <div className={`${logisticsCard} p-5`}>
           <h3 className="text-sm font-bold text-content-primary mb-4">Livraisons par commune</h3>
           <div className="h-48">
-            <BarChart data={COMMUNE_DATA} color="#F97316" />
+            <BarChart data={currentData.communes} color="#F97316" />
           </div>
         </div>
         <div className={`${logisticsCard} p-5`}>
           <h3 className="text-sm font-bold text-content-primary mb-4">Temps moyen collecte (min)</h3>
           <div className="h-44">
-            <AreaChart data={COLLECT_TIME_DATA} color="#8B5CF6" />
+            <AreaChart data={currentData.collectTime} color="#8B5CF6" />
           </div>
         </div>
         <div className={`${logisticsCard} p-5`}>
           <h3 className="text-sm font-bold text-content-primary mb-4">Revenus quotidiens ($)</h3>
           <div className="h-48">
-            <RevenueChart data={REVENUE_DATA} color="#10B981" />
+            <RevenueChart data={currentData.revenue} color="#10B981" />
           </div>
         </div>
       </div>
