@@ -33,6 +33,48 @@ interface LogisticsOverviewProps {
 
 type DispatcherTab = 'operations' | 'dispatch' | 'tours' | 'missions' | 'drivers' | 'performance';
 
+interface ActionableAlert {
+  id: string;
+  tone: string;
+  title: string;
+  detail: string;
+  missionId?: string;
+  driverName?: string;
+  zone?: string;
+  primary: string;
+  secondary: string;
+}
+
+const routeAlertAction = (
+  alert: ActionableAlert,
+  action: string,
+  onNavigate: LogisticsOverviewProps['onNavigate'],
+  onMessage: (message: string) => void,
+) => {
+  if (alert.missionId && ['Réassigner', 'Dispatcher'].includes(action)) {
+    onNavigate?.('dispatch', { missionId: alert.missionId });
+    onMessage(`Ouverture du dispatch pour ${alert.missionId}.`);
+    return;
+  }
+  if (alert.missionId && action === 'Contacter') {
+    onNavigate?.('drivers', { driverName: alert.driverName });
+    onMessage(`Ouverture du chauffeur ${alert.driverName || 'assigné'}.`);
+    return;
+  }
+  if (alert.zone) {
+    onNavigate?.('dispatch', { zone: alert.zone });
+    onMessage(`Filtre dispatch ouvert pour la zone ${alert.zone}.`);
+    return;
+  }
+  if (action === 'Préparer relais' || action === 'Voir chauffeurs') {
+    onNavigate?.('drivers');
+    onMessage('Ouverture des chauffeurs disponibles pour préparer le relais.');
+    return;
+  }
+  onNavigate?.('alerts');
+  onMessage(`Ouverture des alertes pour ${alert.title}.`);
+};
+
 const MOCK_BACKLOG = Array.from({ length: 24 }, (_, i) => ({
   id: `MSN-${String(i + 1).padStart(3, '0')}`,
   client: ['Mama Jeanne', 'Patrick L.', 'Sarah K.', 'David M.', 'Grace N.', 'Paul O.', 'Marie C.', 'Jean B.'][i % 8],
@@ -134,9 +176,9 @@ const DRIVER_RANKING = MOCK_READY_DRIVERS.slice(0, 8).map((driver, index) => ({
   coaching: index > 4,
 }));
 
-const ACTIONABLE_ALERTS = [
-  { id: 'ALT-1', tone: 'red', title: 'Retard critique', detail: 'Tshimanga A. dépasse le SLA de 18 min sur MSN-004.', primary: 'Réassigner', secondary: 'Contacter' },
-  { id: 'ALT-2', tone: 'orange', title: 'Zone saturée', detail: 'Limete compte 6 collectes non assignées.', primary: 'Dispatcher', secondary: 'Voir zone' },
+const ACTIONABLE_ALERTS: ActionableAlert[] = [
+  { id: 'ALT-1', tone: 'red', title: 'Retard critique', detail: 'Tshimanga A. dépasse le SLA de 18 min sur MSN-004.', missionId: 'MSN-004', driverName: 'Tshimanga A.', primary: 'Réassigner', secondary: 'Contacter' },
+  { id: 'ALT-2', tone: 'orange', title: 'Zone saturée', detail: 'Limete compte 6 collectes non assignées.', zone: 'Limete', primary: 'Dispatcher', secondary: 'Voir zone' },
   { id: 'ALT-3', tone: 'green', title: 'Relais disponible', detail: '3 chauffeurs terminent une tournée dans moins de 15 min.', primary: 'Préparer relais', secondary: 'Voir chauffeurs' },
 ];
 
@@ -323,7 +365,7 @@ const ALERT_TONE_CLASS: Record<string, string> = {
   green: 'border-green-500/35 bg-green-500/15 text-green-100',
 };
 
-const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }> = ({ onAlertAction }) => (
+const ActionableAlertsStrip: React.FC<{ onAlertAction: (alert: ActionableAlert, action: string) => void }> = ({ onAlertAction }) => (
   <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
     {ACTIONABLE_ALERTS.map((alert) => {
       const tone = ALERT_TONE_CLASS[alert.tone] || ALERT_TONE_CLASS.green;
@@ -334,14 +376,14 @@ const ActionableAlertsStrip: React.FC<{ onAlertAction: (label: string) => void }
           <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
-              onClick={() => onAlertAction(`${alert.primary} - ${alert.title}`)}
+              onClick={() => onAlertAction(alert, alert.primary)}
               className="min-h-10 rounded-lg border border-surface-border-subtle bg-surface-card px-3 py-2 text-xs font-bold shadow-sm hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.primary}
             </button>
             <button
               type="button"
-              onClick={() => onAlertAction(`${alert.secondary} - ${alert.title}`)}
+              onClick={() => onAlertAction(alert, alert.secondary)}
               className="min-h-10 rounded-lg px-3 py-2 text-xs font-bold hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
               {alert.secondary}
@@ -440,8 +482,13 @@ const TmsControlTowerCard: React.FC<{
   delta: string;
   icon: React.ComponentProps<typeof Icon>['name'];
   accent?: boolean;
-}> = ({ label, value, delta, icon, accent = false }) => (
-  <article className={`rounded-[22px] border border-white/10 p-5 shadow-sm ${accent ? 'bg-[#e8ff28] text-slate-950' : 'bg-[#202020] text-white'}`}>
+  onClick: () => void;
+}> = ({ label, value, delta, icon, accent = false, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`w-full rounded-[22px] border border-white/10 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-white/25 focus:outline-none focus:ring-2 focus:ring-[#e8ff28] focus:ring-offset-2 focus:ring-offset-[#0b0b0b] ${accent ? 'bg-[#e8ff28] text-slate-950' : 'bg-[#202020] text-white'}`}
+  >
     <div className="flex items-start justify-between gap-4">
       <div>
         <p className={`text-xs font-semibold ${accent ? 'text-slate-700' : 'text-white/70'}`}>{label}</p>
@@ -452,7 +499,7 @@ const TmsControlTowerCard: React.FC<{
         <Icon name={icon} className="h-4 w-4" />
       </span>
     </div>
-  </article>
+  </button>
 );
 
 const TmsControlTowerDashboard: React.FC<{
@@ -463,8 +510,8 @@ const TmsControlTowerDashboard: React.FC<{
   backlogRevenue: number;
   onRefresh: () => void;
   onNavigate?: (section: string, options?: { missionId?: string; driverName?: string; zone?: string }) => void;
-  onAction: (message: string) => void;
-}> = ({ openMissions, activeMissions, availableDrivers, totalDrivers, backlogRevenue, onRefresh, onNavigate, onAction }) => {
+  onMessage: (message: string) => void;
+}> = ({ openMissions, activeMissions, availableDrivers, totalDrivers, backlogRevenue, onRefresh, onNavigate, onMessage }) => {
   const onTimeRate = Math.max(72, Math.min(98, MOCK_PERFORMANCE.onTimeRate + Math.round((availableDrivers / Math.max(1, totalDrivers)) * 4)));
   const driverScore = Math.max(70, Math.round(DRIVER_RANKING.reduce((sum, driver) => sum + driver.onTime, 0) / DRIVER_RANKING.length));
   const maxActivity = Math.max(...ACTIVITY_BARS.map((bar) => bar.value));
@@ -505,10 +552,14 @@ const TmsControlTowerDashboard: React.FC<{
 
         <div className="space-y-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[22px] border border-white/10 bg-[#171717] px-4 py-3">
+            <button
+              type="button"
+              onClick={() => onNavigate?.('missions')}
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-[22px] border border-white/10 bg-[#171717] px-4 py-3 text-left transition hover:border-white/25 hover:bg-white/8 focus:outline-none focus:ring-2 focus:ring-[#e8ff28] focus:ring-offset-2 focus:ring-offset-[#0b0b0b]"
+            >
               <Icon name="search" className="h-4 w-4 shrink-0 text-white/45" />
               <span className="truncate text-sm text-white/55">Recherche mission, chauffeur, zone, plaque...</span>
-            </div>
+            </button>
             <div className="flex items-center justify-between gap-3 rounded-[22px] border border-white/10 bg-[#171717] px-4 py-3 lg:min-w-[260px]">
               <div>
                 <p className="text-sm font-bold">Control Tower TMS</p>
@@ -519,10 +570,10 @@ const TmsControlTowerDashboard: React.FC<{
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <TmsControlTowerCard label="On-time delivery" value={`${onTimeRate}%`} delta="+2% vs hier" icon="arrowRight" accent />
-            <TmsControlTowerCard label="Missions ouvertes" value={String(openMissions)} delta={`${pendingTotal} en file terrain`} icon="shoppingBag" />
-            <TmsControlTowerCard label="Chauffeurs actifs" value={`${availableDrivers}/${totalDrivers}`} delta="Disponibilité réseau" icon="users" />
-            <TmsControlTowerCard label="Driver behavior score" value={`${driverScore}%`} delta="Ponctualité et incidents" icon="chartBar" />
+            <TmsControlTowerCard label="On-time delivery" value={`${onTimeRate}%`} delta="+2% vs hier" icon="arrowRight" accent onClick={() => onNavigate?.('performance')} />
+            <TmsControlTowerCard label="Missions ouvertes" value={String(openMissions)} delta={`${pendingTotal} en file terrain`} icon="shoppingBag" onClick={() => onNavigate?.('dispatch')} />
+            <TmsControlTowerCard label="Chauffeurs actifs" value={`${availableDrivers}/${totalDrivers}`} delta="Disponibilité réseau" icon="users" onClick={() => onNavigate?.('drivers')} />
+            <TmsControlTowerCard label="Driver behavior score" value={`${driverScore}%`} delta="Ponctualité et incidents" icon="chartBar" onClick={() => onNavigate?.('performance')} />
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)]">
@@ -604,7 +655,7 @@ const TmsControlTowerDashboard: React.FC<{
                   <button
                     key={alert.id}
                     type="button"
-                    onClick={() => onAction(`${alert.primary} - ${alert.title}`)}
+                    onClick={() => routeAlertAction(alert, alert.primary, onNavigate, onMessage)}
                     className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:bg-white/8"
                   >
                     <p className="text-sm font-black">{alert.title}</p>
@@ -621,7 +672,7 @@ const TmsControlTowerDashboard: React.FC<{
                   <button
                     key={zone.zone}
                     type="button"
-                    onClick={() => onNavigate?.('dispatch', { missionId: undefined })}
+                    onClick={() => onNavigate?.('dispatch', { zone: zone.zone })}
                     className="grid w-full grid-cols-[minmax(0,1fr)_64px_64px] items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-3 text-left"
                   >
                     <span className="font-bold">{zone.zone}</span>
@@ -809,7 +860,9 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
 
             {/* Desktop: Full operations view */}
             <div className="hidden sm:block">
-              <ActionableAlertsStrip onAlertAction={(label) => announceAction(`Action prioritaire enregistrée : ${label}.`)} />
+              <ActionableAlertsStrip
+                onAlertAction={(alert, action) => routeAlertAction(alert, action, onNavigate, announceAction)}
+              />
             </div>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
               <div className={`${logisticsCard} p-5`}>
@@ -886,7 +939,18 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
             <div className={`${logisticsCard} p-5`}>
               <PerformanceDashboard data={MOCK_PERFORMANCE} />
             </div>
-            <DriverLeaderboard onDriverAction={(label) => announceAction(`Action chauffeur ouverte : ${label}.`)} />
+            <DriverLeaderboard
+              onDriverAction={(label) => {
+                const driverName = label.split(' - ')[1];
+                if (driverName) {
+                  onNavigate?.('drivers', { driverName });
+                  announceAction(`Ouverture du profil chauffeur ${driverName}.`);
+                } else {
+                  onNavigate?.('performance');
+                  announceAction(`Ouverture performance chauffeur : ${label}.`);
+                }
+              }}
+            />
           </div>
         );
       default:
@@ -912,7 +976,7 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
         backlogRevenue={liveEstimatedBacklogRevenue}
         onRefresh={handleRefresh}
         onNavigate={onNavigate}
-        onAction={(message) => announceAction(`Action TMS : ${message}.`)}
+        onMessage={(message) => announceAction(`Action TMS : ${message}.`)}
       />
 
       <div className={`${logisticsCard} p-4 sm:p-6`}>
