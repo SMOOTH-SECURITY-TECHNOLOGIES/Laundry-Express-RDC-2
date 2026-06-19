@@ -278,13 +278,18 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Statut mis à jour: Livré')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Contacter chauffeur$/)!);
-    expect(byText(view.container, 'Contact chauffeur: Tshimanga A.')).not.toBeNull();
+    expect(byText(view.container, 'Fiche contact chauffeur ouverte: Tshimanga A.')).not.toBeNull();
+    expect(byText(view.container, 'Fiche contact chauffeur')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Contacter client$/)!);
-    expect(byText(view.container, 'Contact client: Mama Jeanne')).not.toBeNull();
+    expect(byText(view.container, 'Fiche contact client ouverte: Mama Jeanne')).not.toBeNull();
+    expect(byText(view.container, 'Fiche contact client')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Signaler incident$/)!);
-    expect(byText(view.container, 'Statut mis à jour: Incident')).not.toBeNull();
+    expect(byText(view.container, 'Créer un incident traçable pour MSN-004, avec owner opérationnel.')).not.toBeNull();
+    view.click(buttonByText(view.container, /^Enregistrer incident$/)!);
+    expect(byText(view.container, 'Incident Embouteillage enregistré sur MSN-004')).not.toBeNull();
+    expect(byText(view.container, 'Incidents ouverts')).not.toBeNull();
 
     view.unmount();
   });
@@ -327,13 +332,15 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Statut mis à jour: Livré')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Contacter chauffeur$/)!);
-    expect(byText(view.container, 'Contact chauffeur: Mutombo P.')).not.toBeNull();
+    expect(byText(view.container, 'Fiche contact chauffeur ouverte: Mutombo P.')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Contacter client$/)!);
-    expect(byText(view.container, 'Contact client: Sarah K.')).not.toBeNull();
+    expect(byText(view.container, 'Fiche contact client ouverte: Sarah K.')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Signaler incident$/)!);
-    expect(byText(view.container, 'Statut mis à jour: Incident')).not.toBeNull();
+    expect(byText(view.container, 'Mission MSN-014 · owner automatique selon le type.')).not.toBeNull();
+    view.click(buttonByText(view.container, /^Enregistrer incident$/)!);
+    expect(byText(view.container, 'Incident Embouteillage enregistré sur MSN-014')).not.toBeNull();
 
     view.click(buttonByText(view.container, /^Marquer retard$/)!);
     expect(byText(view.container, 'Statut mis à jour: Retard')).not.toBeNull();

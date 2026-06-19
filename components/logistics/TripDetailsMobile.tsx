@@ -36,7 +36,7 @@ interface TripDetailsMobileProps {
   onBack: () => void;
   onCallDriver: () => void;
   onCallCustomer: () => void;
-  onIncident: () => void;
+  onIncident: (type?: string) => void;
   onDelay: () => void;
   onUpdateStatus: (status: LogisticsStatus) => void;
 }
@@ -300,7 +300,7 @@ export const TripDetailsMobile: React.FC<TripDetailsMobileProps> = ({
             size="md"
             disabled={!incidentType}
             onClick={() => {
-              onIncident();
+              onIncident(incidentType || 'other');
               setShowIncidentSheet(false);
               setIncidentType(null);
             }}

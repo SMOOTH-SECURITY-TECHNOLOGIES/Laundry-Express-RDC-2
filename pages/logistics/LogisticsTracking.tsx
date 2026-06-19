@@ -17,9 +17,34 @@ interface LiveTrip extends Trip {
   customerName: string;
   driverName: string;
   vehiclePlate: string;
+  clientPhone: string;
+  driverPhone: string;
   estimatedDurationMinutes: number;
   statusLabel: string;
   trackingStatus: TrackingStatus;
+}
+
+type ContactTarget = 'driver' | 'client';
+type ContactChannel = 'call' | 'sms' | 'whatsapp';
+type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+interface ContactEvent {
+  id: string;
+  target: ContactTarget;
+  name: string;
+  phone: string;
+  taskId: string;
+  channel: ContactChannel;
+  createdAt: string;
+}
+
+interface IncidentRecord {
+  id: string;
+  taskId: string;
+  type: string;
+  severity: IncidentSeverity;
+  owner: string;
+  createdAt: string;
 }
 
 const fallbackLiveTrips: LiveTrip[] = [
@@ -37,6 +62,8 @@ const fallbackLiveTrips: LiveTrip[] = [
     customerName: 'Mama Jeanne',
     driverName: 'Tshimanga A.',
     vehiclePlate: 'KIN-042-MT',
+    clientPhone: '+243 812 345 901',
+    driverPhone: '+243 810 002',
   },
   {
     id: 'trip-002',
@@ -52,6 +79,8 @@ const fallbackLiveTrips: LiveTrip[] = [
     customerName: 'Sarah K.',
     driverName: 'Mutombo P.',
     vehiclePlate: 'KIN-118-VN',
+    clientPhone: '+243 812 345 902',
+    driverPhone: '+243 810 003',
   },
   {
     id: 'trip-003',
@@ -67,6 +96,8 @@ const fallbackLiveTrips: LiveTrip[] = [
     customerName: 'David M.',
     driverName: 'Kalonji S.',
     vehiclePlate: 'KIN-207-MT',
+    clientPhone: '+243 812 345 903',
+    driverPhone: '+243 810 004',
   },
   {
     id: 'trip-004',
@@ -82,6 +113,8 @@ const fallbackLiveTrips: LiveTrip[] = [
     customerName: 'Grace N.',
     driverName: 'Ngoy L.',
     vehiclePlate: 'KIN-301-CR',
+    clientPhone: '+243 812 345 904',
+    driverPhone: '+243 810 005',
   },
 ];
 
@@ -206,6 +239,27 @@ const tripStatusLabels: Record<LogisticsStatus, string> = {
   cancelled: 'Annulé',
 };
 
+const contactLabels: Record<ContactTarget, string> = {
+  driver: 'chauffeur',
+  client: 'client',
+};
+
+const incidentLabels: Record<string, string> = {
+  traffic: 'Embouteillage',
+  accident: 'Accident',
+  vehicle: 'Problème véhicule',
+  customer: 'Client injoignable',
+  address: 'Adresse introuvable',
+  other: 'Autre',
+};
+
+const severityLabels: Record<IncidentSeverity, string> = {
+  low: 'Faible',
+  medium: 'Moyen',
+  high: 'Élevé',
+  critical: 'Critique',
+};
+
 const statusToTracking = (status: LogisticsStatus): TrackingStatus => {
   if (status === 'assigned') return 'available';
   if (status === 'in_transit') return 'busy';
@@ -241,6 +295,8 @@ const toLiveTrip = (trip: Trip): LiveTrip => {
     customerName: trip.customerName || 'Client Laundry',
     driverName: trip.driverName || 'Chauffeur à assigner',
     vehiclePlate: trip.vehiclePlate || 'Véhicule à confirmer',
+    clientPhone: '+243 812 345 900',
+    driverPhone: '+243 810 000',
     estimatedDurationMinutes: trip.estimatedDurationMinutes ?? 30,
     statusLabel: statusConfig[trackingStatus].label,
     trackingStatus,
@@ -288,6 +344,14 @@ export const LogisticsTracking: React.FC = () => {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [trackingFilter, setTrackingFilter] = useState<TrackingFilter>('all');
   const [lastSyncAt, setLastSyncAt] = useState('10:19');
+  const [contactTarget, setContactTarget] = useState<ContactTarget | null>(null);
+  const [contactEvents, setContactEvents] = useState<ContactEvent[]>([]);
+  const [incidentRecords, setIncidentRecords] = useState<IncidentRecord[]>([]);
+  const [showIncidentForm, setShowIncidentForm] = useState(false);
+  const [incidentForm, setIncidentForm] = useState<{ type: string; severity: IncidentSeverity }>({
+    type: 'traffic',
+    severity: 'medium',
+  });
 
   const fetchTrackingSnapshot = useCallback(async (): Promise<TrackingSnapshot> => {
     const [tripResult, pointResult] = await Promise.all([
@@ -376,6 +440,53 @@ export const LogisticsTracking: React.FC = () => {
   const updateTripStatus = (status: LogisticsStatus) => {
     setTripOverrides((current) => ({ ...current, [activeTrip.id]: status }));
     setActionMessage(`Statut mis à jour: ${tripStatusLabels[status]}`);
+  };
+
+  const currentTime = () => new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  const openContactWorkflow = (target: ContactTarget) => {
+    setContactTarget(target);
+    const name = target === 'driver' ? activeTrip.driverName : activeTrip.customerName;
+    setActionMessage(`Fiche contact ${contactLabels[target]} ouverte: ${name}`);
+  };
+
+  const recordContact = (target: ContactTarget, channel: ContactChannel) => {
+    const name = target === 'driver' ? activeTrip.driverName : activeTrip.customerName;
+    const phone = target === 'driver' ? activeTrip.driverPhone : activeTrip.clientPhone;
+    setContactEvents((current) => [{
+      id: `tracking-contact-${Date.now()}`,
+      target,
+      name,
+      phone,
+      taskId: activeTrip.taskId,
+      channel,
+      createdAt: currentTime(),
+    }, ...current].slice(0, 5));
+    setActionMessage(`${channel === 'call' ? 'Appel' : channel === 'sms' ? 'SMS' : 'WhatsApp'} ${contactLabels[target]} enregistré: ${name}`);
+    const digits = phone.replace(/\D/g, '');
+    if (channel === 'call') window.open(`tel:${phone}`, '_self');
+    if (channel === 'sms') window.open(`sms:${phone}`, '_self');
+    if (channel === 'whatsapp') window.open(`https://wa.me/${digits}?text=${encodeURIComponent(`Bonjour, suivi mission ${activeTrip.taskId}`)}`, '_blank');
+  };
+
+  const submitIncident = () => {
+    const owner = incidentForm.type === 'customer' || incidentForm.type === 'address' ? 'Support' : 'Operations';
+    const status: LogisticsStatus =
+      incidentForm.severity === 'low' || ['traffic', 'customer', 'address'].includes(incidentForm.type)
+        ? 'delayed'
+        : 'failed';
+    setIncidentRecords((current) => [{
+      id: `tracking-incident-${Date.now()}`,
+      taskId: activeTrip.taskId,
+      type: incidentForm.type,
+      severity: incidentForm.severity,
+      owner,
+      createdAt: currentTime(),
+    }, ...current].slice(0, 5));
+    setShowIncidentForm(false);
+    setIncidentForm({ type: 'traffic', severity: 'medium' });
+    updateTripStatus(status);
+    setActionMessage(`Incident ${incidentLabels[incidentForm.type] || incidentForm.type} enregistré sur ${activeTrip.taskId} · ${severityLabels[incidentForm.severity]} · Owner ${owner}`);
   };
 
   const focusTrip = (tripId: string) => {
@@ -528,10 +639,10 @@ export const LogisticsTracking: React.FC = () => {
             vehiclePlate={activeTrip.vehiclePlate}
             primaryActionLabel={primaryActionLabel}
             onPrimaryAction={() => updateTripStatus(activeTrip.status === 'delivered' ? 'in_transit' : 'delivered')}
-            onCallDriver={() => setActionMessage(`Contact chauffeur: ${activeTrip.driverName}`)}
-            onCallCustomer={() => setActionMessage(`Contact client: ${activeTrip.customerName}`)}
+            onCallDriver={() => recordContact('driver', 'call')}
+            onCallCustomer={() => recordContact('client', 'call')}
             onProof={() => setActionMessage(`Preuve demandée pour ${activeTrip.taskId}`)}
-            onIncident={() => updateTripStatus('failed')}
+            onIncident={() => setShowIncidentForm(true)}
             onOpenDetails={() => {
               openTripDetails();
               window.location.hash = 'trip-details';
@@ -709,21 +820,21 @@ export const LogisticsTracking: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActionMessage(`Contact chauffeur: ${activeTrip.driverName}`)}
+              onClick={() => openContactWorkflow('driver')}
               className="rounded-xl border border-surface-border-subtle px-3 py-3 text-sm font-black text-content-primary hover:bg-surface-muted sm:py-2 sm:text-xs"
             >
               Contacter chauffeur
             </button>
             <button
               type="button"
-              onClick={() => setActionMessage(`Contact client: ${activeTrip.customerName}`)}
+              onClick={() => openContactWorkflow('client')}
               className="rounded-xl border border-surface-border-subtle px-3 py-3 text-sm font-black text-content-primary hover:bg-surface-muted sm:py-2 sm:text-xs"
             >
               Contacter client
             </button>
             <button
               type="button"
-              onClick={() => updateTripStatus('failed')}
+              onClick={() => setShowIncidentForm(true)}
               className="rounded-xl border border-red-200 px-3 py-3 text-sm font-black text-red-600 hover:bg-red-50 sm:py-2 sm:text-xs"
             >
               Signaler incident
@@ -749,6 +860,83 @@ export const LogisticsTracking: React.FC = () => {
               {actionMessage}
             </p>
           )}
+
+          {contactTarget && (
+            <div className="mt-4 rounded-xl border border-surface-border-subtle bg-surface-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-content-primary">Fiche contact {contactLabels[contactTarget]}</p>
+                  <p className="mt-1 text-xs text-content-muted">
+                    {contactTarget === 'driver' ? activeTrip.driverName : activeTrip.customerName} · {contactTarget === 'driver' ? activeTrip.driverPhone : activeTrip.clientPhone}
+                  </p>
+                </div>
+                <button type="button" onClick={() => setContactTarget(null)} className="text-xs font-black text-content-muted">
+                  Fermer
+                </button>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <button type="button" onClick={() => recordContact(contactTarget, 'call')} className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white">
+                  Appeler
+                </button>
+                <button type="button" onClick={() => recordContact(contactTarget, 'whatsapp')} className="rounded-xl border border-green-200 px-3 py-2 text-xs font-black text-green-700">
+                  WhatsApp
+                </button>
+                <button type="button" onClick={() => recordContact(contactTarget, 'sms')} className="rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-black text-content-primary">
+                  SMS
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showIncidentForm && (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+              <p className="text-sm font-black text-red-700">Signaler incident</p>
+              <p className="mt-1 text-xs font-bold text-red-600">Mission {activeTrip.taskId} · owner automatique selon le type.</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <select value={incidentForm.type} onChange={(event) => setIncidentForm((current) => ({ ...current, type: event.target.value }))} className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">
+                  {Object.entries(incidentLabels).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+                <select value={incidentForm.severity} onChange={(event) => setIncidentForm((current) => ({ ...current, severity: event.target.value as IncidentSeverity }))} className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">
+                  {Object.entries(severityLabels).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button type="button" onClick={submitIncident} className="rounded-xl bg-red-600 px-3 py-2 text-xs font-black text-white">
+                  Enregistrer incident
+                </button>
+                <button type="button" onClick={() => setShowIncidentForm(false)} className="rounded-xl border border-red-200 px-3 py-2 text-xs font-black text-red-700">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl bg-surface-muted p-3">
+              <p className="text-xs font-black text-content-primary">Contacts récents</p>
+              <div className="mt-2 space-y-1">
+                {contactEvents.length === 0 ? (
+                  <p className="text-xs text-content-muted">Aucun contact enregistré.</p>
+                ) : contactEvents.map((event) => (
+                  <p key={event.id} className="text-xs font-bold text-content-muted">{event.createdAt} · {event.channel.toUpperCase()} · {event.name}</p>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl bg-surface-muted p-3">
+              <p className="text-xs font-black text-content-primary">Incidents ouverts</p>
+              <div className="mt-2 space-y-1">
+                {incidentRecords.length === 0 ? (
+                  <p className="text-xs text-content-muted">Aucun incident ouvert.</p>
+                ) : incidentRecords.map((incident) => (
+                  <p key={incident.id} className="text-xs font-bold text-red-600">{incident.createdAt} · {incidentLabels[incident.type] || incident.type} · {incident.owner}</p>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className={`${logisticsCard} p-4 sm:p-5`}>
