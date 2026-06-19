@@ -261,6 +261,8 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Signaux live')).not.toBeNull();
     expect(byText(view.container, 'Driver Behavior Analytics')).not.toBeNull();
     expect(byText(view.container, 'Chauffeurs scorés')).not.toBeNull();
+    expect(byText(view.container, 'Vehicle Health')).not.toBeNull();
+    expect(byText(view.container, 'Assignables')).not.toBeNull();
     expect(byText(view.container, 'Backlog dispatch')).not.toBeNull();
 
     view.unmount();

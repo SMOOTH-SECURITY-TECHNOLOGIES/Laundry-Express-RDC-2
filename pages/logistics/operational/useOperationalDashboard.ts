@@ -111,6 +111,18 @@ export type OperationalModel = {
     confidence: 'high' | 'medium' | 'low';
     recommendation: string;
   };
+  vehicleHealth: {
+    status: 'active' | 'partial' | 'connect';
+    totalVehicles: number;
+    assignableVehicles: number;
+    blockedVehicles: number;
+    overdueMaintenance: number;
+    insuranceExpiring: number;
+    serviceDueSoon: number;
+    readinessRate: number;
+    confidence: 'high' | 'medium' | 'low';
+    recommendation: string;
+  };
 };
 
 const latestByDate = <T,>(items: T[], pickDate: (item: T) => string | null | undefined): T | undefined =>
@@ -321,6 +333,35 @@ export function useOperationalDashboard(
       overdueMaintenance: overdueMaintenance.length,
       blockingMaintenance: blockingMaintenance.length,
       readinessRate: percentOf(fleetAvailable.length + fleetInMission.length, vehicles.length),
+    };
+    const insuranceExpiring = vehicles.filter((vehicle) => {
+      const expiresAt = new Date(vehicle.insuranceExpiresAt).getTime();
+      if (!Number.isFinite(expiresAt)) return false;
+      const daysUntilExpiry = Math.ceil((expiresAt - Date.now()) / 86_400_000);
+      return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
+    });
+    const serviceDueSoon = vehicles.filter((vehicle) => {
+      const remainingKm = vehicle.maintenance.nextServiceAtKm - vehicle.mileageKm;
+      return vehicle.maintenance.status !== 'overdue' && remainingKm >= 0 && remainingKm <= 500;
+    });
+    const vehicleHealth: OperationalModel['vehicleHealth'] = {
+      status: vehicles.length > 0 ? (fleet.blockingMaintenance > 0 || fleet.outOfService > 0 ? 'partial' : 'active') : 'connect',
+      totalVehicles: vehicles.length,
+      assignableVehicles: fleet.available + fleet.inMission,
+      blockedVehicles: fleet.outOfService + fleet.blockingMaintenance,
+      overdueMaintenance: fleet.overdueMaintenance,
+      insuranceExpiring: insuranceExpiring.length,
+      serviceDueSoon: serviceDueSoon.length,
+      readinessRate: fleet.readinessRate,
+      confidence: vehicles.length > 0 && maintenance.length > 0 ? 'high' : vehicles.length > 0 ? 'medium' : 'low',
+      recommendation:
+        vehicles.length === 0
+          ? 'Connecter les véhicules pour contrôler les assignations.'
+          : fleet.blockingMaintenance > 0 || fleet.outOfService > 0
+            ? 'Ouvrir Maintenance et lever les blocages avant assignation.'
+            : insuranceExpiring.length > 0 || serviceDueSoon.length > 0
+              ? 'Planifier les contrôles proches pour préserver la capacité.'
+              : 'Flotte assignable. Surveiller assurance et prochain entretien.',
     };
     const completionRate = percentOf(deliveryDone.length || completedTasks.length, periodOrders.length);
     const onTimeRate = percentOf(completedTasks.length, completedTasks.length + failedTasks.length);
@@ -634,10 +675,10 @@ export function useOperationalDashboard(
       {
         id: 'vehicle-health',
         label: 'Vehicle Health',
-        status: vehicles.length > 0 ? 'active' : maintenance.length > 0 ? 'partial' : 'connect',
+        status: vehicleHealth.status,
         source: vehicles.length > 0 ? 'vehicles + maintenance' : 'maintenance endpoint',
-        confidence: vehicles.length > 0 ? 'high' : maintenance.length > 0 ? 'medium' : 'low',
-        nextAction: 'Bloquer assignation si assurance ou maintenance overdue',
+        confidence: vehicleHealth.confidence,
+        nextAction: vehicleHealth.recommendation,
       },
       {
         id: 'stock',
@@ -831,6 +872,7 @@ export function useOperationalDashboard(
       capabilities,
       gpsHealth,
       driverBehavior,
+      vehicleHealth,
     };
   }, [
     tasks,
