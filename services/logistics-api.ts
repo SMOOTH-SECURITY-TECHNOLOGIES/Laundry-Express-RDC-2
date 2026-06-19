@@ -1,19 +1,15 @@
 import { realApi, type LogisticsDriver, type LogisticsTask } from './real-api';
 import { mapLogisticsTaskViaTms } from '../lib/tms/generic-mission';
 import type { DispatchTask, Driver, LogisticsStatus, MaintenanceEvent, TrackingPoint, Trip, Vehicle } from '../components/logistics/logistics-types';
+import {
+  dispatchTaskToBacklogItem,
+  type DispatchBacklogItem,
+  type LogisticsBacklogMission,
+} from '../lib/logistics/backlog-model';
+
+export type { DispatchBacklogItem, LogisticsBacklogMission } from '../lib/logistics/backlog-model';
 
 export type DataMode = 'backend' | 'degraded';
-
-export interface LogisticsBacklogMission {
-  id: string;
-  client: string;
-  pickup: string;
-  delivery: string;
-  distance: number;
-  commune: string;
-  amount: number;
-  time: string;
-}
 
 export interface LogisticsMissionRow {
   id: string;
@@ -58,6 +54,7 @@ export interface LogisticsReadyDriver {
 export interface LogisticsShipmentRow {
   id: string;
   orderId: string;
+  missionType?: 'pickup' | 'delivery';
   customerName: string;
   status: LogisticsStatus;
   pickupZone: string;
@@ -146,16 +143,8 @@ const statusToMissionLabel = (status: LogisticsStatus) => {
   return 'Incident';
 };
 
-export const dispatchTaskToBacklogMission = (task: DispatchTask, index = 0): LogisticsBacklogMission => ({
-  id: task.id,
-  client: task.customerName,
-  pickup: task.pickupAddress,
-  delivery: `${task.deliveryZone}, Kinshasa`,
-  distance: task.distanceKm,
-  commune: task.pickupZone,
-  amount: 2500 + (index % 7) * 850,
-  time: formatTaskTime(undefined),
-});
+export const dispatchTaskToBacklogMission = (task: DispatchTask): LogisticsBacklogMission =>
+  dispatchTaskToBacklogItem(task);
 
 export const LOGISTICS_DISPATCH_BACKLOG_KEY = 'logisticsDispatchBacklogMission';
 
@@ -182,6 +171,7 @@ export const backlogMissionToDispatchTask = (mission: LogisticsBacklogMission): 
     id: mission.id,
     orderId: `LX-${numericId.padStart(4, '0')}`,
     shipmentId: `shp-${numericId.padStart(3, '0')}`,
+    missionType: mission.type,
     status: 'pending',
     customerName: mission.client,
     pickupAddress: mission.pickup,
@@ -189,7 +179,7 @@ export const backlogMissionToDispatchTask = (mission: LogisticsBacklogMission): 
     deliveryZone,
     distanceKm: mission.distance,
     queueMinutes: Math.max(5, Math.round(mission.distance * 4)),
-    priority: mission.distance >= 5 || mission.amount >= 4000 ? 'urgent' : mission.distance >= 3 ? 'high' : 'normal',
+    priority: mission.priorite === 'Critique' || mission.priorite === 'Collecte urgente' ? 'urgent' : mission.priorite === 'Livraison critique' || mission.priorite === 'Retard' ? 'high' : 'normal',
   };
 };
 
@@ -213,6 +203,7 @@ export const dispatchTaskToMissionRow = (task: DispatchTask): LogisticsMissionRo
 export const dispatchTaskToShipment = (task: DispatchTask): LogisticsShipmentRow => ({
   id: task.shipmentId,
   orderId: task.id,
+  missionType: task.missionType,
   customerName: task.customerName,
   status: task.status,
   pickupZone: task.pickupZone,
@@ -319,6 +310,7 @@ export const buildAlertsFromDispatch = (tasks: DispatchTask[], drivers: Logistic
 export const taskToTrip = (task: DispatchTask): Trip => ({
   id: task.shipmentId,
   taskId: task.id,
+  missionType: task.missionType,
   status: task.status,
   origin: task.pickupZone,
   destination: task.deliveryZone,
@@ -386,19 +378,20 @@ export const createLogisticsDriver = async (input: LogisticsDriverCreateInput): 
 };
 
 export const getMissionRows = async (
-  fallbackBacklog: LogisticsBacklogMission[],
-  fallbackMissions: LogisticsMissionRow[]
+  fallbackBacklog: LogisticsBacklogMission[] = [],
+  fallbackMissions: LogisticsMissionRow[] = [],
 ): Promise<LogisticsDataResult<{ backlog: LogisticsBacklogMission[]; missions: LogisticsMissionRow[] }>> => {
   const result = await getDispatchTasks([]);
   if (result.data.length === 0) {
     return fallbackResult({ backlog: fallbackBacklog, missions: fallbackMissions }, result.reason || 'backend missions empty');
   }
+  const openStatuses = new Set(['pending', 'open_market']);
   return {
     mode: result.mode,
     reason: result.reason,
     data: {
       backlog: result.data
-        .filter((task) => task.status === 'pending')
+        .filter((task) => task.status === 'pending' || openStatuses.has((task.taskStatus || '').toLowerCase()))
         .map(dispatchTaskToBacklogMission),
       missions: result.data.map(dispatchTaskToMissionRow),
     },

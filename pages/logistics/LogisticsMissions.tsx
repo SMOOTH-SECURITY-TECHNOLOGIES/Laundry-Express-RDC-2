@@ -2,25 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import BacklogBoard from './BacklogBoard';
 import MissionTable from './MissionTable';
 import { Icon } from '../../components/Icon';
-import { getMissionRows, storeBacklogMissionForDispatch, type DataMode, type LogisticsBacklogMission, type LogisticsMissionRow } from '../../services/logistics-api';
-
-const MOCK_BACKLOG: LogisticsBacklogMission[] = Array.from({ length: 24 }, (_, i) => ({
-  id: `MSN-${String(i + 1).padStart(3, '0')}`,
-  client: ['Mama Jeanne', 'Patrick L.', 'Sarah K.', 'David M.', 'Grace N.', 'Paul O.', 'Marie C.', 'Jean B.'][i % 8],
-  pickup: ['Av. Lumumba 42', 'Boulevard du 30 Juin', 'Av. Kasavubu 15', 'Rue Kasa-Vubu 8', 'Av. Sendwe 27'][i % 5],
-  delivery: ['Gombe, Kinshasa', 'Lingwala, Kinshasa', 'Barumbu, Kinshasa', 'Limete, Kinshasa', 'Ngiri-Ngiri, Kinshasa'][i % 5],
-  distance: Number((1.4 + (i % 9) * 0.8).toFixed(1)),
-  commune: ['Gombe', 'Lingwala', 'Barumbu', 'Limete', 'Ngiri-Ngiri', 'Bandalungwa', 'Kalamu', 'Matete'][i % 8],
-  amount: 2500 + (i % 7) * 850,
-  time: `${String(7 + (i % 12)).padStart(2, '0')}:${String((i * 13) % 60).padStart(2, '0')}`,
-}));
-
-const MOCK_ACTIVE_MISSIONS: LogisticsMissionRow[] = Array.from({ length: 38 }, (_, i) => ({
-  id: `MSN-${String(i + 1).padStart(3, '0')}`,
-  status: ['En cours', 'Assignée', 'En attente'][i % 3],
-  driver: ['Kabongo M.', 'Tshimanga A.', 'Mutombo P.', 'Kalonji S.', 'Ngoy L.'][i % 5],
-  commune: ['Gombe', 'Lingwala', 'Barumbu', 'Limete'][i % 4],
-}));
+import { getMissionRows, storeBacklogMissionForDispatch, type DataMode, type LogisticsMissionRow } from '../../services/logistics-api';
+import type { DispatchBacklogItem } from '../../lib/logistics/backlog-model';
 
 interface LogisticsMissionsProps {
   focusMissionId?: string | null;
@@ -30,7 +13,7 @@ interface LogisticsMissionsProps {
   onClearFocus?: () => void;
   onNavigate?: (
     section: string,
-    options?: { missionId?: string; zone?: string; missionFocusType?: string }
+    options?: { missionId?: string; zone?: string; missionFocusType?: string },
   ) => void;
   onActionFeedback?: (message: string) => void;
 }
@@ -44,15 +27,15 @@ export const LogisticsMissions: React.FC<LogisticsMissionsProps> = ({
   onNavigate,
   onActionFeedback,
 }) => {
-  const [backlog, setBacklog] = useState<LogisticsBacklogMission[]>(MOCK_BACKLOG);
-  const [missions, setMissions] = useState<LogisticsMissionRow[]>(MOCK_ACTIVE_MISSIONS);
+  const [backlog, setBacklog] = useState<DispatchBacklogItem[]>([]);
+  const [missions, setMissions] = useState<LogisticsMissionRow[]>([]);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [selectedBacklogId, setSelectedBacklogId] = useState<string | null>(null);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    getMissionRows(MOCK_BACKLOG, MOCK_ACTIVE_MISSIONS).then((result) => {
+    getMissionRows().then((result) => {
       if (!mounted) return;
       setBacklog(result.data.backlog);
       setMissions(result.data.missions);
@@ -67,7 +50,7 @@ export const LogisticsMissions: React.FC<LogisticsMissionsProps> = ({
   const zoneMatch = (commune: string) => !focusZone || commune.toLowerCase() === focusZone.toLowerCase();
   const focusedBacklog = hasFocus
     ? backlog.filter((mission) => {
-        if (focusMissionId) return mission.id === focusMissionId;
+        if (focusMissionId) return mission.mission_id === focusMissionId;
         if (focusType === 'waiting') return zoneMatch(mission.commune);
         if (focusType === 'late') return false;
         return zoneMatch(mission.commune);
@@ -81,32 +64,24 @@ export const LogisticsMissions: React.FC<LogisticsMissionsProps> = ({
         return zoneMatch(mission.commune);
       })
     : missions;
+
   const hasFocusedMission = focusedBacklog.length > 0 || focusedActive.length > 0;
-  const focusTitle = focusMissionId
-    ? `Mission ciblée depuis l’alerte: ${focusMissionId}`
-    : `Alerte missions ciblée: ${focusAlertTitle ?? (focusType === 'late' ? 'Retards opérationnels' : 'File d’attente')}`;
 
   const selectedBacklogMission = selectedBacklogId
-    ? focusedBacklog.find((mission) => mission.id === selectedBacklogId) ?? backlog.find((mission) => mission.id === selectedBacklogId) ?? null
+    ? focusedBacklog.find((mission) => mission.mission_id === selectedBacklogId) ??
+      backlog.find((mission) => mission.mission_id === selectedBacklogId) ??
+      null
     : null;
 
   const handleBacklogClick = (missionId: string) => {
     setSelectedBacklogId(missionId);
-    onActionFeedback?.(`Mission ${missionId} sélectionnée.`);
   };
 
-  const openDispatchForMission = (missionId: string) => {
-    const mission = backlog.find((item) => item.id === missionId);
-    if (mission) {
-      storeBacklogMissionForDispatch(mission);
-    }
-    sessionStorage.setItem('logisticsFocusMissionId', missionId);
-    onNavigate?.('dispatch', { missionId });
-    onActionFeedback?.(`Ouverture du dispatch pour ${missionId}.`);
-  };
-
-  const handleMissionView = (missionId: string) => {
-    openDispatchForMission(missionId);
+  const openDispatchForMission = (mission: DispatchBacklogItem) => {
+    storeBacklogMissionForDispatch(mission);
+    sessionStorage.setItem('logisticsFocusMissionId', mission.mission_id);
+    onNavigate?.('dispatch', { missionId: mission.mission_id });
+    onActionFeedback?.(`Ouverture du dispatch pour ${mission.mission_id}.`);
   };
 
   useEffect(() => {
@@ -115,99 +90,94 @@ export const LogisticsMissions: React.FC<LogisticsMissionsProps> = ({
   }, [selectedBacklogMission]);
 
   useEffect(() => {
-    if (focusMissionId) {
-      setSelectedBacklogId(focusMissionId);
-    }
+    if (focusMissionId) setSelectedBacklogId(focusMissionId);
   }, [focusMissionId]);
 
   return (
     <div className="space-y-6">
-      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
-        dataMode === 'backend'
-          ? 'border-green-200 bg-green-50 text-green-700'
-          : 'border-orange-200 bg-orange-50 text-orange-700'
-      }`}>
-        {dataMode === 'backend' ? 'Missions connectées au backend' : 'Mode dégradé — missions locales'}
-      </div>
-
       {hasFocus && (
-        <div className="rounded-2xl border border-red-400/60 bg-red-500/10 p-4 text-sm text-content-primary">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-extrabold">{focusTitle}</p>
-              <p className="mt-1 text-content-muted">
-                {hasFocusedMission
-                  ? `Les tableaux ci-dessous sont filtrés sur ${focusZone ? `la zone ${focusZone}` : 'le contexte de cette alerte'} pour éviter la liste générale.`
-                  : 'Aucune mission correspondante trouvée dans les données actuelles.'}
-              </p>
-              {focusZone && <p className="mt-1 text-xs font-bold text-red-700 dark:text-red-200">Zone ciblée: {focusZone}</p>}
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.removeItem('logisticsFocusMissionId');
-                onClearFocus?.();
-              }}
-              className="self-start rounded-xl border border-surface-border-subtle px-3 py-2 text-xs font-bold text-content-primary hover:bg-surface-muted sm:self-center"
-            >
-              Voir toutes les missions
+        <div className="flex flex-col gap-2 rounded-2xl border border-brand-blue/20 bg-blue-50 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-bold text-brand-blue">
+              {focusMissionId
+                ? `Mission ciblée depuis l’alerte: ${focusMissionId}`
+                : focusAlertTitle
+                  ? `Alerte missions ciblée: ${focusAlertTitle}`
+                  : focusType === 'late'
+                    ? 'Alerte missions ciblée: Retards opérationnels'
+                    : focusType === 'waiting'
+                      ? 'Alerte missions ciblée: File d’attente'
+                      : 'Filtre actif'}
+            </p>
+            <button type="button" onClick={onClearFocus} className="text-sm font-black text-brand-blue underline">
+              Effacer le filtre
             </button>
           </div>
+          {focusZone && <p className="text-sm font-semibold text-brand-blue">Zone ciblée: {focusZone}</p>}
         </div>
       )}
 
-      <div className="rounded-2xl border border-surface-border-subtle bg-surface-card p-5 shadow-sm">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
         <BacklogBoard
           missions={focusedBacklog}
           selectedMissionId={selectedBacklogId}
           onMissionClick={handleBacklogClick}
         />
         {selectedBacklogMission ? (
-          <div
-            ref={detailPanelRef}
-            className="mt-4 rounded-xl border border-brand-blue/30 bg-brand-blue/5 p-4 dark:bg-brand-blue/10"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <p className="font-mono text-xs font-bold uppercase tracking-wide text-brand-blue">
-                  {selectedBacklogMission.id}
-                </p>
-                <p className="mt-1 text-lg font-extrabold text-content-primary">{selectedBacklogMission.client}</p>
-                <p className="mt-2 flex items-start gap-1 text-sm text-content-muted">
-                  <Icon name="mapPin" className="mt-0.5 h-4 w-4 shrink-0 text-brand-blue" />
-                  <span>{selectedBacklogMission.pickup} → {selectedBacklogMission.delivery}</span>
-                </p>
-                <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-content-muted">
-                  <span>{selectedBacklogMission.commune}</span>
-                  <span>{selectedBacklogMission.distance} km</span>
-                  <span>{selectedBacklogMission.time}</span>
-                  <span className="font-extrabold text-content-primary">{selectedBacklogMission.amount.toLocaleString()} FC</span>
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                <button
-                  type="button"
-                  onClick={() => openDispatchForMission(selectedBacklogMission.id)}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90"
-                >
-                  <Icon name="sparkles" className="h-4 w-4" />
-                  Assigner dans Dispatch
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedBacklogId(null)}
-                  className="rounded-xl border border-surface-border-subtle px-4 py-2 text-xs font-bold text-content-muted hover:bg-surface-muted"
-                >
-                  Fermer
-                </button>
-              </div>
+          <div ref={detailPanelRef} className="rounded-2xl border border-surface-border-subtle bg-surface-card p-5 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wide text-content-muted">Détail mission</p>
+            <p className="mt-2 font-mono text-sm font-black text-content-primary">{selectedBacklogMission.mission_id}</p>
+            <p className="mt-1 text-lg font-extrabold text-content-primary">{selectedBacklogMission.client}</p>
+            <div className="mt-3 space-y-2 text-sm text-content-muted">
+              <p className="flex items-center gap-2">
+                <Icon name="mapPin" className="h-4 w-4 text-brand-blue" />
+                {selectedBacklogMission.adresse} → {selectedBacklogMission.delivery}
+              </p>
+              <p>{selectedBacklogMission.commune}</p>
+              <p>{selectedBacklogMission.distance} km · ETA {selectedBacklogMission.eta}</p>
+              <p>
+                <span className="font-extrabold text-content-primary">{selectedBacklogMission.montant.toLocaleString('fr-FR')} FC</span>
+                {' · '}
+                {selectedBacklogMission.priorite}
+                {' · '}
+                {selectedBacklogMission.statut}
+              </p>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => openDispatchForMission(selectedBacklogMission)}
+                className="min-h-11 rounded-xl bg-brand-blue px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90"
+              >
+                Dispatcher
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedBacklogId(null)}
+                className="min-h-11 rounded-xl border border-surface-border-subtle px-4 py-2 text-sm font-bold text-content-primary"
+              >
+                Fermer
+              </button>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="flex items-center justify-center rounded-2xl border border-dashed border-surface-border-subtle p-8 text-center text-sm text-content-muted">
+            Sélectionnez une mission du backlog pour voir le détail et lancer le dispatch.
+          </div>
+        )}
       </div>
+
       <div className="rounded-2xl border border-surface-border-subtle bg-surface-card p-5 shadow-sm">
-        <MissionTable missions={focusedActive} onMissionView={handleMissionView} />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-extrabold text-content-primary">Toutes les missions</h2>
+          <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-bold text-content-muted">
+            {dataMode === 'backend' ? 'LIVE' : 'READ-ONLY'} · {missions.length}
+          </span>
+        </div>
+        <MissionTable missions={hasFocusedMission ? focusedActive : missions} />
       </div>
     </div>
   );
 };
+
+export default LogisticsMissions;

@@ -75,6 +75,7 @@ describe('logistics-api contract mappers', () => {
       orderId: 'order-1',
       shipmentId: 'task-backend-1',
       status: 'assigned',
+      missionType: 'pickup',
       customerName: 'Client Backend',
       pickupAddress: 'Av. Backend 1',
       pickupZone: 'Gombe',
@@ -116,6 +117,7 @@ describe('logistics-api contract mappers', () => {
       orderId: 'LX-9001',
       customerName: 'Client Backend',
       status: 'assigned',
+      missionType: 'pickup',
     });
   });
 

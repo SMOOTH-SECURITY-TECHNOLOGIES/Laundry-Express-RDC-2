@@ -47,6 +47,7 @@ const initialTasks: DispatchTask[] = [
     id: 'MSN-004',
     orderId: 'LX-2004',
     shipmentId: 'shp-004',
+    missionType: 'pickup',
     status: 'pending',
     customerName: 'Mama Jeanne',
     pickupAddress: 'Av. Lumumba 42',
@@ -60,6 +61,7 @@ const initialTasks: DispatchTask[] = [
     id: 'MSN-011',
     orderId: 'LX-2011',
     shipmentId: 'shp-011',
+    missionType: 'delivery',
     status: 'in_transit',
     customerName: 'Patrick L.',
     pickupAddress: 'Boulevard du 30 Juin',
@@ -77,6 +79,7 @@ const initialTasks: DispatchTask[] = [
     id: 'MSN-014',
     orderId: 'LX-2014',
     shipmentId: 'shp-014',
+    missionType: 'pickup',
     status: 'assigned',
     customerName: 'Sarah K.',
     pickupAddress: 'Av. Kasavubu 15',
@@ -94,6 +97,7 @@ const initialTasks: DispatchTask[] = [
     id: 'MSN-018',
     orderId: 'LX-2018',
     shipmentId: 'shp-018',
+    missionType: 'delivery',
     status: 'delivered',
     customerName: 'Francois G.',
     pickupAddress: 'Rue Kasa-Vubu 8',
@@ -111,6 +115,7 @@ const initialTasks: DispatchTask[] = [
     id: 'MSN-019',
     orderId: 'LX-2019',
     shipmentId: 'shp-019',
+    missionType: 'pickup',
     status: 'pending',
     customerName: 'Monique V.',
     pickupAddress: 'Av. Sendwe 27',
@@ -124,6 +129,7 @@ const initialTasks: DispatchTask[] = [
     id: 'MSN-020',
     orderId: 'LX-2020',
     shipmentId: 'shp-020',
+    missionType: 'delivery',
     status: 'assigned',
     customerName: 'Grace N.',
     pickupAddress: 'Dépôt Gombe',
@@ -161,6 +167,9 @@ const priorityLabel: Record<DispatchTask['priority'], string> = {
   high: 'Prioritaire',
   urgent: 'Urgent',
 };
+
+const missionTypeLabel = (type?: DispatchTask['missionType']) =>
+  type === 'delivery' ? 'Livraison' : type === 'pickup' ? 'Collecte' : 'Mission';
 
 const mobileFilterLabel: Record<DispatchMobileFilter, string> = {
   all: 'Toutes',
@@ -475,7 +484,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {urgentTasks.map((task) => (
               <article key={task.id} className="rounded-xl bg-orange-50 p-4 text-sm dark:bg-orange-950/20">
-                <p className="font-black text-content-primary">{task.id} · {task.pickupZone}</p>
+                <p className="font-black text-content-primary">{missionTypeLabel(task.missionType)} {task.id} · {task.pickupZone}</p>
                 <p className="mt-1 text-content-muted">{task.customerName} attend depuis {task.queueMinutes} min</p>
               </article>
             ))}
@@ -505,11 +514,12 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
           {selectedTask ? (
             <div className="mt-4 space-y-3 text-sm">
               <div className="rounded-xl bg-surface-muted p-4">
-                <p className="font-black text-content-primary">{selectedTask.id} · {selectedTask.customerName}</p>
+                <p className="font-black text-content-primary">{missionTypeLabel(selectedTask.missionType)} {selectedTask.id} · {selectedTask.customerName}</p>
                 <p className="mt-1 text-content-muted">{selectedTask.pickupZone} vers {selectedTask.deliveryZone}</p>
               </div>
               {[
                 ['Statut', statusLabel[selectedTask.status]],
+                ['Type', missionTypeLabel(selectedTask.missionType)],
                 ['Priorité', priorityLabel[selectedTask.priority]],
                 ['Chauffeur', selectedTask.driverName ?? 'Non assigné'],
                 ['Distance', `${selectedTask.distanceKm} km`],
@@ -631,7 +641,7 @@ export const LogisticsDispatch: React.FC<LogisticsDispatchProps> = ({
                       <button type="button" onClick={() => setSelectedTaskId(task.id)} className="w-full text-left">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-black text-content-primary">{task.id}</p>
+                          <p className="font-black text-content-primary">{missionTypeLabel(task.missionType)} {task.id}</p>
                           <p className="mt-1 text-xs text-content-muted">{task.customerName} · {task.pickupZone}</p>
                         </div>
                         <span className="rounded-full bg-brand-blue/10 px-2 py-1 text-[10px] font-black text-brand-blue">

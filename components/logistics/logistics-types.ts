@@ -76,6 +76,7 @@ export interface DispatchTask {
   id: string;
   orderId: string;
   shipmentId: string;
+  missionType?: 'pickup' | 'delivery';
   status: LogisticsStatus;
   customerName: string;
   pickupAddress: string;
@@ -96,6 +97,7 @@ export interface DispatchTask {
 export interface Trip {
   id: string;
   taskId: string;
+  missionType?: 'pickup' | 'delivery';
   status: LogisticsStatus;
   origin: string;
   destination: string;
@@ -119,6 +121,7 @@ export interface TripTimelineEvent {
 export interface Shipment {
   id: string;
   orderId: string;
+  missionType?: 'pickup' | 'delivery';
   customerName: string;
   status: LogisticsStatus;
   pickupZone: string;
