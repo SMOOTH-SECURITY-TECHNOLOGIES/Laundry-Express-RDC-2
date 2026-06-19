@@ -11,6 +11,16 @@ import PerformanceDashboard from './PerformanceDashboard';
 import OperationalAlerts from './OperationalAlerts';
 import DispatchMap from './DispatchMap';
 import {
+  realApi,
+  type AdminSupportTicket,
+  type BackendActivityLogDashboardResponse,
+  type LogisticsDriver,
+  type LogisticsMaintenanceEvent,
+  type LogisticsTask,
+  type LogisticsVehicle,
+  type Order,
+} from '../../services/real-api';
+import {
   driverProfileToReadyDriver,
   getLogisticsDrivers,
   getMissionRows,
@@ -122,6 +132,19 @@ const MOCK_PERFORMANCE = {
 };
 
 const formatCdf = (value: number) => `${value.toLocaleString('fr-FR')} FC`;
+
+const toNumber = (value: number | string | null | undefined) => {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const statusIn = (status: string | null | undefined, values: string[]) => values.includes((status || '').toLowerCase());
+
+const parseDate = (value?: string | null) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
 const openMissionsCount = MOCK_BACKLOG.length;
 const activeMissionsCount = MOCK_ACTIVE_MISSIONS.length;
@@ -720,10 +743,641 @@ const TmsControlTowerDashboard: React.FC<{
   );
 };
 
+type PeriodKey = 'today' | 'week' | 'month';
+
+const PERIOD_OPTIONS: Array<{ key: PeriodKey; label: string }> = [
+  { key: 'today', label: "Aujourd'hui" },
+  { key: 'week', label: 'Cette semaine' },
+  { key: 'month', label: 'Ce mois' },
+];
+
+const periodDays = (period: PeriodKey) => (period === 'today' ? 1 : period === 'week' ? 7 : 30);
+
+const isWithinPeriod = (value: string | null | undefined, period: PeriodKey) => {
+  const date = parseDate(value);
+  if (!date) return false;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (periodDays(period) - 1));
+  return date >= start;
+};
+
+const percentOf = (value: number, total: number) => (total > 0 ? Math.round((value / total) * 100) : 0);
+
+const OperationalSkeleton = () => (
+  <div className="space-y-5">
+    <div className="h-28 animate-pulse rounded-[24px] bg-surface-muted" />
+    <div className="grid gap-4 md:grid-cols-5">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="h-32 animate-pulse rounded-[18px] bg-surface-muted" />
+      ))}
+    </div>
+    <div className="h-[520px] animate-pulse rounded-[28px] bg-slate-900/20" />
+  </div>
+);
+
+const ApiRequiredBadge = () => (
+  <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-1 text-[10px] font-black uppercase text-orange-700">
+    API requise
+  </span>
+);
+
+type OperationalKpiCard = [string, string | number, React.ComponentProps<typeof Icon>['name']];
+
+const OperationalControlTower: React.FC<{
+  tasks: LogisticsTask[];
+  drivers: LogisticsDriver[];
+  alerts: ReturnType<typeof useRealTimeAlerts>['alerts'];
+  mode: DataMode;
+  isLoading: boolean;
+  lastSync: Date | null;
+  onRefresh: () => void;
+  onNavigate?: LogisticsOverviewProps['onNavigate'];
+  onMessage: (message: string) => void;
+}> = ({ tasks, drivers, alerts, mode, isLoading, lastSync, onRefresh, onNavigate, onMessage }) => {
+  const [period, setPeriod] = useState<PeriodKey>('today');
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [vehicles, setVehicles] = useState<LogisticsVehicle[]>([]);
+  const [maintenance, setMaintenance] = useState<LogisticsMaintenanceEvent[]>([]);
+  const [tickets, setTickets] = useState<AdminSupportTicket[]>([]);
+  const [activity, setActivity] = useState<BackendActivityLogDashboardResponse['events']>([]);
+  const [loadingSources, setLoadingSources] = useState(true);
+  const [sourceError, setSourceError] = useState<string | null>(null);
+  const [selectedException, setSelectedException] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const loadSources = async () => {
+    setLoadingSources(true);
+    setSourceError(null);
+    const failures: string[] = [];
+    const [ordersResult, vehiclesResult, maintenanceResult, ticketsResult, activityResult] = await Promise.allSettled([
+      realApi.getOrders({ page: 1, page_size: 250 }),
+      realApi.getVehicles(),
+      realApi.getMaintenanceEvents(),
+      realApi.getSupportTickets(),
+      realApi.getActivityLogDashboard(20),
+    ]);
+    if (ordersResult.status === 'fulfilled') setOrders(ordersResult.value.orders || []);
+    else failures.push('commandes');
+    if (vehiclesResult.status === 'fulfilled') setVehicles(vehiclesResult.value.vehicles || []);
+    else failures.push('flotte');
+    if (maintenanceResult.status === 'fulfilled') setMaintenance(maintenanceResult.value.maintenance_events || []);
+    else failures.push('maintenance');
+    if (ticketsResult.status === 'fulfilled') setTickets(ticketsResult.value || []);
+    else failures.push('support');
+    if (activityResult.status === 'fulfilled') setActivity(activityResult.value.live_events?.length ? activityResult.value.live_events : activityResult.value.events || []);
+    else failures.push('activity feed');
+    setSourceError(failures.length ? `Sources indisponibles: ${failures.join(', ')}` : null);
+    setLoadingSources(false);
+  };
+
+  useEffect(() => {
+    void loadSources();
+    const timer = window.setInterval(() => void loadSources(), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const model = useMemo(() => {
+    const periodTasks = tasks.filter((task) => isWithinPeriod(task.created_at, period) || isWithinPeriod(task.updated_at, period) || isWithinPeriod(task.completed_at, period));
+    const periodOrders = orders.filter((order) => isWithinPeriod(order.created_at, period));
+    const openTasks = periodTasks.filter((task) => statusIn(task.status, ['pending', 'open_market']));
+    const activeTasks = periodTasks.filter((task) => statusIn(task.status, ['claimed', 'driver_assigned', 'accepted', 'in_progress']));
+    const completedTasks = periodTasks.filter((task) => task.status === 'completed');
+    const failedTasks = periodTasks.filter((task) => statusIn(task.status, ['failed', 'cancelled', 'expired']));
+    const pickupTasks = periodTasks.filter((task) => task.task_type === 'pickup');
+    const deliveryTasks = periodTasks.filter((task) => task.task_type === 'delivery');
+    const pickupDone = pickupTasks.filter((task) => statusIn(task.status, ['completed', 'in_progress', 'accepted', 'driver_assigned']));
+    const deliveryDone = deliveryTasks.filter((task) => task.status === 'completed');
+    const paidOrders = periodOrders.filter((order) => statusIn(order.payment_status, ['paid', 'confirmed', 'completed', 'validated', 'succeeded']));
+    const activeDrivers = drivers.filter((driver) => driver.status === 'active');
+    const availableDrivers = activeDrivers.filter((driver) => driver.is_available);
+    const openTickets = tickets.filter((ticket) => !statusIn(ticket.status, ['closed', 'resolved']));
+    const overdueMaintenance = maintenance.filter((event) => statusIn(event.status, ['open', 'overdue', 'in_progress']));
+    const unavailableVehicles = vehicles.filter((vehicle) => statusIn(vehicle.status, ['failed', 'cancelled', 'delayed']) || vehicle.maintenance.status === 'overdue');
+    const revenue = periodOrders.reduce((sum, order) => sum + toNumber(order.total_amount), 0);
+    const completionRate = percentOf(deliveryDone.length || completedTasks.length, periodOrders.length);
+    const onTimeRate = percentOf(completedTasks.length, completedTasks.length + failedTasks.length);
+    const avgMinutesValues = completedTasks
+      .map((task) => {
+        const start = parseDate(task.started_at || task.assigned_at || task.scheduled_at || task.created_at);
+        const end = parseDate(task.completed_at);
+        return start && end ? Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000)) : null;
+      })
+      .filter((value): value is number => value !== null);
+    const averageMinutes = avgMinutesValues.length ? Math.round(avgMinutesValues.reduce((sum, value) => sum + value, 0) / avgMinutesValues.length) : null;
+    const behaviorScore = activeDrivers.length
+      ? Math.round(activeDrivers.reduce((sum, driver) => sum + Math.min(100, Math.max(0, Math.round(toNumber(driver.rating_avg) * 20))), 0) / activeDrivers.length)
+      : 0;
+
+    const zoneMap = periodTasks.reduce((map, task) => {
+      const zone = task.pickup_commune || task.delivery_commune || 'Zone inconnue';
+      const current = map.get(zone) || { total: 0, completed: 0, active: 0 };
+      current.total += 1;
+      if (task.status === 'completed') current.completed += 1;
+      if (!statusIn(task.status, ['completed', 'cancelled', 'failed', 'expired'])) current.active += 1;
+      map.set(zone, current);
+      return map;
+    }, new Map<string, { total: number; completed: number; active: number }>());
+
+    const topZones = Array.from(zoneMap.entries())
+      .map(([zone, value]) => ({ zone, missions: value.total, success: percentOf(value.completed, value.total), pressure: value.active }))
+      .sort((a, b) => b.missions - a.missions)
+      .slice(0, 5);
+
+    const hourMap = periodTasks.reduce((map, task) => {
+      const date = parseDate(task.created_at);
+      if (!date) return map;
+      const hour = `${String(date.getHours()).padStart(2, '0')}h`;
+      map.set(hour, (map.get(hour) || 0) + 1);
+      return map;
+    }, new Map<string, number>());
+    const fieldActivity = Array.from(hourMap.entries()).map(([hour, count]) => ({ hour, count })).sort((a, b) => a.hour.localeCompare(b.hour));
+
+    const priorityMissions = periodTasks
+      .filter((task) => !statusIn(task.status, ['completed', 'cancelled']))
+      .sort((a, b) => {
+        const priority = (task: LogisticsTask) => (statusIn(task.status, ['failed', 'expired']) ? 0 : statusIn(task.status, ['pending', 'open_market']) ? 1 : 2);
+        return priority(a) - priority(b);
+      })
+      .slice(0, 7);
+
+    const exceptions = [
+      ...failedTasks.map((task) => ({
+        id: `task-${task.id}`,
+        type: task.status === 'expired' ? 'Collecte manquée' : 'Retard livraison',
+        reference: task.order_number || task.id,
+        commune: task.pickup_commune || task.delivery_commune || 'Zone inconnue',
+        impact: task.status === 'failed' ? 'Mission échouée' : 'SLA dépassé',
+        action: 'Ouvrir mission',
+      })),
+      ...openTickets.slice(0, 4).map((ticket) => ({
+        id: `ticket-${ticket.id}`,
+        type: 'Ticket ouvert',
+        reference: ticket.id,
+        commune: ticket.category || 'Support',
+        impact: ticket.priority,
+        action: 'Voir ticket',
+      })),
+      ...overdueMaintenance.slice(0, 3).map((event) => ({
+        id: `maintenance-${event.id}`,
+        type: 'Flotte indisponible',
+        reference: event.vehicleId,
+        commune: event.type,
+        impact: event.status,
+        action: 'Voir maintenance',
+      })),
+    ].slice(0, 8);
+
+    const readyDrivers = drivers
+      .filter((driver) => driver.status === 'active' && driver.is_available)
+      .slice(0, 8)
+      .map((driver) => ({
+        id: driver.id,
+        name: driver.user_name || driver.user_email || `Driver ${driver.id.slice(0, 6)}`,
+        vehicle: driver.vehicle_type || 'Véhicule à confirmer',
+        zone: 'Kinshasa',
+        score: Math.round(toNumber(driver.rating_avg) * 20),
+        eta: '--',
+        occupation: driver.is_available ? 0 : 100,
+      }));
+
+    const health = [
+      { label: 'Commande', status: periodOrders.length > 0 ? 'SAIN' : 'ATTENTION' },
+      { label: 'Paiement', status: paidOrders.length < periodOrders.length ? 'ATTENTION' : 'SAIN' },
+      { label: 'Logistique', status: failedTasks.length > 0 ? 'CRITIQUE' : 'SAIN' },
+      { label: 'Support', status: openTickets.length > 0 ? 'ATTENTION' : 'SAIN' },
+      { label: 'Avis', status: 'API requise' },
+      { label: 'Fidélité', status: 'API requise' },
+      { label: 'Promotions', status: 'API requise' },
+    ];
+
+    return {
+      openTasks,
+      activeTasks,
+      completedTasks,
+      failedTasks,
+      pickupDue: pickupTasks.filter((task) => !statusIn(task.status, ['completed', 'cancelled', 'failed'])).length,
+      deliveryDue: deliveryTasks.filter((task) => !statusIn(task.status, ['completed', 'cancelled', 'failed'])).length,
+      paidOrders,
+      pickupDone,
+      deliveryDone,
+      periodOrders,
+      completionRate,
+      onTimeRate,
+      averageMinutes,
+      revenue,
+      activeDrivers,
+      availableDrivers,
+      behaviorScore,
+      openTickets,
+      exceptions,
+      topZones,
+      fieldActivity,
+      priorityMissions,
+      readyDrivers,
+      vehicles: {
+        available: vehicles.filter((vehicle) => statusIn(vehicle.status, ['pending', 'assigned']) && vehicle.maintenance.status === 'ok').length,
+        inMission: vehicles.filter((vehicle) => vehicle.status === 'in_transit').length,
+        maintenance: vehicles.filter((vehicle) => statusIn(vehicle.maintenance.status, ['scheduled', 'in_progress', 'overdue'])).length,
+        out: unavailableVehicles.length,
+        total: vehicles.length,
+      },
+      health,
+      mapZones: topZones,
+    };
+  }, [tasks, drivers, orders, vehicles, maintenance, tickets, period]);
+
+  const maxActivity = Math.max(1, ...model.fieldActivity.map((item) => item.count));
+  const filteredPriority = model.priorityMissions.filter((mission) => {
+    if (!searchQuery.trim()) return true;
+    const haystack = [
+      mission.id,
+      mission.order_number,
+      mission.customer_name,
+      mission.pickup_commune,
+      mission.delivery_commune,
+      mission.pickup_address_line,
+    ].join(' ').toLowerCase();
+    return haystack.includes(searchQuery.toLowerCase());
+  });
+
+  if (isLoading || loadingSources) return <OperationalSkeleton />;
+
+  return (
+    <div className="mx-auto max-w-[1600px] space-y-5">
+      <section className="rounded-[24px] border border-surface-border-subtle bg-surface-card p-5 shadow-sm">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-black uppercase text-content-primary sm:text-3xl">Centre opérationnel</h1>
+              <span className={`rounded-full px-3 py-1 text-xs font-black ${mode === 'backend' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>
+                {mode === 'backend' ? 'LIVE' : 'READ-ONLY'}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-content-muted">Pilotage temps réel des opérations Laundry Express</p>
+            {sourceError && <p className="mt-2 text-xs font-bold text-orange-700">{sourceError}</p>}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex rounded-2xl bg-surface-muted p-1">
+              {PERIOD_OPTIONS.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setPeriod(option.key)}
+                  className={`min-h-10 rounded-xl px-4 text-sm font-black ${period === option.key ? 'bg-brand-blue text-white shadow-sm' : 'text-content-muted hover:text-content-primary'}`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onRefresh();
+                void loadSources();
+              }}
+              className="min-h-10 rounded-2xl border border-surface-border-subtle px-4 text-sm font-black text-content-primary hover:bg-surface-muted"
+            >
+              Actualiser
+            </button>
+            <span className="text-xs font-semibold text-content-muted">
+              Synchro: {lastSync ? lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--'}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {[
+          { label: "À collecter aujourd'hui", value: model.pickupDue, delta: 'backend', icon: 'shoppingBag' as const, tone: 'bg-blue-50 text-brand-blue', target: 'dispatch' },
+          { label: "À livrer aujourd'hui", value: model.deliveryDue, delta: 'backend', icon: 'truck' as const, tone: 'bg-green-50 text-green-600', target: 'missions' },
+          { label: 'Retards critiques', value: model.failedTasks.length, delta: 'backend', icon: 'clock' as const, tone: 'bg-orange-50 text-orange-600', target: 'alerts' },
+          { label: 'Anomalies ouvertes', value: model.exceptions.length, delta: 'backend', icon: 'warning' as const, tone: 'bg-red-50 text-red-600', target: 'alerts' },
+          { label: 'Tickets ouverts', value: model.openTickets.length, delta: 'backend', icon: 'chatBubble' as const, tone: 'bg-purple-50 text-purple-600', target: 'reports' },
+        ].map((card) => (
+          <button
+            key={card.label}
+            type="button"
+            onClick={() => onNavigate?.(card.target)}
+            className={`${logisticsCard} p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className={`flex h-12 w-12 items-center justify-center rounded-full ${card.tone}`}>
+                <Icon name={card.icon} className="h-6 w-6" />
+              </span>
+              <Icon name="arrowRight" className="h-4 w-4 text-content-muted" />
+            </div>
+            <p className="mt-4 text-sm font-bold text-content-muted">{card.label}</p>
+            <p className="mt-1 text-3xl font-black text-content-primary">{card.value}</p>
+            <p className="mt-1 text-xs font-bold text-content-muted">{card.delta}</p>
+          </button>
+        ))}
+      </section>
+
+      <section className="overflow-hidden rounded-[28px] bg-[#0b0f16] p-4 text-white shadow-2xl shadow-black/20 sm:p-5 lg:p-6">
+        <div className="grid gap-4 xl:grid-cols-[72px_minmax(0,1fr)]">
+          <aside className="hidden rounded-[24px] border border-white/10 bg-white/[0.03] px-3 py-4 xl:flex xl:flex-col xl:items-center xl:justify-between">
+            <div className="space-y-5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-blue text-white">
+                <Icon name="truck" className="h-5 w-5" />
+              </span>
+              {(['dashboard', 'dispatch', 'tracking', 'drivers', 'maintenance'] as const).map((section) => (
+                <button key={section} type="button" onClick={() => onNavigate?.(section)} className="flex h-10 w-10 items-center justify-center rounded-2xl text-white/60 hover:bg-white/10 hover:text-white" aria-label={section}>
+                  <Icon name={section === 'dashboard' ? 'home' : section === 'dispatch' ? 'shoppingBag' : section === 'tracking' ? 'map' : section === 'drivers' ? 'users' : 'settings'} className="h-4 w-4" />
+                </button>
+              ))}
+            </div>
+            <button type="button" onClick={onRefresh} className="flex h-10 w-10 items-center justify-center rounded-2xl text-white/60 hover:bg-white/10 hover:text-white" aria-label="Actualiser">
+              <Icon name="arrow-path" className="h-4 w-4" />
+            </button>
+          </aside>
+
+          <div className="space-y-4">
+            <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+              <label className="relative">
+                <Icon name="search" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Rechercher mission, chauffeur, zone, plaque..."
+                  className="h-12 w-full rounded-[18px] border border-white/10 bg-white/[0.04] pl-11 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-brand-blue"
+                />
+              </label>
+              <div className="rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3">
+                <p className="text-sm font-black">Control Tower TMS</p>
+                <p className="text-xs text-white/45">Backend connecté · Actions sensibles read-only</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {[
+                ['On-time delivery', `${model.onTimeRate}%`, 'Ponctualité calculée'],
+                ['Missions ouvertes', String(model.openTasks.length), 'À assigner'],
+                ['Chauffeurs actifs', `${model.activeDrivers.length}/${drivers.length}`, 'Disponibilité réseau'],
+                ['Driver behavior score', `${model.behaviorScore}%`, 'Basé sur rating backend'],
+              ].map(([label, value, detail], index) => (
+                <article key={label} className={`rounded-[22px] border border-white/10 p-5 ${index === 0 ? 'bg-brand-blue text-white' : 'bg-white/[0.05]'}`}>
+                  <p className="text-xs font-bold text-white/70">{label}</p>
+                  <p className="mt-6 text-3xl font-black">{value}</p>
+                  <p className="mt-2 text-xs text-white/55">{detail}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)]">
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Activité terrain</h2>
+                {model.fieldActivity.length === 0 ? (
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-8 text-center text-sm text-white/55">Aucune activité backend sur cette période.</div>
+                ) : (
+                  <div className="mt-6 flex h-56 items-end gap-2 rounded-[20px] bg-black/20 px-3 pb-3 pt-6">
+                    {model.fieldActivity.map((bar) => (
+                      <div key={bar.hour} className="flex h-full flex-1 flex-col justify-end gap-2">
+                        <div className={`rounded-t-xl ${bar.count >= 20 ? 'bg-green-400' : bar.count >= 10 ? 'bg-blue-400' : 'bg-white/40'}`} style={{ height: `${Math.max(10, (bar.count / maxActivity) * 100)}%` }} />
+                        <span className="text-center text-[10px] text-white/45">{bar.hour}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </article>
+
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Missions prioritaires</h2>
+                <div className="mt-4 space-y-2">
+                  {filteredPriority.length === 0 ? (
+                    <p className="rounded-2xl bg-black/20 p-5 text-sm text-white/55">Aucune mission prioritaire backend.</p>
+                  ) : filteredPriority.map((mission) => (
+                    <button key={mission.id} type="button" onClick={() => onNavigate?.('dispatch', { missionId: mission.id })} className="grid w-full grid-cols-[88px_minmax(0,1fr)_88px] items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm hover:bg-white/10">
+                      <span className="font-mono font-black">{mission.order_number || mission.id}</span>
+                      <span className="truncate text-white/65">{mission.pickup_address_line || mission.pickup_commune || 'Adresse à confirmer'}</span>
+                      <span className={`justify-self-end rounded-full px-2 py-1 text-[11px] font-black ${mission.status === 'completed' ? 'bg-green-400 text-slate-950' : statusIn(mission.status, ['failed', 'expired']) ? 'bg-red-400 text-white' : 'bg-blue-400 text-slate-950'}`}>{mission.status}</span>
+                    </button>
+                  ))}
+                </div>
+              </article>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Alertes compactes</h2>
+                <div className="mt-4 space-y-3">
+                  {alerts.length === 0 ? <p className="text-sm text-white/55">Aucune alerte active.</p> : alerts.slice(0, 5).map((alert) => (
+                    <button key={alert.id} type="button" onClick={() => onNavigate?.('alerts')} className="w-full rounded-2xl bg-black/20 p-3 text-left hover:bg-white/10">
+                      <p className="text-sm font-black">{alert.title}</p>
+                      <p className="mt-1 text-xs text-white/50">{alert.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Top zones</h2>
+                <div className="mt-4 space-y-3">
+                  {model.topZones.length === 0 ? <p className="text-sm text-white/55">Aucune zone calculable.</p> : model.topZones.map((zone) => (
+                    <button key={zone.zone} type="button" onClick={() => onNavigate?.('dispatch', { zone: zone.zone })} className="grid w-full grid-cols-[1fr_64px_64px] items-center gap-3 rounded-2xl bg-black/20 px-3 py-3 text-left">
+                      <span className="font-bold">{zone.zone}</span>
+                      <span className="text-xs text-white/55">{zone.missions} miss.</span>
+                      <span className={`rounded-full px-2 py-1 text-center text-xs font-black ${zone.success >= 90 ? 'bg-green-400 text-slate-950' : zone.success >= 70 ? 'bg-orange-400 text-slate-950' : 'bg-red-400 text-white'}`}>{zone.success}%</span>
+                    </button>
+                  ))}
+                </div>
+              </article>
+
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Chauffeurs prêts</h2>
+                <div className="mt-4 space-y-3">
+                  {model.readyDrivers.length === 0 ? <p className="text-sm text-white/55">Aucun chauffeur disponible.</p> : model.readyDrivers.slice(0, 5).map((driver) => (
+                    <button key={driver.id} type="button" onClick={() => onNavigate?.('drivers', { driverName: driver.name })} className="flex w-full items-center justify-between gap-3 rounded-2xl bg-black/20 p-3 text-left hover:bg-white/10">
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-black">{driver.name}</span>
+                        <span className="text-xs text-white/50">{driver.vehicle} · {driver.zone}</span>
+                      </span>
+                      <span className="text-sm font-black text-green-300">{driver.score}%</span>
+                    </button>
+                  ))}
+                </div>
+              </article>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Corridor de vérité — Commandes</h2>
+                <div className="mt-5 grid gap-3 sm:grid-cols-4">
+                  {[
+                    ['Commandes créées', model.periodOrders.length],
+                    ['Paiements validés', model.paidOrders.length],
+                    ['Collectes effectuées', model.pickupDone.length],
+                    ['Livraisons réalisées', model.deliveryDone.length || model.completedTasks.length],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <p className="text-xs font-bold text-white/55">{label}</p>
+                      <p className="mt-2 text-3xl font-black text-blue-300">{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5">
+                  <div className="mb-2 flex justify-between text-sm font-black"><span>Taux de conversion global</span><span>{model.completionRate}%</span></div>
+                  <div className="h-3 rounded-full bg-white/10"><div className="h-full rounded-full bg-brand-blue" style={{ width: `${Math.min(100, model.completionRate)}%` }} /></div>
+                </div>
+              </article>
+
+              <article className="rounded-[24px] border border-white/10 bg-white/[0.05] p-5">
+                <h2 className="text-lg font-black">Alertes & exceptions</h2>
+                <div className="mt-4 space-y-2">
+                  {model.exceptions.length === 0 ? <p className="rounded-2xl bg-black/20 p-4 text-sm text-white/55">Aucune exception backend.</p> : model.exceptions.map((item) => (
+                    <button key={item.id} type="button" onClick={() => setSelectedException(item.id)} className="grid w-full grid-cols-[minmax(0,1fr)_72px] gap-3 rounded-2xl bg-black/20 p-3 text-left hover:bg-white/10">
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-black">{item.type}</span>
+                        <span className="text-xs text-white/50">{item.reference} · {item.commune}</span>
+                      </span>
+                      <span className="text-right text-xs font-black text-orange-300">{item.impact}</span>
+                    </button>
+                  ))}
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {([
+          ['Missions complétées', model.completedTasks.length, 'check' as const],
+          ['Temps moyen global', model.averageMinutes === null ? '--' : `${model.averageMinutes} min`, 'clock' as const],
+          ['Revenu total', formatCdf(model.revenue), 'currencyDollar' as const],
+          ['Ponctualité', `${model.onTimeRate}%`, 'hand-thumb-up' as const],
+        ] satisfies OperationalKpiCard[]).map(([label, value, icon]) => (
+          <article key={label} className={`${logisticsCard} p-5`}>
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue"><Icon name={icon} className="h-6 w-6" /></span>
+              <div><p className="text-sm font-bold text-content-muted">{label}</p><p className="text-2xl font-black text-content-primary">{value}</p></div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <article className={`${logisticsCard} p-5`}>
+          <h3 className="font-black text-content-primary">État des corridors de vérité</h3>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {model.health.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-surface-border-subtle p-3">
+                <p className="text-xs font-black text-content-muted">{item.label}</p>
+                <p className={`mt-2 text-xs font-black ${item.status === 'SAIN' ? 'text-green-600' : item.status === 'CRITIQUE' ? 'text-red-600' : 'text-orange-600'}`}>{item.status}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className={`${logisticsCard} p-5`}>
+          <h3 className="font-black text-content-primary">État flotte</h3>
+          <div className="mt-4 space-y-2 text-sm">
+            {[
+              ['Disponibles', model.vehicles.available],
+              ['En mission', model.vehicles.inMission],
+              ['Maintenance', model.vehicles.maintenance],
+              ['Hors service', model.vehicles.out],
+              ['Total', model.vehicles.total],
+            ].map(([label, value]) => <div key={label} className="flex justify-between border-b border-surface-border-subtle pb-2"><span>{label}</span><b>{value}</b></div>)}
+          </div>
+        </article>
+        <article className={`${logisticsCard} p-5`}>
+          <h3 className="font-black text-content-primary">Activity feed</h3>
+          <div className="mt-4 space-y-2">
+            {activity.length === 0 ? <p className="text-sm text-content-muted">Aucun événement backend récent.</p> : activity.slice(0, 6).map((event) => (
+              <div key={event.id} className="rounded-xl bg-surface-muted p-3 text-sm">
+                <p className="font-black text-content-primary">{event.action_label || event.action}</p>
+                <p className="text-xs text-content-muted">{event.reference || event.resource_id} · {event.occurred_at ? new Date(event.occurred_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--'}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className={`${logisticsCard} p-5`}>
+        <h3 className="font-black text-content-primary">Actions rapides</h3>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {[
+            ['Voir anomalies', 'alerts'],
+            ['Commandes bloquées', 'missions'],
+            ['Tickets ouverts', 'reports'],
+            ['Paiements échoués', 'reports'],
+            ['Exporter rapport', 'reports'],
+          ].map(([label, target]) => (
+            <button key={label} type="button" onClick={() => onNavigate?.(target)} className="min-h-11 rounded-xl border border-surface-border-subtle px-4 text-sm font-black text-content-primary hover:bg-surface-muted">
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[1fr_1fr_0.9fr]">
+        <article className={`${logisticsCard} p-5`}>
+          <h3 className="font-black text-content-primary">Backlog à dispatcher</h3>
+          <div className="mt-4 space-y-2">
+            {model.openTasks.length === 0 ? <p className="rounded-2xl bg-surface-muted p-8 text-center text-sm text-content-muted">Aucune mission à dispatcher.</p> : model.openTasks.slice(0, 6).map((task) => (
+              <button key={task.id} type="button" onClick={() => onNavigate?.('dispatch', { missionId: task.id })} className="grid w-full grid-cols-[1fr_80px] gap-3 rounded-xl border border-surface-border-subtle p-3 text-left hover:bg-surface-muted">
+                <span><b className="block text-content-primary">{task.order_number || task.id}</b><span className="text-xs text-content-muted">{task.customer_name || 'Client'} · {task.pickup_commune || 'Zone'}</span></span>
+                <span className="text-right text-xs font-black text-brand-blue">{task.task_type}</span>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article className={`${logisticsCard} p-5`}>
+          <h3 className="font-black text-content-primary">Carte de dispatch</h3>
+          <div className="relative mt-4 h-72 overflow-hidden rounded-2xl bg-slate-100">
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(148,163,184,.18)_1px,transparent_1px),linear-gradient(rgba(148,163,184,.18)_1px,transparent_1px)] bg-[size:32px_32px]" />
+            {model.mapZones.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-content-muted">Données carte backend indisponibles.</div>
+            ) : model.mapZones.slice(0, 6).map((zone, index) => (
+              <button key={zone.zone} type="button" onClick={() => onNavigate?.('dispatch', { zone: zone.zone })} className={`absolute flex h-10 w-10 items-center justify-center rounded-full text-xs font-black text-white shadow-lg ${zone.success >= 90 ? 'bg-green-500' : zone.success >= 70 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ left: `${18 + (index * 17) % 68}%`, top: `${22 + (index * 19) % 58}%` }}>
+                {zone.zone.slice(0, 2)}
+              </button>
+            ))}
+            <span className="absolute bottom-4 left-4 rounded-full bg-white px-3 py-1 text-xs font-black text-brand-blue">{model.activeTasks.length} actifs</span>
+            <span className="absolute bottom-4 left-28 rounded-full bg-white px-3 py-1 text-xs font-black text-orange-600">{model.openTasks.length} en attente</span>
+          </div>
+        </article>
+
+        <article className={`${logisticsCard} p-5`}>
+          <h3 className="flex items-center justify-between font-black text-content-primary">Alertes opérationnelles <span className="rounded-full bg-red-50 px-2 py-1 text-xs text-red-700">{alerts.length} alertes</span></h3>
+          <div className="mt-4 space-y-3">
+            {alerts.length === 0 ? <p className="text-sm text-content-muted">Aucune alerte opérationnelle.</p> : alerts.slice(0, 5).map((alert) => (
+              <button key={alert.id} type="button" onClick={() => onNavigate?.('alerts')} className="w-full rounded-2xl border border-surface-border-subtle p-3 text-left hover:bg-surface-muted">
+                <p className="text-sm font-black text-content-primary">{alert.title}</p>
+                <p className="text-xs text-content-muted">{alert.timestamp}</p>
+              </button>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      {selectedException && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-black text-content-primary">Détail exception</h3>
+                <p className="text-sm text-content-muted">{selectedException}</p>
+              </div>
+              <button type="button" onClick={() => setSelectedException(null)} className="rounded-xl p-2 text-content-muted hover:bg-surface-muted">
+                <Icon name="xmark" className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-5 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800">
+              Détail complet et résolution nécessitent les endpoints opérationnels dédiés. <ApiRequiredBadge />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh, onAutoDispatch, onExport, onNavigate, onActionFeedback }) => {
   const [activeTab, setActiveTab] = useState<DispatcherTab>('operations');
   const { alerts, criticalCount, refresh: refreshAlerts } = useRealTimeAlerts();
-  const { data: liveTracking, mode: liveTrackingMode, refresh: refreshLiveTracking } = useRealTimeTracking();
+  const { data: liveTracking, isLoading: isLiveTrackingLoading, mode: liveTrackingMode, refresh: refreshLiveTracking } = useRealTimeTracking();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [dataMode, setDataMode] = useState<DataMode>('degraded');
   const [backlog, setBacklog] = useState<LogisticsBacklogMission[]>(MOCK_BACKLOG);
@@ -959,107 +1613,23 @@ export const LogisticsOverview: React.FC<LogisticsOverviewProps> = ({ onRefresh,
   };
 
   return (
-    <div className="space-y-6">
-      <div className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
-        dataMode === 'backend'
-          ? 'border-green-200 bg-green-50 text-green-700'
-          : 'border-orange-200 bg-orange-50 text-orange-700'
-      }`}>
-        {dataMode === 'backend' ? 'Dashboard logistique connecté au backend' : 'Mode dégradé — dashboard local'}
-      </div>
-
-      <TmsControlTowerDashboard
-        openMissions={liveOpenMissionsCount}
-        activeMissions={liveActiveMissionsCount}
-        availableDrivers={liveAvailableDriversCount}
-        totalDrivers={liveTotalDriversCount}
-        backlogRevenue={liveEstimatedBacklogRevenue}
-        onRefresh={handleRefresh}
-        onNavigate={onNavigate}
-        onMessage={(message) => announceAction(`Action TMS : ${message}.`)}
-      />
-
-      <div className={`${logisticsCard} p-4 sm:p-6`}>
-        <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-brand-blue uppercase tracking-wider mb-1">COCKPIT DISPATCHER</p>
-            <h1 className="text-xl font-extrabold leading-tight text-content-primary sm:text-2xl">Cockpit logistique universel</h1>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-content-muted">Pilotez dispatch, carte, tournées, alertes et performance chauffeur pour pressing, colis, repas, pharmacie ou courses.</p>
-          </div>
-          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 lg:w-auto">
-            <button
-              type="button"
-              onClick={handleRefresh}
-              className="flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-semibold text-content-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2"
-            >
-              <Icon name="arrow-path" className="w-4 h-4" /> Rafraîchir
-            </button>
-            <button
-              type="button"
-              onClick={handleAutoDispatch}
-              className="flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-4 py-3 text-sm font-semibold text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 sm:py-2"
-            >
-              <Icon name="sparkles" className="w-4 h-4" /> Auto-dispatch
-            </button>
-            <button
-              type="button"
-              onClick={onExport}
-              className="flex items-center justify-center gap-2 rounded-xl border border-surface-border-subtle px-4 py-3 text-sm font-semibold text-content-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:py-2"
-            >
-              <Icon name="arrow-down-tray" className="w-4 h-4" /> Exporter CSV
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {actionMessage && (
-        <div
-          role="status"
-          className="rounded-2xl border border-brand-blue/30 bg-brand-blue/15 px-5 py-3 text-sm font-semibold text-blue-100"
-        >
+        <div role="status" className="rounded-2xl border border-brand-blue/20 bg-blue-50 px-5 py-3 text-sm font-bold text-brand-blue">
           {actionMessage}
         </div>
       )}
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
-        {liveKpiCards.map((kpi) => (
-          <div key={kpi.label} className={`${logisticsCard} p-4 sm:p-5`}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-14 sm:w-14 ${kpi.tone}`}>
-                <Icon name={kpi.icon} className="h-5 w-5 sm:h-6 sm:w-6" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-content-muted sm:text-sm">{kpi.label}</p>
-                <p className="mt-1 break-words text-xl font-extrabold tracking-tight text-content-primary sm:text-3xl">{kpi.value}</p>
-                <p className="mt-1 text-xs font-medium text-content-muted">{kpi.sub}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div>
-        <nav className="-mx-3 mb-5 flex gap-2 overflow-x-auto bg-surface-muted px-3 py-2 sm:mx-0 sm:mb-6 sm:rounded-xl sm:p-1" role="tablist" aria-label="Sections logistiques">
-          {TABS.map((tab) => (
-            <button
-              type="button"
-              key={tab.key}
-              role="tab"
-              aria-selected={activeTab === tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 sm:min-h-0 sm:py-2 ${
-                activeTab === tab.key
-                  ? 'bg-surface-card text-content-primary shadow-sm'
-                  : 'text-content-muted hover:text-content-primary'
-              }`}
-            >
-              <Icon name={tab.icon} className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-        {renderTabContent()}
-      </div>
+      <OperationalControlTower
+        tasks={liveTracking.tasks}
+        drivers={liveTracking.drivers}
+        alerts={alerts}
+        mode={liveTrackingMode === 'backend' || dataMode === 'backend' ? 'backend' : 'degraded'}
+        isLoading={isLiveTrackingLoading}
+        lastSync={liveTracking.lastSync}
+        onRefresh={handleRefresh}
+        onNavigate={onNavigate}
+        onMessage={(message) => announceAction(message)}
+      />
     </div>
   );
 };

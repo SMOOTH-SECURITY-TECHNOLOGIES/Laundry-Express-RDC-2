@@ -244,7 +244,7 @@ describe('LogisticsDashboardPage', () => {
       await new Promise((resolve) => setTimeout(resolve, 900));
     });
 
-    expect(byText(view.container, 'Centre logistique Laundry Express')).not.toBeNull();
+    expect(byText(view.container, 'Centre opérationnel')).not.toBeNull();
     expect(byText(view.container, 'Fleet')).not.toBeNull();
     expect(byText(view.container, 'Drivers')).not.toBeNull();
     expect(byText(view.container, 'Dispatch')).not.toBeNull();
@@ -252,7 +252,7 @@ describe('LogisticsDashboardPage', () => {
     expect(byText(view.container, 'Trip Details')).not.toBeNull();
     expect(byText(view.container, 'Shipments')).not.toBeNull();
     expect(byText(view.container, 'Maintenance')).not.toBeNull();
-    expect(byText(view.container, 'Auto-dispatch')).not.toBeNull();
+    expect(byText(view.container, 'Control Tower TMS')).not.toBeNull();
     expect(byText(view.container, 'Backlog à dispatcher')).not.toBeNull();
 
     view.unmount();
@@ -382,7 +382,7 @@ describe('LogisticsDashboardPage', () => {
     view.click(menuButton!);
 
     const mobileSections: Array<[RegExp, string]> = [
-      [/^Dashboard$/, 'Auto-dispatch'],
+      [/^Dashboard$/, 'Control Tower TMS'],
       [/^Fleet$/, 'Fleet Management'],
       [/^Drivers$/, 'Profil chauffeur'],
       [/^Dispatch$/, 'Nouvelles missions'],
