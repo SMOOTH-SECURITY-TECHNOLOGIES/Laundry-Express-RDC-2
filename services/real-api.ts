@@ -1940,6 +1940,68 @@ export interface LogisticsMaintenanceEventListResponse {
   maintenance_events: LogisticsMaintenanceEvent[];
 }
 
+export interface LogisticsDriverBehaviorSummary {
+  scoredDrivers: number;
+  averageScore: number;
+  punctualityRate: number;
+  delayedMissions: number;
+  cancellationRate: number;
+  incidentCount: number;
+  topDrivers: Array<{
+    driverId: string;
+    driverName: string;
+    score: number;
+    completedMissions: number;
+    punctualityRate: number;
+  }>;
+}
+
+export interface LogisticsFuelUsageSummary {
+  trackedVehicles: number;
+  estimatedCost: number;
+  costPerMission: number;
+  costPerKm: number;
+  anomalyCount: number;
+  budgetUsedPercent: number;
+  byVehicle: Array<{
+    vehicleId: string;
+    vehiclePlate: string;
+    estimatedCost: number;
+    distanceKm: number;
+    anomaly?: string | null;
+  }>;
+}
+
+export interface LogisticsStockLevelSummary {
+  depotStock: number;
+  driverKitStock: number;
+  projectedNeed: number;
+  lowStockItems: number;
+  coverageDays: number;
+  items: Array<{
+    id: string;
+    label: string;
+    location: 'depot' | 'driver' | 'vehicle';
+    quantity: number;
+    threshold: number;
+    unit: string;
+  }>;
+}
+
+export interface LogisticsConnectivityHealthSummary {
+  activeDrivers: number;
+  driversWithRecentSignal: number;
+  driversWithoutSignal: number;
+  staleSignals: number;
+  syncPending: number;
+  coverageRate: number;
+  lastPingAt?: string | null;
+  appVersions?: Array<{
+    version: string;
+    driverCount: number;
+  }>;
+}
+
 export interface MarketplaceCompany {
   id: string;
   name: string;
@@ -3565,6 +3627,22 @@ class ApiClient {
 
   async getMaintenanceEvents(): Promise<LogisticsMaintenanceEventListResponse> {
     return this.request<LogisticsMaintenanceEventListResponse>('/logistics/maintenance-events');
+  }
+
+  async getDriverBehavior(): Promise<LogisticsDriverBehaviorSummary> {
+    return this.request<LogisticsDriverBehaviorSummary>('/logistics/driver-behavior');
+  }
+
+  async getFuelUsage(): Promise<LogisticsFuelUsageSummary> {
+    return this.request<LogisticsFuelUsageSummary>('/logistics/fuel-usage');
+  }
+
+  async getStockLevels(): Promise<LogisticsStockLevelSummary> {
+    return this.request<LogisticsStockLevelSummary>('/logistics/stock-levels');
+  }
+
+  async getConnectivityHealth(): Promise<LogisticsConnectivityHealthSummary> {
+    return this.request<LogisticsConnectivityHealthSummary>('/logistics/connectivity-health');
   }
 
   async updateDriverAvailability(available: boolean): Promise<{ available: boolean }> {

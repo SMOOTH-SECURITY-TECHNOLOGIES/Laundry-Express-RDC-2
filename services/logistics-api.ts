@@ -1,4 +1,12 @@
-import { realApi, type LogisticsDriver, type LogisticsTask } from './real-api';
+import {
+  realApi,
+  type LogisticsConnectivityHealthSummary,
+  type LogisticsDriver,
+  type LogisticsDriverBehaviorSummary,
+  type LogisticsFuelUsageSummary,
+  type LogisticsStockLevelSummary,
+  type LogisticsTask,
+} from './real-api';
 import { mapLogisticsTaskViaTms } from '../lib/tms/generic-mission';
 import type { DispatchTask, Driver, LogisticsStatus, MaintenanceEvent, TrackingPoint, Trip, Vehicle } from '../components/logistics/logistics-types';
 import {
@@ -460,5 +468,45 @@ export const getMaintenanceEvents = async (fallback: MaintenanceEvent[]): Promis
       : fallbackResult(fallback, 'backend maintenance empty');
   } catch (error) {
     return fallbackResult(fallback, error instanceof Error ? error.message : 'backend maintenance unavailable');
+  }
+};
+
+export const getDriverBehavior = async (
+  fallback: LogisticsDriverBehaviorSummary,
+): Promise<LogisticsDataResult<LogisticsDriverBehaviorSummary>> => {
+  try {
+    return { data: await realApi.getDriverBehavior(), mode: 'backend' };
+  } catch (error) {
+    return fallbackResult(fallback, error instanceof Error ? error.message : 'backend driver behavior unavailable');
+  }
+};
+
+export const getFuelUsage = async (
+  fallback: LogisticsFuelUsageSummary,
+): Promise<LogisticsDataResult<LogisticsFuelUsageSummary>> => {
+  try {
+    return { data: await realApi.getFuelUsage(), mode: 'backend' };
+  } catch (error) {
+    return fallbackResult(fallback, error instanceof Error ? error.message : 'backend fuel usage unavailable');
+  }
+};
+
+export const getStockLevels = async (
+  fallback: LogisticsStockLevelSummary,
+): Promise<LogisticsDataResult<LogisticsStockLevelSummary>> => {
+  try {
+    return { data: await realApi.getStockLevels(), mode: 'backend' };
+  } catch (error) {
+    return fallbackResult(fallback, error instanceof Error ? error.message : 'backend stock levels unavailable');
+  }
+};
+
+export const getConnectivityHealth = async (
+  fallback: LogisticsConnectivityHealthSummary,
+): Promise<LogisticsDataResult<LogisticsConnectivityHealthSummary>> => {
+  try {
+    return { data: await realApi.getConnectivityHealth(), mode: 'backend' };
+  } catch (error) {
+    return fallbackResult(fallback, error instanceof Error ? error.message : 'backend connectivity health unavailable');
   }
 };
