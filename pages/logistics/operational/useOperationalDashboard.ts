@@ -144,6 +144,18 @@ export type OperationalModel = {
     confidence: 'medium' | 'low';
     recommendation: string;
   };
+  connectivity: {
+    status: 'partial' | 'connect';
+    activeDrivers: number;
+    driversWithRecentSignal: number;
+    driversWithoutSignal: number;
+    staleSignals: number;
+    syncPending: number;
+    coverageRate: number;
+    lastPingAgo: string;
+    confidence: 'medium' | 'low';
+    recommendation: string;
+  };
 };
 
 const latestByDate = <T,>(items: T[], pickDate: (item: T) => string | null | undefined): T | undefined =>
@@ -675,6 +687,32 @@ export function useOperationalDashboard(
           : 'Ajouter précision GPS et alertes de signal faible.'
         : 'Activer le ping GPS chauffeur et conserver le fallback zones.',
     };
+    const liveDriverNames = new Set(
+      gpsLivePoints
+        .map((point) => point.driverName)
+        .filter((name): name is string => Boolean(name)),
+    );
+    const connectivityCoverageRate = percentOf(
+      liveDriverNames.size || gpsLivePoints.length,
+      activeDrivers.length || driverPositions.length,
+    );
+    const connectivity: OperationalModel['connectivity'] = {
+      status: hasTrackingPoints || activeDrivers.length > 0 ? 'partial' : 'connect',
+      activeDrivers: activeDrivers.length,
+      driversWithRecentSignal: liveDriverNames.size || gpsLivePoints.length,
+      driversWithoutSignal: Math.max(0, activeDrivers.length - (liveDriverNames.size || gpsLivePoints.length)),
+      staleSignals: gpsStalePoints.length,
+      syncPending: gpsStalePoints.length + Math.max(0, activeDrivers.length - (liveDriverNames.size || gpsLivePoints.length)),
+      coverageRate: connectivityCoverageRate,
+      lastPingAgo: latestGpsPoint ? minutesAgoLabel(latestGpsPoint.recordedAt) || 'récemment' : 'aucun ping',
+      confidence: hasTrackingPoints ? 'medium' : 'low',
+      recommendation:
+        !hasTrackingPoints
+          ? 'Brancher heartbeat app chauffeur pour dernier ping et offline queue.'
+          : gpsStalePoints.length > 0 || activeDrivers.length > liveDriverNames.size
+            ? 'Relancer les chauffeurs sans ping récent et vérifier sync pending.'
+            : 'Ajouter version app et statut offline pour compléter la connectivité.',
+    };
     const behaviorReadyDrivers = activeDrivers.filter((driver) => Number(driver.rating_count || 0) > 0);
     const driverTaskIds = new Set(activeDrivers.map((driver) => driver.id));
     const completedDriverMissions = completedTasks.filter((task) => task.driver_id && driverTaskIds.has(task.driver_id));
@@ -767,10 +805,10 @@ export function useOperationalDashboard(
       {
         id: 'connectivity',
         label: 'Connectivity',
-        status: 'connect',
-        source: 'driver app heartbeat',
-        confidence: 'low',
-        nextAction: 'Ajouter dernier ping, version app, offline queue et sync pending',
+        status: connectivity.status,
+        source: hasTrackingPoints ? 'tracking freshness proxy' : 'driver app heartbeat',
+        confidence: connectivity.confidence,
+        nextAction: connectivity.recommendation,
       },
     ];
     const operationalExceptions = [
@@ -951,6 +989,7 @@ export function useOperationalDashboard(
       vehicleHealth,
       fuelControl,
       stockControl,
+      connectivity,
     };
   }, [
     tasks,

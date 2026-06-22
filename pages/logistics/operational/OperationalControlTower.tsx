@@ -12,6 +12,7 @@ import { DriverBehaviorPanel } from './DriverBehaviorPanel';
 import { VehicleHealthPanel } from './VehicleHealthPanel';
 import { FuelControlPanel } from './FuelControlPanel';
 import { StockSuppliesPanel } from './StockSuppliesPanel';
+import { ConnectivityPanel } from './ConnectivityPanel';
 import { ControlTowerPanel } from './ControlTowerPanel';
 import { TruthCorridorPipeline } from './TruthCorridorPipeline';
 import { TruthHealthCards } from './TruthHealthCards';
@@ -108,7 +109,10 @@ export const OperationalControlTower: React.FC<{
         <FuelControlPanel fuel={model.fuelControl} onNavigate={onNavigate} />
       </section>
 
-      <StockSuppliesPanel stock={model.stockControl} onNavigate={onNavigate} />
+      <section className="grid gap-4 xl:grid-cols-2">
+        <StockSuppliesPanel stock={model.stockControl} onNavigate={onNavigate} />
+        <ConnectivityPanel connectivity={model.connectivity} onNavigate={onNavigate} />
+      </section>
 
       <ControlTowerPanel
         model={model}
