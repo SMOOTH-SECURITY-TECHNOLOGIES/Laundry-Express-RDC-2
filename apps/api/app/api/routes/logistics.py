@@ -40,6 +40,14 @@ from app.schemas.logistics import (
     TrackingPointListResponse,
     MaintenanceEventResponse,
     MaintenanceEventListResponse,
+    DriverBehaviorSummaryResponse,
+    DriverBehaviorTopDriver,
+    FuelUsageSummaryResponse,
+    FuelUsageVehicleResponse,
+    StockLevelSummaryResponse,
+    StockLevelItemResponse,
+    ConnectivityHealthSummaryResponse,
+    ConnectivityAppVersionResponse,
 )
 from app.services.dispatch_service import DispatchService
 from app.services.notification_service import NotificationService
@@ -1305,6 +1313,253 @@ def list_maintenance_events(
 
     return MaintenanceEventListResponse(
         maintenance_events=events,
+    )
+
+
+# ===== Advanced TMS Capability Routes =====
+
+def _percent(part: int, total: int) -> int:
+    if total <= 0:
+        return 0
+    return round((part / total) * 100)
+
+
+def _latest_location_by_driver(db: Session) -> dict[UUID, DriverLocation]:
+    locations = db.query(DriverLocation).order_by(DriverLocation.recorded_at.desc()).limit(500).all()
+    latest: dict[UUID, DriverLocation] = {}
+    for location in locations:
+        if location.driver_id not in latest:
+            latest[location.driver_id] = location
+    return latest
+
+
+def _minutes_since(value: datetime | None) -> int | None:
+    if not value:
+        return None
+    current = datetime.now(timezone.utc)
+    recorded = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    return max(0, round((current - recorded).total_seconds() / 60))
+
+
+def _company_driver_ids_for_operator(db: Session, current_user: User) -> set[UUID] | None:
+    company_id = _operator_company_id(current_user)
+    if not company_id:
+        return None
+    return _fleet_service(db).company_driver_ids(company_id)
+
+
+def _scope_driver_query_for_operator(query, db: Session, current_user: User):
+    driver_ids = _company_driver_ids_for_operator(db, current_user)
+    if driver_ids is None:
+        return query
+    if not driver_ids:
+        return query.filter(Driver.id.in_([]))
+    return query.filter(Driver.id.in_(driver_ids))
+
+
+def _scope_task_query_for_operator(query, db: Session, current_user: User):
+    company_id = _operator_company_id(current_user)
+    if not company_id:
+        return query
+    driver_ids = _company_driver_ids_for_operator(db, current_user) or set()
+    return query.filter(
+        (DeliveryTask.assigned_company_id == company_id)
+        | (DeliveryTask.claimed_by_company_id == company_id)
+        | (DeliveryTask.driver_id.in_(driver_ids) if driver_ids else DeliveryTask.id.is_(None))
+    )
+
+
+@router.get("/driver-behavior", response_model=DriverBehaviorSummaryResponse)
+def get_driver_behavior(
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Synthèse comportement chauffeur dérivée des missions et évaluations."""
+    _ensure_logistics_operator(current_user)
+    drivers = _scope_driver_query_for_operator(
+        db.query(Driver).filter(Driver.status == DriverStatus.ACTIVE),
+        db,
+        current_user,
+    ).all()
+    completed_statuses = [DeliveryTaskStatus.COMPLETED]
+    delayed_statuses = [DeliveryTaskStatus.EXPIRED, DeliveryTaskStatus.FAILED]
+    cancelled_statuses = [DeliveryTaskStatus.CANCELLED]
+    top_drivers: list[DriverBehaviorTopDriver] = []
+    scored_values: list[int] = []
+    total_completed = 0
+    total_delayed = 0
+    total_cancelled = 0
+
+    for driver in drivers:
+        tasks = _scope_task_query_for_operator(
+            db.query(DeliveryTask).filter(DeliveryTask.driver_id == driver.id),
+            db,
+            current_user,
+        ).all()
+        completed = sum(1 for task in tasks if task.status in completed_statuses)
+        delayed = sum(1 for task in tasks if task.status in delayed_statuses)
+        cancelled = sum(1 for task in tasks if task.status in cancelled_statuses)
+        total_completed += completed
+        total_delayed += delayed
+        total_cancelled += cancelled
+        if not tasks and not driver.rating_count:
+            continue
+        punctuality = _percent(max(0, completed - delayed), max(1, completed + delayed))
+        rating_score = min(100, round(float(driver.rating_avg or 0) * 20))
+        score = round((punctuality * 0.65) + (rating_score * 0.35))
+        scored_values.append(score)
+        top_drivers.append(DriverBehaviorTopDriver(
+            driverId=driver.id,
+            driverName=_driver_display_name(driver, db) or f"Driver {str(driver.id)[:8]}",
+            score=score,
+            completedMissions=completed,
+            punctualityRate=punctuality,
+        ))
+
+    total_missions = total_completed + total_delayed + total_cancelled
+    top_drivers.sort(key=lambda item: item.score, reverse=True)
+    return DriverBehaviorSummaryResponse(
+        scoredDrivers=len(scored_values),
+        averageScore=round(sum(scored_values) / len(scored_values)) if scored_values else 0,
+        punctualityRate=_percent(total_completed, max(1, total_completed + total_delayed)),
+        delayedMissions=total_delayed,
+        cancellationRate=_percent(total_cancelled, total_missions),
+        incidentCount=total_delayed + total_cancelled,
+        topDrivers=top_drivers[:5],
+    )
+
+
+@router.get("/fuel-usage", response_model=FuelUsageSummaryResponse)
+def get_fuel_usage(
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Estimation carburant/énergie basée sur flotte et missions actives."""
+    _ensure_logistics_operator(current_user)
+    fleet = _fleet_service(db)
+    vehicles = fleet.apply_vehicle_company_filter(db.query(Vehicle), current_user).all()
+    active_tasks = _scope_task_query_for_operator(db.query(DeliveryTask), db, current_user).filter(
+        DeliveryTask.status.in_([
+            DeliveryTaskStatus.DRIVER_ASSIGNED,
+            DeliveryTaskStatus.ACCEPTED,
+            DeliveryTaskStatus.IN_PROGRESS,
+        ])
+    ).all()
+    cost_per_km = {
+        VehicleType.MOTO: 0.42,
+        VehicleType.CAR: 0.88,
+        VehicleType.VAN: 1.25,
+    }
+    estimated_distance = max(1.0, len(active_tasks) * 5.0)
+    by_vehicle: list[FuelUsageVehicleResponse] = []
+    total_cost = 0.0
+    anomaly_count = 0
+
+    for vehicle in vehicles:
+        distance = estimated_distance if vehicle.status in [VehicleStatus.ASSIGNED, VehicleStatus.IN_TRANSIT, VehicleStatus.DELAYED] else 0.0
+        unit_cost = cost_per_km.get(vehicle.type, 0.8)
+        estimated_cost = round(distance * unit_cost, 2)
+        anomaly = None
+        if vehicle.mileage_km > 100000:
+            anomaly = "high_mileage"
+            anomaly_count += 1
+        total_cost += estimated_cost
+        by_vehicle.append(FuelUsageVehicleResponse(
+            vehicleId=vehicle.id,
+            vehiclePlate=vehicle.plate,
+            estimatedCost=estimated_cost,
+            distanceKm=distance,
+            anomaly=anomaly,
+        ))
+
+    mission_count = max(1, len(active_tasks))
+    budget = max(1.0, len(vehicles) * 25.0)
+    return FuelUsageSummaryResponse(
+        trackedVehicles=len(vehicles),
+        estimatedCost=round(total_cost, 2),
+        costPerMission=round(total_cost / mission_count, 2),
+        costPerKm=round(total_cost / max(1.0, sum(item.distanceKm for item in by_vehicle)), 2),
+        anomalyCount=anomaly_count,
+        budgetUsedPercent=min(100, _percent(round(total_cost), round(budget))),
+        byVehicle=by_vehicle[:20],
+    )
+
+
+@router.get("/stock-levels", response_model=StockLevelSummaryResponse)
+def get_stock_levels(
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stock terrain estimé pour pilote logistique sans table stock dédiée."""
+    _ensure_logistics_operator(current_user)
+    active_drivers = _scope_driver_query_for_operator(
+        db.query(Driver).filter(Driver.status == DriverStatus.ACTIVE),
+        db,
+        current_user,
+    ).count()
+    open_tasks = _scope_task_query_for_operator(db.query(DeliveryTask), db, current_user).filter(
+        DeliveryTask.status.in_([DeliveryTaskStatus.PENDING, DeliveryTaskStatus.OPEN_MARKET])
+    ).count()
+    depot_stock = 180
+    driver_kit_stock = active_drivers * 8
+    projected_need = max(1, open_tasks + active_drivers)
+    items = [
+        StockLevelItemResponse(id="depot-bags", label="Sacs dépôt", location="depot", quantity=depot_stock, threshold=40, unit="unités"),
+        StockLevelItemResponse(id="driver-kits", label="Kits chauffeurs", location="driver", quantity=driver_kit_stock, threshold=max(20, active_drivers * 4), unit="unités"),
+        StockLevelItemResponse(id="seals", label="Scellés", location="depot", quantity=120, threshold=30, unit="unités"),
+    ]
+    low_stock = sum(1 for item in items if item.quantity <= item.threshold)
+    return StockLevelSummaryResponse(
+        depotStock=depot_stock,
+        driverKitStock=driver_kit_stock,
+        projectedNeed=projected_need,
+        lowStockItems=low_stock,
+        coverageDays=max(1, (depot_stock + driver_kit_stock) // projected_need),
+        items=items,
+    )
+
+
+@router.get("/connectivity-health", response_model=ConnectivityHealthSummaryResponse)
+def get_connectivity_health(
+    db: Session = Depends(get_sync_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Santé de connectivité dérivée des derniers pings GPS chauffeur."""
+    _ensure_logistics_operator(current_user)
+    active_drivers = _scope_driver_query_for_operator(
+        db.query(Driver).filter(Driver.status == DriverStatus.ACTIVE),
+        db,
+        current_user,
+    ).all()
+    latest_locations = _latest_location_by_driver(db)
+    recent_driver_ids = set()
+    stale_driver_ids = set()
+    last_ping_at = None
+
+    for driver_id, location in latest_locations.items():
+        age = _minutes_since(location.recorded_at)
+        if last_ping_at is None or (location.recorded_at and location.recorded_at > last_ping_at):
+            last_ping_at = location.recorded_at
+        if age is not None and age <= 15:
+            recent_driver_ids.add(driver_id)
+        else:
+            stale_driver_ids.add(driver_id)
+
+    active_ids = {driver.id for driver in active_drivers}
+    recent_active = active_ids.intersection(recent_driver_ids)
+    stale_active = active_ids.intersection(stale_driver_ids)
+    without_signal = active_ids.difference(recent_driver_ids).difference(stale_driver_ids)
+    sync_pending = len(stale_active) + len(without_signal)
+
+    return ConnectivityHealthSummaryResponse(
+        activeDrivers=len(active_drivers),
+        driversWithRecentSignal=len(recent_active),
+        driversWithoutSignal=len(without_signal),
+        staleSignals=len(stale_active),
+        syncPending=sync_pending,
+        coverageRate=_percent(len(recent_active), len(active_drivers)),
+        lastPingAt=last_ping_at.isoformat() if last_ping_at else None,
+        appVersions=[ConnectivityAppVersionResponse(version="unknown", driverCount=len(active_drivers))],
     )
 
 
