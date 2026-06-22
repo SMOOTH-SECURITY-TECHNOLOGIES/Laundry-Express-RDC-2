@@ -63,7 +63,7 @@ from app.services.logistics_live_hub import (
 from app.services.logistics_fleet_service import LogisticsFleetService
 from app.services.logistics_fleet_errors import FleetAccessError, FleetNotFoundError, FleetValidationError
 from app.services.logistics_live_service import LogisticsLiveService
-from app.models.logistics import Driver, DriverStatus, TaskType, DeliveryTask, DeliveryTaskStatus, Vehicle, VehicleStatus, DriverLocation, VehicleMaintenanceStatus
+from app.models.logistics import Driver, DriverStatus, TaskType, DeliveryTask, DeliveryTaskStatus, Vehicle, VehicleType, VehicleStatus, DriverLocation, VehicleMaintenanceStatus
 
 router = APIRouter(prefix="/logistics", tags=["logistics"])
 
@@ -1449,6 +1449,9 @@ def get_fuel_usage(
         VehicleType.MOTO: 0.42,
         VehicleType.CAR: 0.88,
         VehicleType.VAN: 1.25,
+        VehicleType.MOTO.value: 0.42,
+        VehicleType.CAR.value: 0.88,
+        VehicleType.VAN.value: 1.25,
     }
     estimated_distance = max(1.0, len(active_tasks) * 5.0)
     by_vehicle: list[FuelUsageVehicleResponse] = []
@@ -1457,10 +1460,12 @@ def get_fuel_usage(
 
     for vehicle in vehicles:
         distance = estimated_distance if vehicle.status in [VehicleStatus.ASSIGNED, VehicleStatus.IN_TRANSIT, VehicleStatus.DELAYED] else 0.0
-        unit_cost = cost_per_km.get(vehicle.type, 0.8)
+        vehicle_type = getattr(vehicle.type, "value", vehicle.type)
+        unit_cost = cost_per_km.get(vehicle.type, cost_per_km.get(vehicle_type, 0.8))
         estimated_cost = round(distance * unit_cost, 2)
         anomaly = None
-        if vehicle.mileage_km > 100000:
+        mileage_km = vehicle.mileage_km or 0
+        if mileage_km > 100000:
             anomaly = "high_mileage"
             anomaly_count += 1
         total_cost += estimated_cost
