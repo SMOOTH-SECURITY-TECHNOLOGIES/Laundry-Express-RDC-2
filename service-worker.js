@@ -21,8 +21,13 @@ self.addEventListener('install', (event) => {
         console.log('[SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
-      .then(() => self.skipWaiting())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate: Clean old caches
@@ -37,7 +42,7 @@ self.addEventListener('activate', (event) => {
             return caches.delete(name);
           })
       )
-    ).then(() => self.clients.claim())
+    )
   );
 });
 

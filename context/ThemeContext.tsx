@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   applyThemeToDocument,
+  isThemePreference,
   readStoredThemePreference,
   resolveTheme,
   THEME_PREFERENCE_KEY,
@@ -54,9 +55,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const syncFromProfile = useCallback((preference: string | null | undefined) => {
-    if (preference === 'light' || preference === 'dark' || preference === 'system') {
-      setThemePreferenceState(preference);
+    if (!isThemePreference(preference)) return;
+
+    const storedPreference = localStorage.getItem(THEME_PREFERENCE_KEY);
+    const legacyTheme = localStorage.getItem(LEGACY_THEME_KEY);
+    if (isThemePreference(storedPreference) || legacyTheme === 'light' || legacyTheme === 'dark') {
+      return;
     }
+
+    setThemePreferenceState(preference);
   }, []);
 
   const toggleTheme = useCallback(() => {
