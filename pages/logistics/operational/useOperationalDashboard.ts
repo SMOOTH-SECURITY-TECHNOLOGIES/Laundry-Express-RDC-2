@@ -134,6 +134,16 @@ export type OperationalModel = {
     confidence: 'medium' | 'low';
     recommendation: string;
   };
+  stockControl: {
+    status: 'partial' | 'connect';
+    depotItems: number;
+    driverKits: number;
+    projectedNeed: number;
+    lowStockItems: number;
+    coverageDays: number;
+    confidence: 'medium' | 'low';
+    recommendation: string;
+  };
 };
 
 const latestByDate = <T,>(items: T[], pickDate: (item: T) => string | null | undefined): T | undefined =>
@@ -404,6 +414,30 @@ export function useOperationalDashboard(
           : highMileageVehicles.length > 0
             ? 'Contrôler les véhicules proches entretien avant hausse carburant.'
             : 'Connecter les reçus carburant pour passer de proxy à coût réel.',
+    };
+    const stockProjectedNeed = Math.max(0, pickupTasks.length * 2 + deliveryTasks.length);
+    const depotItems = 3;
+    const driverKits = availableDrivers.length;
+    const simulatedDepotStock = 180;
+    const simulatedDriverKitStock = driverKits * 8;
+    const lowStockItems = [
+      simulatedDepotStock < Math.max(40, stockProjectedNeed * 3),
+      simulatedDriverKitStock < Math.max(20, stockProjectedNeed),
+    ].filter(Boolean).length;
+    const stockControl: OperationalModel['stockControl'] = {
+      status: periodTasks.length > 0 || availableDrivers.length > 0 ? 'partial' : 'connect',
+      depotItems,
+      driverKits,
+      projectedNeed: stockProjectedNeed,
+      lowStockItems,
+      coverageDays: stockProjectedNeed > 0 ? Math.max(1, Math.floor((simulatedDepotStock + simulatedDriverKitStock) / stockProjectedNeed)) : 0,
+      confidence: periodTasks.length > 0 ? 'medium' : 'low',
+      recommendation:
+        periodTasks.length === 0
+          ? 'Brancher stock dépôt/chauffeur pour suivre sacs et étiquettes.'
+          : lowStockItems > 0
+            ? 'Préparer un réassort terrain avant saturation des collectes.'
+            : 'Connecter les mouvements stock réels pour confirmer la couverture.',
     };
     const completionRate = percentOf(deliveryDone.length || completedTasks.length, periodOrders.length);
     const onTimeRate = percentOf(completedTasks.length, completedTasks.length + failedTasks.length);
@@ -725,10 +759,10 @@ export function useOperationalDashboard(
       {
         id: 'stock',
         label: 'Stock / Supplies',
-        status: 'connect',
-        source: 'stock endpoint',
-        confidence: 'low',
-        nextAction: 'Créer stock dépôt/chauffeur pour sacs, étiquettes et consommables',
+        status: stockControl.status,
+        source: stockControl.status === 'partial' ? 'mission volume proxy' : 'stock endpoint',
+        confidence: stockControl.confidence,
+        nextAction: stockControl.recommendation,
       },
       {
         id: 'connectivity',
@@ -916,6 +950,7 @@ export function useOperationalDashboard(
       driverBehavior,
       vehicleHealth,
       fuelControl,
+      stockControl,
     };
   }, [
     tasks,
