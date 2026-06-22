@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const API_REQUEST_TIMEOUT_MS = Number(import.meta.env.VITE_API_REQUEST_TIMEOUT_MS || 12_000);
 
 import { DB } from '../constants';
 
@@ -2081,11 +2082,14 @@ class ApiClient {
 
     this.refreshInFlight = (async () => {
       try {
+        const controller = new AbortController();
+        const timeout = globalThis.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
         const response = await fetch(`${this.baseUrl}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh_token: this.refreshToken }),
-        });
+          signal: controller.signal,
+        }).finally(() => globalThis.clearTimeout(timeout));
         if (!response.ok) return false;
         const data = (await response.json()) as LoginResponse;
         this.setTokens(data.access_token, data.refresh_token);
@@ -2116,10 +2120,13 @@ class ApiClient {
       headers.Authorization = `Bearer ${this.accessToken}`;
     }
 
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
     const response = await fetch(url, {
       ...options,
       headers,
-    });
+      signal: options.signal || controller.signal,
+    }).finally(() => globalThis.clearTimeout(timeout));
 
     if (!response.ok) {
       const isAuthEndpoint = endpoint.startsWith('/auth/login') || endpoint.startsWith('/auth/refresh') || endpoint.startsWith('/auth/register');

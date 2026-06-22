@@ -52,8 +52,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       setIsFetching(true);
+      const controller = new AbortController();
+      const timeout = globalThis.setTimeout(() => controller.abort(), 5_000);
       try {
-        const response = await fetch(`/locales/${lang}.json`);
+        const response = await fetch(`/locales/${lang}.json`, { signal: controller.signal });
         if (!response.ok) {
           throw new Error(`Failed to fetch translations for ${lang}`);
         }
@@ -66,6 +68,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setTranslations(prev => ({ ...prev, [lang]: {} })); 
         fetchedLanguages.current.add(lang);
       } finally {
+        globalThis.clearTimeout(timeout);
         setIsFetching(false);
       }
     };
