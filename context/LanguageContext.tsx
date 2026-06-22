@@ -45,35 +45,44 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   useEffect(() => {
-    const fetchTranslations = async (lang: Language) => {
-      // Don't fetch if it has already been requested (successfully or not)
-      if (fetchedLanguages.current.has(lang)) {
-        return;
-      }
+    if (fetchedLanguages.current.has(language)) {
+      return undefined;
+    }
 
+    let isActive = true;
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(() => controller.abort(), 5_000);
+
+    const fetchTranslations = async (lang: Language) => {
       setIsFetching(true);
-      const controller = new AbortController();
-      const timeout = globalThis.setTimeout(() => controller.abort(), 5_000);
       try {
         const response = await fetch(`/locales/${lang}.json`, { signal: controller.signal });
         if (!response.ok) {
           throw new Error(`Failed to fetch translations for ${lang}`);
         }
         const data = await response.json();
+        if (!isActive) return;
         setTranslations(prev => ({ ...prev, [lang]: data }));
         fetchedLanguages.current.add(lang);
       } catch (error) {
+        if (controller.signal.aborted) return;
         console.error("Failed to load translations:", error);
-        // Set an empty object to mark it as "fetched but failed" to prevent retries
-        setTranslations(prev => ({ ...prev, [lang]: {} })); 
+        if (!isActive) return;
+        // Set an empty object to mark it as "fetched but failed" to prevent retries.
+        setTranslations(prev => ({ ...prev, [lang]: {} }));
         fetchedLanguages.current.add(lang);
       } finally {
         globalThis.clearTimeout(timeout);
-        setIsFetching(false);
+        if (isActive) setIsFetching(false);
       }
     };
 
     fetchTranslations(language);
+    return () => {
+      isActive = false;
+      globalThis.clearTimeout(timeout);
+      controller.abort();
+    };
   }, [language]);
 
   // FIX: Added explicit 'string' return type to useCallback to fix type inference issues.
