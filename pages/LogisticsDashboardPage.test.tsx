@@ -78,6 +78,61 @@ const mocks = vi.hoisted(() => {
     getTrips: vi.fn(async () => ({ trips: [] })),
     getTrackingPoints: vi.fn(async () => ({ tracking_points: [] })),
     getMaintenanceEvents: vi.fn(async () => ({ maintenance_events: [] })),
+    getDriverBehavior: vi.fn(async () => ({
+      scoredDrivers: 1,
+      averageScore: 96,
+      punctualityRate: 98,
+      delayedMissions: 0,
+      cancellationRate: 0,
+      incidentCount: 0,
+      topDrivers: [
+        {
+          driverId: driver.id,
+          driverName: driver.user_name,
+          score: 96,
+          completedMissions: 12,
+          punctualityRate: 98,
+        },
+      ],
+    })),
+    getFuelUsage: vi.fn(async () => ({
+      trackedVehicles: 1,
+      estimatedCost: 18,
+      costPerMission: 9,
+      costPerKm: 0.42,
+      anomalyCount: 0,
+      budgetUsedPercent: 30,
+      byVehicle: [
+        {
+          vehicleId: 'vehicle-default-1',
+          vehiclePlate: 'KIN-207-MT',
+          estimatedCost: 18,
+          distanceKm: 42,
+          anomaly: null,
+        },
+      ],
+    })),
+    getStockLevels: vi.fn(async () => ({
+      depotStock: 180,
+      driverKitStock: 8,
+      projectedNeed: 4,
+      lowStockItems: 0,
+      coverageDays: 47,
+      items: [
+        { id: 'depot-bags', label: 'Sacs dépôt', location: 'depot', quantity: 180, threshold: 40, unit: 'unités' },
+        { id: 'driver-kits', label: 'Kits chauffeurs', location: 'driver', quantity: 8, threshold: 4, unit: 'unités' },
+      ],
+    })),
+    getConnectivityHealth: vi.fn(async () => ({
+      activeDrivers: 1,
+      driversWithRecentSignal: 1,
+      driversWithoutSignal: 0,
+      staleSignals: 0,
+      syncPending: 0,
+      coverageRate: 100,
+      lastPingAt: isoNow,
+      appVersions: [{ version: 'unknown', driverCount: 1 }],
+    })),
     assignLogisticsTask: vi.fn(async () => ({ ...task, status: 'driver_assigned', driver_id: driver.id })),
     getOrders: vi.fn(async () => ({
       orders: [

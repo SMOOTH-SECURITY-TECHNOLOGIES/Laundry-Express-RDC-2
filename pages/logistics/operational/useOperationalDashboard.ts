@@ -7,7 +7,11 @@ import {
   type BackendLoyaltyDashboardResponse,
   type BackendReviewsDashboardResponse,
   type LogisticsDriver,
+  type LogisticsConnectivityHealthSummary,
+  type LogisticsDriverBehaviorSummary,
+  type LogisticsFuelUsageSummary,
   type LogisticsMaintenanceEvent,
+  type LogisticsStockLevelSummary,
   type LogisticsTask,
   type LogisticsTrackingPoint,
   type LogisticsVehicle,
@@ -183,6 +187,10 @@ export function useOperationalDashboard(
   const [reviewsDashboard, setReviewsDashboard] = useState<BackendReviewsDashboardResponse | null>(null);
   const [loyaltyDashboard, setLoyaltyDashboard] = useState<BackendLoyaltyDashboardResponse | null>(null);
   const [campaignDashboard, setCampaignDashboard] = useState<BackendCampaignDashboardResponse | null>(null);
+  const [driverBehaviorSummary, setDriverBehaviorSummary] = useState<LogisticsDriverBehaviorSummary | null>(null);
+  const [fuelUsageSummary, setFuelUsageSummary] = useState<LogisticsFuelUsageSummary | null>(null);
+  const [stockLevelSummary, setStockLevelSummary] = useState<LogisticsStockLevelSummary | null>(null);
+  const [connectivityHealthSummary, setConnectivityHealthSummary] = useState<LogisticsConnectivityHealthSummary | null>(null);
   const [reviewsAvailable, setReviewsAvailable] = useState(true);
   const [loyaltyAvailable, setLoyaltyAvailable] = useState(true);
   const [campaignsAvailable, setCampaignsAvailable] = useState(true);
@@ -211,6 +219,10 @@ export function useOperationalDashboard(
       realApi.getMaintenanceEvents(),
       realApi.getSupportTickets(),
       realApi.getTrackingPoints(),
+      realApi.getDriverBehavior(),
+      realApi.getFuelUsage(),
+      realApi.getStockLevels(),
+      realApi.getConnectivityHealth(),
     ]);
 
     const [
@@ -219,6 +231,10 @@ export function useOperationalDashboard(
       maintenanceResult,
       ticketsResult,
       trackingResult,
+      driverBehaviorResult,
+      fuelUsageResult,
+      stockLevelsResult,
+      connectivityHealthResult,
     ] = coreResults;
 
     const track = (result: PromiseSettledResult<unknown>) => {
@@ -234,6 +250,30 @@ export function useOperationalDashboard(
     track(maintenanceResult);
     if (ticketsResult.status === 'fulfilled') setTickets(ticketsResult.value || []);
     track(ticketsResult);
+    if (driverBehaviorResult.status === 'fulfilled') {
+      setDriverBehaviorSummary(driverBehaviorResult.value);
+    } else {
+      setDriverBehaviorSummary(null);
+    }
+    track(driverBehaviorResult);
+    if (fuelUsageResult.status === 'fulfilled') {
+      setFuelUsageSummary(fuelUsageResult.value);
+    } else {
+      setFuelUsageSummary(null);
+    }
+    track(fuelUsageResult);
+    if (stockLevelsResult.status === 'fulfilled') {
+      setStockLevelSummary(stockLevelsResult.value);
+    } else {
+      setStockLevelSummary(null);
+    }
+    track(stockLevelsResult);
+    if (connectivityHealthResult.status === 'fulfilled') {
+      setConnectivityHealthSummary(connectivityHealthResult.value);
+    } else {
+      setConnectivityHealthSummary(null);
+    }
+    track(connectivityHealthResult);
 
     if (includeAdminInsights) {
       const adminResults = await Promise.allSettled([
@@ -411,7 +451,7 @@ export function useOperationalDashboard(
       const remainingKm = vehicle.maintenance.nextServiceAtKm - vehicle.mileageKm;
       return remainingKm < 250 && vehicle.maintenance.status !== 'overdue';
     });
-    const fuelControl: OperationalModel['fuelControl'] = {
+    const localFuelControl: OperationalModel['fuelControl'] = {
       status: periodTasks.length > 0 || vehicles.length > 0 ? 'partial' : 'connect',
       estimatedKm: Math.round(missionKmEstimate * 10) / 10,
       estimatedCost: Math.round(fuelEstimatedCost * 100) / 100,
@@ -427,6 +467,22 @@ export function useOperationalDashboard(
             ? 'Contrôler les véhicules proches entretien avant hausse carburant.'
             : 'Connecter les reçus carburant pour passer de proxy à coût réel.',
     };
+    const fuelControl: OperationalModel['fuelControl'] = fuelUsageSummary
+      ? {
+          status: fuelUsageSummary.trackedVehicles > 0 || fuelUsageSummary.estimatedCost > 0 ? 'partial' : 'connect',
+          estimatedKm: Math.round(fuelUsageSummary.byVehicle.reduce((sum, vehicle) => sum + vehicle.distanceKm, 0) * 10) / 10,
+          estimatedCost: fuelUsageSummary.estimatedCost,
+          costPerMission: fuelUsageSummary.costPerMission,
+          costPerKm: fuelUsageSummary.costPerKm,
+          trackedVehicles: fuelUsageSummary.trackedVehicles,
+          anomalyCount: fuelUsageSummary.anomalyCount,
+          confidence: 'medium',
+          recommendation:
+            fuelUsageSummary.anomalyCount > 0
+              ? 'Analyser les anomalies carburant et vérifier les véhicules concernés.'
+              : 'Fuel usage backend connecté. Ajouter reçus et budget réel pour affiner.',
+        }
+      : localFuelControl;
     const stockProjectedNeed = Math.max(0, pickupTasks.length * 2 + deliveryTasks.length);
     const depotItems = 3;
     const driverKits = availableDrivers.length;
@@ -436,7 +492,7 @@ export function useOperationalDashboard(
       simulatedDepotStock < Math.max(40, stockProjectedNeed * 3),
       simulatedDriverKitStock < Math.max(20, stockProjectedNeed),
     ].filter(Boolean).length;
-    const stockControl: OperationalModel['stockControl'] = {
+    const localStockControl: OperationalModel['stockControl'] = {
       status: periodTasks.length > 0 || availableDrivers.length > 0 ? 'partial' : 'connect',
       depotItems,
       driverKits,
@@ -451,6 +507,21 @@ export function useOperationalDashboard(
             ? 'Préparer un réassort terrain avant saturation des collectes.'
             : 'Connecter les mouvements stock réels pour confirmer la couverture.',
     };
+    const stockControl: OperationalModel['stockControl'] = stockLevelSummary
+      ? {
+          status: stockLevelSummary.items.length > 0 ? 'partial' : 'connect',
+          depotItems: stockLevelSummary.items.filter((item) => item.location === 'depot').length,
+          driverKits: stockLevelSummary.driverKitStock,
+          projectedNeed: stockLevelSummary.projectedNeed,
+          lowStockItems: stockLevelSummary.lowStockItems,
+          coverageDays: stockLevelSummary.coverageDays,
+          confidence: 'medium',
+          recommendation:
+            stockLevelSummary.lowStockItems > 0
+              ? 'Réassort requis sur les consommables terrain en dessous du seuil.'
+              : 'Stock backend connecté. Ajouter mouvements entrée/sortie pour audit complet.',
+        }
+      : localStockControl;
     const completionRate = percentOf(deliveryDone.length || completedTasks.length, periodOrders.length);
     const onTimeRate = percentOf(completedTasks.length, completedTasks.length + failedTasks.length);
     const behaviorScore = activeDrivers.length
@@ -696,7 +767,7 @@ export function useOperationalDashboard(
       liveDriverNames.size || gpsLivePoints.length,
       activeDrivers.length || driverPositions.length,
     );
-    const connectivity: OperationalModel['connectivity'] = {
+    const localConnectivity: OperationalModel['connectivity'] = {
       status: hasTrackingPoints || activeDrivers.length > 0 ? 'partial' : 'connect',
       activeDrivers: activeDrivers.length,
       driversWithRecentSignal: liveDriverNames.size || gpsLivePoints.length,
@@ -713,6 +784,25 @@ export function useOperationalDashboard(
             ? 'Relancer les chauffeurs sans ping récent et vérifier sync pending.'
             : 'Ajouter version app et statut offline pour compléter la connectivité.',
     };
+    const connectivity: OperationalModel['connectivity'] = connectivityHealthSummary
+      ? {
+          status: connectivityHealthSummary.activeDrivers > 0 ? 'partial' : 'connect',
+          activeDrivers: connectivityHealthSummary.activeDrivers,
+          driversWithRecentSignal: connectivityHealthSummary.driversWithRecentSignal,
+          driversWithoutSignal: connectivityHealthSummary.driversWithoutSignal,
+          staleSignals: connectivityHealthSummary.staleSignals,
+          syncPending: connectivityHealthSummary.syncPending,
+          coverageRate: connectivityHealthSummary.coverageRate,
+          lastPingAgo: connectivityHealthSummary.lastPingAt
+            ? minutesAgoLabel(connectivityHealthSummary.lastPingAt) || 'récemment'
+            : 'aucun ping',
+          confidence: 'medium',
+          recommendation:
+            connectivityHealthSummary.syncPending > 0
+              ? 'Relancer les chauffeurs sans ping récent et traiter la sync pending.'
+              : 'Connectivity backend connecté. Ajouter version app par chauffeur pour diagnostic.',
+        }
+      : localConnectivity;
     const behaviorReadyDrivers = activeDrivers.filter((driver) => Number(driver.rating_count || 0) > 0);
     const driverTaskIds = new Set(activeDrivers.map((driver) => driver.id));
     const completedDriverMissions = completedTasks.filter((task) => task.driver_id && driverTaskIds.has(task.driver_id));
@@ -728,7 +818,7 @@ export function useOperationalDashboard(
           ) / behaviorReadyDrivers.length,
         )
       : 0;
-    const driverBehavior: OperationalModel['driverBehavior'] = {
+    const localDriverBehavior: OperationalModel['driverBehavior'] = {
       status: behaviorReadyDrivers.length > 0 ? (completedDriverMissions.length > 0 ? 'active' : 'partial') : 'connect',
       scoredDrivers: behaviorReadyDrivers.length,
       totalDrivers: activeDrivers.length,
@@ -745,6 +835,23 @@ export function useOperationalDashboard(
             ? 'Auditer les chauffeurs avec incidents et retards récents.'
             : 'Ajouter temps pickup/livraison par chauffeur pour affiner le score.',
     };
+    const driverBehavior: OperationalModel['driverBehavior'] = driverBehaviorSummary
+      ? {
+          status: driverBehaviorSummary.scoredDrivers > 0 ? 'active' : 'connect',
+          scoredDrivers: driverBehaviorSummary.scoredDrivers,
+          totalDrivers: activeDrivers.length,
+          averageScore: driverBehaviorSummary.averageScore,
+          completedMissions: driverBehaviorSummary.topDrivers.reduce((sum, driver) => sum + driver.completedMissions, 0),
+          incidents: driverBehaviorSummary.incidentCount,
+          cancellations: cancelledDriverMissions.length,
+          punctualityRate: driverBehaviorSummary.punctualityRate,
+          confidence: driverBehaviorSummary.scoredDrivers > 0 ? 'high' : 'low',
+          recommendation:
+            driverBehaviorSummary.incidentCount > 0
+              ? 'Auditer les chauffeurs avec incidents depuis le résumé backend.'
+              : 'Driver behavior backend connecté. Ajouter temps pickup/livraison pour affiner.',
+        }
+      : localDriverBehavior;
     const capabilities: OperationalModel['capabilities'] = [
       {
         id: 'fleet-tracking',
@@ -766,7 +873,7 @@ export function useOperationalDashboard(
         id: 'driver-behavior',
         label: 'Driver Behavior Analytics',
         status: driverBehavior.status,
-        source: behaviorReadyDrivers.length > 0 ? 'driver ratings + missions' : 'driver metrics',
+        source: driverBehaviorSummary ? 'driver-behavior endpoint' : behaviorReadyDrivers.length > 0 ? 'driver ratings + missions' : 'driver metrics',
         confidence: driverBehavior.confidence,
         nextAction: driverBehavior.recommendation,
       },
@@ -774,7 +881,7 @@ export function useOperationalDashboard(
         id: 'fuel-control',
         label: 'Fuel Control',
         status: fuelControl.status,
-        source: fuelControl.status === 'partial' ? 'mission distance proxy + vehicles' : 'fuel usage endpoint',
+        source: fuelUsageSummary ? 'fuel-usage endpoint' : fuelControl.status === 'partial' ? 'mission distance proxy + vehicles' : 'fuel usage endpoint',
         confidence: fuelControl.confidence,
         nextAction: fuelControl.recommendation,
       },
@@ -798,7 +905,7 @@ export function useOperationalDashboard(
         id: 'stock',
         label: 'Stock / Supplies',
         status: stockControl.status,
-        source: stockControl.status === 'partial' ? 'mission volume proxy' : 'stock endpoint',
+        source: stockLevelSummary ? 'stock-levels endpoint' : stockControl.status === 'partial' ? 'mission volume proxy' : 'stock endpoint',
         confidence: stockControl.confidence,
         nextAction: stockControl.recommendation,
       },
@@ -806,7 +913,7 @@ export function useOperationalDashboard(
         id: 'connectivity',
         label: 'Connectivity',
         status: connectivity.status,
-        source: hasTrackingPoints ? 'tracking freshness proxy' : 'driver app heartbeat',
+        source: connectivityHealthSummary ? 'connectivity-health endpoint' : hasTrackingPoints ? 'tracking freshness proxy' : 'driver app heartbeat',
         confidence: connectivity.confidence,
         nextAction: connectivity.recommendation,
       },
@@ -1006,6 +1113,10 @@ export function useOperationalDashboard(
     loyaltyAvailable,
     campaignsAvailable,
     driverPositions,
+    driverBehaviorSummary,
+    fuelUsageSummary,
+    stockLevelSummary,
+    connectivityHealthSummary,
   ]);
 
   return {
