@@ -25,8 +25,8 @@ import { pilotConfig } from '../config/pilot';
 
 const SECTION_LABELS: Record<LogisticsSection, { title: string; subtitle: string }> = {
   dashboard: {
-    title: 'Centre logistique Laundry Express',
-    subtitle: 'Cockpit dispatcher, carte, tournées et supervision opérationnelle.',
+    title: 'Centre opérationnel',
+    subtitle: 'Pilotage temps réel des opérations Laundry Express.',
   },
   missions: {
     title: 'Missions',

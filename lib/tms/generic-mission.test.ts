@@ -28,6 +28,7 @@ describe('generic-mission TMS adapter', () => {
     ]);
     expect(mission.status).toBe('allocated');
     expect(mission.externalRef).toBe('LX-9001');
+    expect(mission.missionType).toBe('pickup');
     expect(mission.priority).toBe('urgent');
   });
 
@@ -35,6 +36,7 @@ describe('generic-mission TMS adapter', () => {
     const dispatchTask = mapLogisticsTaskViaTms(sampleTask);
     expect(dispatchTask.id).toBe('LX-9001');
     expect(dispatchTask.shipmentId).toBe('task-uuid-1');
+    expect(dispatchTask.missionType).toBe('pickup');
     expect(dispatchTask.status).toBe('assigned');
     expect(dispatchTask.customerName).toBe('Marie Kabongo');
   });
@@ -44,6 +46,7 @@ describe('generic-mission TMS adapter', () => {
       id: 't1',
       externalRef: 'MSN-1',
       orderId: 'o1',
+      missionType: 'delivery',
       status: 'executing',
       priority: 'normal',
       customerName: 'Client',
@@ -53,5 +56,6 @@ describe('generic-mission TMS adapter', () => {
       distanceKm: 2,
     });
     expect(dispatch.status).toBe('in_transit');
+    expect(dispatch.missionType).toBe('delivery');
   });
 });

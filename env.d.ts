@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string
+  readonly VITE_API_REQUEST_TIMEOUT_MS: string
   readonly VITE_API_URL: string
   readonly VITE_API_PROXY_TARGET: string
   readonly VITE_LOGISTICS_WS_URL: string

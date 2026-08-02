@@ -1,6 +1,6 @@
-// Service Worker v3 — Offline-first with network fallback
+// Service Worker v4 — Network-first shell with offline fallback
 
-const CACHE_NAME = 'laundry-express-cache-v3';
+const CACHE_NAME = 'laundry-express-cache-v4';
 const STATIC_CACHE = `${CACHE_NAME}-static`;
 const DYNAMIC_CACHE = `${CACHE_NAME}-dynamic`;
 const IMAGE_CACHE = `${CACHE_NAME}-images`;
@@ -21,8 +21,13 @@ self.addEventListener('install', (event) => {
         console.log('[SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
-      .then(() => self.skipWaiting())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate: Clean old caches
@@ -37,7 +42,7 @@ self.addEventListener('activate', (event) => {
             return caches.delete(name);
           })
       )
-    ).then(() => self.clients.claim())
+    )
   );
 });
 
@@ -54,6 +59,12 @@ self.addEventListener('fetch', (event) => {
 
   // API requests: Network-first with cache fallback
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/v1/')) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  // App shell / HTML: network-first so deployments do not keep a stale bundle forever.
+  if (request.mode === 'navigate' || request.destination === 'document' || url.pathname === '/' || url.pathname === '/index.html') {
     event.respondWith(networkFirst(request));
     return;
   }

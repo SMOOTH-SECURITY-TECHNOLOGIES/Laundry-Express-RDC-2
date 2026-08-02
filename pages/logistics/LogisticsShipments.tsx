@@ -10,6 +10,7 @@ const fallbackShipments: LogisticsShipmentRow[] = [
   {
     id: 'shp-001',
     orderId: 'LX-2001',
+    missionType: 'pickup',
     customerName: 'Marie C.',
     status: 'pending',
     pickupZone: 'Gombe',
@@ -28,6 +29,7 @@ const fallbackShipments: LogisticsShipmentRow[] = [
   {
     id: 'shp-002',
     orderId: 'LX-2007',
+    missionType: 'delivery',
     customerName: 'Francois G.',
     status: 'assigned',
     pickupZone: 'Limete',
@@ -46,6 +48,7 @@ const fallbackShipments: LogisticsShipmentRow[] = [
   {
     id: 'shp-003',
     orderId: 'LX-2014',
+    missionType: 'delivery',
     customerName: 'Monique V.',
     status: 'delayed',
     pickupZone: 'Ngaliema',
@@ -82,6 +85,9 @@ const statusTone: Record<Shipment['status'], string> = {
   failed: 'bg-red-100 text-red-700',
   cancelled: 'bg-slate-200 text-slate-700',
 };
+
+const missionTypeLabel = (type?: Shipment['missionType']) =>
+  type === 'delivery' ? 'Livraison' : type === 'pickup' ? 'Collecte' : 'Mission';
 
 const filters: Array<[ShipmentFilter, string]> = [
   ['all', 'Tous'],
@@ -227,7 +233,7 @@ export const LogisticsShipments: React.FC = () => {
               <Icon name="archive-box" className="h-5 w-5 text-brand-blue" />
               <h2 className="text-lg font-black text-content-primary">Shipments V1</h2>
             </div>
-            <p className="mt-1 text-sm text-content-muted">Suivi opérationnel des livraisons, dérivé des missions dispatch.</p>
+            <p className="mt-1 text-sm text-content-muted">Suivi opérationnel des collectes et livraisons, dérivé des missions dispatch.</p>
           </div>
           <span className="w-fit rounded-full bg-surface-muted px-3 py-1 text-xs font-black text-content-muted">
             {visibleShipments.length}/{effectiveShipments.length} livraisons
@@ -290,7 +296,9 @@ export const LogisticsShipments: React.FC = () => {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-base font-black text-content-primary">{shipment.id}</p>
-                  <p className="mt-1 text-xs font-bold text-content-muted">{shipment.orderId} · {shipment.customerName}</p>
+                  <p className="mt-1 text-xs font-bold text-content-muted">
+                    {shipment.orderId} · {missionTypeLabel(shipment.missionType)} · {shipment.customerName}
+                  </p>
                 </div>
                 <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${statusTone[shipment.status]}`}>
                   {statusLabel[shipment.status]}
@@ -336,11 +344,11 @@ export const LogisticsShipments: React.FC = () => {
                 <tr key={shipment.id}>
                   <td className="px-5 py-4">
                     <p className="font-black text-content-primary">{shipment.id}</p>
-                    <p className="text-xs font-bold text-content-muted">{shipment.orderId}</p>
+                    <p className="text-xs font-bold text-content-muted">{shipment.orderId} · {missionTypeLabel(shipment.missionType)}</p>
                   </td>
                   <td className="px-5 py-4 text-content-muted">{shipment.customerName}</td>
                   <td className="px-5 py-4 text-content-muted">
-                    <p>{shipment.pickupZone} vers {shipment.deliveryZone}</p>
+                    <p>{missionTypeLabel(shipment.missionType)} · {shipment.pickupZone} vers {shipment.deliveryZone}</p>
                     <p className="text-xs">{shipment.etaMinutes ?? 0} min · incidents {shipment.incidentCount ?? 0}</p>
                   </td>
                   <td className="px-5 py-4 text-content-muted">
@@ -383,6 +391,7 @@ export const LogisticsShipments: React.FC = () => {
 
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {[
+              ['Type', missionTypeLabel(selectedShipment.missionType)],
               ['Pickup', selectedShipment.pickupAddress || selectedShipment.pickupZone],
               ['Delivery', selectedShipment.deliveryAddress || selectedShipment.deliveryZone],
               ['Chauffeur', selectedShipment.driverName || 'À assigner'],

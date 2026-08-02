@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getDispatchTasks,
+  getConnectivityHealth,
+  getDriverBehavior,
+  getFuelUsage,
   getLogisticsDrivers,
   getMissionRows,
   getShipments,
+  getStockLevels,
   mapLogisticsDriver,
   mapLogisticsTask,
 } from './logistics-api';
@@ -17,6 +21,10 @@ vi.mock('./real-api', () => ({
     getTrips: vi.fn(),
     getTrackingPoints: vi.fn(),
     getMaintenanceEvents: vi.fn(),
+    getDriverBehavior: vi.fn(),
+    getFuelUsage: vi.fn(),
+    getStockLevels: vi.fn(),
+    getConnectivityHealth: vi.fn(),
   },
 }));
 
@@ -75,6 +83,7 @@ describe('logistics-api contract mappers', () => {
       orderId: 'order-1',
       shipmentId: 'task-backend-1',
       status: 'assigned',
+      missionType: 'pickup',
       customerName: 'Client Backend',
       pickupAddress: 'Av. Backend 1',
       pickupZone: 'Gombe',
@@ -116,6 +125,7 @@ describe('logistics-api contract mappers', () => {
       orderId: 'LX-9001',
       customerName: 'Client Backend',
       status: 'assigned',
+      missionType: 'pickup',
     });
   });
 
@@ -157,6 +167,88 @@ describe('logistics-api contract mappers', () => {
 
     expect(result.mode).toBe('degraded');
     expect(result.reason).toBe('network down');
+    expect(result.data).toBe(fallback);
+  });
+
+  it('passes through advanced TMS backend contracts when available', async () => {
+    vi.mocked(realApi.getDriverBehavior).mockResolvedValue({
+      scoredDrivers: 2,
+      averageScore: 91,
+      punctualityRate: 94,
+      delayedMissions: 1,
+      cancellationRate: 0,
+      incidentCount: 0,
+      topDrivers: [
+        {
+          driverId: 'drv-backend-1',
+          driverName: 'Backend Driver',
+          score: 96,
+          completedMissions: 12,
+          punctualityRate: 98,
+        },
+      ],
+    });
+    vi.mocked(realApi.getFuelUsage).mockResolvedValue({
+      trackedVehicles: 3,
+      estimatedCost: 12500,
+      costPerMission: 625,
+      costPerKm: 820,
+      anomalyCount: 1,
+      budgetUsedPercent: 42,
+      byVehicle: [],
+    });
+    vi.mocked(realApi.getStockLevels).mockResolvedValue({
+      depotStock: 180,
+      driverKitStock: 48,
+      projectedNeed: 30,
+      lowStockItems: 0,
+      coverageDays: 7,
+      items: [],
+    });
+    vi.mocked(realApi.getConnectivityHealth).mockResolvedValue({
+      activeDrivers: 4,
+      driversWithRecentSignal: 3,
+      driversWithoutSignal: 1,
+      staleSignals: 1,
+      syncPending: 2,
+      coverageRate: 75,
+      lastPingAt: '2026-06-16T10:00:00.000Z',
+    });
+
+    await expect(getDriverBehavior({} as Awaited<ReturnType<typeof realApi.getDriverBehavior>>)).resolves.toMatchObject({
+      mode: 'backend',
+      data: { averageScore: 91 },
+    });
+    await expect(getFuelUsage({} as Awaited<ReturnType<typeof realApi.getFuelUsage>>)).resolves.toMatchObject({
+      mode: 'backend',
+      data: { costPerMission: 625 },
+    });
+    await expect(getStockLevels({} as Awaited<ReturnType<typeof realApi.getStockLevels>>)).resolves.toMatchObject({
+      mode: 'backend',
+      data: { coverageDays: 7 },
+    });
+    await expect(getConnectivityHealth({} as Awaited<ReturnType<typeof realApi.getConnectivityHealth>>)).resolves.toMatchObject({
+      mode: 'backend',
+      data: { syncPending: 2 },
+    });
+  });
+
+  it('keeps advanced TMS contracts degraded when backend modules are missing', async () => {
+    vi.mocked(realApi.getConnectivityHealth).mockRejectedValue(new Error('404 not found'));
+    const fallback = {
+      activeDrivers: 0,
+      driversWithRecentSignal: 0,
+      driversWithoutSignal: 0,
+      staleSignals: 0,
+      syncPending: 0,
+      coverageRate: 0,
+      lastPingAt: null,
+    };
+
+    const result = await getConnectivityHealth(fallback);
+
+    expect(result.mode).toBe('degraded');
+    expect(result.reason).toBe('404 not found');
     expect(result.data).toBe(fallback);
   });
 });

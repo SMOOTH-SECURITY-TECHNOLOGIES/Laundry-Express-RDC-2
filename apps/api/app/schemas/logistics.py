@@ -367,3 +367,75 @@ class MaintenanceEventResponse(BaseModel):
 class MaintenanceEventListResponse(BaseModel):
     """Schéma de réponse pour la liste des événements de maintenance"""
     maintenance_events: List[MaintenanceEventResponse]
+
+
+# ===== Advanced TMS Capability Schemas =====
+
+class DriverBehaviorTopDriver(BaseModel):
+    driverId: UUID
+    driverName: str
+    score: int
+    completedMissions: int
+    punctualityRate: int
+
+
+class DriverBehaviorSummaryResponse(BaseModel):
+    scoredDrivers: int
+    averageScore: int
+    punctualityRate: int
+    delayedMissions: int
+    cancellationRate: int
+    incidentCount: int
+    topDrivers: List[DriverBehaviorTopDriver]
+
+
+class FuelUsageVehicleResponse(BaseModel):
+    vehicleId: UUID
+    vehiclePlate: str
+    estimatedCost: float
+    distanceKm: float
+    anomaly: Optional[str] = None
+
+
+class FuelUsageSummaryResponse(BaseModel):
+    trackedVehicles: int
+    estimatedCost: float
+    costPerMission: float
+    costPerKm: float
+    anomalyCount: int
+    budgetUsedPercent: int
+    byVehicle: List[FuelUsageVehicleResponse]
+
+
+class StockLevelItemResponse(BaseModel):
+    id: str
+    label: str
+    location: str
+    quantity: int
+    threshold: int
+    unit: str
+
+
+class StockLevelSummaryResponse(BaseModel):
+    depotStock: int
+    driverKitStock: int
+    projectedNeed: int
+    lowStockItems: int
+    coverageDays: int
+    items: List[StockLevelItemResponse]
+
+
+class ConnectivityAppVersionResponse(BaseModel):
+    version: str
+    driverCount: int
+
+
+class ConnectivityHealthSummaryResponse(BaseModel):
+    activeDrivers: int
+    driversWithRecentSignal: int
+    driversWithoutSignal: int
+    staleSignals: int
+    syncPending: int
+    coverageRate: int
+    lastPingAt: Optional[str] = None
+    appVersions: List[ConnectivityAppVersionResponse] = Field(default_factory=list)

@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const API_REQUEST_TIMEOUT_MS = Number(import.meta.env.VITE_API_REQUEST_TIMEOUT_MS || 12_000);
 
 import { DB } from '../constants';
 
@@ -1940,6 +1941,68 @@ export interface LogisticsMaintenanceEventListResponse {
   maintenance_events: LogisticsMaintenanceEvent[];
 }
 
+export interface LogisticsDriverBehaviorSummary {
+  scoredDrivers: number;
+  averageScore: number;
+  punctualityRate: number;
+  delayedMissions: number;
+  cancellationRate: number;
+  incidentCount: number;
+  topDrivers: Array<{
+    driverId: string;
+    driverName: string;
+    score: number;
+    completedMissions: number;
+    punctualityRate: number;
+  }>;
+}
+
+export interface LogisticsFuelUsageSummary {
+  trackedVehicles: number;
+  estimatedCost: number;
+  costPerMission: number;
+  costPerKm: number;
+  anomalyCount: number;
+  budgetUsedPercent: number;
+  byVehicle: Array<{
+    vehicleId: string;
+    vehiclePlate: string;
+    estimatedCost: number;
+    distanceKm: number;
+    anomaly?: string | null;
+  }>;
+}
+
+export interface LogisticsStockLevelSummary {
+  depotStock: number;
+  driverKitStock: number;
+  projectedNeed: number;
+  lowStockItems: number;
+  coverageDays: number;
+  items: Array<{
+    id: string;
+    label: string;
+    location: 'depot' | 'driver' | 'vehicle';
+    quantity: number;
+    threshold: number;
+    unit: string;
+  }>;
+}
+
+export interface LogisticsConnectivityHealthSummary {
+  activeDrivers: number;
+  driversWithRecentSignal: number;
+  driversWithoutSignal: number;
+  staleSignals: number;
+  syncPending: number;
+  coverageRate: number;
+  lastPingAt?: string | null;
+  appVersions?: Array<{
+    version: string;
+    driverCount: number;
+  }>;
+}
+
 export interface MarketplaceCompany {
   id: string;
   name: string;
@@ -2019,11 +2082,14 @@ class ApiClient {
 
     this.refreshInFlight = (async () => {
       try {
+        const controller = new AbortController();
+        const timeout = globalThis.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
         const response = await fetch(`${this.baseUrl}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh_token: this.refreshToken }),
-        });
+          signal: controller.signal,
+        }).finally(() => globalThis.clearTimeout(timeout));
         if (!response.ok) return false;
         const data = (await response.json()) as LoginResponse;
         this.setTokens(data.access_token, data.refresh_token);
@@ -2054,10 +2120,13 @@ class ApiClient {
       headers.Authorization = `Bearer ${this.accessToken}`;
     }
 
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
     const response = await fetch(url, {
       ...options,
       headers,
-    });
+      signal: options.signal || controller.signal,
+    }).finally(() => globalThis.clearTimeout(timeout));
 
     if (!response.ok) {
       const isAuthEndpoint = endpoint.startsWith('/auth/login') || endpoint.startsWith('/auth/refresh') || endpoint.startsWith('/auth/register');
@@ -3565,6 +3634,22 @@ class ApiClient {
 
   async getMaintenanceEvents(): Promise<LogisticsMaintenanceEventListResponse> {
     return this.request<LogisticsMaintenanceEventListResponse>('/logistics/maintenance-events');
+  }
+
+  async getDriverBehavior(): Promise<LogisticsDriverBehaviorSummary> {
+    return this.request<LogisticsDriverBehaviorSummary>('/logistics/driver-behavior');
+  }
+
+  async getFuelUsage(): Promise<LogisticsFuelUsageSummary> {
+    return this.request<LogisticsFuelUsageSummary>('/logistics/fuel-usage');
+  }
+
+  async getStockLevels(): Promise<LogisticsStockLevelSummary> {
+    return this.request<LogisticsStockLevelSummary>('/logistics/stock-levels');
+  }
+
+  async getConnectivityHealth(): Promise<LogisticsConnectivityHealthSummary> {
+    return this.request<LogisticsConnectivityHealthSummary>('/logistics/connectivity-health');
   }
 
   async updateDriverAvailability(available: boolean): Promise<{ available: boolean }> {

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { PartnerDetailPage } from './pages/PartnerDetailPage';
 import { Header } from './components/Header';
 import { HomePage } from './pages/HomePage';
@@ -41,10 +41,21 @@ const App: React.FC = () => {
   const initialRoutingHandled = useRef(false);
   const partnersRef = useRef(partners);
   const orderHistoryRef = useRef(orderHistory);
+  const [showBootLoader, setShowBootLoader] = useState(false);
 
   useEffect(() => {
     partnersRef.current = partners;
   }, [partners]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setShowBootLoader(false);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setShowBootLoader(true), 180);
+    return () => window.clearTimeout(timer);
+  }, [isLoading]);
 
   useEffect(() => {
     orderHistoryRef.current = orderHistory;
@@ -398,6 +409,10 @@ const App: React.FC = () => {
   };
   
   if (isLoading) {
+    if (!showBootLoader) {
+      return <div className="min-h-screen bg-surface-page" aria-hidden="true" />;
+    }
+
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-surface-page text-content-primary font-sans">
         <Icon name="logo" className="w-20 h-20 text-brand-blue animate-pulse" />

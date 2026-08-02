@@ -66,6 +66,8 @@ const SectionHeading: React.FC<{ title: string; subtitle?: string; light?: boole
   </div>
 );
 
+let hasTrackedHomeView = false;
+
 export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
   const {
     isLoading,
@@ -119,8 +121,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ setCurrentPage }) => {
         : undefined,
     });
     document.head.appendChild(schema);
-    trackEvent('home_view', { source: 'public_homepage' });
   }, [reviews, services]);
+
+  useEffect(() => {
+    if (hasTrackedHomeView) return;
+    hasTrackedHomeView = true;
+    trackEvent('home_view', { source: 'public_homepage' });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

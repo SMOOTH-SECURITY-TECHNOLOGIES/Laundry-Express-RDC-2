@@ -19,6 +19,7 @@ export interface TmsMission {
   id: string;
   externalRef: string;
   orderId: string;
+  missionType: 'pickup' | 'delivery';
   status: TmsMissionStatus;
   priority: 'normal' | 'high' | 'urgent';
   customerName: string;
@@ -77,6 +78,7 @@ export function logisticsTaskToTmsMission(task: LogisticsTask, drivers: Driver[]
     id: task.id,
     externalRef: task.order_number || task.id,
     orderId: task.order_id,
+    missionType: task.task_type,
     status: laundryStatusToTms(task.status),
     priority: queueMinutes >= 20 ? 'urgent' : queueMinutes >= 10 ? 'high' : 'normal',
     customerName: task.customer_name || task.pickup_contact_name || 'Client',
@@ -101,6 +103,7 @@ export function tmsMissionToDispatchTask(mission: TmsMission): DispatchTask {
     id: mission.externalRef,
     orderId: mission.orderId,
     shipmentId: mission.id,
+    missionType: mission.missionType,
     status: tmsStatusToDispatch(mission.status),
     customerName: mission.customerName,
     pickupAddress: mission.pickup.label,

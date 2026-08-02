@@ -53,6 +53,7 @@ const fallbackTrips: DetailedTrip[] = [
   {
     id: 'trip-001',
     taskId: 'MSN-004',
+    missionType: 'pickup',
     status: 'delayed',
     origin: 'Gombe',
     destination: 'Lingwala',
@@ -74,6 +75,7 @@ const fallbackTrips: DetailedTrip[] = [
   {
     id: 'trip-002',
     taskId: 'MSN-014',
+    missionType: 'delivery',
     status: 'in_transit',
     origin: 'Limete',
     destination: 'Gombe',
@@ -95,6 +97,7 @@ const fallbackTrips: DetailedTrip[] = [
   {
     id: 'trip-003',
     taskId: 'MSN-021',
+    missionType: 'pickup',
     status: 'assigned',
     origin: 'Barumbu',
     destination: 'Gombe',
@@ -132,6 +135,9 @@ const statusTone: Record<LogisticsStatus, string> = {
   failed: 'bg-red-100 text-red-700',
   cancelled: 'bg-slate-200 text-slate-700',
 };
+
+const missionTypeLabel = (type?: Trip['missionType']) =>
+  type === 'delivery' ? 'Livraison' : type === 'pickup' ? 'Collecte' : 'Mission';
 
 const contactLabels: Record<ContactTarget, string> = {
   driver: 'chauffeur',
@@ -371,7 +377,7 @@ export const LogisticsTripDetails: React.FC = () => {
                 <Icon name="document-text" className="h-5 w-5 text-brand-blue" />
                 <h2 className="text-lg font-black text-content-primary">Trip Details</h2>
               </div>
-              <p className="mt-1 text-sm text-content-muted">Origine, destination, chauffeur, véhicule, client et statut du trajet.</p>
+              <p className="mt-1 text-sm text-content-muted">Type de mission, origine, destination, chauffeur, véhicule, client et statut du trajet.</p>
             </div>
             <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${statusTone[selectedTrip.status]}`}>
               {statusLabel[selectedTrip.status]}
@@ -381,9 +387,10 @@ export const LogisticsTripDetails: React.FC = () => {
           <div className="grid gap-5 p-5 lg:grid-cols-3">
             <div className="rounded-2xl bg-surface-muted p-5 lg:col-span-2">
               <p className="text-xs font-bold uppercase text-content-muted">Trajet actif</p>
-              <h3 className="mt-2 text-2xl font-black text-content-primary">{selectedTrip.taskId}</h3>
+              <h3 className="mt-2 text-2xl font-black text-content-primary">{missionTypeLabel(selectedTrip.missionType)} {selectedTrip.taskId}</h3>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {[
+                  ['Type', missionTypeLabel(selectedTrip.missionType)],
                   ['Origine', selectedTrip.pickupAddress],
                   ['Destination', selectedTrip.deliveryAddress],
                   ['Distance', `${selectedTrip.distanceKm} km`],
